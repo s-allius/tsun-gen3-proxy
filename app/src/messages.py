@@ -1,12 +1,13 @@
 import struct, logging, time, datetime
 import weakref
-from config import Config
 from datetime import datetime
 
 if __name__ == "app.src.messages":
     from app.src.infos import Infos
+    from app.src.config import Config
 else:
     from infos import Infos
+    from config import Config
 
 logger = logging.getLogger('msg')
     
