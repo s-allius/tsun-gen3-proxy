@@ -32,7 +32,7 @@ services:
     security_opt:  
       - no-new-privileges
     ports:
-      - 127.0.0.1:8123:8123
+      - 8123:8123
     volumes:
       - ${PROJECT_DIR}./homeassistant/config:/config
       - /etc/localtime:/etc/localtime:ro
@@ -81,7 +81,7 @@ services:
       - 8.8.8.8
       - 4.4.4.4
     ports: 
-      - 127.0.0.1:5005:5005
+      - 5005:5005
     volumes:
       - ${PROJECT_DIR}./tsun-proxy/log:/home/tsun-proxy/log 
       - ${PROJECT_DIR}./tsun-proxy/config:/home/tsun-proxy/config 
