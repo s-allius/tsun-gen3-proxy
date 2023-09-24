@@ -68,7 +68,7 @@ services:
     container_name: tsun-proxy
     image: docker.io/sallius/tsun-gen3-proxy:latest
     build: 
-       context: https://gitea.allius.de/allius/tsun-gen3-proxy.git#master:app
+       context: https://github.com/s-allius/tsun-gen3-proxy.git#main:app
        args:
          - UID=1026
     restart: unless-stopped
