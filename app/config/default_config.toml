@@ -1,0 +1,34 @@
+# configuration to reach tsun cloud
+tsun.enabled = true   # false: disables connecting to the tsun cloud, and avoids updates
+tsun.host    = 'logger.talent-monitoring.com'
+tsun.port    = 5005
+
+
+# mqtt broker configuration
+mqtt.host    = 'mqtt'   # URL or IP address of the mqtt broker
+mqtt.port    = 1883
+mqtt.user    = ''
+mqtt.passwd  = ''
+
+
+# home-assistant
+ha.auto_conf_prefix = 'homeassistant'       # MQTT prefix for subscribing for homeassistant status updates
+ha.discovery_prefix = 'homeassistant'       # MQTT prefix for discovery topic 
+ha.entity_prefix    = 'tsun'                # MQTT topic prefix for publishing inverter values
+
+# microinverters
+inverters.allow_all = true   # allow inverters, even if we have no inverter mapping
+
+# inverter mapping, maps a `serial_no* to a `mqtt_id` and defines an optional `suggested_place` for `home-assistant`
+#
+# for each inverter add a block starting with [inverters."<16-digit serial numbeer>"]
+#[inverters."R17xxxxxxxxxxxx1"]
+#node_id = ''          # Optional, MQTT replacement for inverters serial number  
+#suggested_area = ''  # Optional, suggested installation area for home-assistant
+
+#[inverters."R17xxxxxxxxxxxx2"]
+#node_id = ''          # Optional, MQTT replacement for inverters serial number  
+#suggested_area = ''  # Optional, suggested installation area for home-assistant
+
+
+
