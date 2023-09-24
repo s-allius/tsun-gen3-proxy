@@ -25,9 +25,12 @@ Through this, the inverter then establishes a connection to the proxy and the pr
 By means of `docker` a simple installation and operation is possible. By using `docker-composer`, a complete stack of proxy, `MQTT-brocker` and `home-assistant` can be started easily. 
 
 ```
-❗An essential requirement is that the proxy can be looped into the connection between the inverter and TSUN Cloud.
+❗An essential requirement is that the proxy can be looped into the connection
+between the inverter and TSUN Cloud.
 
-There are various ways to do this, for example via DNS host entry or via firewall rules (iptables) in your router. However, depending on the circumstances, not all of them are possible.
+There are various ways to do this, for example via DNS host entry or via firewall
+rules (iptables) in your router. However, depending on the circumstances, not all
+of them are possible.
 
 If you use a PiHole, you can also store the host entry in the PiHole.
 ```
@@ -48,7 +51,7 @@ If you use a PiHole, you can also store the host entry in the PiHole.
 
 This project is licensed under the [BSD 3-clause License](https://opensource.org/licenses/BSD-3-Clause).
 
-Note the used aiomqtt library whichthat the underlying paho-mqtt library is dual-licensed. One of the licenses is the so-called [Eclipse Distribution License v1.0](https://www.eclipse.org/org/documents/edl-v10.php). It is almost word-for-word identical to the BSD 3-clause License. The only differences are:
+Note the aiomqtt library used is based on the paho-mqtt library, which has a dual license. . One of the licenses is the so-called [Eclipse Distribution License v1.0](https://www.eclipse.org/org/documents/edl-v10.php). It is almost word-for-word identical to the BSD 3-clause License. The only differences are:
 
 - One use of "COPYRIGHT OWNER" (EDL) instead of "COPYRIGHT HOLDER" (BSD)
 - One use of "Eclipse Foundation, Inc." (EDL) instead of "copyright holder" (BSD)
