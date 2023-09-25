@@ -28,11 +28,11 @@ By means of `docker` a simple installation and operation is possible. By using `
 ❗An essential requirement is that the proxy can be looped into the connection
 between the inverter and TSUN Cloud.
 
-There are various ways to do this, for example via DNS host entry or via firewall
+There are various ways to do this, for example via an DNS host entry or via firewall
 rules (iptables) in your router. However, depending on the circumstances, not all
 of them are possible.
 
-If you use a PiHole, you can also store the host entry in the PiHole.
+If you use a Pi-hole, you can also store the host entry in the Pi-hole.
 ```
 
 ## Features
@@ -60,6 +60,10 @@ Note the aiomqtt library used is based on the paho-mqtt library, which has a dua
 ## Versioning
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Breaking changes will only occur in major `X.0.0` releases.
+
+## Contributing
+
+We're very happy to receive contributions to this project! You can get started by reading [CONTRIBUTING.md](https://github.com/s-allius/tsun-gen3-proxy/blob/main/CONTRIBUTING.md).
 
 ## Changelog
 
