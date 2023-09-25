@@ -23,8 +23,8 @@ class Infos:
             0x00000028:  {'name':['inverter', 'Serial_Number'],               'level': logging.DEBUG, 'unit': ''},
             0x00000032:  {'name':['inverter', 'Equipment_Model'],             'level': logging.DEBUG, 'unit': ''},
         # env:
-            0x00000514:  {'name':['env', 'Inverter_Temp'],                    'level': logging.DEBUG, 'unit': '°C'},
-            0x000c3500:  {'name':['env', 'Signal_Strength'],                  'level': logging.DEBUG, 'unit': '%'},
+            0x00000514:  {'name':['env', 'Inverter_Temp'],                    'level': logging.DEBUG, 'unit': '°C',  'ha':{'dev_cla': 'temperature', 'stat_cla': 'measurement', 'id':'temp_',   'fmt':'| float','name': 'Inverter Temperature'}},
+            0x000c3500:  {'name':['env', 'Signal_Strength'],                  'level': logging.DEBUG, 'unit': '%' ,  'ha':{'dev_cla': None,          'stat_cla': 'measurement', 'id':'signal_', 'fmt':'| float','name': 'Signal Strength', 'icon':'mdi:wifi'}},
 
         # events:
             0x00000191:  {'name':['events', '401_'],                          'level': logging.DEBUG, 'unit': ''},
@@ -44,10 +44,10 @@ class Infos:
             0x0000019f:  {'name':['events', '415_GridFreqOverRating'],        'level': logging.DEBUG, 'unit': ''},
             0x000001a0:  {'name':['events', '416_'],                          'level': logging.DEBUG, 'unit': ''},
         # grid measures:
-            0x000003e8:  {'name':['grid', 'Voltage'],                         'level': logging.DEBUG, 'unit': 'V'},
-            0x0000044c:  {'name':['grid', 'Current'],                         'level': logging.DEBUG, 'unit': 'A'},
-            0x000004b0:  {'name':['grid', 'Frequency'],                       'level': logging.DEBUG, 'unit': 'Hz'},
-            0x00000640:  {'name':['grid', 'Output_Power'],                    'level': logging.INFO,  'unit': 'W',    'ha':{'dev_cla': 'power', 'stat_cla': 'measurement', 'id':'out_power_', 'fmt':'| float','name': 'Actual Power'}},
+            0x000003e8:  {'name':['grid', 'Voltage'],                         'level': logging.DEBUG, 'unit': 'V',    'ha':{'dev_cla': 'voltage',     'stat_cla': 'measurement', 'id':'out_volt_',  'fmt':'| float','name': 'Grid Voltage'}},
+            0x0000044c:  {'name':['grid', 'Current'],                         'level': logging.DEBUG, 'unit': 'A',    'ha':{'dev_cla': 'current',     'stat_cla': 'measurement', 'id':'out_cur_',   'fmt':'| float','name': 'Grid Current'}},
+            0x000004b0:  {'name':['grid', 'Frequency'],                       'level': logging.DEBUG, 'unit': 'Hz',   'ha':{'dev_cla': 'frequency',   'stat_cla': 'measurement', 'id':'out_freq_',  'fmt':'| float','name': 'Grid Frequency'}},
+            0x00000640:  {'name':['grid', 'Output_Power'],                    'level': logging.INFO,  'unit': 'W',    'ha':{'dev_cla': 'power',       'stat_cla': 'measurement', 'id':'out_power_', 'fmt':'| float','name': 'Actual Power'}},
         # input measures:           
             0x000006a4:  {'name':['input', 'pv1', 'Voltage'],                 'level': logging.DEBUG, 'unit': 'V'},
             0x00000708:  {'name':['input', 'pv1', 'Current'],                 'level': logging.DEBUG, 'unit': 'A'},
