@@ -16,6 +16,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - 
 
+## [0.0.2] - 2023-09-27
+
+### Added
+
+- Dockerfile opencontainer labels
+- Send voltage and current of inputs to mqtt
+
 ## [0.0.1] - 2023-09-25
 
 ### Added
