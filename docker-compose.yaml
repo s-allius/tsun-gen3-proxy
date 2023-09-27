@@ -66,11 +66,11 @@ services:
 #######  T S U N  -  P R O X Y  ######      
   tsun-proxy:
     container_name: tsun-proxy
-    image: docker.io/sallius/tsun-gen3-proxy:latest
+    image: ghcr.io/s-allius/tsun-gen3-proxy:latest
     build: 
        context: https://github.com/s-allius/tsun-gen3-proxy.git#main:app
        args:
-         - UID=1026
+         - UID=1000
     restart: unless-stopped
     depends_on:
       - mqtt
