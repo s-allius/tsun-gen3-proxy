@@ -1,5 +1,5 @@
 ARG SERVICE_NAME="tsun-proxy"
-ARG UID=1026
+ARG UID=1000
 
 # set base image (host OS)
 FROM python:3.11-slim-bookworm AS builder
@@ -25,9 +25,8 @@ ENV UID=$UID
 RUN addgroup --gid 1000 $SERVICE_NAME && \
     adduser --ingroup $SERVICE_NAME --shell /bin/false --disabled-password --uid $UID $SERVICE_NAME && \
     mkdir -p /home/$SERVICE_NAME/log && \
-    chown $SERVICE_NAME:$SERVICE_NAME /home/$SERVICE_NAME/log && \
     mkdir -p /home/$SERVICE_NAME/config && \
-    chown $SERVICE_NAME:$SERVICE_NAME /home/$SERVICE_NAME/config
+    chown --recursive $SERVICE_NAME:$SERVICE_NAME /home/$SERVICE_NAME
 
 # set the working directory in the container
 WORKDIR /home/$SERVICE_NAME
@@ -44,7 +43,7 @@ COPY --chown=$SERVICE_NAME:$SERVICE_NAME src .
 ENV HOME=/home/$SERVICE_NAME
 ENV PATH=/home/$SERVICE_NAME/.local:$PATH
 
-EXPOSE 5005 5005
+EXPOSE 5005
 
 LABEL de.allius.image.authors="Stefan Allius <stefan.allius@t-online.de>"
 
