@@ -45,7 +45,10 @@ ENV PATH=/home/$SERVICE_NAME/.local:$PATH
 
 EXPOSE 5005
 
-LABEL de.allius.image.authors="Stefan Allius <stefan.allius@t-online.de>"
-
 # command to run on container start
 CMD [ "python3", "./server.py" ]
+
+LABEL org.opencontainers.image.authors="Stefan Allius <stefan.allius@t-online.de>"
+LABEL org.opencontainers.image.source https://github.com/s-allius/tsun-gen3-proxy
+LABEL org.opencontainers.image.description 'The "TSUN Gen3 Micro-Inverter" proxy enables a reliable connection between TSUN third generation inverters and an MQTT broker to integrate the inverter into typical home automations'
+LABEL org.opencontainers.image.licenses="BSD-3-Clause"
