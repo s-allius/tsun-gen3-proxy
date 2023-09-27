@@ -49,18 +49,18 @@ class Infos:
             0x000004b0:  {'name':['grid', 'Frequency'],                       'level': logging.DEBUG, 'unit': 'Hz',   'ha':{'dev_cla': 'frequency',   'stat_cla': 'measurement', 'id':'out_freq_',  'fmt':'| float','name': 'Grid Frequency'}},
             0x00000640:  {'name':['grid', 'Output_Power'],                    'level': logging.INFO,  'unit': 'W',    'ha':{'dev_cla': 'power',       'stat_cla': 'measurement', 'id':'out_power_', 'fmt':'| float','name': 'Actual Power'}},
         # input measures:           
-            0x000006a4:  {'name':['input', 'pv1', 'Voltage'],                 'level': logging.DEBUG, 'unit': 'V'},
-            0x00000708:  {'name':['input', 'pv1', 'Current'],                 'level': logging.DEBUG, 'unit': 'A'},
-            0x0000076c:  {'name':['input', 'pv1', 'Power'],                   'level': logging.INFO,  'unit': 'W',    'ha':{'dev_cla': 'power', 'stat_cla': 'measurement', 'id':'power_pv1_','name': 'Power PV1', 'val_tpl' :"{{ (value_json['pv1']['Power'] | float)}}"}},
-            0x000007d0:  {'name':['input', 'pv2', 'Voltage'],                 'level': logging.DEBUG, 'unit': 'V'},
-            0x00000834:  {'name':['input', 'pv2', 'Current'],                 'level': logging.DEBUG, 'unit': 'A'},
-            0x00000898:  {'name':['input', 'pv2', 'Power'],                   'level': logging.INFO,  'unit': 'W',    'ha':{'dev_cla': 'power', 'stat_cla': 'measurement', 'id':'power_pv2_','name': 'Power PV2', 'val_tpl' :"{{ (value_json['pv2']['Power'] | float)}}"}},
-            0x000008fc:  {'name':['input', 'pv3', 'Voltage'],                 'level': logging.DEBUG, 'unit': 'V'},
-            0x00000960:  {'name':['input', 'pv3', 'Curent'],                  'level': logging.DEBUG, 'unit': 'A'},
-            0x000009c4:  {'name':['input', 'pv3', 'Power'],                   'level': logging.DEBUG, 'unit': 'W',    'ha':{'dev_cla': 'power', 'stat_cla': 'measurement', 'id':'power_pv3_','name': 'Power PV3', 'val_tpl' :"{{ (value_json['pv3']['Power'] | float)}}"}},
-            0x00000a28:  {'name':['input', 'pv4', 'Voltage'],                 'level': logging.DEBUG, 'unit': 'V'},
-            0x00000a8c:  {'name':['input', 'pv4', 'Current'],                 'level': logging.DEBUG, 'unit': 'A'},
-            0x00000af0:  {'name':['input', 'pv4', 'Power'],                   'level': logging.DEBUG, 'unit': 'W',    'ha':{'dev_cla': 'power', 'stat_cla': 'measurement', 'id':'power_pv4_','name': 'Power PV4', 'val_tpl' :"{{ (value_json['pv4']['Power'] | float)}}"}},
+            0x000006a4:  {'name':['input', 'pv1', 'Voltage'],                 'level': logging.DEBUG, 'unit': 'V',    'ha':{'dev_cla': 'voltage', 'stat_cla': 'measurement', 'id':'volt_pv1_', 'name': 'Voltage PV1', 'val_tpl' :"{{ (value_json['pv1']['Voltage'] | float)}}", 'unvisible':1}},
+            0x00000708:  {'name':['input', 'pv1', 'Current'],                 'level': logging.DEBUG, 'unit': 'A',    'ha':{'dev_cla': 'current', 'stat_cla': 'measurement', 'id':'cur_pv1_',  'name': 'Current PV1', 'val_tpl' :"{{ (value_json['pv1']['Current'] | float)}}", 'unvisible':1}},
+            0x0000076c:  {'name':['input', 'pv1', 'Power'],                   'level': logging.INFO,  'unit': 'W',    'ha':{'dev_cla': 'power',   'stat_cla': 'measurement', 'id':'power_pv1_','name': 'Power PV1',   'val_tpl' :"{{ (value_json['pv1']['Power']   | float)}}"}},
+            0x000007d0:  {'name':['input', 'pv2', 'Voltage'],                 'level': logging.DEBUG, 'unit': 'V',    'ha':{'dev_cla': 'voltage', 'stat_cla': 'measurement', 'id':'volt_pv2_', 'name': 'Voltage PV2', 'val_tpl' :"{{ (value_json['pv2']['Voltage'] | float)}}", 'unvisible':1}},
+            0x00000834:  {'name':['input', 'pv2', 'Current'],                 'level': logging.DEBUG, 'unit': 'A',    'ha':{'dev_cla': 'current', 'stat_cla': 'measurement', 'id':'cur_pv2_',  'name': 'Current PV2', 'val_tpl' :"{{ (value_json['pv2']['Current'] | float)}}", 'unvisible':1}},
+            0x00000898:  {'name':['input', 'pv2', 'Power'],                   'level': logging.INFO,  'unit': 'W',    'ha':{'dev_cla': 'power',   'stat_cla': 'measurement', 'id':'power_pv2_','name': 'Power PV2',   'val_tpl' :"{{ (value_json['pv2']['Power']   | float)}}"}},
+            0x000008fc:  {'name':['input', 'pv3', 'Voltage'],                 'level': logging.DEBUG, 'unit': 'V',    'ha':{'dev_cla': 'voltage', 'stat_cla': 'measurement', 'id':'volt_pv3_', 'name': 'Voltage PV3', 'val_tpl' :"{{ (value_json['pv3']['Voltage'] | float)}}", 'unvisible':1}},
+            0x00000960:  {'name':['input', 'pv3', 'Current'],                 'level': logging.DEBUG, 'unit': 'A',    'ha':{'dev_cla': 'current', 'stat_cla': 'measurement', 'id':'cur_pv3_',  'name': 'Current PV3', 'val_tpl' :"{{ (value_json['pv3']['Current'] | float)}}", 'unvisible':1}},
+            0x000009c4:  {'name':['input', 'pv3', 'Power'],                   'level': logging.DEBUG, 'unit': 'W',    'ha':{'dev_cla': 'power',   'stat_cla': 'measurement', 'id':'power_pv3_','name': 'Power PV3',   'val_tpl' :"{{ (value_json['pv3']['Power']   | float)}}"}},
+            0x00000a28:  {'name':['input', 'pv4', 'Voltage'],                 'level': logging.DEBUG, 'unit': 'V',    'ha':{'dev_cla': 'voltage', 'stat_cla': 'measurement', 'id':'volt_pv4_', 'name': 'Voltage PV4', 'val_tpl' :"{{ (value_json['pv4']['Voltage'] | float)}}", 'unvisible':1}},
+            0x00000a8c:  {'name':['input', 'pv4', 'Current'],                 'level': logging.DEBUG, 'unit': 'A',    'ha':{'dev_cla': 'current', 'stat_cla': 'measurement', 'id':'cur_pv4_',  'name': 'Current PV4', 'val_tpl' :"{{ (value_json['pv4']['Current'] | float)}}", 'unvisible':1}},
+            0x00000af0:  {'name':['input', 'pv4', 'Power'],                   'level': logging.DEBUG, 'unit': 'W',    'ha':{'dev_cla': 'power',   'stat_cla': 'measurement', 'id':'power_pv4_','name': 'Power PV4',   'val_tpl' :"{{ (value_json['pv4']['Power']   | float)}}"}},
             0x00000c1c:  {'name':['input', 'pv1', 'Daily_Generation'],        'level': logging.DEBUG, 'unit': 'kWh',  'ha':{'dev_cla': 'energy', 'stat_cla': 'total_increasing', 'id':'daily_gen_pv1_','name': 'Daily Generation PV1', 'val_tpl' :"{{ (value_json['pv1']['Daily_Generation'] | float)}}"}},          
             0x00000c80:  {'name':['input', 'pv1', 'Total_Generation'],        'level': logging.DEBUG, 'unit': 'kWh',  'ha':{'dev_cla': 'energy', 'stat_cla': 'total',            'id':'total_gen_pv1_','name': 'Total Generation PV1', 'val_tpl' :"{{ (value_json['pv1']['Total_Generation'] | float)}}"}},                    
             0x00000ce4:  {'name':['input', 'pv2', 'Daily_Generation'],        'level': logging.DEBUG, 'unit': 'kWh',  'ha':{'dev_cla': 'energy', 'stat_cla': 'total_increasing', 'id':'daily_gen_pv2_','name': 'Daily Generation PV2', 'val_tpl' :"{{ (value_json['pv2']['Daily_Generation'] | float)}}"}},          
@@ -103,7 +103,9 @@ class Infos:
                 if 'icon' in ha:
                     attr['icon'] = ha['icon']                 # eg. 'icon':'mdi:solar-power'
                 if 'nat_prc' in ha:
-                    attr['suggested_display_precision'] = ha['nat_prc']       
+                    attr['suggested_display_precision'] = ha['nat_prc']    
+                #if 'unvisible' in ha:
+                #    attr['entity_registry_visible_default'] = 'False'  
                     
                 # eg. 'dev':{'name':'Microinverter','mdl':'MS-600','ids':["inverter_123"],'mf':'TSUN','sa': 'auf Garagendach'}
                 # attr['dev'] = {'name':'Microinverter','mdl':'MS-600','ids':[f'inverter_{snr}'],'mf':'TSUN','sa': 'auf Garagendach'}   
