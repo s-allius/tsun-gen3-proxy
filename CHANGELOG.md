@@ -15,6 +15,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - 
+## [0.0.3] - 2023-09-27
+
+### Added
+
+- Fixes Running Proxy with host UID and GUID #2
 
 ## [0.0.2] - 2023-09-27
 
