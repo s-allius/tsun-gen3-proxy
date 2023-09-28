@@ -16,9 +16,9 @@
 ###
 # Overview
 
-The "TSUN Gen3 Micro-Inverter" proxy enables a reliable connection between TSUN third generation inverters and an MQTT broker to integrate the inverter into typical home automations.
+The "TSUN Gen3 Micro-Inverter" proxy enables a reliable connection between TSUN third generation inverters and an MQTT broker. With the proxy, you can easily retrieve real-time values such as power, current and daily energy and integrate the inverter into typical home automations. This works even without an internet connection. The optional connection to the TSUN Cloud can be disabled!
 
-The inverter establishes a TCP connection to the TSUN Cloud to transmit current measured values every 300 seconds. To be able to forward the measurement data to an MQTT broker, the proxy must be looped into this TCP connection.
+In detail, the inverter establishes a TCP connection to the TSUN cloud to transmit current measured values every 300 seconds. To be able to forward the measurement data to an MQTT broker, the proxy must be looped into this TCP connection.
 
 Through this, the inverter then establishes a connection to the proxy and the proxy establishes another connection to the TSUN Cloud. The transmitted data is interpreted by the proxy and then passed on to both the TSUN Cloud and the MQTT broker. The connection to the TSUN Cloud is optional and can be switched off in the configuration (default is on). Then no more data is sent to the Internet, but no more remote updates of firmware and operating parameters (e.g. rated power, grid parameters) are possible.
 
@@ -47,27 +47,27 @@ If you use a Pi-hole, you can also store the host entry in the Pi-hole.
 - A running Docker engine to host the container
 - Ability to loop the proxy into the connection between the inverter and the TSUN cloud
 
-## License
 
-This project is licensed under the [BSD 3-clause License](https://opensource.org/licenses/BSD-3-Clause).
+###
+# Getting Started
 
-Note the aiomqtt library used is based on the paho-mqtt library, which has a dual license. One of the licenses is the so-called [Eclipse Distribution License v1.0](https://www.eclipse.org/org/documents/edl-v10.php). It is almost word-for-word identical to the BSD 3-clause License. The only differences are:
-
-- One use of "COPYRIGHT OWNER" (EDL) instead of "COPYRIGHT HOLDER" (BSD)
-- One use of "Eclipse Foundation, Inc." (EDL) instead of "copyright holder" (BSD)
-
-
-## Versioning
-
-This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Breaking changes will only occur in major `X.0.0` releases.
-
-## Contributing
-
-We're very happy to receive contributions to this project! You can get started by reading [CONTRIBUTING.md](https://github.com/s-allius/tsun-gen3-proxy/blob/main/CONTRIBUTING.md).
-
-## Changelog
-
-The changelog lives in [CHANGELOG.md](https://github.com/s-allius/tsun-gen3-proxy/blob/main/CHANGELOG.md). It follows the principles of [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
+To run the proxy, you first need to create the image. You can do this quite simply as follows:
+```sh
+docker build https://github.com/s-allius/tsun-gen3-proxy.git#main:app -t tsun-proxy
+```
+after that you can run the image:
+```sh
+docker run  --dns '8.8.8.8' --env 'UID=1000' -p '5005:5005'  -v ./config:/home/tsun-proxy/config -v ./log:/home/tsun-proxy/log tsun-proxy
+```
+You will surely see a message that the configuration file was not found. So that we can create this without admin rights, the `uid` must still be adapted. To do this, simply stop the proxy with ctrl-c and use the `id` command to determine your own UserId: 
+```sh
+% id 
+uid=1050(sallius) gid=20(staff) ...
+```
+With this information we can customize the `docker run`` statement:
+```sh
+docker run  --dns '8.8.8.8' --env 'UID=1050' -p '5005:5005'  -v ./config:/home/tsun-proxy/config -v ./log:/home/tsun-proxy/log tsun-proxy
+```
 
 ###
 # Configuration
@@ -119,4 +119,26 @@ suggested_area = 'balcony'    # Optional, suggested installation area for home-a
 
 
 ```
+
+## License
+
+This project is licensed under the [BSD 3-clause License](https://opensource.org/licenses/BSD-3-Clause).
+
+Note the aiomqtt library used is based on the paho-mqtt library, which has a dual license. One of the licenses is the so-called [Eclipse Distribution License v1.0](https://www.eclipse.org/org/documents/edl-v10.php). It is almost word-for-word identical to the BSD 3-clause License. The only differences are:
+
+- One use of "COPYRIGHT OWNER" (EDL) instead of "COPYRIGHT HOLDER" (BSD)
+- One use of "Eclipse Foundation, Inc." (EDL) instead of "copyright holder" (BSD)
+
+
+## Versioning
+
+This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Breaking changes will only occur in major `X.0.0` releases.
+
+## Contributing
+
+We're very happy to receive contributions to this project! You can get started by reading [CONTRIBUTING.md](https://github.com/s-allius/tsun-gen3-proxy/blob/main/CONTRIBUTING.md).
+
+## Changelog
+
+The changelog lives in [CHANGELOG.md](https://github.com/s-allius/tsun-gen3-proxy/blob/main/CHANGELOG.md). It follows the principles of [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
