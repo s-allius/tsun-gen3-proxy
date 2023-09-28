@@ -67,19 +67,16 @@ services:
   tsun-proxy:
     container_name: tsun-proxy
     image: ghcr.io/s-allius/tsun-gen3-proxy:latest
-    build: 
-       context: https://github.com/s-allius/tsun-gen3-proxy.git#main:app
-       args:
-         - UID=1000
     restart: unless-stopped
     depends_on:
       - mqtt
     environment:
       - TZ=Europe/Brussels
-      - SERVICE_NAME=tsun-proxy
+      - UID=${UID:-1000}
+      - GID=${GID:-1000}
     dns:
-      - 8.8.8.8
-      - 4.4.4.4
+      - ${DNS1:-8.8.8.8}
+      - $(DNS2:-4.4.4.4}
     ports: 
       - 5005:5005
     volumes:
