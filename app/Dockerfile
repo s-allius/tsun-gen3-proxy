@@ -41,10 +41,6 @@ RUN addgroup --gid $GID $SERVICE_NAME && \
     adduser --ingroup $SERVICE_NAME --shell /bin/false --disabled-password --uid $UID $SERVICE_NAME && \
     mkdir -p /home/$SERVICE_NAME/log /home/$SERVICE_NAME/config && \
     chown -R $SERVICE_NAME:$SERVICE_NAME /home/$SERVICE_NAME
-#addgroup -S -g 1883 mosquitto 2>/dev/null && \
- #   adduser -S -u 1883 -D -H -h /var/empty -s /sbin/nologin -G mosquitto -g mosquitto mosquitto 2>/dev/null && \
-  #  mkdir -p /mosquitto/config /mosquitto/data /mosquitto/log && \
-  #  chown -R mosquitto:mosquitto /mosquitto && \
     
 # set the working directory in the container
 WORKDIR /home/$SERVICE_NAME
