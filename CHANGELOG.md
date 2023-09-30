@@ -7,18 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.4] - 2023-09-30
+
 - With this patch we ignore the setting 'suggested_area' in config.toml, because it makes no sense with multiple devices. We are looking for a better solution without combining all values into one area again in a later version.
   
-### Removed
-
-- 
+❗Due to the change from one device to multiple devices in the Home Assistant, the previous MQTT device should be deleted in the Home Assistant after the update to pre-release '0.0.4'. Afterwards, the proxy must be restarted again to ensure that the sub-devices are created completely.
 
 ### Added
 
 - Register multiple devices at home-assistant instead of one for all measurements.
   Now we register: a Controller, the inverter and up to 4 input devices to home-assistant.
   
-## [0.0.3] - 2023-09-27
+## [0.0.3] - 2023-09-28
 
 ### Added
 
