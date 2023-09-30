@@ -15,6 +15,7 @@ class Infos:
         'input_pv3': {'via':'inverter',   'name':'Module PV3'},
         'input_pv4': {'via':'inverter',   'name':'Module PV4'},
     }
+
     __info_defs={
         # collector values used for device registration:
             0x00092ba8:  {'name':['collector', 'Collector_Fw_Version'],       'level': logging.INFO,  'unit': ''},
@@ -89,8 +90,7 @@ class Infos:
     }          
                                     
     def dev_value(self, idx:str|int) -> str|int|float|None:
-        '''
-        returns the stored device value from our databse
+        '''returns the stored device value from our database
 
         idx:int ==> lookup the value in the database and return it as str, int or flout. If the value is not available return 'None'
         idx:str ==> returns the string as a fixed value without a database loopup  
@@ -112,6 +112,12 @@ class Infos:
 
 
     def ha_confs(self, prfx="tsun/garagendach/", snr='123', sug_area =''):
+        '''Generator function yields a json register struct for home-assistant auto configuration and a unique entity string
+
+        arguments:
+        prfx:str     ==> MQTT prefix for the home assistant 'stat_t string
+        snr:str      ==> serial number of the inverter, used to build unique entity strings
+        sug_area:str ==> suggested area string from the config file'''
         tab = self.__info_defs
         for key in tab:
             row = tab[key]
@@ -180,7 +186,10 @@ class Infos:
         return d['name'], d['level'], d['unit']
     
     
-    def parse(self, buf):
+    def parse(self, buf) -> None:
+        '''parse a data sequence received from the inverter and stores the values in Infos.db
+        
+        buf: buffer of the sequence to parse'''
         result = struct.unpack_from('!l', buf, 0)
         elms = result[0]
         i = 0
