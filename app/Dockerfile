@@ -68,9 +68,9 @@ EXPOSE 5005
 ENTRYPOINT ["/root/entrypoint.sh"]
 CMD [ "python3", "./server.py" ]
 
-LABEL org.label-schema.build-date=$BUILD_DATE 
-LABEL org.opencontainers.image.authors="Stefan Allius <stefan.allius@t-online.de>"
+
+LABEL org.opencontainers.image.authors="Stefan Allius"
 LABEL org.opencontainers.image.source https://github.com/s-allius/tsun-gen3-proxy
 LABEL org.opencontainers.image.description 'The "TSUN Gen3 Micro-Inverter" proxy enables a reliable connection between TSUN third generation inverters and an MQTT broker to integrate the inverter into typical home automations'
 LABEL org.opencontainers.image.licenses="BSD-3-Clause"
-LABEL org.opencontainers.image.vendor="Stefan Allius>"
+LABEL org.opencontainers.image.vendor="Stefan Allius"
