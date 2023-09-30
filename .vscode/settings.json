@@ -1,5 +1,6 @@
 {
     "python.testing.pytestArgs": [
+        "-vv",
         "app","system_tests"
     ],
     "python.testing.unittestEnabled": false,
