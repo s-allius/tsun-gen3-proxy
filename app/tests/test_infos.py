@@ -12,6 +12,12 @@ def ContrDataSeq(): # Get Time Request message
     msg +=  b'\x49\x00\x00\x00\x02\x00\x0d\x04\x08\x49\x00\x00\x00\x00\x00\x07\xa1\x84\x49\x00\x00\x00\x01\x00\x0c\x50\x59\x49\x00\x00\x00\x4c\x00\x0d\x1f\x60\x49\x00\x00\x00\x00'
     return msg
 
+@pytest.fixture
+def InvDataSeq(): # Data indication from the controller
+    msg =   b'\x00\x00\x00\x06\x00\x00\x00\x0a\x54\x08\x4d\x69\x63\x72\x6f\x69\x6e\x76\x00\x00\x00\x14\x54\x04\x54\x53\x55\x4e\x00\x00\x00\x1E\x54\x07\x56\x35\x2e\x30\x2e\x31\x31\x00\x00\x00\x28'
+    msg +=  b'\x54\x10\x54\x31\x37\x45\x37\x33\x30\x37\x30\x32\x31\x44\x30\x30\x36\x41\x00\x00\x00\x32\x54\x0a\x54\x53\x4f\x4c\x2d\x4d\x53\x36\x30\x30\x00\x00\x00\x3c\x54\x05\x41\x2c\x42\x2c\x43'
+    return msg
+
 
 def test_parse_control(ContrDataSeq):
     i = Infos()
@@ -19,35 +25,87 @@ def test_parse_control(ContrDataSeq):
         pass
 
     assert json.dumps(i.db) == json.dumps(
-{"collector": {"Collector_Fw_Version": "RSW_400_V1.00.06", "Chip_Type": "Raymon", "Chip_Model": "RSW-1-10001", "Trace_URL": "t.raymoniot.com", "Logger_URL": "logger.talent-monitoring.com", "Data_Up_Interval": 300}, "env": {"Signal_Strength": 100}, "total": {"Power_On_Time": 29}})        
-        
-def test_build_ha_conf():
-    i = Infos()
-    d_json, id = next (i.ha_confs(prfx="tsun/garagendach/", snr='123'))
-    assert id == 'out_power_123'
-    assert  d_json == json.dumps({"name": "Actual Power", "stat_t": "tsun/garagendach/grid", "dev_cla": "power", "stat_cla": "measurement", "uniq_id": "out_power_123", "val_tpl": "{{value_json['Output_Power'] | float}}", "unit_of_meas": "W", "dev": {"name": "Microinverter", "mdl": "MS-600", "ids": ["inverter_123"], "mf": "TSUN", "sa": "", "sw": "0.01", "hw": "Hw0.01"}})
+{"collector": {"Collector_Fw_Version": "RSW_400_V1.00.06", "Chip_Type": "Raymon", "Chip_Model": "RSW-1-10001", "Trace_URL": "t.raymoniot.com", "Logger_URL": "logger.talent-monitoring.com"}, "controller": {"Signal_Strength": 100, "Power_On_Time": 29, "Data_Up_Interval": 300}})        
 
-def test_build_ha_conf2():
+def test_parse_inverter(InvDataSeq):
+    i = Infos()
+    for key, result in i.parse (InvDataSeq):
+        pass
+
+    assert json.dumps(i.db) == json.dumps(
+{"inverter": {"Product_Name": "Microinv", "Manufacturer": "TSUN", "Version": "V5.0.11", "Serial_Number": "T17E7307021D006A", "Equipment_Model": "TSOL-MS600"}})
+
+def test_parse_cont_and_invert(ContrDataSeq, InvDataSeq):
+    i = Infos()
+    for key, result in i.parse (ContrDataSeq):
+        pass
+
+    for key, result in i.parse (InvDataSeq):
+        pass
+
+    assert json.dumps(i.db) == json.dumps(
+    {
+"collector": {"Collector_Fw_Version": "RSW_400_V1.00.06", "Chip_Type": "Raymon", "Chip_Model": "RSW-1-10001", "Trace_URL": "t.raymoniot.com", "Logger_URL": "logger.talent-monitoring.com"}, "controller": {"Signal_Strength": 100, "Power_On_Time": 29, "Data_Up_Interval": 300},
+"inverter": {"Product_Name": "Microinv", "Manufacturer": "TSUN", "Version": "V5.0.11", "Serial_Number": "T17E7307021D006A", "Equipment_Model": "TSOL-MS600"}})
+
+
+def test_build_ha_conf1(ContrDataSeq):
     i = Infos()
     tests = 0
     for d_json, id in i.ha_confs(prfx="tsun/garagendach/", snr='123'):
 
         if id == 'out_power_123':
-            assert  d_json == json.dumps({"name": "Actual Power", "stat_t": "tsun/garagendach/grid", "dev_cla": "power", "stat_cla": "measurement", "uniq_id": "out_power_123", "val_tpl": "{{value_json['Output_Power'] | float}}", "unit_of_meas": "W", "dev": {"name": "Microinverter", "mdl": "MS-600", "ids": ["inverter_123"], "mf": "TSUN", "sa": "", "sw": "0.01", "hw": "Hw0.01"}})
+            assert  d_json == json.dumps({"name": "Power", "stat_t": "tsun/garagendach/grid", "dev_cla": "power", "stat_cla": "measurement", "uniq_id": "out_power_123", "val_tpl": "{{value_json['Output_Power'] | float}}", "unit_of_meas": "W", "dev": {"name": "Micro Inverter", "sa": "Micro Inverter", "via_device": "controller_123", "ids": ["inverter_123"]}})
             tests +=1
 
         elif id == 'daily_gen_123':
-            assert  d_json == json.dumps({"name": "Daily Generation", "stat_t": "tsun/garagendach/total", "dev_cla": "energy", "stat_cla": "total_increasing", "uniq_id": "daily_gen_123", "val_tpl": "{{value_json['Daily_Generation'] | float}}", "unit_of_meas": "kWh", "dev": {"name": "Microinverter", "mdl": "MS-600", "ids": ["inverter_123"], "mf": "TSUN", "sa": "", "sw": "0.01", "hw": "Hw0.01"}})
+            assert  d_json == json.dumps({"name": "Daily Generation", "stat_t": "tsun/garagendach/total", "dev_cla": "energy", "stat_cla": "total_increasing", "uniq_id": "daily_gen_123", "val_tpl": "{{value_json['Daily_Generation'] | float}}", "unit_of_meas": "kWh", "dev": {"name": "Micro Inverter", "sa": "Micro Inverter", "via_device": "controller_123", "ids": ["inverter_123"]}})
             tests +=1
 
         elif id == 'power_pv1_123':
-            assert  d_json == json.dumps({"name": "Power PV1", "stat_t": "tsun/garagendach/input", "dev_cla": "power", "stat_cla": "measurement", "uniq_id": "power_pv1_123", "val_tpl": "{{ (value_json['pv1']['Power'] | float)}}", "unit_of_meas": "W", "dev": {"name": "Microinverter", "mdl": "MS-600", "ids": ["inverter_123"], "mf": "TSUN", "sa": "", "sw": "0.01", "hw": "Hw0.01"}})
+            assert  d_json == json.dumps({"name": "Power", "stat_t": "tsun/garagendach/input", "dev_cla": "power", "stat_cla": "measurement", "uniq_id": "power_pv1_123", "val_tpl": "{{ (value_json['pv1']['Power'] | float)}}", "unit_of_meas": "W", "dev": {"name": "Module PV1", "sa": "Module PV1", "via_device": "inverter_123", "ids": ["input_pv1_123"]}})
             tests +=1
 
-        elif id == 'total_gen_123':
-            assert  d_json == json.dumps({"name": "Total Generation", "stat_t": "tsun/garagendach/total", "dev_cla": "energy", "stat_cla": "total", "uniq_id": "total_gen_123", "val_tpl": "{{value_json['Total_Generation'] | float}}", "unit_of_meas": "kWh", "icon": "mdi:solar-power", "dev": {"name": "Microinverter", "mdl": "MS-600", "ids": ["inverter_123"], "mf": "TSUN", "sa": "", "sw": "0.01", "hw": "Hw0.01"}})
+        elif id == 'power_pv2_123':
+            assert  d_json == json.dumps({"name": "Power", "stat_t": "tsun/garagendach/input", "dev_cla": "power", "stat_cla": "measurement", "uniq_id": "power_pv2_123", "val_tpl": "{{ (value_json['pv2']['Power'] | float)}}", "unit_of_meas": "W", "dev": {"name": "Module PV2", "sa": "Module PV2", "via_device": "inverter_123", "ids": ["input_pv2_123"]}})
             tests +=1
-    assert tests==4
+
+        elif id == 'signal_123':
+            assert  d_json == json.dumps({"name": "Signal Strength", "stat_t": "tsun/garagendach/controller", "dev_cla": None, "stat_cla": "measurement", "uniq_id": "signal_123", "val_tpl": "{{value_json[\'Signal_Strength\'] | int}}", "unit_of_meas": "%", "icon": "mdi:wifi", "dev": {"name": "Controller", "sa": "Controller", "ids": ["controller_123"]}})
+            tests +=1
+    assert tests==5
+
+def test_build_ha_conf2(ContrDataSeq, InvDataSeq):
+    i = Infos()
+    for key, result in i.parse (ContrDataSeq):
+        pass
+
+    for key, result in i.parse (InvDataSeq):
+        pass
+
+    tests = 0
+    for d_json, id in i.ha_confs(prfx="tsun/garagendach/", snr='123'):
+
+        if id == 'out_power_123':
+            assert  d_json == json.dumps({"name": "Power", "stat_t": "tsun/garagendach/grid", "dev_cla": "power", "stat_cla": "measurement", "uniq_id": "out_power_123", "val_tpl": "{{value_json['Output_Power'] | float}}", "unit_of_meas": "W", "dev": {"name": "Micro Inverter", "sa": "Micro Inverter", "via_device": "controller_123", "mdl": "TSOL-MS600", "mf": "TSUN", "sw": "V5.0.11", "ids": ["inverter_123"]}})
+            tests +=1
+
+        elif id == 'daily_gen_123':
+            assert  d_json == json.dumps({"name": "Daily Generation", "stat_t": "tsun/garagendach/total", "dev_cla": "energy", "stat_cla": "total_increasing", "uniq_id": "daily_gen_123", "val_tpl": "{{value_json['Daily_Generation'] | float}}", "unit_of_meas": "kWh", "dev": {"name": "Micro Inverter", "sa": "Micro Inverter", "via_device": "controller_123", "mdl": "TSOL-MS600", "mf": "TSUN", "sw": "V5.0.11", "ids": ["inverter_123"]}})
+            tests +=1
+
+        elif id == 'power_pv1_123':
+            assert  d_json == json.dumps({"name": "Power", "stat_t": "tsun/garagendach/input", "dev_cla": "power", "stat_cla": "measurement", "uniq_id": "power_pv1_123", "val_tpl": "{{ (value_json['pv1']['Power'] | float)}}", "unit_of_meas": "W", "dev": {"name": "Module PV1", "sa": "Module PV1", "via_device": "inverter_123", "ids": ["input_pv1_123"]}})
+            tests +=1
+
+        elif id == 'power_pv2_123':
+            assert  d_json == json.dumps({"name": "Power", "stat_t": "tsun/garagendach/input", "dev_cla": "power", "stat_cla": "measurement", "uniq_id": "power_pv2_123", "val_tpl": "{{ (value_json['pv2']['Power'] | float)}}", "unit_of_meas": "W", "dev": {"name": "Module PV2", "sa": "Module PV2", "via_device": "inverter_123", "ids": ["input_pv2_123"]}})
+            tests +=1
+
+        elif id == 'signal_123':
+            assert  d_json == json.dumps({"name": "Signal Strength", "stat_t": "tsun/garagendach/controller", "dev_cla": None, "stat_cla": "measurement", "uniq_id": "signal_123", "val_tpl": "{{value_json[\'Signal_Strength\'] | int}}", "unit_of_meas": "%", "icon": "mdi:wifi", "dev": {"name": "Controller", "sa": "Controller", "mdl": "RSW-1-10001", "mf": "Raymon", "sw": "RSW_400_V1.00.06", "ids": ["controller_123"]}})
+            tests +=1
+    assert tests==5
 
 def test_build_ha_conf3():
     i = Infos()
