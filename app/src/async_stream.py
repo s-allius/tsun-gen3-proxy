@@ -23,7 +23,7 @@ class AsyncStream(Message):
     '''
     Our puplic methods
     '''
-    async def set_serial_no(self, serial_no : str):
+    def set_serial_no(self, serial_no : str):
         logger_mqtt.info(f'SerialNo: {serial_no}')
        
         if self.unique_id != serial_no: 
@@ -35,11 +35,11 @@ class AsyncStream(Message):
                 logger_mqtt.debug(f'SerialNo {serial_no} allowed!')
                 inv = inverters[serial_no]
                 self.node_id = inv['node_id']
-                sug_area    = inv['suggested_area']
+                self.sug_area    = inv['suggested_area']
             else:    
                 logger_mqtt.debug(f'SerialNo {serial_no} not known!')
                 self.node_id = ''
-                sug_area    = ''
+                self.sug_area    = ''
                 if not inverters['allow_all']:
                     self.unique_id = None
             
@@ -50,13 +50,16 @@ class AsyncStream(Message):
             
             ha = Config.get('ha')
             self.entitiy_prfx = ha['entity_prefix'] + '/'
-            discovery_prfx = ha['discovery_prefix'] + '/'
+            self.discovery_prfx = ha['discovery_prefix'] + '/'
+            
+            
+    async def register_home_assistant(self):        
             
             if self.server_side:
                 try:
-                    for data_json, id in self.db.ha_confs(self.entitiy_prfx + self.node_id, self.unique_id, sug_area):
+                    for data_json, id in self.db.ha_confs(self.entitiy_prfx + self.node_id, self.unique_id, self.sug_area):
                             logger_mqtt.debug(f'Register: {data_json}')                                
-                            await self.mqtt.publish(f"{discovery_prfx}sensor/{self.node_id}{id}/config", data_json)
+                            await self.mqtt.publish(f"{self.discovery_prfx}sensor/{self.node_id}{id}/config", data_json)
     
                 except Exception:
                     logging.error(
@@ -71,7 +74,7 @@ class AsyncStream(Message):
                 await self.__async_read()     
                 
                 if self.id_str:
-                    await self.set_serial_no(self.id_str.decode("utf-8"))
+                    self.set_serial_no(self.id_str.decode("utf-8"))
             
                 if self.unique_id: 
                     await self.__async_write()     
@@ -132,6 +135,10 @@ class AsyncStream(Message):
     async def __async_publ_mqtt(self) -> None:
         if self.server_side:
             db = self.db.db
+
+            if self.new_data.keys() & {'inverter', 'collector'}:
+                await self.register_home_assistant()
+
             for key in self.new_data:
                 if self.new_data[key] and key in db:
                     data_json = json.dumps(db[key])

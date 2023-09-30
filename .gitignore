@@ -5,3 +5,4 @@ homeassistant/**
 tsun_proxy/**
 system_tests/**
 Doku/**
+.DS_Store
