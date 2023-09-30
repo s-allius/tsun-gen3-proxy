@@ -7,14 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-
+- With this patch we ignore the setting 'suggested_area' in config.toml, because it makes no sense with multiple devices. We are looking for a better solution without combining all values into one area again in a later version.
+  
 ### Removed
 
 - 
 
 ### Added
 
-- 
+- Register multiple devices at home-assistant instead of one for all measurements.
+  Now we register: a Controller, the inverter and up to 4 input devices to home-assistant.
+  
 ## [0.0.3] - 2023-09-27
 
 ### Added
