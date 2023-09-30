@@ -21,14 +21,13 @@ class Infos:
             0x00092f90:  {'name':['collector', 'Chip_Model'],                 'level': logging.DEBUG, 'unit': ''},
             0x00095a88:  {'name':['collector', 'Trace_URL'],                  'level': logging.DEBUG, 'unit': ''},
             0x00095aec:  {'name':['collector', 'Logger_URL'],                 'level': logging.DEBUG, 'unit': ''},
-            0x000cf850:  {'name':['collector', 'Data_Up_Interval'],           'level': logging.DEBUG, 'unit': 's',   'ha':{'dev':'controller', 'dev_cla': None,    'stat_cla': 'measurement', 'id':'data_up_intval_', 'fmt':'| int', 'name': 'Data Up Interval', 'icon':'mdi:update'}},
         # inverter values:
             0x0000000a:  {'name':['inverter', 'Product_Name'],                'level': logging.DEBUG, 'unit': ''},
             0x00000014:  {'name':['inverter', 'Manufacturer'],                'level': logging.DEBUG, 'unit': ''},
             0x0000001e:  {'name':['inverter', 'Version'],                     'level': logging.INFO,  'unit': ''},
             0x00000028:  {'name':['inverter', 'Serial_Number'],               'level': logging.DEBUG, 'unit': ''},
             0x00000032:  {'name':['inverter', 'Equipment_Model'],             'level': logging.DEBUG, 'unit': ''},
-
+        # events
             0x00000191:  {'name':['events', '401_'],                          'level': logging.DEBUG, 'unit': ''},
             0x00000192:  {'name':['events', '402_'],                          'level': logging.DEBUG, 'unit': ''},
             0x00000193:  {'name':['events', '403_'],                          'level': logging.DEBUG, 'unit': ''},
@@ -80,7 +79,8 @@ class Infos:
 
         # controller:
             0x000c3500:  {'name':['controller', 'Signal_Strength'],           'level': logging.DEBUG, 'unit': '%' ,  'ha':{'dev':'controller', 'dev_cla': None,       'stat_cla': 'measurement', 'id':'signal_',         'fmt':'| int', 'name': 'Signal Strength', 'icon':'mdi:wifi'}},
-            0x000c96a8:  {'name':['controller', 'Power_On_Time'],             'level': logging.DEBUG, 'unit': 's',   'ha':{'dev':'controller', 'dev_cla': 'duration', 'stat_cla': 'measurement', 'id':'power_on_time_',             'name': 'Power on Time', 'val_tpl':"{{ (value_json['Power_On_Time'] | float)}}", 'nat_prc':'3'}},
+            0x000c96a8:  {'name':['controller', 'Power_On_Time'],             'level': logging.DEBUG, 'unit': 's',   'ha':{'dev':'controller', 'dev_cla': 'duration', 'stat_cla': 'measurement', 'id':'power_on_time_',                 'name': 'Power on Time',   'val_tpl':"{{ (value_json['Power_On_Time'] | float)}}", 'nat_prc':'3'}},
+            0x000cf850:  {'name':['controller', 'Data_Up_Interval'],          'level': logging.DEBUG, 'unit': 's',   'ha':{'dev':'controller', 'dev_cla': None,       'stat_cla': 'measurement', 'id':'data_up_intval_', 'fmt':'| int', 'name': 'Data Up Interval', 'icon':'mdi:update'}},
 
     }          
                                     
