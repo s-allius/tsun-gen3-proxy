@@ -2,10 +2,10 @@
 set -e
 
 user="$(id -u)"
-echo "#############################################"
-echo "# start: '$SERVICE_NAME'"
+echo "######################################################"
+echo "# start: '$SERVICE_NAME' Version:$VERSION"
 echo "# with UserID:$UID, GroupID:$GID"
-echo "#############################################"
+echo "######################################################"
 
 if [ "$user" = '0' ]; then
 	[ -d "/home/$SERVICE_NAME" ] && chown -R $SERVICE_NAME:$SERVICE_NAME /home/$SERVICE_NAME || true
