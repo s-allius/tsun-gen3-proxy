@@ -42,9 +42,10 @@ if __name__ == "__main__":
     # Setup our daily, rotating logger
     #
     serv_name = os.getenv('SERVICE_NAME', 'proxy')
+    version = os.getenv('VERSION', 'unknown')
 
     logging.config.fileConfig('logging.ini')
-    logging.info(f'Server "{serv_name}" will be started')
+    logging.info(f'Server "{serv_name} - {version}" will be started')
     
     # read config file
     Config.read()    
