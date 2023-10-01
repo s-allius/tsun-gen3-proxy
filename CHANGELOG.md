@@ -9,7 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ###
 
+## [0.0.5] - 2023-10-01
+
 - Entity icons updated
+- Prints version on start
+- Prepare for MQTT component != sensor
+- Add MQTT origin
   
 ## [0.0.4] - 2023-09-30
 
