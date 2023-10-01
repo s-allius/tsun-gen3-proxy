@@ -1,2 +1,2 @@
-    aiomqtt==1.2.0
-    schema
+    aiomqtt==1.2.1
+    schema==0.7.5
