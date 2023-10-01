@@ -29,8 +29,10 @@ RUN pip install --user -r requirements.txt
 # second unnamed stage
 FROM python:3.11-slim-bookworm
 ARG SERVICE_NAME
+ARG VERSION
 ARG UID
 ARG GID
+ENV VERSION=$VERSION
 ENV SERVICE_NAME=$SERVICE_NAME
 ENV UID=$UID
 ENV GID=$GID 
