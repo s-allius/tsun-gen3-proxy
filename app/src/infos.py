@@ -1,10 +1,12 @@
-import struct, json, logging
+import struct, json, logging, os
 
 
 
 class Infos:    
     def __init__(self):
         self.db = {}
+        self.app_name = os.getenv('SERVICE_NAME', 'proxy')
+        self.version  = os.getenv('VERSION', 'unknown')
         self.tracer = logging.getLogger('data')
 
     __info_devs={
@@ -125,6 +127,10 @@ class Infos:
             #check if we have details for home assistant
             if 'ha' in row:
                 ha = row['ha']
+                if 'comp' in ha:
+                    component = ha['comp']
+                else:
+                    component = 'sensor'
                 attr = {}                                     # dict to collect all the sensor entity details 
                 if 'name' in ha:
                     attr['name']   = ha['name']               # take the entity name from the ha dict
@@ -173,13 +179,13 @@ class Infos:
                     dev['ids']  = [f"{ha['dev']}_{snr}"]
                     attr['dev'] = dev
 
-                    #origin = {}
-                    #origin['name'] = 'org name'
-                    #origin['sw'] = 'Version Test'
-                    #attr['o'] = origin
+                    origin = {}
+                    origin['name'] = self.app_name
+                    origin['sw'] = self.version
+                    attr['o'] = origin
 
 
-                yield json.dumps (attr), attr['uniq_id']
+                yield json.dumps (attr), component, attr['uniq_id']
    
 
 
