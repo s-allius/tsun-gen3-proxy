@@ -57,9 +57,9 @@ class AsyncStream(Message):
             
             if self.server_side:
                 try:
-                    for data_json, id in self.db.ha_confs(self.entitiy_prfx + self.node_id, self.unique_id, self.sug_area):
+                    for data_json, component, id in self.db.ha_confs(self.entitiy_prfx + self.node_id, self.unique_id, self.sug_area):
                             logger_mqtt.debug(f'Register: {data_json}')                                
-                            await self.mqtt.publish(f"{self.discovery_prfx}sensor/{self.node_id}{id}/config", data_json)
+                            await self.mqtt.publish(f"{self.discovery_prfx}{component}/{self.node_id}{id}/config", data_json)
     
                 except Exception:
                     logging.error(
