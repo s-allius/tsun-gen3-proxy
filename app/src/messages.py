@@ -100,6 +100,14 @@ class Message(metaclass=IterRegistry):
     '''
     Our puplic methods
     '''
+    def close(self) -> None:
+        logger.debug(f'in Message.close()')
+        # we have refernces to methods of this class in self.switch
+        # so we have to erase self.switch, otherwise this instance can't be 
+        # deallocated by the garbage collector ==> we get a memory leak
+        del self.switch 
+        
+
     def read(self) -> None:
         self._read()
         
