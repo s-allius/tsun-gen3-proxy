@@ -21,6 +21,7 @@ class Mqtt(metaclass=Singleton):
         logger_mqtt.debug(f'MQTT: __init__') 
         loop = asyncio.get_event_loop()
         self.task = loop.create_task(self.__loop())
+        self.home_assistant_restarted = False
                 
         
     def __del__(self):
@@ -55,7 +56,11 @@ class Mqtt(metaclass=Singleton):
                     async with self.client.messages() as messages:
                         await self.client.subscribe(f"{ha['auto_conf_prefix']}/status")
                         async for message in messages:
-                            logger_mqtt.info(f'Home-Assistant Status: {message.payload.decode("UTF-8")}')
+                            status = message.payload.decode("UTF-8")
+                            logger_mqtt.info(f'Home-Assistant Status: {status}')
+                            if status == 'online':
+                                self.home_assistant_restarted = True  # set flag to force MQTT registering
+
             except aiomqtt.MqttError:
                 logger_mqtt.info(f"Connection lost; Reconnecting in {interval} seconds ...")
                 await asyncio.sleep(interval)

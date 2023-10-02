@@ -136,8 +136,10 @@ class AsyncStream(Message):
         if self.server_side:
             db = self.db.db
 
-            if self.new_data.keys() & {'inverter', 'collector'}:
+            # check if new inverter or collevtor are available or if home assistant is online again
+            if (self.new_data.keys() & {'inverter', 'collector'}) or self.mqtt.home_assistant_restarted:
                 await self.register_home_assistant()
+                self.mqtt.home_assistant_restarted = False # clear flag
 
             for key in self.new_data:
                 if self.new_data[key] and key in db:
