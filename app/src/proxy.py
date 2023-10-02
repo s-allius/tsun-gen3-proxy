@@ -1,34 +1,33 @@
-import asyncio, logging, traceback
+import asyncio, logging, traceback, weakref
 from async_stream import AsyncStream
 
 class Proxy:
     def __init__ (proxy, reader, writer, addr):
-        proxy.ServerStream = AsyncStream(proxy, reader, writer, addr)
-        proxy.ClientStream = None
+        proxy.__ServerStream = AsyncStream(proxy, reader, writer, addr)
+        proxy.__ClientStream = None
 
     async def server_loop(proxy, addr):
         logging.info(f'Accept connection from {addr}')        
-        await proxy.ServerStream.loop()
-        logging.info(f'Close server connection {addr}')
+        await proxy.__ServerStream.loop()
+        logging.info(f'Stopped server connection loop {addr}')
         
-        if proxy.ClientStream:
-            logging.debug ("close client connection")
-            proxy.ClientStream.close()
+        if proxy.__ClientStream:
+            logging.debug ("disconnect client connection")
+            proxy.__ClientStream.disc()
         
     async def client_loop(proxy, addr):
-        await proxy.ClientStream.loop()    
-        logging.info(f'Close client connection {addr}')
-        proxy.ServerStream.remoteStream = None
-        proxy.ClientStream = None
+        await proxy.__ClientStream.loop()    
+        logging.info(f'Stopped client connection loop {addr}')
+        proxy.__ClientStream = None
         
-    async def CreateClientStream (proxy, stream, host, port):
+    async def CreateClientStream (proxy, host, port):
         addr = (host, port)
             
         try:
             logging.info(f'Connected to {addr}')
             connect = asyncio.open_connection(host, port)
             reader, writer = await connect    
-            proxy.ClientStream = AsyncStream(proxy, reader, writer, addr, stream, server_side=False)
+            proxy.__ClientStream = AsyncStream(proxy, reader, writer, addr, weakref.ref(proxy.__ServerStream), server_side=False)
             asyncio.create_task(proxy.client_loop(addr))
             
         except ConnectionRefusedError as error:
@@ -37,7 +36,7 @@ class Proxy:
             logging.error(
                 f"Proxy: Exception for {addr}:\n"
                 f"{traceback.format_exc()}")
-        return proxy.ClientStream
+        return weakref.ref(proxy.__ClientStream)
         
     def __del__ (proxy):
-        logging.debug ("Proxy __del__")
+        logging.info ("Proxy __del__")
