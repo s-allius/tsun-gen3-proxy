@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 - Bump aiomqtt to version 1.2.1
+- Force MQTT registration when the home assistant has set the status to online again
 
 ## [0.0.5] - 2023-10-01
 
