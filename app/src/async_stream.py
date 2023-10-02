@@ -99,6 +99,11 @@ class AsyncStream(Message):
                     f"{traceback.format_exc()}")
                 self.close()
                 return
+            
+    def disc(self) -> None:
+        logger.debug(f'in AsyncStream.disc() {self.addr}')
+        self.writer.close()
+            
         
     def close(self) -> None:
         logger.debug(f'in AsyncStream.close() {self.addr}')
