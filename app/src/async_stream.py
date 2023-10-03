@@ -101,10 +101,14 @@ class AsyncStream(Message):
             
         
     def close(self):
-        logger.info(f'in async_stream.close() {self.addr}')
+        logger.debug(f'in AsyncStream.close() {self.addr}')
         self.writer.close()
-        self.proxy = None
-        self.remoteStream = None
+        super().close()         # call close handler in the parent class
+        self.proxy = None       # clear our refernce to the proxy, to avoid memory leaks
+
+        if self.remoteStream:   # if we have knowledge about a remote stream, we del the references between the two streams
+            self.remoteStream.remoteStream = None
+            self.remoteStream = None
 
     
     '''
@@ -154,6 +158,7 @@ class AsyncStream(Message):
                     self.new_data[key] = False
 
     def __del__ (self):
-        logger.debug ("AsyncStream __del__")       
+        logger.debug ("AsyncStream __del__")     
+        super().__del__()  
             
 
