@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Bump aiomqtt to version 1.2.1
 - Force MQTT registration when the home assistant has set the status to online again
+- fix control byte output in tx trace
+- dealloc async_stream instances in connection termination
 
 ## [0.0.5] - 2023-10-01
 
@@ -16,8 +18,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Prints version on start
 - Prepare for MQTT component != sensor
 - Add MQTT origin
-- fix control byte output in tx trace
-- dealloc async_stream instances in connection termination
   
 ## [0.0.4] - 2023-09-30
 
