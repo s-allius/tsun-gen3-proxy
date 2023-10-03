@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Prints version on start
 - Prepare for MQTT component != sensor
 - Add MQTT origin
+- fix control byte output in tx trace
 - dealloc async_stream instances in connection termination
   
 ## [0.0.4] - 2023-09-30

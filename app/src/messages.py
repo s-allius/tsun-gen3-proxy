@@ -194,7 +194,7 @@ class Message(metaclass=IterRegistry):
         self.send_msg_ofs = len (self._send_buffer)
         self._send_buffer += struct.pack(f'!l{len(self.id_str)+1}pBB', 0, self.id_str, ctrl, self.msg_id)
         fnc = self.switch.get(self.msg_id, self.msg_unknown)
-        logger.info(self.__flow_str(self.server_side, 'tx') + f' Ctl: {int(self.ctrl):#02x} Msg: {fnc.__name__!r}' )
+        logger.info(self.__flow_str(self.server_side, 'tx') + f' Ctl: {int(ctrl):#02x} Msg: {fnc.__name__!r}' )
         
     def __finish_send_msg(self) -> None:
         _len = len(self._send_buffer) - self.send_msg_ofs
