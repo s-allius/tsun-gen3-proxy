@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- refactoring of the connection classes
+- change user id on startup
+- register MQTT topics to home assistant, even if we have multiple inverters
+
 ## [0.0.6] - 2023-10-03
 
 - Bump aiomqtt to version 1.2.1
