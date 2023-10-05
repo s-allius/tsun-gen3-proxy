@@ -2,6 +2,7 @@ import asyncio, logging, traceback, json
 from config import Config
 from async_stream import AsyncStream
 from mqtt import Mqtt
+#import gc
 
 logger = logging.getLogger('conn')
 
@@ -20,7 +21,7 @@ class Inverter(AsyncStream):
 
     async def server_loop(self, addr):
         '''Loop for receiving messages from the inverter (server-side)'''
-        logging.info(f'Accept connection from  {addr}')        
+        logger.info(f'Accept connection from  {addr}')        
         await self.loop()
         logging.info(f'Server loop stopped for {addr}')
         
@@ -37,7 +38,8 @@ class Inverter(AsyncStream):
         # if the client connection closes, we don't touch the server connection. Instead we erase the client
         # connection stream, thus on the next received packet from the inverter, we can establish a new connection 
         # to the TSUN cloud
-        self.remoteStream = None
+        self.remoteStream.remoteStream = None    # erase backlink to inverter instance
+        self.remoteStream = None                 # than erase client connection 
         
     async def async_create_remote(self) -> None:
         '''Establish a client connection to the TSUN cloud'''
@@ -63,6 +65,7 @@ class Inverter(AsyncStream):
     
 
     async def async_publ_mqtt(self) -> None:
+        '''puplish data to MQTT broker'''
         db = self.db.db
         # check if new inverter or collector infos are available or when the home assistant has changed the status back to online
         if (self.new_data.keys() & {'inverter', 'collector'}) or self.mqtt.ha_restarts != self.ha_restarts:
@@ -76,8 +79,8 @@ class Inverter(AsyncStream):
                 await self.mqtt.publish(f"{self.entitiy_prfx}{self.node_id}{key}", data_json)
                 self.new_data[key] = False
 
-    async def __register_home_assistant(self):
-    
+    async def __register_home_assistant(self) -> None:
+        '''register all our topics at home assistant'''
         try:
             for data_json, component, id in self.db.ha_confs(self.entitiy_prfx + self.node_id, self.unique_id, self.sug_area):
                     logger.debug(f'MQTT Register: {data_json}')                                
@@ -87,11 +90,12 @@ class Inverter(AsyncStream):
                 f"Inverter: Exception:\n"
                 f"{traceback.format_exc()}")
             
-    def close(self):
-        logger.debug(f'in AsyncServerStream.close() {self.addr}')
+    def close(self) -> None:
+        logging.debug(f'Inverter.close() {self.addr}')
         super().close()         # call close handler in the parent class
+#        logger.debug (f'Inverter refs: {gc.get_referrers(self)}')
 
 
     def __del__ (self):
-        logging.debug ("Inverter __del__")
+        logging.debug ("Inverter.__del__")
         super().__del__()  

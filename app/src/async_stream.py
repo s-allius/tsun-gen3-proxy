@@ -1,5 +1,6 @@
 import logging, traceback
 from config import Config
+#import gc
 from messages import Message, hex_dump_memory
 
 logger = logging.getLogger('conn')
@@ -86,9 +87,7 @@ class AsyncStream(Message):
         self.writer.close()
         super().close()         # call close handler in the parent class
 
-        if self.remoteStream:   # if we have knowledge about a remote stream, we del the references between the two streams
-            self.remoteStream.remoteStream = None
-            self.remoteStream = None
+#        logger.info (f'AsyncStream refs: {gc.get_referrers(self)}')
 
     
     '''
@@ -128,7 +127,7 @@ class AsyncStream(Message):
 
 
     def __del__ (self):
-        logger.debug ("AsyncStream __del__")     
+        logging.debug (f"AsyncStream.__del__  {self.addr}")     
         super().__del__()  
 
 
