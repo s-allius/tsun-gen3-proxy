@@ -44,9 +44,6 @@ class AsyncStream(Message):
 
             self.unique_id = serial_no
             
-            ha = Config.get('ha')
-            self.entitiy_prfx = ha['entity_prefix'] + '/'
-            self.discovery_prfx = ha['discovery_prefix'] + '/'
             
             
 

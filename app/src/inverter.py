@@ -7,11 +7,16 @@ logger = logging.getLogger('conn')
 
 
 
-class Proxy(AsyncStream):
+class Inverter(AsyncStream):
 
     def __init__ (self, reader, writer, addr):
         super().__init__(reader, writer, addr, None, True)
         self.mqtt = Mqtt()
+        self.ha_restarts = 0
+        ha = Config.get('ha')
+        self.entitiy_prfx = ha['entity_prefix'] + '/'
+        self.discovery_prfx = ha['discovery_prefix'] + '/'
+
 
     async def server_loop(self, addr):
         '''Loop for receiving messages from the inverter (server-side)'''
@@ -19,7 +24,7 @@ class Proxy(AsyncStream):
         await self.loop()
         logging.info(f'Server loop stopped for {addr}')
         
-        # if the server connection closes, we also disconnect the connection to te TSUN cloud
+        # if the server connection closes, we also have to disconnect the connection to te TSUN cloud
         if self.remoteStream:
             logging.debug ("disconnect client connection")
             self.remoteStream.disc()
@@ -52,7 +57,7 @@ class Proxy(AsyncStream):
             logging.info(f'{error}')
         except Exception:
             logging.error(
-                f"Proxy: Exception for {addr}:\n"
+                f"Inverter: Exception for {addr}:\n"
                 f"{traceback.format_exc()}")
         
     
@@ -60,9 +65,10 @@ class Proxy(AsyncStream):
     async def async_publ_mqtt(self) -> None:
         db = self.db.db
         # check if new inverter or collector infos are available or when the home assistant has changed the status back to online
-        if (self.new_data.keys() & {'inverter', 'collector'}): #or self.mqtt.home_assistant_restarted:
+        if (self.new_data.keys() & {'inverter', 'collector'}) or self.mqtt.ha_restarts != self.ha_restarts:
             await self.__register_home_assistant()
-            #self.mqtt.home_assistant_restarted = False # clear flag
+            self.ha_restarts = self.mqtt.ha_restarts
+
         for key in self.new_data:
             if self.new_data[key] and key in db:
                 data_json = json.dumps(db[key])
@@ -70,14 +76,15 @@ class Proxy(AsyncStream):
                 await self.mqtt.publish(f"{self.entitiy_prfx}{self.node_id}{key}", data_json)
                 self.new_data[key] = False
 
-    async def __register_home_assistant(self):        
+    async def __register_home_assistant(self):
+    
         try:
             for data_json, component, id in self.db.ha_confs(self.entitiy_prfx + self.node_id, self.unique_id, self.sug_area):
                     logger.debug(f'MQTT Register: {data_json}')                                
                     await self.mqtt.publish(f"{self.discovery_prfx}{component}/{self.node_id}{id}/config", data_json)
         except Exception:
             logging.error(
-                f"Proxy: Exception:\n"
+                f"Inverter: Exception:\n"
                 f"{traceback.format_exc()}")
             
     def close(self):
@@ -85,6 +92,6 @@ class Proxy(AsyncStream):
         super().close()         # call close handler in the parent class
 
 
-    def __del__ (proxy):
-        logging.debug ("Proxy __del__")
+    def __del__ (self):
+        logging.debug ("Inverter __del__")
         super().__del__()  
