@@ -1,42 +1,52 @@
-import asyncio, logging, traceback
+import asyncio, logging, traceback, json
+from config import Config
 from async_stream import AsyncStream
+from mqtt import Mqtt
 
-class Proxy:
-    def __init__ (proxy, reader, writer, addr):
-        proxy.ServerStream = AsyncStream(proxy, reader, writer, addr)
-        proxy.ClientStream = None
+logger = logging.getLogger('conn')
 
-    async def server_loop(proxy, addr):
+
+
+class Proxy(AsyncStream):
+
+    def __init__ (self, reader, writer, addr):
+        super().__init__(reader, writer, addr, None, True)
+        self.mqtt = Mqtt()
+
+    async def server_loop(self, addr):
         '''Loop for receiving messages from the inverter (server-side)'''
         logging.info(f'Accept connection from  {addr}')        
-        await proxy.ServerStream.loop()
+        await self.loop()
         logging.info(f'Server loop stopped for {addr}')
         
         # if the server connection closes, we also disconnect the connection to te TSUN cloud
-        if proxy.ClientStream:
+        if self.remoteStream:
             logging.debug ("disconnect client connection")
-            proxy.ClientStream.disc()
+            self.remoteStream.disc()
         
-    async def client_loop(proxy, addr):
+    async def client_loop(self, addr):
         '''Loop for receiving messages from the TSUN cloud (client-side)'''
-        await proxy.ClientStream.loop()    
+        await self.remoteStream.loop()    
         logging.info(f'Client loop stopped for {addr}')
 
         # if the client connection closes, we don't touch the server connection. Instead we erase the client
         # connection stream, thus on the next received packet from the inverter, we can establish a new connection 
         # to the TSUN cloud
-        proxy.ClientStream = None
+        self.remoteStream = None
         
-    async def CreateClientStream (proxy, stream, host, port):
+    async def async_create_remote(self) -> None:
         '''Establish a client connection to the TSUN cloud'''
+        tsun = Config.get('tsun')
+        host = tsun['host']
+        port = tsun['port']     
         addr = (host, port)
             
         try:
             logging.info(f'Connected to {addr}')
             connect = asyncio.open_connection(host, port)
             reader, writer = await connect    
-            proxy.ClientStream = AsyncStream(proxy, reader, writer, addr, stream, server_side=False)
-            asyncio.create_task(proxy.client_loop(addr))
+            self.remoteStream = AsyncStream(reader, writer, addr, self, False)
+            asyncio.create_task(self.client_loop(addr))
             
         except ConnectionRefusedError as error:
             logging.info(f'{error}')
@@ -44,7 +54,37 @@ class Proxy:
             logging.error(
                 f"Proxy: Exception for {addr}:\n"
                 f"{traceback.format_exc()}")
-        return proxy.ClientStream
         
+    
+
+    async def async_publ_mqtt(self) -> None:
+        db = self.db.db
+        # check if new inverter or collector infos are available or when the home assistant has changed the status back to online
+        if (self.new_data.keys() & {'inverter', 'collector'}): #or self.mqtt.home_assistant_restarted:
+            await self.__register_home_assistant()
+            #self.mqtt.home_assistant_restarted = False # clear flag
+        for key in self.new_data:
+            if self.new_data[key] and key in db:
+                data_json = json.dumps(db[key])
+                logger.info(f'{key}: {data_json}')
+                await self.mqtt.publish(f"{self.entitiy_prfx}{self.node_id}{key}", data_json)
+                self.new_data[key] = False
+
+    async def __register_home_assistant(self):        
+        try:
+            for data_json, component, id in self.db.ha_confs(self.entitiy_prfx + self.node_id, self.unique_id, self.sug_area):
+                    logger.debug(f'MQTT Register: {data_json}')                                
+                    await self.mqtt.publish(f"{self.discovery_prfx}{component}/{self.node_id}{id}/config", data_json)
+        except Exception:
+            logging.error(
+                f"Proxy: Exception:\n"
+                f"{traceback.format_exc()}")
+            
+    def close(self):
+        logger.debug(f'in AsyncServerStream.close() {self.addr}')
+        super().close()         # call close handler in the parent class
+
+
     def __del__ (proxy):
         logging.debug ("Proxy __del__")
+        super().__del__()  
