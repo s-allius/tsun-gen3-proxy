@@ -60,10 +60,7 @@ class Config():
             config['inverters'] = def_config['inverters'] | usr_config['inverters']
 
             cls.config = cls.conf_schema.validate(config)
-            dbg_config =cls.config
-            dbg_mqtt= dbg_config['mqtt']
-            dbg_mqtt['passwd'] = '*******'
-            logging.debug(f'Readed config: "{dbg_config}" ')
+            #logging.debug(f'Readed config: "{cls.config}" ')
  
         except Exception as error:
             logger.error(f'Config.read: {error}')
