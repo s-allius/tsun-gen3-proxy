@@ -67,7 +67,7 @@ class Mqtt(metaclass=Singleton):
                             status = message.payload.decode("UTF-8")
                             logger_mqtt.info(f'Home-Assistant Status: {status}')
                             if status == 'online':
-                                self.restarts += 1
+                                self.ha_restarts += 1
 
             except aiomqtt.MqttError:
                 logger_mqtt.info(f"Connection lost; Reconnecting in {interval} seconds ...")
