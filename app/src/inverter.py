@@ -68,7 +68,9 @@ class Inverter(AsyncStream):
         '''puplish data to MQTT broker'''
         db = self.db.db
         # check if new inverter or collector infos are available or when the home assistant has changed the status back to online
-        if (self.new_data.keys() & {'inverter', 'collector'}) or self.mqtt.ha_restarts != self.ha_restarts:
+        if (('inverter' in self.new_data and self.new_data['inverter']) or 
+             ('collector' in self.new_data and self.new_data['collector']) or
+               self.mqtt.ha_restarts != self.ha_restarts):
             await self.__register_home_assistant()
             self.ha_restarts = self.mqtt.ha_restarts
 
@@ -83,7 +85,7 @@ class Inverter(AsyncStream):
         '''register all our topics at home assistant'''
         try:
             for data_json, component, id in self.db.ha_confs(self.entitiy_prfx + self.node_id, self.unique_id, self.sug_area):
-                    logger.debug(f'MQTT Register: {data_json}')                                
+                    #logger.debug(f'MQTT Register: {data_json}')                                
                     await self.mqtt.publish(f"{self.discovery_prfx}{component}/{self.node_id}{id}/config", data_json)
         except Exception:
             logging.error(
