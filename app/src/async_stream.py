@@ -128,6 +128,5 @@ class AsyncStream(Message):
 
     def __del__ (self):
         logging.debug (f"AsyncStream.__del__  {self.addr}")     
-        super().__del__()  
 
 
