@@ -1,8 +1,7 @@
 import logging, asyncio, signal, functools, os
-#from logging.handlers import TimedRotatingFileHandler
 from logging import config
 from async_stream import AsyncStream
-from proxy import Proxy
+from inverter import Inverter
 from config import Config
 from mqtt import Mqtt
 
@@ -11,7 +10,7 @@ async def handle_client(reader, writer):
     '''Handles a new incoming connection and starts an async loop'''
 
     addr = writer.get_extra_info('peername')
-    await Proxy(reader, writer, addr).server_loop(addr) 
+    await Inverter(reader, writer, addr).server_loop(addr) 
 
 
 def handle_SIGTERM(loop):
@@ -46,6 +45,7 @@ if __name__ == "__main__":
 
     logging.config.fileConfig('logging.ini')
     logging.info(f'Server "{serv_name} - {version}" will be started')
+    logging.getLogger().setLevel(logging.DEBUG if __debug__ else logging.INFO)
     
     # read config file
     Config.read()    

@@ -16,14 +16,22 @@ class Singleton(type):
 
 class Mqtt(metaclass=Singleton):
     client = None
-
+    
     def __init__(self):
         logger_mqtt.debug(f'MQTT: __init__') 
         loop = asyncio.get_event_loop()
         self.task = loop.create_task(self.__loop())
-        self.home_assistant_restarted = False
-                
+        self.ha_restarts = 0        
+
+    
+    @property
+    def ha_restarts(self):
+        return self._ha_restarts
         
+    @ha_restarts.setter
+    def ha_restarts(self, value):
+        self._ha_restarts = value
+            
     def __del__(self):
         logger_mqtt.debug(f'MQTT: __del__')
     
@@ -59,7 +67,7 @@ class Mqtt(metaclass=Singleton):
                             status = message.payload.decode("UTF-8")
                             logger_mqtt.info(f'Home-Assistant Status: {status}')
                             if status == 'online':
-                                self.home_assistant_restarted = True  # set flag to force MQTT registering
+                                self.ha_restarts += 1
 
             except aiomqtt.MqttError:
                 logger_mqtt.info(f"Connection lost; Reconnecting in {interval} seconds ...")

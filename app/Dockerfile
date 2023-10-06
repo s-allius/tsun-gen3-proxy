@@ -37,12 +37,6 @@ ENV SERVICE_NAME=$SERVICE_NAME
 ENV UID=$UID
 ENV GID=$GID 
 
-
-
-RUN addgroup --gid $GID $SERVICE_NAME && \
-    adduser --ingroup $SERVICE_NAME --shell /bin/false --disabled-password --uid $UID $SERVICE_NAME && \
-    mkdir -p /home/$SERVICE_NAME/log /home/$SERVICE_NAME/config && \
-    chown -R $SERVICE_NAME:$SERVICE_NAME /home/$SERVICE_NAME
     
 # set the working directory in the container
 WORKDIR /home/$SERVICE_NAME

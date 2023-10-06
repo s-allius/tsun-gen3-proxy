@@ -101,7 +101,6 @@ class Message(metaclass=IterRegistry):
     Our puplic methods
     '''
     def close(self) -> None:
-        logger.debug(f'in Message.close()')
         # we have refernces to methods of this class in self.switch
         # so we have to erase self.switch, otherwise this instance can't be 
         # deallocated by the garbage collector ==> we get a memory leak
@@ -295,11 +294,9 @@ class Message(metaclass=IterRegistry):
 
 
     def msg_unknown(self):
+        logger.error (f"Unknow Msg: ID:{self.msg_id}")       
         self.forward(self._recv_buffer, self.header_len+self.data_len)
 
-
-    def __del__ (self):
-        logger.debug ("Messages __del__")       
         
 
 
