@@ -45,6 +45,7 @@ if __name__ == "__main__":
 
     logging.config.fileConfig('logging.ini')
     logging.info(f'Server "{serv_name} - {version}" will be started')
+    logging.getLogger().setLevel(logging.DEBUG if __debug__ else logging.INFO)
     
     # read config file
     Config.read()    
