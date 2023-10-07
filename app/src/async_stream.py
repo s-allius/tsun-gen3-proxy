@@ -21,7 +21,7 @@ class AsyncStream(Message):
     Our puplic methods
     '''
     def set_serial_no(self, serial_no : str):
-        logger.info(f'SerialNo: {serial_no}')
+        logger.debug(f'SerialNo: {serial_no}')
        
         if self.unique_id != serial_no: 
        
@@ -40,7 +40,7 @@ class AsyncStream(Message):
                 if not inverters['allow_all']:
                     self.unique_id = None
             
-                    logger.error('ignore message from unknow inverter!')
+                    logger.warning('ignore message from unknow inverter! (SerialNo: {serial_no})')
                     return
 
             self.unique_id = serial_no
@@ -67,7 +67,7 @@ class AsyncStream(Message):
             except (ConnectionResetError,
                     ConnectionAbortedError,
                     RuntimeError) as error:
-                logger.error(f'In loop for {self.addr}: {error}')
+                logger.warning(f'In loop for {self.addr}: {error}')
                 self.close()
                 return
             except Exception:
