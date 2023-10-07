@@ -40,7 +40,7 @@ class AsyncStream(Message):
                 if not inverters['allow_all']:
                     self.unique_id = None
             
-                    logger.warning('ignore message from unknow inverter! (SerialNo: {serial_no})')
+                    logger.warning(f'ignore message from unknow inverter! (SerialNo: {serial_no})')
                     return
 
             self.unique_id = serial_no
