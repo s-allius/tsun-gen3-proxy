@@ -2,7 +2,8 @@ ARG SERVICE_NAME="tsun-proxy"
 ARG UID=1000
 ARG GID=1000
 
-# set base image (host OS)
+#
+# first stage for our base image
 FROM python:3.11-alpine AS base
 USER root
 
@@ -10,19 +11,21 @@ RUN apk update && \
     apk upgrade
 RUN apk add --no-cache su-exec	
 
+#
+# second stage for building wheels packages
 FROM base as builder
 
 RUN apk add --no-cache build-base && \
     python -m pip install --no-cache-dir -U pip wheel
 
-# copy the dependencies file to the working directory
+# copy the dependencies file to the root dir and install requirements
 COPY ./requirements.txt /root/
 RUN python -OO -m pip wheel --no-cache-dir --wheel-dir=/root/wheels -r /root/requirements.txt
 
 
 #
-# second unnamed stage
-FROM base
+# third stage for our runtime image
+FROM base as runtime
 ARG SERVICE_NAME
 ARG VERSION
 ARG UID
@@ -41,14 +44,13 @@ ENV HOME=/home/$SERVICE_NAME
 
 VOLUME ["/home/$SERVICE_NAME/log", "/home/$SERVICE_NAME/config"]
 
-# copy only the dependencies installation from the 1st stage image
+# install the requirements from the wheels packages from the builder stage
 COPY --from=builder /root/wheels /root/wheels
-RUN python -m pip install --no-cache --no-index /root/wheels/*
-RUN rm -rf /root/wheels
-
-COPY --chmod=0700 entrypoint.sh /root/entrypoint.sh
+RUN python -m pip install --no-cache --no-index /root/wheels/* && \
+    rm -rf /root/wheels
 
 # copy the content of the local src and config directory to the working directory
+COPY --chmod=0700 entrypoint.sh /root/entrypoint.sh
 COPY config .
 COPY src .
 
