@@ -9,20 +9,22 @@ arr=(${VERSION//./ })
 MAJOR=${arr[0]}
 IMAGE=tsun-gen3-proxy
 
-if [[ $1 == dev ]];then
+if [[ $1 == dev ]] || [[ $1 == rc ]] ;then
 IMAGE=docker.io/sallius/${IMAGE}
-VERSION=${VERSION}-dev
+VERSION=${VERSION}-$1
 elif [[ $1 == rel ]];then
 IMAGE=ghcr.io/s-allius/${IMAGE}
 else
 echo argument missing!
-echo try: $0 '[dev|rel]'
+echo try: $0 '[dev|rc|rel]'
 exit 1
 fi
 
 echo version: $VERSION  build-date: $BUILD_DATE   image: $IMAGE
 if [[ $1 == dev ]];then
-docker build --build-arg "VERSION=${VERSION}" --label "org.label-schema.build-date=${BUILD_DATE}" --label "org.opencontainers.image.version=${VERSION}" -t ${IMAGE}:latest app
+docker build --build-arg "VERSION=${VERSION}" --build-arg "LOG_LVL=DEBUG" --label "org.label-schema.build-date=${BUILD_DATE}" --label "org.opencontainers.image.version=${VERSION}" -t ${IMAGE}:latest app
+elif [[ $1 == rc ]];then
+docker build --no-cache --build-arg "VERSION=${VERSION}" --label "org.label-schema.build-date=${BUILD_DATE}" --label "org.opencontainers.image.version=${VERSION}" -t ${IMAGE}:latest app
 elif [[ $1 == rel ]];then
 docker build --no-cache --build-arg "VERSION=${VERSION}" --label "org.label-schema.build-date=${BUILD_DATE}" --label "org.opencontainers.image.version=${VERSION}" -t ${IMAGE}:latest -t ${IMAGE}:${MAJOR} -t ${IMAGE}:${VERSION} app
 docker push ghcr.io/s-allius/tsun-gen3-proxy:latest
