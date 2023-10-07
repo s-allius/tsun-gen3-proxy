@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- move from slim-bookworm to an alpine base image
+- install python requirements with pip wheel
+
 ## [0.1.0] - 2023-10-06
 
 - refactoring of the connection classes

@@ -3,31 +3,26 @@ ARG UID=1000
 ARG GID=1000
 
 # set base image (host OS)
-FROM python:3.11-slim-bookworm AS builder
-
+FROM python:3.11-alpine AS base
 USER root
 
-# install gosu for a better su+exec command
-RUN set -eux; \
-	apt-get update; \
-	apt-get install -y gosu; \
-	rm -rf /var/lib/apt/lists/*; \
-# verify that the binary works
-	gosu nobody true
+RUN apk update && \
+    apk upgrade
+RUN apk add --no-cache su-exec	
 
-RUN pip install --upgrade pip
+FROM base as builder
 
+RUN apk add --no-cache build-base && \
+    python -m pip install --no-cache-dir -U pip wheel
 
 # copy the dependencies file to the working directory
-COPY ./requirements.txt .
-
-# install dependencies
-RUN pip install --user -r requirements.txt
+COPY ./requirements.txt /root/
+RUN python -OO -m pip wheel --no-cache-dir --wheel-dir=/root/wheels -r /root/requirements.txt
 
 
 #
 # second unnamed stage
-FROM python:3.11-slim-bookworm
+FROM base
 ARG SERVICE_NAME
 ARG VERSION
 ARG UID
@@ -43,16 +38,15 @@ WORKDIR /home/$SERVICE_NAME
 
 # update PATH environment variable
 ENV HOME=/home/$SERVICE_NAME
-ENV PATH=/home/$SERVICE_NAME/.local:$PATH
 
 VOLUME ["/home/$SERVICE_NAME/log", "/home/$SERVICE_NAME/config"]
 
 # copy only the dependencies installation from the 1st stage image
-COPY --from=builder --chown=$SERVICE_NAME:$SERVICE_NAME /root/.local /home/$SERVICE_NAME/.local
-COPY --from=builder /usr/sbin/gosu /usr/sbin/gosu
+COPY --from=builder /root/wheels /root/wheels
+RUN python -m pip install --no-cache --no-index /root/wheels/*
+RUN rm -rf /root/wheels
 
-COPY entrypoint.sh /root/entrypoint.sh
-RUN chmod +x /root/entrypoint.sh
+COPY --chmod=0700 entrypoint.sh /root/entrypoint.sh
 
 # copy the content of the local src and config directory to the working directory
 COPY config .
