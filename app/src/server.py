@@ -32,8 +32,16 @@ def handle_SIGTERM(loop):
     logging.info('Shutdown complete')
     
 
-    
-
+def get_log_level() -> int:
+    '''checks if LOG_LVL is set in the environment and returns the corresponding logging.LOG_LEVEL'''
+    log_level = os.getenv('LOG_LVL', 'INFO')
+    if log_level== 'DEBUG':
+        log_level = logging.DEBUG
+    elif log_level== 'WARN':
+        log_level = logging.WARNING
+    else:
+        log_level = logging.INFO
+    return log_level
 
 
 if __name__ == "__main__":
@@ -41,11 +49,17 @@ if __name__ == "__main__":
     # Setup our daily, rotating logger
     #
     serv_name = os.getenv('SERVICE_NAME', 'proxy')
-    version = os.getenv('VERSION', 'unknown')
-
+    version   = os.getenv('VERSION', 'unknown')
+    
     logging.config.fileConfig('logging.ini')
     logging.info(f'Server "{serv_name} - {version}" will be started')
-    logging.getLogger().setLevel(logging.DEBUG if __debug__ else logging.INFO)
+    
+    # set lowest-severity for 'root', 'msg', 'conn' and 'data' logger
+    log_level = get_log_level()
+    logging.getLogger().setLevel(log_level)
+    logging.getLogger('msg').setLevel(log_level)
+    logging.getLogger('conn').setLevel(log_level)
+    logging.getLogger('data').setLevel(log_level)
     
     # read config file
     Config.read()    
