@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - move from slim-bookworm to an alpine base image
 - install python requirements with pip wheel
+- disable DEBUG log for releases
+- support building of release candidates
 
 ## [0.1.0] - 2023-10-06
 
