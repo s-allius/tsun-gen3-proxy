@@ -2,40 +2,41 @@ ARG SERVICE_NAME="tsun-proxy"
 ARG UID=1000
 ARG GID=1000
 
-# set base image (host OS)
-FROM python:3.11-slim-bookworm AS builder
-
+#
+# first stage for our base image
+FROM python:3.11-alpine AS base
 USER root
 
-# install gosu for a better su+exec command
-RUN set -eux; \
-	apt-get update; \
-	apt-get install -y gosu; \
-	rm -rf /var/lib/apt/lists/*; \
-# verify that the binary works
-	gosu nobody true
+RUN apk update && \
+    apk upgrade
+RUN apk add --no-cache su-exec	
 
-RUN pip install --upgrade pip
+#
+# second stage for building wheels packages
+FROM base as builder
 
+RUN apk add --no-cache build-base && \
+    python -m pip install --no-cache-dir -U pip wheel
 
-# copy the dependencies file to the working directory
-COPY ./requirements.txt .
-
-# install dependencies
-RUN pip install --user -r requirements.txt
+# copy the dependencies file to the root dir and install requirements
+COPY ./requirements.txt /root/
+RUN python -OO -m pip wheel --no-cache-dir --wheel-dir=/root/wheels -r /root/requirements.txt
 
 
 #
-# second unnamed stage
-FROM python:3.11-slim-bookworm
+# third stage for our runtime image
+FROM base as runtime
 ARG SERVICE_NAME
 ARG VERSION
 ARG UID
 ARG GID
+ARG LOG_LVL
+
 ENV VERSION=$VERSION
 ENV SERVICE_NAME=$SERVICE_NAME
 ENV UID=$UID
 ENV GID=$GID 
+ENV LOG_LVL=$LOG_LVL
 
     
 # set the working directory in the container
@@ -43,18 +44,16 @@ WORKDIR /home/$SERVICE_NAME
 
 # update PATH environment variable
 ENV HOME=/home/$SERVICE_NAME
-ENV PATH=/home/$SERVICE_NAME/.local:$PATH
 
 VOLUME ["/home/$SERVICE_NAME/log", "/home/$SERVICE_NAME/config"]
 
-# copy only the dependencies installation from the 1st stage image
-COPY --from=builder --chown=$SERVICE_NAME:$SERVICE_NAME /root/.local /home/$SERVICE_NAME/.local
-COPY --from=builder /usr/sbin/gosu /usr/sbin/gosu
-
-COPY entrypoint.sh /root/entrypoint.sh
-RUN chmod +x /root/entrypoint.sh
+# install the requirements from the wheels packages from the builder stage
+COPY --from=builder /root/wheels /root/wheels
+RUN python -m pip install --no-cache --no-index /root/wheels/* && \
+    rm -rf /root/wheels
 
 # copy the content of the local src and config directory to the working directory
+COPY --chmod=0700 entrypoint.sh /root/entrypoint.sh
 COPY config .
 COPY src .
 

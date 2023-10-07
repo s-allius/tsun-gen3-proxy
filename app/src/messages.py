@@ -18,7 +18,8 @@ def hex_dump_memory(level, info, data, num):
     lines = []
     lines.append(info)
     tracer = logging.getLogger('tracer')
-    
+    if not tracer.isEnabledFor(level): return
+
 
     #data = list((num * ctypes.c_byte).from_address(ptr))
 
@@ -294,7 +295,7 @@ class Message(metaclass=IterRegistry):
 
 
     def msg_unknown(self):
-        logger.error (f"Unknow Msg: ID:{self.msg_id}")       
+        logger.warning (f"Unknow Msg: ID:{self.msg_id}")       
         self.forward(self._recv_buffer, self.header_len+self.data_len)
 
         
