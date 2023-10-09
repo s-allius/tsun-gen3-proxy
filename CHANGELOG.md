@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- optimize and reduce logging
+  
 ## [0.2.0] - 2023-10-07
 
 This version halves the size of the Docker image and reduces the attack surface for security vulnerabilities, by omitting unneeded code. The feature set is exactly the same as the previous release version 0.1.0.
