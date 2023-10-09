@@ -4,7 +4,7 @@ ARG GID=1000
 
 #
 # first stage for our base image
-FROM python:3.11-alpine AS base
+FROM python:3.12-alpine AS base
 USER root
 
 RUN apk update && \

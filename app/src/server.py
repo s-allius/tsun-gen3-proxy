@@ -64,7 +64,8 @@ if __name__ == "__main__":
     # read config file
     Config.read()    
 
-    loop = asyncio.get_event_loop()
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
 
     # call Mqtt singleton to establisch the connection to the mqtt broker
     mqtt = Mqtt()
