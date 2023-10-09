@@ -16,13 +16,16 @@
 ###
 # Overview
 
-The "TSUN Gen3 Micro-Inverter" proxy enables a reliable connection between TSUN third generation inverters and an MQTT broker. With the proxy, you can easily retrieve real-time values such as power, current and daily energy and integrate the inverter into typical home automations. This works even without an internet connection. The optional connection to the TSUN Cloud can be disabled!
+This proxy enables a reliable connection between TSUN third generation inverters and an MQTT broker. With the proxy, you can easily retrieve real-time values such as power, current and daily energy and integrate the inverter into typical home automations. This works even without an internet connection. The optional connection to the TSUN Cloud can be disabled!
 
 In detail, the inverter establishes a TCP connection to the TSUN cloud to transmit current measured values every 300 seconds. To be able to forward the measurement data to an MQTT broker, the proxy must be looped into this TCP connection.
 
 Through this, the inverter then establishes a connection to the proxy and the proxy establishes another connection to the TSUN Cloud. The transmitted data is interpreted by the proxy and then passed on to both the TSUN Cloud and the MQTT broker. The connection to the TSUN Cloud is optional and can be switched off in the configuration (default is on). Then no more data is sent to the Internet, but no more remote updates of firmware and operating parameters (e.g. rated power, grid parameters) are possible.
 
-By means of `docker` a simple installation and operation is possible. By using `docker-composer`, a complete stack of proxy, `MQTT-brocker` and `home-assistant` can be started easily. 
+By means of `docker` a simple installation and operation is possible. By using `docker-composer`, a complete stack of proxy, `MQTT-brocker` and `home-assistant` can be started easily.
+
+ℹ️ This project is not related to the company TSUN. It is a private initiative that aims to connect TSUN inverters with an MQTT broker. There is no support and no warranty from TSUN.
+
 
 ```
 ❗An essential requirement is that the proxy can be looped into the connection
