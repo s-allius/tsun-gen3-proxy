@@ -4,7 +4,8 @@ from async_stream import AsyncStream
 from mqtt import Mqtt
 #import gc
 
-logger = logging.getLogger('conn')
+#logger = logging.getLogger('conn')
+logger_mqtt = logging.getLogger('mqtt')
 
 
 
@@ -21,7 +22,7 @@ class Inverter(AsyncStream):
 
     async def server_loop(self, addr):
         '''Loop for receiving messages from the inverter (server-side)'''
-        logger.info(f'Accept connection from  {addr}')        
+        logging.info(f'Accept connection from  {addr}')        
         await self.loop()
         logging.info(f'Server loop stopped for {addr}')
         
@@ -77,7 +78,7 @@ class Inverter(AsyncStream):
         for key in self.new_data:
             if self.new_data[key] and key in db:
                 data_json = json.dumps(db[key])
-                logger.info(f'{key}: {data_json}')
+                logger_mqtt.debug(f'{key}: {data_json}')
                 await self.mqtt.publish(f"{self.entitiy_prfx}{self.node_id}{key}", data_json)
                 self.new_data[key] = False
 
@@ -85,7 +86,7 @@ class Inverter(AsyncStream):
         '''register all our topics at home assistant'''
         try:
             for data_json, component, id in self.db.ha_confs(self.entitiy_prfx + self.node_id, self.unique_id, self.sug_area):
-                    #logger.debug(f'MQTT Register: {data_json}')                                
+                    logger_mqtt.debug(f'MQTT Register: {data_json}')                                
                     await self.mqtt.publish(f"{self.discovery_prfx}{component}/{self.node_id}{id}/config", data_json)
         except Exception:
             logging.error(
