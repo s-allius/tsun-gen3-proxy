@@ -56,7 +56,7 @@ class Infos:
             0x0000044c:  {'name':['grid', 'Current'],                         'level': logging.DEBUG, 'unit': 'A',    'ha':{'dev':'inverter', 'dev_cla': 'current',     'stat_cla': 'measurement', 'id':'out_cur_',   'fmt':'| float','name': 'Grid Current'}},
             0x000004b0:  {'name':['grid', 'Frequency'],                       'level': logging.DEBUG, 'unit': 'Hz',   'ha':{'dev':'inverter', 'dev_cla': 'frequency',   'stat_cla': 'measurement', 'id':'out_freq_',  'fmt':'| float','name': 'Grid Frequency'}},
             0x00000640:  {'name':['grid', 'Output_Power'],                    'level': logging.INFO,  'unit': 'W',    'ha':{'dev':'inverter', 'dev_cla': 'power',       'stat_cla': 'measurement', 'id':'out_power_', 'fmt':'| float','name': 'Power'}},
-            0x000005dc:  {'name':['env',  'Rated_Power'],                     'level': logging.DEBUG, 'unit': 'W',    'ha':{'dev':'inverter', 'dev_cla': 'power',       'stat_cla': 'measurement', 'id':'rated_power_','fmt':'| int', 'name': 'Rated Power'}},
+            0x000005dc:  {'name':['env',  'Rated_Power'],                     'level': logging.DEBUG, 'unit': 'W',    'ha':{'dev':'inverter', 'dev_cla': 'power',       'stat_cla': 'measurement', 'id':'rated_power_','fmt':'| int', 'name': 'Rated Power','ent_cat':'diagnostic'}},
             0x00000514:  {'name':['env',  'Inverter_Temp'],                   'level': logging.DEBUG, 'unit': '°C',   'ha':{'dev':'inverter', 'dev_cla': 'temperature', 'stat_cla': 'measurement', 'id':'temp_',   'fmt':'| int','name': 'Temperature'}},
 
         # input measures:           
@@ -86,8 +86,8 @@ class Infos:
 
         # controller:
             0x000c3500:  {'name':['controller', 'Signal_Strength'],           'level': logging.DEBUG, 'unit': '%' ,  'ha':{'dev':'controller', 'dev_cla': None,       'stat_cla': 'measurement', 'id':'signal_',         'fmt':'| int', 'name': 'Signal Strength', 'icon':'mdi:wifi','ent_cat':'diagnostic'}},
-            0x000c96a8:  {'name':['controller', 'Power_On_Time'],             'level': logging.DEBUG, 'unit': 's',   'ha':{'dev':'controller', 'dev_cla': 'duration', 'stat_cla': 'measurement', 'id':'power_on_time_',                 'name': 'Power on Time',   'val_tpl':"{{ (value_json['Power_On_Time'] | float)}}", 'nat_prc':'3'}},
-            0x000cf850:  {'name':['controller', 'Data_Up_Interval'],          'level': logging.DEBUG, 'unit': 's',   'ha':{'dev':'controller', 'dev_cla': None,       'stat_cla': 'measurement', 'id':'data_up_intval_', 'fmt':'| int', 'name': 'Data Up Interval', 'icon':'mdi:update'}},
+            0x000c96a8:  {'name':['controller', 'Power_On_Time'],             'level': logging.DEBUG, 'unit': 's',   'ha':{'dev':'controller', 'dev_cla': 'duration', 'stat_cla': 'measurement', 'id':'power_on_time_',                 'name': 'Power on Time',   'val_tpl':"{{ (value_json['Power_On_Time'] | float)}}", 'nat_prc':'3','ent_cat':'diagnostic'}},
+            0x000cf850:  {'name':['controller', 'Data_Up_Interval'],          'level': logging.DEBUG, 'unit': 's',   'ha':{'dev':'controller', 'dev_cla': None,       'stat_cla': 'measurement', 'id':'data_up_intval_', 'fmt':'| int', 'name': 'Data Up Interval', 'icon':'mdi:update','ent_cat':'diagnostic'}},
 
     }          
                                     
@@ -149,11 +149,11 @@ class Infos:
                 if 'unit' in row:
                     attr['unit_of_meas'] = row['unit']        # optional add a 'unit_of_meas' e.g. 'W'
                 if 'icon' in ha:
-                    attr['ic'] = ha['icon']                 # optional add an icon for the entity
+                    attr['ic'] = ha['icon']                   # optional add an icon for the entity
                 if 'nat_prc' in ha:
-                    attr['sug_dsp_prc'] = ha['nat_prc']     # optional add the precison of floats
-                #if 'ent_cat' in ha:
-                #    attr['ent_cat'] = ha['ent_cat']           # diagnostic, config
+                    attr['sug_dsp_prc'] = ha['nat_prc']       # optional add the precison of floats
+                if 'ent_cat' in ha:
+                    attr['ent_cat'] = ha['ent_cat']           # diagnostic, config
 
                 # eg. 'dev':{'name':'Microinverter','mdl':'MS-600','ids':["inverter_123"],'mf':'TSUN','sa': 'auf Garagendach'}
                 # attr['dev'] = {'name':'Microinverter','mdl':'MS-600','ids':[f'inverter_{snr}'],'mf':'TSUN','sa': 'auf Garagendach'}   
