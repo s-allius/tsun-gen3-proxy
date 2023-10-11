@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- fix issue [#8](https://github.com/s-allius/tsun-gen3-proxy/issues/8)
+  
 ## [0.3.0] - 2023-10-10
 
 ❗Due to the definition of values for diagnostics, the MQTT devices of controller and inverter should be deleted in the Home Assistant before updating to version '0.3.0'. After the update, these are automatically created again. The measurement data is retained.

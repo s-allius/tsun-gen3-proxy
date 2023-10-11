@@ -13,9 +13,9 @@ class Infos:
         'controller':{                    'name':'Controller',     'mdl':0x00092f90, 'mf':0x000927c0, 'sw':0x00092ba8},
         'inverter':  {'via':'controller', 'name':'Micro Inverter', 'mdl':0x00000032, 'mf':0x00000014, 'sw':0x0000001e},
         'input_pv1': {'via':'inverter',   'name':'Module PV1'},
-        'input_pv2': {'via':'inverter',   'name':'Module PV2'},
-        'input_pv3': {'via':'inverter',   'name':'Module PV3'},
-        'input_pv4': {'via':'inverter',   'name':'Module PV4'},
+        'input_pv2': {'via':'inverter',   'name':'Module PV2', 'dep':{'reg':0x00095b50, 'gte': 2}},
+        'input_pv3': {'via':'inverter',   'name':'Module PV3', 'dep':{'reg':0x00095b50, 'gte': 3}},
+        'input_pv4': {'via':'inverter',   'name':'Module PV4', 'dep':{'reg':0x00095b50, 'gte': 4}},
     }
 
     __info_defs={
@@ -25,6 +25,7 @@ class Infos:
             0x00092f90:  {'name':['collector', 'Chip_Model'],                 'level': logging.DEBUG, 'unit': ''},
             0x00095a88:  {'name':['collector', 'Trace_URL'],                  'level': logging.DEBUG, 'unit': ''},
             0x00095aec:  {'name':['collector', 'Logger_URL'],                 'level': logging.DEBUG, 'unit': ''},
+            0x00095b50:  {'name':['collector', 'No_Inputs'],                  'level': logging.DEBUG, 'unit': ''},
        
         # inverter values used for device registration:
             0x0000000a:  {'name':['inverter', 'Product_Name'],                'level': logging.DEBUG, 'unit': ''},
@@ -112,7 +113,20 @@ class Infos:
             
         return None                  # unknwon idx, not in __info_defs
 
-
+    def ignore_this_device(self, dep:dict) -> bool:
+        '''Checks the equation in the dep dict
+        
+            returns 'False' only if the equation is valid; 'True'  in any other case'''
+        if 'reg' in dep:
+            value = self.dev_value(dep['reg'])
+            if not value: return True
+            
+            if 'gte' in dep:
+                return not value >= dep['gte']
+            elif 'less_eq' in dep:
+                return not value <= dep['less_eq']
+        return True
+    
     def ha_confs(self, prfx="tsun/garagendach/", snr='123', sug_area =''):
         '''Generator function yields a json register struct for home-assistant auto configuration and a unique entity string
 
@@ -159,6 +173,10 @@ class Infos:
                 # attr['dev'] = {'name':'Microinverter','mdl':'MS-600','ids':[f'inverter_{snr}'],'mf':'TSUN','sa': 'auf Garagendach'}   
                 if 'dev' in ha:
                     device = self.__info_devs[ha['dev']]
+
+                    if 'dep' in device and self.ignore_this_device(device['dep']):
+                        continue
+
                     dev = {}
 
                     # the same name fpr 'name' and 'suggested area', so we get dedicated devices in home assistant with short value name and headline 
