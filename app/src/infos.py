@@ -113,7 +113,10 @@ class Infos:
             
         return None                  # unknwon idx, not in __info_defs
 
-    def ignore_this_device(self, dep) -> bool:
+    def ignore_this_device(self, dep:dict) -> bool:
+        '''Checks the equation in the dep dict
+        
+            returns 'False' only if the equation is valid; 'True'  in any other case'''
         if 'reg' in dep:
             value = self.dev_value(dep['reg'])
             if not value: return True
