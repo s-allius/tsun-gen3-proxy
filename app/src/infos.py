@@ -8,9 +8,12 @@ class Infos:
         self.app_name = os.getenv('SERVICE_NAME', 'proxy')
         self.version  = os.getenv('VERSION', 'unknown')
         self.tracer = logging.getLogger('data')
+        prxy = self.__info_devs['proxy']
+        prxy['sw']  = self.version
 
     __info_devs={
-        'controller':{                    'name':'Controller',     'mdl':0x00092f90, 'mf':0x000927c0, 'sw':0x00092ba8},
+        'proxy':     {                    'name':'Proxy', 'mf':'Stefan Allius'},
+        'controller':{'via':'proxy',      'name':'Controller',     'mdl':0x00092f90, 'mf':0x000927c0, 'sw':0x00092ba8},
         'inverter':  {'via':'controller', 'name':'Micro Inverter', 'mdl':0x00000032, 'mf':0x00000014, 'sw':0x0000001e},
         'input_pv1': {'via':'inverter',   'name':'Module PV1'},
         'input_pv2': {'via':'inverter',   'name':'Module PV2', 'dep':{'reg':0x00095b50, 'gte': 2}},
@@ -33,7 +36,11 @@ class Infos:
             0x0000001e:  {'name':['inverter', 'Version'],                     'level': logging.INFO,  'unit': ''},
             0x00000028:  {'name':['inverter', 'Serial_Number'],               'level': logging.DEBUG, 'unit': ''},
             0x00000032:  {'name':['inverter', 'Equipment_Model'],             'level': logging.DEBUG, 'unit': ''},
-       
+        
+        # proxy:
+            0xffffff01:  {'name':['proxy','Info'],                                                                   'ha':{'dev':'proxy',      'dev_cla': None,       'stat_cla': 'measurement', 'id':'info_', 'fmt':'| int', 'name': 'Info ?'}}, 
+            0xffffff02:  {'name':['proxy','Info2'],                                                                  'ha':{'dev':'proxy',      'dev_cla': None,       'stat_cla': 'measurement', 'id':'info2_', 'fmt':'| int', 'name': 'Info2 ?'}}, 
+   
         # events
             0x00000191:  {'name':['events', '401_'],                          'level': logging.DEBUG, 'unit': ''},
             0x00000192:  {'name':['events', '402_'],                          'level': logging.DEBUG, 'unit': ''},
