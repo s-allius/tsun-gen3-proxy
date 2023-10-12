@@ -80,6 +80,8 @@ class Message(metaclass=IterRegistry):
         self.header_valid = False
         self.header_len = 0
         self.data_len = 0
+        self.unique_id = 0
+        self.node_id = ''
         self._recv_buffer = b''
         self._send_buffer = bytearray(0)
         self._forward_buffer = bytearray(0)
@@ -107,6 +109,30 @@ class Message(metaclass=IterRegistry):
         # deallocated by the garbage collector ==> we get a memory leak
         del self.switch 
         
+    def set_serial_no(self, serial_no : str):
+        
+        if self.unique_id == serial_no: 
+            logger.debug(f'SerialNo: {serial_no}')
+        else:
+            inverters = Config.get('inverters')
+            #logger.debug(f'Inverters: {inverters}')
+                
+            if serial_no in inverters:
+                inv = inverters[serial_no]
+                self.node_id = inv['node_id']
+                self.sug_area    = inv['suggested_area']
+                logger.debug(f'SerialNo {serial_no} allowed!  area:{self.sug_area}')
+            else:    
+                self.node_id = ''
+                self.sug_area    = ''
+                if not inverters['allow_all']:
+                    self.unique_id = None
+                    logger.warning(f'ignore message from unknow inverter! (SerialNo: {serial_no})')
+                    return
+                logger.debug(f'SerialNo {serial_no} not known but accepted!')
+                    
+            self.unique_id = serial_no
+    
 
     def read(self) -> None:
         self._read()
@@ -115,6 +141,11 @@ class Message(metaclass=IterRegistry):
             self.__parse_header(self._recv_buffer, len(self._recv_buffer))
         
         if self.header_valid and len(self._recv_buffer) >= (self.header_len+self.data_len):
+            hex_dump_memory(logging.INFO, f'Received from {self.addr}:', self._recv_buffer, self.header_len+self.data_len)
+
+            if self.id_str:
+                self.set_serial_no(self.id_str.decode("utf-8"))
+            
             self.__dispatch_msg()
             self.__flush_recv_msg()
         return
@@ -203,11 +234,12 @@ class Message(metaclass=IterRegistry):
     
 
     def __dispatch_msg(self) -> None:
-        hex_dump_memory(logging.INFO, f'Received from {self.addr}:', self._recv_buffer, self.header_len+self.data_len)
-        
         fnc = self.switch.get(self.msg_id, self.msg_unknown)
-        logger.info(self.__flow_str(self.server_side, 'rx') + f' Ctl: {int(self.ctrl):#02x} Msg: {fnc.__name__!r}' )
-        fnc()
+        if self.unique_id: 
+            logger.info(self.__flow_str(self.server_side, 'rx') + f' Ctl: {int(self.ctrl):#02x} Msg: {fnc.__name__!r}' )
+            fnc()
+        else:
+            logger.info(self.__flow_str(self.server_side, 'drop') + f' Ctl: {int(self.ctrl):#02x} Msg: {fnc.__name__!r}' )
         
     
     def __flush_recv_msg(self) -> None:
