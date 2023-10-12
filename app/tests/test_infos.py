@@ -25,7 +25,7 @@ def test_parse_control(ContrDataSeq):
         pass
 
     assert json.dumps(i.db) == json.dumps(
-{"collector": {"Collector_Fw_Version": "RSW_400_V1.00.06", "Chip_Type": "Raymon", "Chip_Model": "RSW-1-10001", "Trace_URL": "t.raymoniot.com", "Logger_URL": "logger.talent-monitoring.com"}, "controller": {"Signal_Strength": 100, "Power_On_Time": 29, "Data_Up_Interval": 300}})        
+{"collector": {"Collector_Fw_Version": "RSW_400_V1.00.06", "Chip_Type": "Raymon", "Chip_Model": "RSW-1-10001", "Trace_URL": "t.raymoniot.com", "Logger_URL": "logger.talent-monitoring.com", "No_Inputs": 2}, "controller": {"Signal_Strength": 100, "Power_On_Time": 29, "Data_Up_Interval": 300}})        
 
 def test_parse_inverter(InvDataSeq):
     i = Infos()
@@ -45,7 +45,7 @@ def test_parse_cont_and_invert(ContrDataSeq, InvDataSeq):
 
     assert json.dumps(i.db) == json.dumps(
     {
-"collector": {"Collector_Fw_Version": "RSW_400_V1.00.06", "Chip_Type": "Raymon", "Chip_Model": "RSW-1-10001", "Trace_URL": "t.raymoniot.com", "Logger_URL": "logger.talent-monitoring.com"}, "controller": {"Signal_Strength": 100, "Power_On_Time": 29, "Data_Up_Interval": 300},
+"collector": {"Collector_Fw_Version": "RSW_400_V1.00.06", "Chip_Type": "Raymon", "Chip_Model": "RSW-1-10001", "Trace_URL": "t.raymoniot.com", "Logger_URL": "logger.talent-monitoring.com", "No_Inputs": 2}, "controller": {"Signal_Strength": 100, "Power_On_Time": 29, "Data_Up_Interval": 300},
 "inverter": {"Product_Name": "Microinv", "Manufacturer": "TSUN", "Version": "V5.0.11", "Serial_Number": "T17E7307021D006A", "Equipment_Model": "TSOL-MS600"}})
 
 
@@ -70,15 +70,14 @@ def test_build_ha_conf1(ContrDataSeq):
             tests +=1
 
         elif id == 'power_pv2_123':
-            assert comp == 'sensor'
-            assert  d_json == json.dumps({"name": "Power", "stat_t": "tsun/garagendach/input", "dev_cla": "power", "stat_cla": "measurement", "uniq_id": "power_pv2_123", "val_tpl": "{{ (value_json['pv2']['Power'] | float)}}", "unit_of_meas": "W", "ic": "mdi:gauge", "dev": {"name": "Module PV2", "sa": "Module PV2", "via_device": "inverter_123", "ids": ["input_pv2_123"]}, "o": {"name": "proxy", "sw": "unknown"}})
-            tests +=1
+            assert False    # if we haven't received and parsed a control data msg, we don't know the number of inputs. In this case we only register the first one!!
+
 
         elif id == 'signal_123':
             assert comp == 'sensor'
-            assert  d_json == json.dumps({"name": "Signal Strength", "stat_t": "tsun/garagendach/controller", "dev_cla": None, "stat_cla": "measurement", "uniq_id": "signal_123", "val_tpl": "{{value_json[\'Signal_Strength\'] | int}}", "unit_of_meas": "%", "ic": "mdi:wifi", "dev": {"name": "Controller", "sa": "Controller", "ids": ["controller_123"]}, "o": {"name": "proxy", "sw": "unknown"}})
+            assert  d_json == json.dumps({"name": "Signal Strength", "stat_t": "tsun/garagendach/controller", "dev_cla": None, "stat_cla": "measurement", "uniq_id": "signal_123", "val_tpl": "{{value_json[\'Signal_Strength\'] | int}}", "unit_of_meas": "%", "ic": "mdi:wifi", "ent_cat": "diagnostic", "dev": {"name": "Controller", "sa": "Controller", "via_device": "proxy", "ids": ["controller_123"]}, "o": {"name": "proxy", "sw": "unknown"}})
             tests +=1
-    assert tests==5
+    assert tests==4
 
 def test_build_ha_conf2(ContrDataSeq, InvDataSeq):
     i = Infos()
@@ -113,6 +112,6 @@ def test_build_ha_conf2(ContrDataSeq, InvDataSeq):
 
         elif id == 'signal_123':
             assert comp == 'sensor'
-            assert  d_json == json.dumps({"name": "Signal Strength", "stat_t": "tsun/garagendach/controller", "dev_cla": None, "stat_cla": "measurement", "uniq_id": "signal_123", "val_tpl": "{{value_json[\'Signal_Strength\'] | int}}", "unit_of_meas": "%", "ic": "mdi:wifi", "dev": {"name": "Controller", "sa": "Controller", "mdl": "RSW-1-10001", "mf": "Raymon", "sw": "RSW_400_V1.00.06", "ids": ["controller_123"]}, "o": {"name": "proxy", "sw": "unknown"}})
+            assert  d_json == json.dumps({"name": "Signal Strength", "stat_t": "tsun/garagendach/controller", "dev_cla": None, "stat_cla": "measurement", "uniq_id": "signal_123", "val_tpl": "{{value_json[\'Signal_Strength\'] | int}}", "unit_of_meas": "%", "ic": "mdi:wifi", "ent_cat": "diagnostic", "dev": {"name": "Controller", "sa": "Controller", "via_device": "proxy", "mdl": "RSW-1-10001", "mf": "Raymon", "sw": "RSW_400_V1.00.06", "ids": ["controller_123"]}, "o": {"name": "proxy", "sw": "unknown"}})
             tests +=1
     assert tests==5
