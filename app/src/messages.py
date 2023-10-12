@@ -125,7 +125,7 @@ class Message(metaclass=IterRegistry):
             else:    
                 self.node_id = ''
                 self.sug_area    = ''
-                if not inverters['allow_all']:
+                if 'allow_all' not in inverters or not inverters['allow_all']:
                     self.unique_id = None
                     logger.warning(f'ignore message from unknow inverter! (SerialNo: {serial_no})')
                     return
