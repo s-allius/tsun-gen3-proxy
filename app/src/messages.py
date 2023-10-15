@@ -108,7 +108,15 @@ class Message(metaclass=IterRegistry):
         # so we have to erase self.switch, otherwise this instance can't be 
         # deallocated by the garbage collector ==> we get a memory leak
         del self.switch 
-        
+
+    def inc_counter(self, counter:str) -> None:
+        self.db.inc_counter(counter)
+        self.new_data['proxy'] = True
+
+    def dec_counter(self, counter:str) -> None:
+        self.db.dec_counter(counter)
+        self.new_data['proxy'] = True
+       
     def set_serial_no(self, serial_no : str):
         
         if self.unique_id == serial_no: 
@@ -126,6 +134,7 @@ class Message(metaclass=IterRegistry):
                 self.node_id = ''
                 self.sug_area    = ''
                 if 'allow_all' not in inverters or not inverters['allow_all']:
+                    self.inc_counter('Unknown_SNR')
                     self.unique_id = None
                     logger.warning(f'ignore message from unknow inverter! (SerialNo: {serial_no})')
                     return
@@ -328,6 +337,7 @@ class Message(metaclass=IterRegistry):
 
     def msg_unknown(self):
         logger.warning (f"Unknow Msg: ID:{self.msg_id}")       
+        self.inc_counter('Unknown_Msg')
         self.forward(self._recv_buffer, self.header_len+self.data_len)
 
         
