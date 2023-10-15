@@ -68,6 +68,7 @@ class Inverter(AsyncStream):
     async def async_publ_mqtt(self) -> None:
         '''puplish data to MQTT broker'''
         db = self.db.db
+        stat = self.db.stat
         # check if new inverter or collector infos are available or when the home assistant has changed the status back to online
         if (('inverter' in self.new_data and self.new_data['inverter']) or 
              ('collector' in self.new_data and self.new_data['collector']) or
@@ -76,8 +77,13 @@ class Inverter(AsyncStream):
             self.ha_restarts = self.mqtt.ha_restarts
 
         for key in self.new_data:
-            if self.new_data[key] and key in db:
-                data_json = json.dumps(db[key])
+            if self.new_data[key]: 
+                if key in db:
+                    data_json = json.dumps(db[key])
+                elif key in stat:
+                    data_json = json.dumps(stat[key])
+                else:
+                    continue       
                 logger_mqtt.debug(f'{key}: {data_json}')
                 await self.mqtt.publish(f"{self.entitiy_prfx}{self.node_id}{key}", data_json)
                 self.new_data[key] = False
