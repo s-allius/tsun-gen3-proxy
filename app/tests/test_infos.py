@@ -52,7 +52,7 @@ def test_parse_cont_and_invert(ContrDataSeq, InvDataSeq):
 def test_build_ha_conf1(ContrDataSeq):
     i = Infos()
     tests = 0
-    for d_json, comp, id in i.ha_confs(prfx="tsun/garagendach/", snr='123'):
+    for d_json, comp, node_id, id in i.ha_confs(ha_prfx="tsun/", inv_snr='123', inv_node_id="garagendach/",proxy_node_id = 'proxy/', proxy_unique_id = '456'):
 
         if id == 'out_power_123':
             assert comp == 'sensor'
@@ -66,7 +66,7 @@ def test_build_ha_conf1(ContrDataSeq):
 
         elif id == 'power_pv1_123':
             assert comp == 'sensor'
-            assert  d_json == json.dumps({"name": "Power", "stat_t": "tsun/garagendach/input", "dev_cla": "power", "stat_cla": "measurement", "uniq_id": "power_pv1_123", "val_tpl": "{{ (value_json['pv1']['Power'] | float)}}", "unit_of_meas": "W", "ic": "mdi:gauge", "dev": {"name": "Module PV1", "sa": "Module PV1", "via_device": "inverter_123", "ids": ["input_pv1_123"]}, "o": {"name": "proxy", "sw": "unknown"}})
+            assert  d_json == json.dumps({"name": "Power", "stat_t": "tsun/garagendach/input", "dev_cla": "power", "stat_cla": "measurement", "uniq_id": "power_pv1_123", "val_tpl": "{{ (value_json['pv1']['Power'] | float)}}", "unit_of_meas": "W", "dev": {"name": "Module PV1", "sa": "Module PV1", "via_device": "inverter_123", "ids": ["input_pv1_123"]}, "o": {"name": "proxy", "sw": "unknown"}})
             tests +=1
 
         elif id == 'power_pv2_123':
@@ -75,7 +75,7 @@ def test_build_ha_conf1(ContrDataSeq):
 
         elif id == 'signal_123':
             assert comp == 'sensor'
-            assert  d_json == json.dumps({"name": "Signal Strength", "stat_t": "tsun/garagendach/controller", "dev_cla": None, "stat_cla": "measurement", "uniq_id": "signal_123", "val_tpl": "{{value_json[\'Signal_Strength\'] | int}}", "unit_of_meas": "%", "ic": "mdi:wifi", "ent_cat": "diagnostic", "dev": {"name": "Controller", "sa": "Controller", "via_device": "proxy", "ids": ["controller_123"]}, "o": {"name": "proxy", "sw": "unknown"}})
+            assert  d_json == json.dumps({"name": "Signal Strength", "stat_t": "tsun/garagendach/controller", "dev_cla": None, "stat_cla": "measurement", "uniq_id": "signal_123", "val_tpl": "{{value_json[\'Signal_Strength\'] | int}}", "unit_of_meas": "%", "ic": "mdi:wifi", "dev": {"name": "Controller", "sa": "Controller", "via_device": "proxy", "ids": ["controller_123"]}, "o": {"name": "proxy", "sw": "unknown"}})
             tests +=1
     assert tests==4
 
@@ -88,7 +88,7 @@ def test_build_ha_conf2(ContrDataSeq, InvDataSeq):
         pass
 
     tests = 0
-    for d_json, comp, id in i.ha_confs(prfx="tsun/garagendach/", snr='123'):
+    for d_json, comp, node_id, id in i.ha_confs(ha_prfx="tsun/", inv_snr='123', inv_node_id="garagendach/",proxy_node_id = 'proxy/', proxy_unique_id = '456'):
 
         if id == 'out_power_123':
             assert comp == 'sensor'
@@ -102,16 +102,16 @@ def test_build_ha_conf2(ContrDataSeq, InvDataSeq):
 
         elif id == 'power_pv1_123':
             assert comp == 'sensor'
-            assert  d_json == json.dumps({"name": "Power", "stat_t": "tsun/garagendach/input", "dev_cla": "power", "stat_cla": "measurement", "uniq_id": "power_pv1_123", "val_tpl": "{{ (value_json['pv1']['Power'] | float)}}", "unit_of_meas": "W", "ic": "mdi:gauge", "dev": {"name": "Module PV1", "sa": "Module PV1", "via_device": "inverter_123", "ids": ["input_pv1_123"]}, "o": {"name": "proxy", "sw": "unknown"}})
+            assert  d_json == json.dumps({"name": "Power", "stat_t": "tsun/garagendach/input", "dev_cla": "power", "stat_cla": "measurement", "uniq_id": "power_pv1_123", "val_tpl": "{{ (value_json['pv1']['Power'] | float)}}", "unit_of_meas": "W", "dev": {"name": "Module PV1", "sa": "Module PV1", "via_device": "inverter_123", "ids": ["input_pv1_123"]}, "o": {"name": "proxy", "sw": "unknown"}})
             tests +=1
 
         elif id == 'power_pv2_123':
             assert comp == 'sensor'
-            assert  d_json == json.dumps({"name": "Power", "stat_t": "tsun/garagendach/input", "dev_cla": "power", "stat_cla": "measurement", "uniq_id": "power_pv2_123", "val_tpl": "{{ (value_json['pv2']['Power'] | float)}}", "unit_of_meas": "W", "ic": "mdi:gauge", "dev": {"name": "Module PV2", "sa": "Module PV2", "via_device": "inverter_123", "ids": ["input_pv2_123"]}, "o": {"name": "proxy", "sw": "unknown"}})
+            assert  d_json == json.dumps({"name": "Power", "stat_t": "tsun/garagendach/input", "dev_cla": "power", "stat_cla": "measurement", "uniq_id": "power_pv2_123", "val_tpl": "{{ (value_json['pv2']['Power'] | float)}}", "unit_of_meas": "W", "dev": {"name": "Module PV2", "sa": "Module PV2", "via_device": "inverter_123", "ids": ["input_pv2_123"]}, "o": {"name": "proxy", "sw": "unknown"}})
             tests +=1
 
         elif id == 'signal_123':
             assert comp == 'sensor'
-            assert  d_json == json.dumps({"name": "Signal Strength", "stat_t": "tsun/garagendach/controller", "dev_cla": None, "stat_cla": "measurement", "uniq_id": "signal_123", "val_tpl": "{{value_json[\'Signal_Strength\'] | int}}", "unit_of_meas": "%", "ic": "mdi:wifi", "ent_cat": "diagnostic", "dev": {"name": "Controller", "sa": "Controller", "via_device": "proxy", "mdl": "RSW-1-10001", "mf": "Raymon", "sw": "RSW_400_V1.00.06", "ids": ["controller_123"]}, "o": {"name": "proxy", "sw": "unknown"}})
+            assert  d_json == json.dumps({"name": "Signal Strength", "stat_t": "tsun/garagendach/controller", "dev_cla": None, "stat_cla": "measurement", "uniq_id": "signal_123", "val_tpl": "{{value_json[\'Signal_Strength\'] | int}}", "unit_of_meas": "%", "ic": "mdi:wifi", "dev": {"name": "Controller", "sa": "Controller", "via_device": "proxy", "mdl": "RSW-1-10001", "mf": "Raymon", "sw": "RSW_400_V1.00.06", "ids": ["controller_123"]}, "o": {"name": "proxy", "sw": "unknown"}})
             tests +=1
     assert tests==5
