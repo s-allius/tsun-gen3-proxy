@@ -16,20 +16,26 @@ class Inverter(AsyncStream):
         self.mqtt = Mqtt()
         self.ha_restarts = -1
         ha = Config.get('ha')
-        self.entitiy_prfx = ha['entity_prefix'] + '/'
+        self.entity_prfx = ha['entity_prefix'] + '/'
         self.discovery_prfx = ha['discovery_prefix'] + '/'
+        self.proxy_node_id  = ha['proxy_node_id'] + '/'
+        self.proxy_unique_id = ha['proxy_unique_id']
 
 
     async def server_loop(self, addr):
         '''Loop for receiving messages from the inverter (server-side)'''
         logging.info(f'Accept connection from  {addr}')        
+        self.inc_counter ('Inverter_Cnt')
         await self.loop()
+        self.dec_counter ('Inverter_Cnt')
         logging.info(f'Server loop stopped for {addr}')
         
         # if the server connection closes, we also have to disconnect the connection to te TSUN cloud
         if self.remoteStream:
             logging.debug ("disconnect client connection")
             self.remoteStream.disc()
+
+        await self.async_publ_mqtt()
         
     async def client_loop(self, addr):
         '''Loop for receiving messages from the TSUN cloud (client-side)'''
@@ -77,23 +83,25 @@ class Inverter(AsyncStream):
             self.ha_restarts = self.mqtt.ha_restarts
 
         for key in self.new_data:
-            if self.new_data[key]: 
+            if self.new_data[key]:
                 if key in db:
                     data_json = json.dumps(db[key])
+                    node_id = self.node_id
                 elif key in stat:
                     data_json = json.dumps(stat[key])
+                    node_id = self.proxy_node_id
                 else:
                     continue       
                 logger_mqtt.debug(f'{key}: {data_json}')
-                await self.mqtt.publish(f"{self.entitiy_prfx}{self.node_id}{key}", data_json)
+                await self.mqtt.publish(f"{self.entity_prfx}{node_id}{key}", data_json)
                 self.new_data[key] = False
 
     async def __register_home_assistant(self) -> None:
         '''register all our topics at home assistant'''
         try:
-            for data_json, component, id in self.db.ha_confs(self.entitiy_prfx + self.node_id, self.unique_id, self.sug_area):
-                    logger_mqtt.debug(f'MQTT Register: {data_json}')                                
-                    await self.mqtt.publish(f"{self.discovery_prfx}{component}/{self.node_id}{id}/config", data_json)
+            for data_json, component, node_id, id in self.db.ha_confs(self.entity_prfx, self.node_id, self.unique_id, self.proxy_node_id, self.proxy_unique_id, self.sug_area):
+                    logger_mqtt.debug(f"MQTT Register: cmp:'{component}' node_id:'{node_id}' {data_json}")                                
+                    await self.mqtt.publish(f"{self.discovery_prfx}{component}/{node_id}{id}/config", data_json)
         except Exception:
             logging.error(
                 f"Inverter: Exception:\n"

@@ -40,9 +40,9 @@ class Infos:
             0x00000032:  {'name':['inverter', 'Equipment_Model'],             'level': logging.DEBUG, 'unit': ''},
         
         # proxy:
-            0xffffff00:  {'name':['proxy', 'Inverter_Cnt'],                                                          'ha':{'dev':'proxy',      'dev_cla': None,       'stat_cla': None, 'id':'inv_count_',   'fmt':'| int', 'name': 'Inverter Count',    'icon':'mdi:counter'}}, 
-            0xffffff01:  {'name':['proxy', 'Unknown_SNR'],                                                           'ha':{'dev':'proxy',      'dev_cla': None,       'stat_cla': None, 'id':'unknown_snr_', 'fmt':'| int', 'name': 'Unknown Serial No', 'icon':'mdi:counter', 'ent_cat':'diagnostic'}}, 
-            0xffffff02:  {'name':['proxy', 'Unknown_Msg'],                                                           'ha':{'dev':'proxy',      'dev_cla': None,       'stat_cla': None, 'id':'unknown_msg_', 'fmt':'| int', 'name': 'Unknown Msg Type',  'icon':'mdi:counter', 'ent_cat':'diagnostic'}}, 
+            0xffffff00:  {'name':['proxy', 'Inverter_Cnt'], 'singleton': True,                                        'ha':{'dev':'proxy',      'dev_cla': None,       'stat_cla': None, 'id':'inv_count_',   'fmt':'| int', 'name': 'Inverter Connection Count',    'icon':'mdi:counter'}}, 
+            0xffffff01:  {'name':['proxy', 'Unknown_SNR'],  'singleton': True,                                        'ha':{'dev':'proxy',      'dev_cla': None,       'stat_cla': None, 'id':'unknown_snr_', 'fmt':'| int', 'name': 'Unknown Serial No', 'icon':'mdi:counter', 'ent_cat':'diagnostic'}}, 
+            0xffffff02:  {'name':['proxy', 'Unknown_Msg'],  'singleton': True,                                        'ha':{'dev':'proxy',      'dev_cla': None,       'stat_cla': None, 'id':'unknown_msg_', 'fmt':'| int', 'name': 'Unknown Msg Type',  'icon':'mdi:counter', 'ent_cat':'diagnostic'}}, 
 #            0xffffff03:  {'name':['proxy', 'Voltage'],                        'level': logging.DEBUG, 'unit': 'V',    'ha':{'dev':'proxy', 'dev_cla': 'voltage',     'stat_cla': 'measurement', 'id':'proxy_volt_',  'fmt':'| float','name': 'Grid Voltage'}},
    
         # events
@@ -138,7 +138,7 @@ class Infos:
                 return not value <= dep['less_eq']
         return True
     
-    def ha_confs(self, prfx="tsun/garagendach/", snr='123', sug_area =''):
+    def ha_confs(self, ha_prfx, inv_node_id, inv_snr, proxy_node_id, proxy_unique_id, sug_area =''):
         '''Generator function yields a json register struct for home-assistant auto configuration and a unique entity string
 
         arguments:
@@ -148,6 +148,13 @@ class Infos:
         tab = self.__info_defs
         for key in tab:
             row = tab[key]
+            if 'singleton' in row and row['singleton']:
+                node_id = proxy_node_id
+                snr = proxy_unique_id
+            else:
+                node_id = inv_node_id
+                snr = inv_snr
+            prfx = ha_prfx + node_id
 
             #check if we have details for home assistant
             if 'ha' in row:
@@ -228,7 +235,7 @@ class Infos:
                     attr['o'] = origin
 
 
-                yield json.dumps (attr), component, attr['uniq_id']
+                yield json.dumps (attr), component, node_id, attr['uniq_id']
    
     def __init_counter (self, counter:str) -> dict:
         '''init proxy statistic counter, when its missing'''
