@@ -80,7 +80,7 @@ class AsyncStream(Message):
                 await self.async_create_remote()  # only implmeneted for server side => syncServerStream
                 
             if self.remoteStream:
-                hex_dump_memory(logging.DEBUG, f'Forward to {self.remoteStream.addr}:', self._forward_buffer, len(self._forward_buffer))
+                hex_dump_memory(logging.INFO, f'Forward to {self.remoteStream.addr}:', self._forward_buffer, len(self._forward_buffer))
                 self.remoteStream.writer.write (self._forward_buffer)
                 await self.remoteStream.writer.drain()                    
                 self._forward_buffer = bytearray(0)
