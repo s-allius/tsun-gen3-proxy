@@ -109,6 +109,24 @@ def ClientConnection():
         yield s
         s.close()
 
+def tempClientConnection():
+    #host = '172.16.30.7'
+    host = 'logger.talent-monitoring.com'
+    #host = '127.0.0.1'
+    port = 5005
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.connect((host, port))
+        s.settimeout(1)
+        yield s
+        s.close()
+
+def test_open_close():
+    try:
+        for s in tempClientConnection():
+            pass
+    except:
+        assert False
+    assert True
 
 def test_send_contact_info1(ClientConnection, MsgContactInfo, MsgContactResp):
     s = ClientConnection
