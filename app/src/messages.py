@@ -82,6 +82,7 @@ class Message(metaclass=IterRegistry):
         self.data_len = 0
         self.unique_id = 0
         self.node_id = ''
+        self.sug_area = ''
         self._recv_buffer = b''
         self._send_buffer = bytearray(0)
         self._forward_buffer = bytearray(0)
