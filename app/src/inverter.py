@@ -35,7 +35,7 @@ class Inverter(AsyncStream):
             logging.debug ("disconnect client connection")
             self.remoteStream.disc()
 
-        await self.async_publ_mqtt()
+        # await self.async_publ_mqtt()
         
     async def client_loop(self, addr):
         '''Loop for receiving messages from the TSUN cloud (client-side)'''
