@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2023-10-16
+
 - fix issue [#8](https://github.com/s-allius/tsun-gen3-proxy/issues/8)
 - implement [#10](https://github.com/s-allius/tsun-gen3-proxy/issues/10)
 - fix: don't dispatch ignored messages so that they are not forwarded
