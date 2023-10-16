@@ -14,50 +14,16 @@ class AsyncStream(Message):
         self.remoteStream = remote_stream
         self.server_side = server_side
         self.addr = addr
-        self.unique_id = 0
-        self.node_id = ''
         
     '''
     Our puplic methods
     '''
-    def set_serial_no(self, serial_no : str):
-        logger.debug(f'SerialNo: {serial_no}')
-       
-        if self.unique_id != serial_no: 
-       
-            inverters = Config.get('inverters')
-            #logger.debug(f'Inverters: {inverters}')
-                
-            if serial_no in inverters:
-                logger.debug(f'SerialNo {serial_no} allowed!')
-                inv = inverters[serial_no]
-                self.node_id = inv['node_id']
-                self.sug_area    = inv['suggested_area']
-            else:    
-                logger.debug(f'SerialNo {serial_no} not known!')
-                self.node_id = ''
-                self.sug_area    = ''
-                if not inverters['allow_all']:
-                    self.unique_id = None
-            
-                    logger.warning(f'ignore message from unknow inverter! (SerialNo: {serial_no})')
-                    return
-
-            self.unique_id = serial_no
-            
-            
-            
-
-    
     async def loop(self) -> None:
         
         while True:
             try:
                 await self.__async_read()     
-                
-                if self.id_str:
-                    self.set_serial_no(self.id_str.decode("utf-8"))
-            
+                            
                 if self.unique_id: 
                     await self.__async_write()     
                     await self.__async_forward()
@@ -114,7 +80,7 @@ class AsyncStream(Message):
                 await self.async_create_remote()  # only implmeneted for server side => syncServerStream
                 
             if self.remoteStream:
-                hex_dump_memory(logging.DEBUG, f'Forward to {self.remoteStream.addr}:', self._forward_buffer, len(self._forward_buffer))
+                hex_dump_memory(logging.INFO, f'Forward to {self.remoteStream.addr}:', self._forward_buffer, len(self._forward_buffer))
                 self.remoteStream.writer.write (self._forward_buffer)
                 await self.remoteStream.writer.drain()                    
                 self._forward_buffer = bytearray(0)

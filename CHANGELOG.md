@@ -8,6 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 - fix issue [#8](https://github.com/s-allius/tsun-gen3-proxy/issues/8)
+- implement [#10](https://github.com/s-allius/tsun-gen3-proxy/issues/10)
+- fix: don't dispatch ignored messages so that they are not forwarded
+- add systemtests
+- fix unit tests, which were broken since version 0.3.0
+- add proxy device to home assistant
+- add statistic counter to proxy device
+- support multiple inverter registration at home assistant
   
 ## [0.3.0] - 2023-10-10
 

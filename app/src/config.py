@@ -25,7 +25,9 @@ class Config():
                             'ha': {
                                     'auto_conf_prefix': Use(str),
                                     'discovery_prefix': Use(str),
-                                    'entity_prefix':    Use(str)},
+                                    'entity_prefix':    Use(str),
+                                    'proxy_node_id':    Use(str),
+                                    'proxy_unique_id':  Use(str)},
                          
                             'inverters': {
                                     'allow_all' : Use(bool),

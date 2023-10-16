@@ -3,14 +3,19 @@ import struct, json, logging, os
 
 
 class Infos:    
+    stat = {}
     def __init__(self):
         self.db = {}
         self.app_name = os.getenv('SERVICE_NAME', 'proxy')
         self.version  = os.getenv('VERSION', 'unknown')
         self.tracer = logging.getLogger('data')
+        prxy = self.__info_devs['proxy']
+        prxy['sw']  = self.version
+        prxy['mdl'] = self.app_name
 
     __info_devs={
-        'controller':{                    'name':'Controller',     'mdl':0x00092f90, 'mf':0x000927c0, 'sw':0x00092ba8},
+        'proxy':     {'singleton': True,  'name':'Proxy', 'mf':'Stefan Allius'},
+        'controller':{'via':'proxy',      'name':'Controller',     'mdl':0x00092f90, 'mf':0x000927c0, 'sw':0x00092ba8},
         'inverter':  {'via':'controller', 'name':'Micro Inverter', 'mdl':0x00000032, 'mf':0x00000014, 'sw':0x0000001e},
         'input_pv1': {'via':'inverter',   'name':'Module PV1'},
         'input_pv2': {'via':'inverter',   'name':'Module PV2', 'dep':{'reg':0x00095b50, 'gte': 2}},
@@ -33,7 +38,13 @@ class Infos:
             0x0000001e:  {'name':['inverter', 'Version'],                     'level': logging.INFO,  'unit': ''},
             0x00000028:  {'name':['inverter', 'Serial_Number'],               'level': logging.DEBUG, 'unit': ''},
             0x00000032:  {'name':['inverter', 'Equipment_Model'],             'level': logging.DEBUG, 'unit': ''},
-       
+        
+        # proxy:
+            0xffffff00:  {'name':['proxy', 'Inverter_Cnt'], 'singleton': True,                                        'ha':{'dev':'proxy',      'dev_cla': None,       'stat_cla': None, 'id':'inv_count_',   'fmt':'| int', 'name': 'Inverter Connection Count',    'icon':'mdi:counter'}}, 
+            0xffffff01:  {'name':['proxy', 'Unknown_SNR'],  'singleton': True,                                        'ha':{'dev':'proxy',      'dev_cla': None,       'stat_cla': None, 'id':'unknown_snr_', 'fmt':'| int', 'name': 'Unknown Serial No', 'icon':'mdi:counter', 'ent_cat':'diagnostic'}}, 
+            0xffffff02:  {'name':['proxy', 'Unknown_Msg'],  'singleton': True,                                        'ha':{'dev':'proxy',      'dev_cla': None,       'stat_cla': None, 'id':'unknown_msg_', 'fmt':'| int', 'name': 'Unknown Msg Type',  'icon':'mdi:counter', 'ent_cat':'diagnostic'}}, 
+#            0xffffff03:  {'name':['proxy', 'Voltage'],                        'level': logging.DEBUG, 'unit': 'V',    'ha':{'dev':'proxy', 'dev_cla': 'voltage',     'stat_cla': 'measurement', 'id':'proxy_volt_',  'fmt':'| float','name': 'Grid Voltage'}},
+   
         # events
             0x00000191:  {'name':['events', '401_'],                          'level': logging.DEBUG, 'unit': ''},
             0x00000192:  {'name':['events', '402_'],                          'level': logging.DEBUG, 'unit': ''},
@@ -53,26 +64,26 @@ class Infos:
             0x000001a0:  {'name':['events', '416_'],                          'level': logging.DEBUG, 'unit': ''},
         
         # grid measures:
-            0x000003e8:  {'name':['grid', 'Voltage'],                         'level': logging.DEBUG, 'unit': 'V',    'ha':{'dev':'inverter', 'dev_cla': 'voltage',     'stat_cla': 'measurement', 'id':'out_volt_',  'fmt':'| float','name': 'Grid Voltage'}},
-            0x0000044c:  {'name':['grid', 'Current'],                         'level': logging.DEBUG, 'unit': 'A',    'ha':{'dev':'inverter', 'dev_cla': 'current',     'stat_cla': 'measurement', 'id':'out_cur_',   'fmt':'| float','name': 'Grid Current'}},
-            0x000004b0:  {'name':['grid', 'Frequency'],                       'level': logging.DEBUG, 'unit': 'Hz',   'ha':{'dev':'inverter', 'dev_cla': 'frequency',   'stat_cla': 'measurement', 'id':'out_freq_',  'fmt':'| float','name': 'Grid Frequency'}},
+            0x000003e8:  {'name':['grid', 'Voltage'],                         'level': logging.DEBUG, 'unit': 'V',    'ha':{'dev':'inverter', 'dev_cla': 'voltage',     'stat_cla': 'measurement', 'id':'out_volt_',  'fmt':'| float','name': 'Grid Voltage','ent_cat':'diagnostic'}},
+            0x0000044c:  {'name':['grid', 'Current'],                         'level': logging.DEBUG, 'unit': 'A',    'ha':{'dev':'inverter', 'dev_cla': 'current',     'stat_cla': 'measurement', 'id':'out_cur_',   'fmt':'| float','name': 'Grid Current','ent_cat':'diagnostic'}},
+            0x000004b0:  {'name':['grid', 'Frequency'],                       'level': logging.DEBUG, 'unit': 'Hz',   'ha':{'dev':'inverter', 'dev_cla': 'frequency',   'stat_cla': 'measurement', 'id':'out_freq_',  'fmt':'| float','name': 'Grid Frequency','ent_cat':'diagnostic'}},
             0x00000640:  {'name':['grid', 'Output_Power'],                    'level': logging.INFO,  'unit': 'W',    'ha':{'dev':'inverter', 'dev_cla': 'power',       'stat_cla': 'measurement', 'id':'out_power_', 'fmt':'| float','name': 'Power'}},
-            0x000005dc:  {'name':['env',  'Rated_Power'],                     'level': logging.DEBUG, 'unit': 'W',    'ha':{'dev':'inverter', 'dev_cla': 'power',       'stat_cla': 'measurement', 'id':'rated_power_','fmt':'| int', 'name': 'Rated Power','ent_cat':'diagnostic'}},
+            0x000005dc:  {'name':['env',  'Rated_Power'],                     'level': logging.DEBUG, 'unit': 'W',    'ha':{'dev':'inverter', 'dev_cla': None,          'stat_cla': None,          'id':'rated_power_', 'fmt':'| int', 'name': 'Rated Power','ent_cat':'diagnostic'}},
             0x00000514:  {'name':['env',  'Inverter_Temp'],                   'level': logging.DEBUG, 'unit': '°C',   'ha':{'dev':'inverter', 'dev_cla': 'temperature', 'stat_cla': 'measurement', 'id':'temp_',   'fmt':'| int','name': 'Temperature'}},
 
         # input measures:           
-            0x000006a4:  {'name':['input', 'pv1', 'Voltage'],                 'level': logging.DEBUG, 'unit': 'V',    'ha':{'dev':'input_pv1', 'dev_cla': 'voltage', 'stat_cla': 'measurement', 'id':'volt_pv1_', 'name': 'Voltage', 'val_tpl' :"{{ (value_json['pv1']['Voltage'] | float)}}", 'unvisible':1, 'icon':'mdi:gauge'}},
-            0x00000708:  {'name':['input', 'pv1', 'Current'],                 'level': logging.DEBUG, 'unit': 'A',    'ha':{'dev':'input_pv1', 'dev_cla': 'current', 'stat_cla': 'measurement', 'id':'cur_pv1_',  'name': 'Current', 'val_tpl' :"{{ (value_json['pv1']['Current'] | float)}}", 'unvisible':1, 'icon':'mdi:gauge'}},
-            0x0000076c:  {'name':['input', 'pv1', 'Power'],                   'level': logging.INFO,  'unit': 'W',    'ha':{'dev':'input_pv1', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id':'power_pv1_','name': 'Power',   'val_tpl' :"{{ (value_json['pv1']['Power'] | float)}}", 'icon':'mdi:gauge'}},
-            0x000007d0:  {'name':['input', 'pv2', 'Voltage'],                 'level': logging.DEBUG, 'unit': 'V',    'ha':{'dev':'input_pv2', 'dev_cla': 'voltage', 'stat_cla': 'measurement', 'id':'volt_pv2_', 'name': 'Voltage', 'val_tpl' :"{{ (value_json['pv2']['Voltage'] | float)}}", 'unvisible':1, 'icon':'mdi:gauge'}},
-            0x00000834:  {'name':['input', 'pv2', 'Current'],                 'level': logging.DEBUG, 'unit': 'A',    'ha':{'dev':'input_pv2', 'dev_cla': 'current', 'stat_cla': 'measurement', 'id':'cur_pv2_',  'name': 'Current', 'val_tpl' :"{{ (value_json['pv2']['Current'] | float)}}", 'unvisible':1, 'icon':'mdi:gauge'}},
-            0x00000898:  {'name':['input', 'pv2', 'Power'],                   'level': logging.INFO,  'unit': 'W',    'ha':{'dev':'input_pv2', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id':'power_pv2_','name': 'Power',   'val_tpl' :"{{ (value_json['pv2']['Power'] | float)}}", 'icon':'mdi:gauge'}},
-            0x000008fc:  {'name':['input', 'pv3', 'Voltage'],                 'level': logging.DEBUG, 'unit': 'V',    'ha':{'dev':'input_pv3', 'dev_cla': 'voltage', 'stat_cla': 'measurement', 'id':'volt_pv3_', 'name': 'Voltage', 'val_tpl' :"{{ (value_json['pv3']['Voltage'] | float)}}", 'unvisible':1, 'icon':'mdi:gauge'}},
-            0x00000960:  {'name':['input', 'pv3', 'Current'],                 'level': logging.DEBUG, 'unit': 'A',    'ha':{'dev':'input_pv3', 'dev_cla': 'current', 'stat_cla': 'measurement', 'id':'cur_pv3_',  'name': 'Current', 'val_tpl' :"{{ (value_json['pv3']['Current'] | float)}}", 'unvisible':1, 'icon':'mdi:gauge'}},
-            0x000009c4:  {'name':['input', 'pv3', 'Power'],                   'level': logging.DEBUG, 'unit': 'W',    'ha':{'dev':'input_pv3', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id':'power_pv3_','name': 'Power',   'val_tpl' :"{{ (value_json['pv3']['Power'] | float)}}", 'icon':'mdi:gauge'}},
-            0x00000a28:  {'name':['input', 'pv4', 'Voltage'],                 'level': logging.DEBUG, 'unit': 'V',    'ha':{'dev':'input_pv4', 'dev_cla': 'voltage', 'stat_cla': 'measurement', 'id':'volt_pv4_', 'name': 'Voltage', 'val_tpl' :"{{ (value_json['pv4']['Voltage'] | float)}}", 'unvisible':1, 'icon':'mdi:gauge'}},
-            0x00000a8c:  {'name':['input', 'pv4', 'Current'],                 'level': logging.DEBUG, 'unit': 'A',    'ha':{'dev':'input_pv4', 'dev_cla': 'current', 'stat_cla': 'measurement', 'id':'cur_pv4_',  'name': 'Current', 'val_tpl' :"{{ (value_json['pv4']['Current'] | float)}}", 'unvisible':1, 'icon':'mdi:gauge'}},
-            0x00000af0:  {'name':['input', 'pv4', 'Power'],                   'level': logging.DEBUG, 'unit': 'W',    'ha':{'dev':'input_pv4', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id':'power_pv4_','name': 'Power',   'val_tpl' :"{{ (value_json['pv4']['Power'] | float)}}", 'icon':'mdi:gauge'}},
+            0x000006a4:  {'name':['input', 'pv1', 'Voltage'],                 'level': logging.DEBUG, 'unit': 'V',    'ha':{'dev':'input_pv1', 'dev_cla': 'voltage', 'stat_cla': 'measurement', 'id':'volt_pv1_', 'name': 'Voltage', 'val_tpl' :"{{ (value_json['pv1']['Voltage'] | float)}}", 'icon':'mdi:gauge','ent_cat':'diagnostic'}},
+            0x00000708:  {'name':['input', 'pv1', 'Current'],                 'level': logging.DEBUG, 'unit': 'A',    'ha':{'dev':'input_pv1', 'dev_cla': 'current', 'stat_cla': 'measurement', 'id':'cur_pv1_',  'name': 'Current', 'val_tpl' :"{{ (value_json['pv1']['Current'] | float)}}", 'icon':'mdi:gauge','ent_cat':'diagnostic'}},
+            0x0000076c:  {'name':['input', 'pv1', 'Power'],                   'level': logging.INFO,  'unit': 'W',    'ha':{'dev':'input_pv1', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id':'power_pv1_','name': 'Power',   'val_tpl' :"{{ (value_json['pv1']['Power'] | float)}}"}},
+            0x000007d0:  {'name':['input', 'pv2', 'Voltage'],                 'level': logging.DEBUG, 'unit': 'V',    'ha':{'dev':'input_pv2', 'dev_cla': 'voltage', 'stat_cla': 'measurement', 'id':'volt_pv2_', 'name': 'Voltage', 'val_tpl' :"{{ (value_json['pv2']['Voltage'] | float)}}", 'icon':'mdi:gauge','ent_cat':'diagnostic'}},
+            0x00000834:  {'name':['input', 'pv2', 'Current'],                 'level': logging.DEBUG, 'unit': 'A',    'ha':{'dev':'input_pv2', 'dev_cla': 'current', 'stat_cla': 'measurement', 'id':'cur_pv2_',  'name': 'Current', 'val_tpl' :"{{ (value_json['pv2']['Current'] | float)}}", 'icon':'mdi:gauge','ent_cat':'diagnostic'}},
+            0x00000898:  {'name':['input', 'pv2', 'Power'],                   'level': logging.INFO,  'unit': 'W',    'ha':{'dev':'input_pv2', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id':'power_pv2_','name': 'Power',   'val_tpl' :"{{ (value_json['pv2']['Power'] | float)}}"}},
+            0x000008fc:  {'name':['input', 'pv3', 'Voltage'],                 'level': logging.DEBUG, 'unit': 'V',    'ha':{'dev':'input_pv3', 'dev_cla': 'voltage', 'stat_cla': 'measurement', 'id':'volt_pv3_', 'name': 'Voltage', 'val_tpl' :"{{ (value_json['pv3']['Voltage'] | float)}}", 'icon':'mdi:gauge','ent_cat':'diagnostic'}},
+            0x00000960:  {'name':['input', 'pv3', 'Current'],                 'level': logging.DEBUG, 'unit': 'A',    'ha':{'dev':'input_pv3', 'dev_cla': 'current', 'stat_cla': 'measurement', 'id':'cur_pv3_',  'name': 'Current', 'val_tpl' :"{{ (value_json['pv3']['Current'] | float)}}", 'icon':'mdi:gauge','ent_cat':'diagnostic'}},
+            0x000009c4:  {'name':['input', 'pv3', 'Power'],                   'level': logging.DEBUG, 'unit': 'W',    'ha':{'dev':'input_pv3', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id':'power_pv3_','name': 'Power',   'val_tpl' :"{{ (value_json['pv3']['Power'] | float)}}"}},
+            0x00000a28:  {'name':['input', 'pv4', 'Voltage'],                 'level': logging.DEBUG, 'unit': 'V',    'ha':{'dev':'input_pv4', 'dev_cla': 'voltage', 'stat_cla': 'measurement', 'id':'volt_pv4_', 'name': 'Voltage', 'val_tpl' :"{{ (value_json['pv4']['Voltage'] | float)}}", 'icon':'mdi:gauge','ent_cat':'diagnostic'}},
+            0x00000a8c:  {'name':['input', 'pv4', 'Current'],                 'level': logging.DEBUG, 'unit': 'A',    'ha':{'dev':'input_pv4', 'dev_cla': 'current', 'stat_cla': 'measurement', 'id':'cur_pv4_',  'name': 'Current', 'val_tpl' :"{{ (value_json['pv4']['Current'] | float)}}", 'icon':'mdi:gauge','ent_cat':'diagnostic'}},
+            0x00000af0:  {'name':['input', 'pv4', 'Power'],                   'level': logging.DEBUG, 'unit': 'W',    'ha':{'dev':'input_pv4', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id':'power_pv4_','name': 'Power',   'val_tpl' :"{{ (value_json['pv4']['Power'] | float)}}"}},
             0x00000c1c:  {'name':['input', 'pv1', 'Daily_Generation'],        'level': logging.DEBUG, 'unit': 'kWh',  'ha':{'dev':'input_pv1', 'dev_cla': 'energy', 'stat_cla': 'total_increasing', 'id':'daily_gen_pv1_','name': 'Daily Generation', 'val_tpl' :"{{ (value_json['pv1']['Daily_Generation'] | float)}}", 'icon':'mdi:solar-power-variant'}},          
             0x00000c80:  {'name':['input', 'pv1', 'Total_Generation'],        'level': logging.DEBUG, 'unit': 'kWh',  'ha':{'dev':'input_pv1', 'dev_cla': 'energy', 'stat_cla': 'total',            'id':'total_gen_pv1_','name': 'Total Generation', 'val_tpl' :"{{ (value_json['pv1']['Total_Generation'] | float)}}", 'icon':'mdi:solar-power'}},                    
             0x00000ce4:  {'name':['input', 'pv2', 'Daily_Generation'],        'level': logging.DEBUG, 'unit': 'kWh',  'ha':{'dev':'input_pv2', 'dev_cla': 'energy', 'stat_cla': 'total_increasing', 'id':'daily_gen_pv2_','name': 'Daily Generation', 'val_tpl' :"{{ (value_json['pv2']['Daily_Generation'] | float)}}", 'icon':'mdi:solar-power-variant'}},          
@@ -86,7 +97,7 @@ class Infos:
             0x00000bb8:  {'name':['total', 'Total_Generation'],               'level': logging.INFO,  'unit': 'kWh',  'ha':{'dev':'inverter', 'dev_cla': 'energy', 'stat_cla': 'total',            'id':'total_gen_', 'fmt':'| float','name': 'Total Generation', 'icon':'mdi:solar-power'}},
 
         # controller:
-            0x000c3500:  {'name':['controller', 'Signal_Strength'],           'level': logging.DEBUG, 'unit': '%' ,  'ha':{'dev':'controller', 'dev_cla': None,       'stat_cla': 'measurement', 'id':'signal_',         'fmt':'| int', 'name': 'Signal Strength', 'icon':'mdi:wifi','ent_cat':'diagnostic'}},
+            0x000c3500:  {'name':['controller', 'Signal_Strength'],           'level': logging.DEBUG, 'unit': '%' ,  'ha':{'dev':'controller', 'dev_cla': None,       'stat_cla': 'measurement', 'id':'signal_',         'fmt':'| int', 'name': 'Signal Strength', 'icon':'mdi:wifi'}},
             0x000c96a8:  {'name':['controller', 'Power_On_Time'],             'level': logging.DEBUG, 'unit': 's',   'ha':{'dev':'controller', 'dev_cla': 'duration', 'stat_cla': 'measurement', 'id':'power_on_time_',                 'name': 'Power on Time',   'val_tpl':"{{ (value_json['Power_On_Time'] | float)}}", 'nat_prc':'3','ent_cat':'diagnostic'}},
             0x000cf850:  {'name':['controller', 'Data_Up_Interval'],          'level': logging.DEBUG, 'unit': 's',   'ha':{'dev':'controller', 'dev_cla': None,       'stat_cla': 'measurement', 'id':'data_up_intval_', 'fmt':'| int', 'name': 'Data Up Interval', 'icon':'mdi:update','ent_cat':'diagnostic'}},
 
@@ -127,7 +138,7 @@ class Infos:
                 return not value <= dep['less_eq']
         return True
     
-    def ha_confs(self, prfx="tsun/garagendach/", snr='123', sug_area =''):
+    def ha_confs(self, ha_prfx, inv_node_id, inv_snr, proxy_node_id, proxy_unique_id, sug_area =''):
         '''Generator function yields a json register struct for home-assistant auto configuration and a unique entity string
 
         arguments:
@@ -137,6 +148,13 @@ class Infos:
         tab = self.__info_defs
         for key in tab:
             row = tab[key]
+            if 'singleton' in row and row['singleton']:
+                node_id = proxy_node_id
+                snr = proxy_unique_id
+            else:
+                node_id = inv_node_id
+                snr = inv_snr
+            prfx = ha_prfx + node_id
 
             #check if we have details for home assistant
             if 'ha' in row:
@@ -160,7 +178,9 @@ class Infos:
                 elif 'fmt' in ha:
                     attr['val_tpl']  = '{{value_json' + f"['{row['name'][-1]}'] {ha['fmt']}" + '}}'       # eg.   'val_tpl': "{{ value_json['Output_Power']|float }}"
 
-                if 'unit' in row:
+                # add unit_of_meas only, if status_class isn't none. If status_cla is None we want a number format and not line graph in home assistant. 
+                # A unit will change the number format to a line graph
+                if 'unit' in row and attr['stat_cla'] != None:
                     attr['unit_of_meas'] = row['unit']        # optional add a 'unit_of_meas' e.g. 'W'
                 if 'icon' in ha:
                     attr['ic'] = ha['icon']                   # optional add an icon for the entity
@@ -179,24 +199,34 @@ class Infos:
 
                     dev = {}
 
-                    # the same name fpr 'name' and 'suggested area', so we get dedicated devices in home assistant with short value name and headline 
-                    if 'name' in device:
+                    # the same name for 'name' and 'suggested area', so we get dedicated devices in home assistant with short value name and headline 
+                    if sug_area == '' or ('singleton' in device and device['singleton']):
                         dev['name'] = device['name']
                         dev['sa']   = device['name']
-                    # fixme: we ignore the suggested area, since one area make no sense for multiple devices    
-                    #else:    
-                    #    dev['name'] = sug_area  
-                    #    dev['sa']   = sug_area
-
+                    else:
+                        dev['name'] = device['name']+' - '+sug_area
+                        dev['sa']   = device['name']+' - '+sug_area
+                        
                     if 'via' in device:                       # add the link to the parent device
-                        dev['via_device'] = f"{device['via']}_{snr}"
+                        via = device['via']
+                        if via in self.__info_devs:
+                            via_dev = self.__info_devs[via]
+                            if 'singleton' in via_dev and via_dev['singleton']:
+                                dev['via_device'] = via
+                            else:
+                                dev['via_device'] = f"{via}_{snr}"
+                   
 
                     for key in ('mdl','mf', 'sw', 'hw'):      # add optional values fpr 'modell', 'manufaturer', 'sw version' and 'hw version'
                         if key in device:
                             data = self.dev_value(device[key])
                             if data is not None: dev[key]  = data
+                    
+                    if 'singleton' in device and device['singleton']:
+                        dev['ids']  = [f"{ha['dev']}"]
+                    else:
+                        dev['ids']  = [f"{ha['dev']}_{snr}"]
 
-                    dev['ids']  = [f"{ha['dev']}_{snr}"]
                     attr['dev'] = dev
 
                     origin = {}
@@ -205,11 +235,26 @@ class Infos:
                     attr['o'] = origin
 
 
-                yield json.dumps (attr), component, attr['uniq_id']
+                yield json.dumps (attr), component, node_id, attr['uniq_id']
    
+    def __init_counter (self, counter:str) -> dict:
+        '''init proxy statistic counter, when its missing'''
+        if not 'proxy' in self.stat:
+            self.stat['proxy'] = {}
+        dict = self.stat['proxy']
+        if not counter in dict:
+            dict[counter] = 0
+        return dict
 
-
-                                        
+    def inc_counter (self, counter:str) -> None:
+        '''inc proxy statistic counter'''
+        dict = self.__init_counter (counter)
+        dict[counter] += 1                                
+ 
+    def dec_counter (self, counter:str) -> None:
+        '''dec proxy statistic counter'''
+        dict = self.__init_counter (counter)
+        dict[counter] -= 1                                
                                   
     
     def __key_obj(self, id) -> list:
