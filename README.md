@@ -45,6 +45,11 @@ If you use a Pi-hole, you can also store the host entry in the Pi-hole.
 - Self-sufficient island operation without internet
 - non-root Docker Container
 
+## Home Assistant Screenshots
+
+Here are some screenshots of how the inverter is displayed in the Home Assistant:
+
+https://github.com/s-allius/tsun-gen3-proxy/wiki/home-assistant#home-assistant-screenshots
 ## Requirements
 
 - A running Docker engine to host the container
