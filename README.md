@@ -40,6 +40,7 @@ If you use a Pi-hole, you can also store the host entry in the Pi-hole.
 
 ## Features
 
+- supports TSOL MS300, MS350, MS400, MS600, MS700 and MS800 inverters from TSUN
 - `MQTT` support
 - `Home-Assistant` auto-discovery support
 - Self-sufficient island operation without internet
