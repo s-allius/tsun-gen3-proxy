@@ -4,14 +4,28 @@ import struct, json, logging, os
 
 class Infos:    
     stat = {}
+    app_name = os.getenv('SERVICE_NAME', 'proxy')
+    version  = os.getenv('VERSION', 'unknown')
+
+    @classmethod
+    def static_init(cls):
+        logging.info('Initialize proxy statistics')
+        # init proxy counter in the class.stat dictionary
+        cls.stat['proxy'] = {}
+        for key in cls.__info_defs:
+            name = cls.__info_defs[key]['name']
+            if name[0]=='proxy':
+                cls.stat['proxy'][name[1]] = 0
+
+        # add values from the environment to the device definition table
+        prxy = cls.__info_devs['proxy']
+        prxy['sw']  = cls.version
+        prxy['mdl'] = cls.app_name
+
+ 
     def __init__(self):
         self.db = {}
-        self.app_name = os.getenv('SERVICE_NAME', 'proxy')
-        self.version  = os.getenv('VERSION', 'unknown')
         self.tracer = logging.getLogger('data')
-        prxy = self.__info_devs['proxy']
-        prxy['sw']  = self.version
-        prxy['mdl'] = self.app_name
 
     __info_devs={
         'proxy':     {'singleton': True,  'name':'Proxy', 'mf':'Stefan Allius'},
@@ -236,24 +250,15 @@ class Infos:
 
 
                 yield json.dumps (attr), component, node_id, attr['uniq_id']
-   
-    def __init_counter (self, counter:str) -> dict:
-        '''init proxy statistic counter, when its missing'''
-        if not 'proxy' in self.stat:
-            self.stat['proxy'] = {}
-        dict = self.stat['proxy']
-        if not counter in dict:
-            dict[counter] = 0
-        return dict
 
     def inc_counter (self, counter:str) -> None:
         '''inc proxy statistic counter'''
-        dict = self.__init_counter (counter)
+        dict = self.stat['proxy']
         dict[counter] += 1                                
  
     def dec_counter (self, counter:str) -> None:
         '''dec proxy statistic counter'''
-        dict = self.__init_counter (counter)
+        dict = self.stat['proxy']
         dict[counter] -= 1                                
                                   
     
