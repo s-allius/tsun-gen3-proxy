@@ -35,7 +35,7 @@ class Inverter(AsyncStream):
             logging.debug ("disconnect client connection")
             self.remoteStream.disc()
 
-        # await self.async_publ_mqtt()
+        await self.__async_publ_mqtt_packet('proxy')
         
     async def client_loop(self, addr):
         '''Loop for receiving messages from the TSUN cloud (client-side)'''
@@ -73,8 +73,6 @@ class Inverter(AsyncStream):
 
     async def async_publ_mqtt(self) -> None:
         '''puplish data to MQTT broker'''
-        db = self.db.db
-        stat = self.db.stat
         # check if new inverter or collector infos are available or when the home assistant has changed the status back to online
         if (('inverter' in self.new_data and self.new_data['inverter']) or 
              ('collector' in self.new_data and self.new_data['collector']) or
@@ -83,18 +81,23 @@ class Inverter(AsyncStream):
             self.ha_restarts = self.mqtt.ha_restarts
 
         for key in self.new_data:
-            if self.new_data[key]:
-                if key in db:
-                    data_json = json.dumps(db[key])
-                    node_id = self.node_id
-                elif key in stat:
-                    data_json = json.dumps(stat[key])
-                    node_id = self.proxy_node_id
-                else:
-                    continue       
-                logger_mqtt.debug(f'{key}: {data_json}')
-                await self.mqtt.publish(f"{self.entity_prfx}{node_id}{key}", data_json)
-                self.new_data[key] = False
+            await self.__async_publ_mqtt_packet(key)
+
+    async def __async_publ_mqtt_packet(self, key):
+        db = self.db.db
+        stat = self.db.stat
+        if self.new_data[key]:
+            if key in db:
+                data_json = json.dumps(db[key])
+                node_id = self.node_id
+            elif key in stat:
+                data_json = json.dumps(stat[key])
+                node_id = self.proxy_node_id
+            else:
+                return     
+            logger_mqtt.debug(f'{key}: {data_json}')
+            await self.mqtt.publish(f"{self.entity_prfx}{node_id}{key}", data_json)
+            self.new_data[key] = False
 
     async def __register_home_assistant(self) -> None:
         '''register all our topics at home assistant'''

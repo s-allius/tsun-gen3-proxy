@@ -4,6 +4,7 @@ from async_stream import AsyncStream
 from inverter import Inverter
 from config import Config
 from mqtt import Mqtt
+from infos import Infos
 
     
 async def handle_client(reader, writer):
@@ -69,6 +70,8 @@ if __name__ == "__main__":
 
     # call Mqtt singleton to establisch the connection to the mqtt broker
     mqtt = Mqtt()
+    # initialize the proxy statistics
+    Infos.static_init()
     
     #
     # Register some UNIX Signal handler for a gracefully server shutdown on Docker restart and stop
