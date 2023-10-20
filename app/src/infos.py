@@ -99,16 +99,16 @@ class Infos:
             0x00000a8c:  {'name':['input', 'pv4', 'Current'],                 'level': logging.DEBUG, 'unit': 'A',    'ha':{'dev':'input_pv4', 'dev_cla': 'current', 'stat_cla': 'measurement', 'id':'cur_pv4_',  'name': 'Current', 'val_tpl' :"{{ (value_json['pv4']['Current'] | float)}}", 'icon':'mdi:gauge','ent_cat':'diagnostic'}},
             0x00000af0:  {'name':['input', 'pv4', 'Power'],                   'level': logging.DEBUG, 'unit': 'W',    'ha':{'dev':'input_pv4', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id':'power_pv4_','name': 'Power',   'val_tpl' :"{{ (value_json['pv4']['Power'] | float)}}"}},
             0x00000c1c:  {'name':['input', 'pv1', 'Daily_Generation'],        'level': logging.DEBUG, 'unit': 'kWh',  'ha':{'dev':'input_pv1', 'dev_cla': 'energy', 'stat_cla': 'total_increasing', 'id':'daily_gen_pv1_','name': 'Daily Generation', 'val_tpl' :"{{ (value_json['pv1']['Daily_Generation'] | float)}}", 'icon':'mdi:solar-power-variant'}},          
-            0x00000c80:  {'name':['input', 'pv1', 'Total_Generation'],        'level': logging.DEBUG, 'unit': 'kWh',  'ha':{'dev':'input_pv1', 'dev_cla': 'energy', 'stat_cla': 'total',            'id':'total_gen_pv1_','name': 'Total Generation', 'val_tpl' :"{{ (value_json['pv1']['Total_Generation'] | float)}}", 'icon':'mdi:solar-power'}},                    
+            0x00000c80:  {'name':['input', 'pv1', 'Total_Generation'],        'level': logging.DEBUG, 'unit': 'kWh',  'ha':{'dev':'input_pv1', 'dev_cla': 'energy', 'stat_cla': 'total',            'id':'total_gen_pv1_','name': 'Total Generation', 'val_tpl' :"{{ (value_json['pv1']['Total_Generation'] | float)}}", 'icon':'mdi:solar-power', 'must_incr':True}},                    
             0x00000ce4:  {'name':['input', 'pv2', 'Daily_Generation'],        'level': logging.DEBUG, 'unit': 'kWh',  'ha':{'dev':'input_pv2', 'dev_cla': 'energy', 'stat_cla': 'total_increasing', 'id':'daily_gen_pv2_','name': 'Daily Generation', 'val_tpl' :"{{ (value_json['pv2']['Daily_Generation'] | float)}}", 'icon':'mdi:solar-power-variant'}},          
-            0x00000d48:  {'name':['input', 'pv2', 'Total_Generation'],        'level': logging.DEBUG, 'unit': 'kWh',  'ha':{'dev':'input_pv2', 'dev_cla': 'energy', 'stat_cla': 'total',            'id':'total_gen_pv2_','name': 'Total Generation', 'val_tpl' :"{{ (value_json['pv2']['Total_Generation'] | float)}}", 'icon':'mdi:solar-power'}},          
+            0x00000d48:  {'name':['input', 'pv2', 'Total_Generation'],        'level': logging.DEBUG, 'unit': 'kWh',  'ha':{'dev':'input_pv2', 'dev_cla': 'energy', 'stat_cla': 'total',            'id':'total_gen_pv2_','name': 'Total Generation', 'val_tpl' :"{{ (value_json['pv2']['Total_Generation'] | float)}}", 'icon':'mdi:solar-power', 'must_incr':True}},          
             0x00000dac:  {'name':['input', 'pv3', 'Daily_Generation'],        'level': logging.DEBUG, 'unit': 'kWh',  'ha':{'dev':'input_pv3', 'dev_cla': 'energy', 'stat_cla': 'total_increasing', 'id':'daily_gen_pv3_','name': 'Daily Generation', 'val_tpl' :"{{ (value_json['pv3']['Daily_Generation'] | float)}}", 'icon':'mdi:solar-power-variant'}},          
-            0x00000e10:  {'name':['input', 'pv3', 'Total_Generation'],        'level': logging.DEBUG, 'unit': 'kWh',  'ha':{'dev':'input_pv3', 'dev_cla': 'energy', 'stat_cla': 'total',            'id':'total_gen_pv3_','name': 'Total Generation', 'val_tpl' :"{{ (value_json['pv3']['Total_Generation'] | float)}}", 'icon':'mdi:solar-power'}},                    
+            0x00000e10:  {'name':['input', 'pv3', 'Total_Generation'],        'level': logging.DEBUG, 'unit': 'kWh',  'ha':{'dev':'input_pv3', 'dev_cla': 'energy', 'stat_cla': 'total',            'id':'total_gen_pv3_','name': 'Total Generation', 'val_tpl' :"{{ (value_json['pv3']['Total_Generation'] | float)}}", 'icon':'mdi:solar-power', 'must_incr':True}},                    
             0x00000e74:  {'name':['input', 'pv4', 'Daily_Generation'],        'level': logging.DEBUG, 'unit': 'kWh',  'ha':{'dev':'input_pv4', 'dev_cla': 'energy', 'stat_cla': 'total_increasing', 'id':'daily_gen_pv4_','name': 'Daily Generation', 'val_tpl' :"{{ (value_json['pv4']['Daily_Generation'] | float)}}", 'icon':'mdi:solar-power-variant'}},          
-            0x00000ed8:  {'name':['input', 'pv4', 'Total_Generation'],        'level': logging.DEBUG, 'unit': 'kWh',  'ha':{'dev':'input_pv4', 'dev_cla': 'energy', 'stat_cla': 'total',            'id':'total_gen_pv4_','name': 'Total Generation', 'val_tpl' :"{{ (value_json['pv4']['Total_Generation'] | float)}}", 'icon':'mdi:solar-power'}},          
+            0x00000ed8:  {'name':['input', 'pv4', 'Total_Generation'],        'level': logging.DEBUG, 'unit': 'kWh',  'ha':{'dev':'input_pv4', 'dev_cla': 'energy', 'stat_cla': 'total',            'id':'total_gen_pv4_','name': 'Total Generation', 'val_tpl' :"{{ (value_json['pv4']['Total_Generation'] | float)}}", 'icon':'mdi:solar-power', 'must_incr':True}},          
         # total:    
             0x00000b54:  {'name':['total', 'Daily_Generation'],               'level': logging.INFO,  'unit': 'kWh',  'ha':{'dev':'inverter', 'dev_cla': 'energy', 'stat_cla': 'total_increasing', 'id':'daily_gen_', 'fmt':'| float','name': 'Daily Generation', 'icon':'mdi:solar-power-variant'}},
-            0x00000bb8:  {'name':['total', 'Total_Generation'],               'level': logging.INFO,  'unit': 'kWh',  'ha':{'dev':'inverter', 'dev_cla': 'energy', 'stat_cla': 'total',            'id':'total_gen_', 'fmt':'| float','name': 'Total Generation', 'icon':'mdi:solar-power'}},
+            0x00000bb8:  {'name':['total', 'Total_Generation'],               'level': logging.INFO,  'unit': 'kWh',  'ha':{'dev':'inverter', 'dev_cla': 'energy', 'stat_cla': 'total',            'id':'total_gen_', 'fmt':'| float','name': 'Total Generation', 'icon':'mdi:solar-power', 'must_incr':True}},
 
         # controller:
             0x000c3500:  {'name':['controller', 'Signal_Strength'],           'level': logging.DEBUG, 'unit': '%' ,  'ha':{'dev':'controller', 'dev_cla': None,       'stat_cla': 'measurement', 'id':'signal_',         'fmt':'| int', 'name': 'Signal Strength', 'icon':'mdi:wifi'}},
@@ -264,7 +264,12 @@ class Infos:
     
     def __key_obj(self, id) -> list:
         d = self.__info_defs.get(id, {'name': None, 'level': logging.DEBUG, 'unit': ''})
-        return d['name'], d['level'], d['unit']
+        if 'ha' in d and 'must_incr' in d['ha']:
+            must_incr = d['ha']['must_incr']
+        else:
+            must_incr = False
+
+        return d['name'], d['level'], d['unit'], must_incr
     
     
     def parse(self, buf) -> None:
@@ -280,7 +285,7 @@ class Infos:
             info_id   = result[0]             
             data_type = result[1]
             ind += 5
-            keys, level, unit = self.__key_obj(info_id)
+            keys, level, unit, must_incr = self.__key_obj(info_id)
             
             if data_type==0x54:   # 'T' -> Pascal-String
                 str_len = buf[ind]
@@ -310,8 +315,8 @@ class Infos:
                     dict = dict[key]
                     name += key + '.'
 
-                update = keys[-1] not in dict or dict[keys[-1]] != result
-                dict[keys[-1]] = result
+                update = keys[-1] not in dict or (not must_incr and dict[keys[-1]] != result) or (must_incr and dict[keys[-1]] < result)
+                if update: dict[keys[-1]] = result
                 name += keys[-1]
                 yield keys[0], update    
             else:
