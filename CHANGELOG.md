@@ -7,8 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.1] - 2023-10-20
+
 - fix issue [#18](https://github.com/s-allius/tsun-gen3-proxy/issues/18)
 - initialize the proxy statistics
+- avoid resetting total generation counters
   
 ## [0.4.0] - 2023-10-16
 
