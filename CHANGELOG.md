@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- fix issue [#18](https://github.com/s-allius/tsun-gen3-proxy/issues/18)
+- initialize the proxy statistics
+  
 ## [0.4.0] - 2023-10-16
 
 - fix issue [#8](https://github.com/s-allius/tsun-gen3-proxy/issues/8)
