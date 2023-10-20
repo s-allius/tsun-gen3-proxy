@@ -2,7 +2,10 @@
 import pytest
 from app.src.messages import Message, Control
 from app.src.config import Config
+from app.src.infos import Infos
 
+# initialize the proxy statistics
+Infos.static_init()
 
 class MemoryStream(Message):
     def __init__(self, msg, chunks = (0,)):
