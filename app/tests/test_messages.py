@@ -166,7 +166,7 @@ def test_ctrl_byte():
     assert c.is_resp()    
 
     
-def test_msg_interator():
+def test_msg_iterator():
     m1 = Message()
     m2 = Message()
     m3 = Message()
