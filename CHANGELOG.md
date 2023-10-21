@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - count unknown data types in received messages
 - count defintion error in our internal tables
 - increase test coverage of the Infos class to 100%
+- avoids resetting the daily generation counters even if the inverter sends zero values at sunset
    
 ## [0.4.1] - 2023-10-20
 
