@@ -5,3 +5,5 @@ homeassistant/**
 tsun_proxy/**
 Doku/**
 .DS_Store
+.coverage
+coverage.xml
