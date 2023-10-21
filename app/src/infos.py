@@ -54,11 +54,14 @@ class Infos:
             0x00000032:  {'name':['inverter', 'Equipment_Model'],             'level': logging.DEBUG, 'unit': ''},
         
         # proxy:
-            0xffffff00:  {'name':['proxy', 'Inverter_Cnt'], 'singleton': True,                                        'ha':{'dev':'proxy',      'dev_cla': None,       'stat_cla': None, 'id':'inv_count_',   'fmt':'| int', 'name': 'Inverter Connection Count',    'icon':'mdi:counter'}}, 
-            0xffffff01:  {'name':['proxy', 'Unknown_SNR'],  'singleton': True,                                        'ha':{'dev':'proxy',      'dev_cla': None,       'stat_cla': None, 'id':'unknown_snr_', 'fmt':'| int', 'name': 'Unknown Serial No', 'icon':'mdi:counter', 'ent_cat':'diagnostic'}}, 
-            0xffffff02:  {'name':['proxy', 'Unknown_Msg'],  'singleton': True,                                        'ha':{'dev':'proxy',      'dev_cla': None,       'stat_cla': None, 'id':'unknown_msg_', 'fmt':'| int', 'name': 'Unknown Msg Type',  'icon':'mdi:counter', 'ent_cat':'diagnostic'}}, 
+            0xffffff00:  {'name':['proxy', 'Inverter_Cnt'], 'singleton': True,                                        'ha':{'dev':'proxy', 'comp' : 'sensor', 'dev_cla': None,       'stat_cla': None, 'id':'inv_count_',   'fmt':'| int', 'name': 'Active Inverter Connections',    'icon':'mdi:counter'}}, 
+            0xffffff01:  {'name':['proxy', 'Unknown_SNR'],  'singleton': True,                                        'ha':{'dev':'proxy', 'comp' : 'sensor', 'dev_cla': None,       'stat_cla': None, 'id':'unknown_snr_', 'fmt':'| int', 'name': 'Unknown Serial No', 'icon':'mdi:counter', 'ent_cat':'diagnostic'}}, 
+            0xffffff02:  {'name':['proxy', 'Unknown_Msg'],  'singleton': True,                                        'ha':{'dev':'proxy', 'comp' : 'sensor', 'dev_cla': None,       'stat_cla': None, 'id':'unknown_msg_', 'fmt':'| int', 'name': 'Unknown Msg Type',  'icon':'mdi:counter', 'ent_cat':'diagnostic'}}, 
+            0xffffff03:  {'name':['proxy', 'Invalid_Data_Type'],  'singleton': True,                                  'ha':{'dev':'proxy', 'comp' : 'sensor', 'dev_cla': None,       'stat_cla': None, 'id':'inv_data_type_', 'fmt':'| int', 'name': 'Invalid Data Type','icon':'mdi:counter', 'ent_cat':'diagnostic'}}, 
+            0xffffff04:  {'name':['proxy', 'Internal_Error'],  'singleton': True,                                     'ha':{'dev':'proxy', 'comp' : 'sensor', 'dev_cla': None,       'stat_cla': None, 'id':'intern_err_',  'fmt':'| int', 'name': 'Internal Error',    'icon':'mdi:counter', 'ent_cat':'diagnostic'}}, 
 #            0xffffff03:  {'name':['proxy', 'Voltage'],                        'level': logging.DEBUG, 'unit': 'V',    'ha':{'dev':'proxy', 'dev_cla': 'voltage',     'stat_cla': 'measurement', 'id':'proxy_volt_',  'fmt':'| float','name': 'Grid Voltage'}},
-   
+           # 0xfffffff0:  {'name':['proxy', 'Internal_Test'],  'singleton': True, 'ha':{'dev':'proxy', 'dev_cla': None,       'stat_cla': None, 'id':'intern_test1_'}}, 
+
         # events
             0x00000191:  {'name':['events', '401_'],                          'level': logging.DEBUG, 'unit': ''},
             0x00000192:  {'name':['events', '402_'],                          'level': logging.DEBUG, 'unit': ''},
@@ -86,18 +89,18 @@ class Infos:
             0x00000514:  {'name':['env',  'Inverter_Temp'],                   'level': logging.DEBUG, 'unit': '°C',   'ha':{'dev':'inverter', 'dev_cla': 'temperature', 'stat_cla': 'measurement', 'id':'temp_',   'fmt':'| int','name': 'Temperature'}},
 
         # input measures:           
-            0x000006a4:  {'name':['input', 'pv1', 'Voltage'],                 'level': logging.DEBUG, 'unit': 'V',    'ha':{'dev':'input_pv1', 'dev_cla': 'voltage', 'stat_cla': 'measurement', 'id':'volt_pv1_', 'name': 'Voltage', 'val_tpl' :"{{ (value_json['pv1']['Voltage'] | float)}}", 'icon':'mdi:gauge','ent_cat':'diagnostic'}},
-            0x00000708:  {'name':['input', 'pv1', 'Current'],                 'level': logging.DEBUG, 'unit': 'A',    'ha':{'dev':'input_pv1', 'dev_cla': 'current', 'stat_cla': 'measurement', 'id':'cur_pv1_',  'name': 'Current', 'val_tpl' :"{{ (value_json['pv1']['Current'] | float)}}", 'icon':'mdi:gauge','ent_cat':'diagnostic'}},
-            0x0000076c:  {'name':['input', 'pv1', 'Power'],                   'level': logging.INFO,  'unit': 'W',    'ha':{'dev':'input_pv1', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id':'power_pv1_','name': 'Power',   'val_tpl' :"{{ (value_json['pv1']['Power'] | float)}}"}},
-            0x000007d0:  {'name':['input', 'pv2', 'Voltage'],                 'level': logging.DEBUG, 'unit': 'V',    'ha':{'dev':'input_pv2', 'dev_cla': 'voltage', 'stat_cla': 'measurement', 'id':'volt_pv2_', 'name': 'Voltage', 'val_tpl' :"{{ (value_json['pv2']['Voltage'] | float)}}", 'icon':'mdi:gauge','ent_cat':'diagnostic'}},
-            0x00000834:  {'name':['input', 'pv2', 'Current'],                 'level': logging.DEBUG, 'unit': 'A',    'ha':{'dev':'input_pv2', 'dev_cla': 'current', 'stat_cla': 'measurement', 'id':'cur_pv2_',  'name': 'Current', 'val_tpl' :"{{ (value_json['pv2']['Current'] | float)}}", 'icon':'mdi:gauge','ent_cat':'diagnostic'}},
-            0x00000898:  {'name':['input', 'pv2', 'Power'],                   'level': logging.INFO,  'unit': 'W',    'ha':{'dev':'input_pv2', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id':'power_pv2_','name': 'Power',   'val_tpl' :"{{ (value_json['pv2']['Power'] | float)}}"}},
-            0x000008fc:  {'name':['input', 'pv3', 'Voltage'],                 'level': logging.DEBUG, 'unit': 'V',    'ha':{'dev':'input_pv3', 'dev_cla': 'voltage', 'stat_cla': 'measurement', 'id':'volt_pv3_', 'name': 'Voltage', 'val_tpl' :"{{ (value_json['pv3']['Voltage'] | float)}}", 'icon':'mdi:gauge','ent_cat':'diagnostic'}},
-            0x00000960:  {'name':['input', 'pv3', 'Current'],                 'level': logging.DEBUG, 'unit': 'A',    'ha':{'dev':'input_pv3', 'dev_cla': 'current', 'stat_cla': 'measurement', 'id':'cur_pv3_',  'name': 'Current', 'val_tpl' :"{{ (value_json['pv3']['Current'] | float)}}", 'icon':'mdi:gauge','ent_cat':'diagnostic'}},
-            0x000009c4:  {'name':['input', 'pv3', 'Power'],                   'level': logging.DEBUG, 'unit': 'W',    'ha':{'dev':'input_pv3', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id':'power_pv3_','name': 'Power',   'val_tpl' :"{{ (value_json['pv3']['Power'] | float)}}"}},
-            0x00000a28:  {'name':['input', 'pv4', 'Voltage'],                 'level': logging.DEBUG, 'unit': 'V',    'ha':{'dev':'input_pv4', 'dev_cla': 'voltage', 'stat_cla': 'measurement', 'id':'volt_pv4_', 'name': 'Voltage', 'val_tpl' :"{{ (value_json['pv4']['Voltage'] | float)}}", 'icon':'mdi:gauge','ent_cat':'diagnostic'}},
-            0x00000a8c:  {'name':['input', 'pv4', 'Current'],                 'level': logging.DEBUG, 'unit': 'A',    'ha':{'dev':'input_pv4', 'dev_cla': 'current', 'stat_cla': 'measurement', 'id':'cur_pv4_',  'name': 'Current', 'val_tpl' :"{{ (value_json['pv4']['Current'] | float)}}", 'icon':'mdi:gauge','ent_cat':'diagnostic'}},
-            0x00000af0:  {'name':['input', 'pv4', 'Power'],                   'level': logging.DEBUG, 'unit': 'W',    'ha':{'dev':'input_pv4', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id':'power_pv4_','name': 'Power',   'val_tpl' :"{{ (value_json['pv4']['Power'] | float)}}"}},
+            0x000006a4:  {'name':['input', 'pv1', 'Voltage'],                 'level': logging.DEBUG, 'unit': 'V',    'ha':{'dev':'input_pv1', 'dev_cla': 'voltage', 'stat_cla': 'measurement', 'id':'volt_pv1_', 'val_tpl' :"{{ (value_json['pv1']['Voltage'] | float)}}", 'icon':'mdi:gauge','ent_cat':'diagnostic'}},
+            0x00000708:  {'name':['input', 'pv1', 'Current'],                 'level': logging.DEBUG, 'unit': 'A',    'ha':{'dev':'input_pv1', 'dev_cla': 'current', 'stat_cla': 'measurement', 'id':'cur_pv1_',  'val_tpl' :"{{ (value_json['pv1']['Current'] | float)}}", 'icon':'mdi:gauge','ent_cat':'diagnostic'}},
+            0x0000076c:  {'name':['input', 'pv1', 'Power'],                   'level': logging.INFO,  'unit': 'W',    'ha':{'dev':'input_pv1', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id':'power_pv1_','val_tpl' :"{{ (value_json['pv1']['Power'] | float)}}"}},
+            0x000007d0:  {'name':['input', 'pv2', 'Voltage'],                 'level': logging.DEBUG, 'unit': 'V',    'ha':{'dev':'input_pv2', 'dev_cla': 'voltage', 'stat_cla': 'measurement', 'id':'volt_pv2_', 'val_tpl' :"{{ (value_json['pv2']['Voltage'] | float)}}", 'icon':'mdi:gauge','ent_cat':'diagnostic'}},
+            0x00000834:  {'name':['input', 'pv2', 'Current'],                 'level': logging.DEBUG, 'unit': 'A',    'ha':{'dev':'input_pv2', 'dev_cla': 'current', 'stat_cla': 'measurement', 'id':'cur_pv2_',  'val_tpl' :"{{ (value_json['pv2']['Current'] | float)}}", 'icon':'mdi:gauge','ent_cat':'diagnostic'}},
+            0x00000898:  {'name':['input', 'pv2', 'Power'],                   'level': logging.INFO,  'unit': 'W',    'ha':{'dev':'input_pv2', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id':'power_pv2_','val_tpl' :"{{ (value_json['pv2']['Power'] | float)}}"}},
+            0x000008fc:  {'name':['input', 'pv3', 'Voltage'],                 'level': logging.DEBUG, 'unit': 'V',    'ha':{'dev':'input_pv3', 'dev_cla': 'voltage', 'stat_cla': 'measurement', 'id':'volt_pv3_', 'val_tpl' :"{{ (value_json['pv3']['Voltage'] | float)}}", 'icon':'mdi:gauge','ent_cat':'diagnostic'}},
+            0x00000960:  {'name':['input', 'pv3', 'Current'],                 'level': logging.DEBUG, 'unit': 'A',    'ha':{'dev':'input_pv3', 'dev_cla': 'current', 'stat_cla': 'measurement', 'id':'cur_pv3_',  'val_tpl' :"{{ (value_json['pv3']['Current'] | float)}}", 'icon':'mdi:gauge','ent_cat':'diagnostic'}},
+            0x000009c4:  {'name':['input', 'pv3', 'Power'],                   'level': logging.DEBUG, 'unit': 'W',    'ha':{'dev':'input_pv3', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id':'power_pv3_','val_tpl' :"{{ (value_json['pv3']['Power'] | float)}}"}},
+            0x00000a28:  {'name':['input', 'pv4', 'Voltage'],                 'level': logging.DEBUG, 'unit': 'V',    'ha':{'dev':'input_pv4', 'dev_cla': 'voltage', 'stat_cla': 'measurement', 'id':'volt_pv4_', 'val_tpl' :"{{ (value_json['pv4']['Voltage'] | float)}}", 'icon':'mdi:gauge','ent_cat':'diagnostic'}},
+            0x00000a8c:  {'name':['input', 'pv4', 'Current'],                 'level': logging.DEBUG, 'unit': 'A',    'ha':{'dev':'input_pv4', 'dev_cla': 'current', 'stat_cla': 'measurement', 'id':'cur_pv4_',  'val_tpl' :"{{ (value_json['pv4']['Current'] | float)}}", 'icon':'mdi:gauge','ent_cat':'diagnostic'}},
+            0x00000af0:  {'name':['input', 'pv4', 'Power'],                   'level': logging.DEBUG, 'unit': 'W',    'ha':{'dev':'input_pv4', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id':'power_pv4_','val_tpl' :"{{ (value_json['pv4']['Power'] | float)}}"}},
             0x00000c1c:  {'name':['input', 'pv1', 'Daily_Generation'],        'level': logging.DEBUG, 'unit': 'kWh',  'ha':{'dev':'input_pv1', 'dev_cla': 'energy', 'stat_cla': 'total_increasing', 'id':'daily_gen_pv1_','name': 'Daily Generation', 'val_tpl' :"{{ (value_json['pv1']['Daily_Generation'] | float)}}", 'icon':'mdi:solar-power-variant'}},          
             0x00000c80:  {'name':['input', 'pv1', 'Total_Generation'],        'level': logging.DEBUG, 'unit': 'kWh',  'ha':{'dev':'input_pv1', 'dev_cla': 'energy', 'stat_cla': 'total',            'id':'total_gen_pv1_','name': 'Total Generation', 'val_tpl' :"{{ (value_json['pv1']['Total_Generation'] | float)}}", 'icon':'mdi:solar-power', 'must_incr':True}},                    
             0x00000ce4:  {'name':['input', 'pv2', 'Daily_Generation'],        'level': logging.DEBUG, 'unit': 'kWh',  'ha':{'dev':'input_pv2', 'dev_cla': 'energy', 'stat_cla': 'total_increasing', 'id':'daily_gen_pv2_','name': 'Daily Generation', 'val_tpl' :"{{ (value_json['pv2']['Daily_Generation'] | float)}}", 'icon':'mdi:solar-power-variant'}},          
@@ -126,8 +129,12 @@ class Infos:
         if type (idx) is str:
             return idx               # return idx as a fixed value 
         elif idx in self.__info_defs:
-            dict = self.db
             row = self.__info_defs[idx]
+            if 'singleton' in row and row['singleton']:
+                dict = self.stat
+            else:
+                dict = self.db
+            
             keys = row['name']
 
             for key in keys:
@@ -191,6 +198,9 @@ class Infos:
                     attr['val_tpl']  = ha['val_tpl']          # get value template for complexe data structures
                 elif 'fmt' in ha:
                     attr['val_tpl']  = '{{value_json' + f"['{row['name'][-1]}'] {ha['fmt']}" + '}}'       # eg.   'val_tpl': "{{ value_json['Output_Power']|float }}"
+                else:
+                    self.inc_counter('Internal_Error')
+                    logging.error(f"Infos.__info_defs: the row for {key} do not have a 'val_tpl' nor a 'fmt' value")
 
                 # add unit_of_meas only, if status_class isn't none. If status_cla is None we want a number format and not line graph in home assistant. 
                 # A unit will change the number format to a line graph
@@ -229,6 +239,10 @@ class Infos:
                                 dev['via_device'] = via
                             else:
                                 dev['via_device'] = f"{via}_{snr}"
+                        else:
+                            self.inc_counter('Internal_Error')
+                            logging.error(f"Infos.__info_defs: the row for {key} has an invalid via value: {via}")
+
                    
 
                     for key in ('mdl','mf', 'sw', 'hw'):      # add optional values fpr 'modell', 'manufaturer', 'sw version' and 'hw version'
@@ -247,6 +261,9 @@ class Infos:
                     origin['name'] = self.app_name
                     origin['sw'] = self.version
                     attr['o'] = origin
+                else:
+                    self.inc_counter('Internal_Error')
+                    logging.error(f"Infos.__info_defs: the row for {key} missing 'dev' value for ha register")
 
 
                 yield json.dumps (attr), component, node_id, attr['uniq_id']
@@ -303,6 +320,11 @@ class Infos:
             elif data_type==0x46: # 'F' -> float32
                 result = round(struct.unpack_from(f'!f', buf, ind)[0],2)
                 ind += 4
+            else:
+                self.inc_counter('Invalid_Data_Type')
+                logging.error(f"Infos.parse: data_type: {data_type} not supported")
+                return
+    
 
 
             if keys:

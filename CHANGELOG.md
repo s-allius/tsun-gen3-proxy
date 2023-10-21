@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- count unknown data types in received messages
+- count defintion error in our internal tables
+- increase test coverage of the Infos class to 100%
+   
 ## [0.4.1] - 2023-10-20
 
 - fix issue [#18](https://github.com/s-allius/tsun-gen3-proxy/issues/18)
