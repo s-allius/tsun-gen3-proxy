@@ -52,6 +52,7 @@ services:
   mqtt:
     container_name: mqtt-broker
     image: eclipse-mosquitto:2
+    restart: unless-stopped
     expose:
       - 1883
     volumes:
