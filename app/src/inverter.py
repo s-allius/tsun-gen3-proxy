@@ -2,6 +2,8 @@ import asyncio, logging, traceback, json
 from config import Config
 from async_stream import AsyncStream
 from mqtt import Mqtt
+from aiomqtt import MqttCodeError
+
 #import gc
 
 #logger = logging.getLogger('conn')
@@ -34,8 +36,9 @@ class Inverter(AsyncStream):
         if self.remoteStream:
             logging.debug ("disconnect client connection")
             self.remoteStream.disc()
-
-        await self.__async_publ_mqtt_packet('proxy')
+        try:
+            await self.__async_publ_mqtt_packet('proxy')
+        except: pass
         
     async def client_loop(self, addr):
         '''Loop for receiving messages from the TSUN cloud (client-side)'''
@@ -74,14 +77,22 @@ class Inverter(AsyncStream):
     async def async_publ_mqtt(self) -> None:
         '''puplish data to MQTT broker'''
         # check if new inverter or collector infos are available or when the home assistant has changed the status back to online
-        if (('inverter' in self.new_data and self.new_data['inverter']) or 
-             ('collector' in self.new_data and self.new_data['collector']) or
-               self.mqtt.ha_restarts != self.ha_restarts):
-            await self.__register_home_assistant()
-            self.ha_restarts = self.mqtt.ha_restarts
+        try:
+            if (('inverter' in self.new_data and self.new_data['inverter']) or 
+                 ('collector' in self.new_data and self.new_data['collector']) or
+                   self.mqtt.ha_restarts != self.ha_restarts):
+                await self.__register_home_assistant()
+                self.ha_restarts = self.mqtt.ha_restarts
 
-        for key in self.new_data:
-            await self.__async_publ_mqtt_packet(key)
+            for key in self.new_data:
+                await self.__async_publ_mqtt_packet(key)
+        except MqttCodeError as error:
+            logging.error(f'Mqtt except: {error}')
+        except Exception:
+            logging.error(
+                f"Inverter: Exception:\n"
+                f"{traceback.format_exc()}")
+        
 
     async def __async_publ_mqtt_packet(self, key):
         db = self.db.db
@@ -101,14 +112,9 @@ class Inverter(AsyncStream):
 
     async def __register_home_assistant(self) -> None:
         '''register all our topics at home assistant'''
-        try:
-            for data_json, component, node_id, id in self.db.ha_confs(self.entity_prfx, self.node_id, self.unique_id, self.proxy_node_id, self.proxy_unique_id, self.sug_area):
-                    logger_mqtt.debug(f"MQTT Register: cmp:'{component}' node_id:'{node_id}' {data_json}")                                
-                    await self.mqtt.publish(f"{self.discovery_prfx}{component}/{node_id}{id}/config", data_json)
-        except Exception:
-            logging.error(
-                f"Inverter: Exception:\n"
-                f"{traceback.format_exc()}")
+        for data_json, component, node_id, id in self.db.ha_confs(self.entity_prfx, self.node_id, self.unique_id, self.proxy_node_id, self.proxy_unique_id, self.sug_area):
+                logger_mqtt.debug(f"MQTT Register: cmp:'{component}' node_id:'{node_id}' {data_json}")                                
+                await self.mqtt.publish(f"{self.discovery_prfx}{component}/{node_id}{id}/config", data_json)
             
     def close(self) -> None:
         logging.debug(f'Inverter.close() {self.addr}')
