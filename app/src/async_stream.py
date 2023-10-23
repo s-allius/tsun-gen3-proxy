@@ -32,6 +32,7 @@ class AsyncStream(Message):
       
             except (ConnectionResetError,
                     ConnectionAbortedError,
+                    BrokenPipeError,
                     RuntimeError) as error:
                 logger.warning(f'In loop for {self.addr}: {error}')
                 self.close()
