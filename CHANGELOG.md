@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 - fix typos by Lenz Grimmer
-- catch mqtt error, so we can forward messages to tsun even if the mqtt broker is not reachable
+- catch mqtt errors, so we can forward messages to tsun even if the mqtt broker is not reachable
 
 ## [0.4.2] - 2023-10-21
 
