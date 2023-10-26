@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.3] - 2023-10-26
+
 - fix typos by Lenz Grimmer
 - catch mqtt errors, so we can forward messages to tsun even if the mqtt broker is not reachable
 - avoid resetting the daily generation counters even if the inverter sends zero values after reconnection
