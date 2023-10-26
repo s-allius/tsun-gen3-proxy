@@ -74,7 +74,7 @@ def InvDataSeq2_Zero(): # Data indication from the controller
     msg +=  b'\x00\x00\x00\x02\xbf\x53\x00\x00\x00\x00\x02\xc0\x53\x00\x00\x00\x00\x02\xc1\x53\x00\x00\x00\x00\x02\xc2\x53\x00\x00\x00\x00\x02\xc3\x53\x00\x00\x00\x00\x02\xc4\x53'
     msg +=  b'\x00\x00\x00\x00\x02\xc5\x53\x00\x00\x00\x00\x02\xc6\x53\x00\x00\x00\x00\x02\xc7\x53\x00\x00\x00\x00\x02\xc8\x53\x00\x00\x00\x00\x02\xc9\x53\x00\x00\x00\x00\x02\xca'
     msg +=  b'\x53\x00\x00\x00\x00\x02\xcb\x53\x00\x00\x00\x00\x02\xcc\x53\x00\x00\x00\x00\x03\x20\x53\x00\x00\x00\x00\x03\x84\x53\x50\x11\x00\x00\x03\xe8\x46\x43\x61\x66\x66\x00'
-    msg +=  b'\x00\x04\x4c\x46\x3e\xeb\x85\x1f\x00\x00\x04\xb0\x46\x42\x48\x14\x7b\x00\x00\x05\x14\x53\x00\x17\x00\x00\x05\x78\x53\x00\x00\x00\x00\x05\xdc\x53\x02\x58\x00\x00\x06'
+    msg +=  b'\x00\x04\x4c\x46\x3e\xeb\x85\x1f\x00\x00\x04\xb0\x46\x42\x48\x14\x7b\x00\x00\x05\x14\x53\x00\x00\x00\x00\x05\x78\x53\x00\x00\x00\x00\x05\xdc\x53\x00\x00\x00\x00\x06'
     msg +=  b'\x40\x46\x42\xd3\x66\x66\x00\x00\x06\xa4\x46\x42\x06\x66\x66\x00\x00\x07\x08\x46\x3f\xf4\x7a\xe1\x00\x00\x07\x6c\x46\x00\x00\x00\x00\x00\x00\x07\xd0\x46\x42\x06\x00'
     msg +=  b'\x00\x00\x00\x08\x34\x46\x3f\xae\x14\x7b\x00\x00\x08\x98\x46\x00\x00\x00\x00\x00\x00\x08\xfc\x46\x00\x00\x00\x00\x00\x00\x09\x60\x46\x00\x00\x00\x00\x00\x00\x09\xc4'
     msg +=  b'\x46\x00\x00\x00\x00\x00\x00\x0a\x28\x46\x00\x00\x00\x00\x00\x00\x0a\x8c\x46\x00\x00\x00\x00\x00\x00\x0a\xf0\x46\x00\x00\x00\x00\x00\x00\x0b\x54\x46\x00\x00\x00\x00'
@@ -206,26 +206,87 @@ def test_must_incr_total(InvDataSeq2, InvDataSeq2_Zero):
         if key == 'total':
             assert update == True
             tests +=1   
-            pass
-        elif key == 'input':
+        elif key == 'env':
             assert update == True
             tests +=1
 
-    assert tests==22
-    assert json.dumps(i.db['total']) == json.dumps({'Daily_Generation': 1.7, 'Total_Generation': 17.36})
-    assert json.dumps(i.db['input']) == json.dumps({"pv1": {"Voltage": 33.6, "Current": 1.91, "Power": 64.5, "Daily_Generation": 1.08, "Total_Generation": 9.74}, "pv2": {"Voltage": 33.5, "Current": 1.36, "Power": 45.7, "Daily_Generation": 0.62, "Total_Generation": 7.62}, "pv3": {"Voltage": 0.0, "Current": 0.0, "Power": 0.0, "Daily_Generation": 0.0, "Total_Generation": 0.0}, "pv4": {"Voltage": 0.0, "Current": 0.0, "Power": 0.0, "Daily_Generation": 0.0, "Total_Generation": 0.0}})
 
+    assert tests==4
+    assert json.dumps(i.db['total']) == json.dumps({'Daily_Generation': 1.7, 'Total_Generation': 17.36})
+    assert json.dumps(i.db['input']) == json.dumps({"pv1": {"Voltage": 33.6, "Current": 1.91, "Power": 64.5, "Daily_Generation": 1.08, "Total_Generation": 9.74}, "pv2": {"Voltage": 33.5, "Current": 1.36, "Power": 45.7, "Daily_Generation": 0.62, "Total_Generation": 7.62}, "pv3": {"Voltage": 0.0, "Current": 0.0, "Power": 0.0}, "pv4": {"Voltage": 0.0, "Current": 0.0, "Power": 0.0}})
+    assert json.dumps(i.db['env']) == json.dumps({"Inverter_Temp": 23, "Rated_Power": 600})
+    tests = 0
+    for key, update in i.parse (InvDataSeq2):
+        if key == 'total':
+            assert update == False
+            tests +=1   
+        elif key == 'env':
+            assert update == False
+            tests +=1
+
+
+    assert tests==4
+    assert json.dumps(i.db['total']) == json.dumps({'Daily_Generation': 1.7, 'Total_Generation': 17.36})
+    assert json.dumps(i.db['input']) == json.dumps({"pv1": {"Voltage": 33.6, "Current": 1.91, "Power": 64.5, "Daily_Generation": 1.08, "Total_Generation": 9.74}, "pv2": {"Voltage": 33.5, "Current": 1.36, "Power": 45.7, "Daily_Generation": 0.62, "Total_Generation": 7.62}, "pv3": {"Voltage": 0.0, "Current": 0.0, "Power": 0.0}, "pv4": {"Voltage": 0.0, "Current": 0.0, "Power": 0.0}})
+    assert json.dumps(i.db['env']) == json.dumps({"Inverter_Temp": 23, "Rated_Power": 600})
+        
     tests = 0
     for key, update in i.parse (InvDataSeq2_Zero):
         if key == 'total':
+            assert update == False
             tests +=1   
-            pass
-        elif key == 'input':
+        elif key == 'env':
+            assert update == True
             tests +=1
 
-    assert tests==22
+    assert tests==4
     assert json.dumps(i.db['total']) == json.dumps({'Daily_Generation': 1.7, 'Total_Generation': 17.36})
-    assert json.dumps(i.db['input']) == json.dumps({"pv1": {"Voltage": 33.6, "Current": 1.91, "Power": 0.0, "Daily_Generation": 1.08, "Total_Generation": 9.74}, "pv2": {"Voltage": 33.5, "Current": 1.36, "Power": 0.0, "Daily_Generation": 0.62, "Total_Generation": 7.62}, "pv3": {"Voltage": 0.0, "Current": 0.0, "Power": 0.0, "Daily_Generation": 0.0, "Total_Generation": 0.0}, "pv4": {"Voltage": 0.0, "Current": 0.0, "Power": 0.0, "Daily_Generation": 0.0, "Total_Generation": 0.0}})
+    assert json.dumps(i.db['input']) == json.dumps({"pv1": {"Voltage": 33.6, "Current": 1.91, "Power": 0.0, "Daily_Generation": 1.08, "Total_Generation": 9.74}, "pv2": {"Voltage": 33.5, "Current": 1.36, "Power": 0.0, "Daily_Generation": 0.62, "Total_Generation": 7.62}, "pv3": {"Voltage": 0.0, "Current": 0.0, "Power": 0.0}, "pv4": {"Voltage": 0.0, "Current": 0.0, "Power": 0.0}})
+    assert json.dumps(i.db['env']) == json.dumps({"Inverter_Temp": 0, "Rated_Power": 0})
+
+def test_must_incr_total2(InvDataSeq2, InvDataSeq2_Zero):
+    i = Infos()
+    tests = 0
+    for key, update in i.parse (InvDataSeq2_Zero):
+        if key == 'total':
+            assert update == False
+            tests +=1   
+        elif key == 'env':
+            assert update == True
+            tests +=1
+
+    assert tests==4
+    assert json.dumps(i.db['total']) == json.dumps({})
+    assert json.dumps(i.db['input']) == json.dumps({"pv1": {"Voltage": 33.6, "Current": 1.91, "Power": 0.0}, "pv2": {"Voltage": 33.5, "Current": 1.36, "Power": 0.0}, "pv3": {"Voltage": 0.0, "Current": 0.0, "Power": 0.0}, "pv4": {"Voltage": 0.0, "Current": 0.0, "Power": 0.0}})
+    assert json.dumps(i.db['env']) == json.dumps({"Inverter_Temp": 0, "Rated_Power": 0})
+    
+    tests = 0
+    for key, update in i.parse (InvDataSeq2_Zero):
+        if key == 'total':
+            assert update == False
+            tests +=1   
+        elif key == 'env':
+            assert update == False
+            tests +=1
+
+    assert tests==4
+    assert json.dumps(i.db['total']) == json.dumps({})
+    assert json.dumps(i.db['input']) == json.dumps({"pv1": {"Voltage": 33.6, "Current": 1.91, "Power": 0.0}, "pv2": {"Voltage": 33.5, "Current": 1.36, "Power": 0.0}, "pv3": {"Voltage": 0.0, "Current": 0.0, "Power": 0.0}, "pv4": {"Voltage": 0.0, "Current": 0.0, "Power": 0.0}})
+    assert json.dumps(i.db['env']) == json.dumps({"Inverter_Temp": 0, "Rated_Power": 0})
+
+    tests = 0
+    for key, update in i.parse (InvDataSeq2):
+        if key == 'total':
+            assert update == True
+            tests +=1   
+        elif key == 'env':
+            assert update == True
+            tests +=1
+
+    assert tests==4
+    assert json.dumps(i.db['total']) == json.dumps({'Daily_Generation': 1.7, 'Total_Generation': 17.36})
+    assert json.dumps(i.db['input']) == json.dumps({"pv1": {"Voltage": 33.6, "Current": 1.91, "Power": 64.5, "Daily_Generation": 1.08, "Total_Generation": 9.74}, "pv2": {"Voltage": 33.5, "Current": 1.36, "Power": 45.7, "Daily_Generation": 0.62, "Total_Generation": 7.62}, "pv3": {"Voltage": 0.0, "Current": 0.0, "Power": 0.0}, "pv4": {"Voltage": 0.0, "Current": 0.0, "Power": 0.0}})
+    assert json.dumps(i.db['env']) == json.dumps({"Inverter_Temp": 23, "Rated_Power": 600})
 
 
 def test_statistic_counter():

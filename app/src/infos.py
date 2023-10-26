@@ -341,7 +341,14 @@ class Infos:
                     dict = dict[key]
                     name += key + '.'
 
-                update = keys[-1] not in dict or (not must_incr and dict[keys[-1]] != result) or (must_incr and dict[keys[-1]] < result)
+                if keys[-1] not in dict:
+                    update = (not must_incr or result>0)
+                else:
+                    if must_incr:
+                        update = dict[keys[-1]] < result
+                    else:
+                        update = dict[keys[-1]] != result
+                        
                 if update: dict[keys[-1]] = result
                 name += keys[-1]
                 yield keys[0], update    
@@ -349,7 +356,7 @@ class Infos:
                 update = False    
                 name = str(f'info-id.0x{info_id:x}')
             
-            self.tracer.log(level, f'{name} : {result}{unit}')
+            self.tracer.log(level, f'{name} : {result}{unit}  update: {update}')
  
             i +=1
 
