@@ -2,10 +2,10 @@ import struct, logging, time, datetime
 import weakref
 from datetime import datetime
 
-if __name__ == "app.src.messages":
+if __name__ == "app.src.messages": 
     from app.src.infos import Infos
     from app.src.config import Config
-else:
+else:  # pragma: no cover
     from infos import Infos
     from config import Config
 
@@ -13,18 +13,11 @@ logger = logging.getLogger('msg')
     
         
 def hex_dump_memory(level, info, data, num):
-    s = ''
     n = 0
     lines = []
     lines.append(info)
     tracer = logging.getLogger('tracer')
     if not tracer.isEnabledFor(level): return
-
-
-    #data = list((num * ctypes.c_byte).from_address(ptr))
-
-    if len(data) == 0:
-        return '<empty>'
 
     for i in range(0, num, 16):
         line = '  '
@@ -46,8 +39,6 @@ def hex_dump_memory(level, info, data, num):
 
     tracer.log(level, '\n'.join(lines))
         
-    #return '\n'.join(lines)
-
 
 class Control:
     def __init__(self, ctrl:int):
@@ -57,13 +48,13 @@ class Control:
         return self.ctrl
 
     def is_ind(self) -> bool:
-        return not (self.ctrl & 0x08)
+        return (self.ctrl == 0x91)
     
     #def is_req(self) -> bool:
     #    return not (self.ctrl & 0x08)
     
     def is_resp(self) -> bool:
-        return self.ctrl & 0x08
+        return (self.ctrl == 0x99)
 
 class IterRegistry(type):
     def __iter__(cls):
@@ -99,7 +90,7 @@ class Message(metaclass=IterRegistry):
     Empty methods, that have to be implemented in any child class which don't use asyncio
     '''
     def _read(self) -> None:     # read data bytes from socket and copy them to our _recv_buffer
-        return  
+        return  # pragma: no cover
 
     '''
     Our puplic methods
@@ -153,9 +144,7 @@ class Message(metaclass=IterRegistry):
         if self.header_valid and len(self._recv_buffer) >= (self.header_len+self.data_len):
             hex_dump_memory(logging.INFO, f'Received from {self.addr}:', self._recv_buffer, self.header_len+self.data_len)
 
-            if self.id_str:
-                self.set_serial_no(self.id_str.decode("utf-8"))
-            
+            self.set_serial_no(self.id_str.decode("utf-8"))   
             self.__dispatch_msg()
             self.__flush_recv_msg()
         return
@@ -266,6 +255,9 @@ class Message(metaclass=IterRegistry):
             self.__finish_send_msg()
         elif self.ctrl.is_resp():
             return # ignore received response from tsun
+        else:
+            self.inc_counter('Unknown_Ctrl')
+
         self.forward(self._recv_buffer, self.header_len+self.data_len)
 
     def msg_get_time(self):
@@ -281,6 +273,8 @@ class Message(metaclass=IterRegistry):
             result = struct.unpack_from(f'!q', self._recv_buffer, self.header_len)
             logger.debug(f'tsun-time: {result[0]:08x}')
             return # ignore received response from tsun
+        else:
+            self.inc_counter('Unknown_Ctrl')
         
         self.forward(self._recv_buffer, self.header_len+self.data_len)
             
@@ -308,12 +302,14 @@ class Message(metaclass=IterRegistry):
             self.__build_header(0x99)
             self._send_buffer += b'\x01'
             self.__finish_send_msg()
+            self.__process_data()
         
         elif self.ctrl.is_resp():
             return # ignore received response
-        
+        else:
+            self.inc_counter('Unknown_Ctrl')
+       
         self.forward(self._recv_buffer, self.header_len+self.data_len)
-        self.__process_data()
 
 
     def msg_inverter_data(self):
@@ -321,12 +317,14 @@ class Message(metaclass=IterRegistry):
             self.__build_header(0x99)
             self._send_buffer += b'\x01'
             self.__finish_send_msg()
+            self.__process_data()
         
         elif self.ctrl.is_resp():
             return # ignore received response
+        else:
+            self.inc_counter('Unknown_Ctrl')
         
         self.forward(self._recv_buffer, self.header_len+self.data_len)
-        self.__process_data()
         
     def __process_data(self):
         msg_hdr_len = self.parse_msg_header()
