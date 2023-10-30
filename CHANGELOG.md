@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- increase test coverage of the Messages class
+- add error counter for unknown control bytes
+- 
 ## [0.4.3] - 2023-10-26
 
 - fix typos by Lenz Grimmer
