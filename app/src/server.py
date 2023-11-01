@@ -3,8 +3,6 @@ from logging import config
 from async_stream import AsyncStream
 from inverter import Inverter
 from config import Config
-from mqtt import Mqtt
-from infos import Infos
 
     
 async def handle_client(reader, writer):
@@ -68,11 +66,7 @@ if __name__ == "__main__":
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
 
-    # call Mqtt singleton to establisch the connection to the mqtt broker
-    mqtt = Mqtt()
-    # initialize the proxy statistics
-    Infos.static_init()
-    
+    Inverter.class_init()
     #
     # Register some UNIX Signal handler for a gracefully server shutdown on Docker restart and stop
     #  
@@ -90,9 +84,7 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         pass
     finally:
-        logging.info ('Close MQTT Task')        
-        loop.run_until_complete(mqtt.close())
-        mqtt = None   # release the last reference to the singleton
+        Inverter.class_close(loop)
         logging.info ('Close event loop')        
         loop.close()
         logging.info (f'Finally, exit Server "{serv_name}"')
