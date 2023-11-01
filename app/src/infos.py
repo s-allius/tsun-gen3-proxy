@@ -159,7 +159,7 @@ class Infos:
                 return not value <= dep['less_eq']
         return True
     
-    def ha_confs(self, ha_prfx, inv_node_id, inv_snr, proxy_node_id, proxy_unique_id, sug_area =''):
+    def ha_confs(self, ha_prfx, node_id, snr,  singleton:bool, sug_area =''):
         '''Generator function yields a json register struct for home-assistant auto configuration and a unique entity string
 
         arguments:
@@ -169,12 +169,11 @@ class Infos:
         tab = self.__info_defs
         for key in tab:
             row = tab[key]
-            if 'singleton' in row and row['singleton']:
-                node_id = proxy_node_id
-                snr = proxy_unique_id
-            else:
-                node_id = inv_node_id
-                snr = inv_snr
+            if 'singleton' in row:
+                if singleton != row['singleton']:
+                    continue
+            elif singleton:
+                continue     
             prfx = ha_prfx + node_id
 
             #check if we have details for home assistant
