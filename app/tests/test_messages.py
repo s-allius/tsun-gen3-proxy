@@ -526,15 +526,17 @@ def test_msg_iterator():
 def test_proxy_counter():
     m = Message()
     assert m.new_data == {}
-    assert 'proxy' in m.db.stat
     m.db.stat['proxy']['Unknown_Msg'] = 0
+    m.new_stat_data['proxy'] =  False
 
     m.inc_counter('Unknown_Msg')
-    assert m.new_data == {'proxy': True}
+    assert m.new_data == {}
+    assert m.new_stat_data == {'proxy': True}
     assert 1 == m.db.stat['proxy']['Unknown_Msg']
 
-    m.new_data['proxy'] =  False
+    m.new_stat_data['proxy'] =  False
     m.dec_counter('Unknown_Msg')
-    assert m.new_data == {'proxy': True}
+    assert m.new_data == {}
+    assert m.new_stat_data == {'proxy': True}
     assert 0 == m.db.stat['proxy']['Unknown_Msg']
     m.close()

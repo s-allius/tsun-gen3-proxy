@@ -130,7 +130,7 @@ def test_build_ha_conf1(ContrDataSeq):
     i.static_init()                # initialize counter
 
     tests = 0
-    for d_json, comp, node_id, id in i.ha_confs(ha_prfx="tsun/", inv_snr='123', inv_node_id="garagendach/",proxy_node_id = 'proxy/', proxy_unique_id = '456'):
+    for d_json, comp, node_id, id in i.ha_confs(ha_prfx="tsun/", node_id="garagendach/", snr='123', singleton=False):
 
         if id == 'out_power_123':
             assert comp == 'sensor'
@@ -156,6 +156,25 @@ def test_build_ha_conf1(ContrDataSeq):
             assert  d_json == json.dumps({"name": "Signal Strength", "stat_t": "tsun/garagendach/controller", "dev_cla": None, "stat_cla": "measurement", "uniq_id": "signal_123", "val_tpl": "{{value_json[\'Signal_Strength\'] | int}}", "unit_of_meas": "%", "ic": "mdi:wifi", "dev": {"name": "Controller", "sa": "Controller", "via_device": "proxy", "ids": ["controller_123"]}, "o": {"name": "proxy", "sw": "unknown"}})
             tests +=1
         elif id == 'inv_count_456':
+            assert False
+
+    assert tests==4
+
+
+    for d_json, comp, node_id, id in i.ha_confs(ha_prfx="tsun/", node_id = 'proxy/', snr = '456', singleton=True):
+
+        if id == 'out_power_123':
+            assert False
+        elif id == 'daily_gen_123':
+            assert False
+        elif id == 'power_pv1_123':
+            assert False
+        elif id == 'power_pv2_123':
+            assert False    # if we haven't received and parsed a control data msg, we don't know the number of inputs. In this case we only register the first one!!
+
+        elif id == 'signal_123':
+            assert False
+        elif id == 'inv_count_456':
             assert comp == 'sensor'
             assert  d_json == json.dumps({"name": "Active Inverter Connections", "stat_t": "tsun/proxy/proxy", "dev_cla": None, "stat_cla": None, "uniq_id": "inv_count_456", "val_tpl": "{{value_json['Inverter_Cnt'] | int}}", "ic": "mdi:counter", "dev": {"name": "Proxy", "sa": "Proxy", "mdl": "proxy", "mf": "Stefan Allius", "sw": "unknown", "ids": ["proxy"]}, "o": {"name": "proxy", "sw": "unknown"}})
             tests +=1
@@ -171,7 +190,7 @@ def test_build_ha_conf2(ContrDataSeq, InvDataSeq):
         pass
 
     tests = 0
-    for d_json, comp, node_id, id in i.ha_confs(ha_prfx="tsun/", inv_snr='123', inv_node_id="garagendach/",proxy_node_id = 'proxy/', proxy_unique_id = '456', sug_area = 'roof'):
+    for d_json, comp, node_id, id in i.ha_confs(ha_prfx="tsun/", node_id="garagendach/", snr='123', singleton=False, sug_area = 'roof'):
 
         if id == 'out_power_123':
             assert comp == 'sensor'
@@ -354,7 +373,10 @@ def test_table_definition():
     val = i.dev_value(0xffffff04)  # check internal error counter
     assert val == 0
 
-    for d_json, comp, node_id, id in i.ha_confs(ha_prfx="tsun/", inv_snr='123', inv_node_id="garagendach/",proxy_node_id = 'proxy/', proxy_unique_id = '456', sug_area = 'roof'):
+    for d_json, comp, node_id, id in i.ha_confs(ha_prfx="tsun/", node_id="garagendach/", snr='123', singleton=False, sug_area = 'roof'):
+        pass
+
+    for d_json, comp, node_id, id in i.ha_confs(ha_prfx="tsun/", node_id = 'proxy/', snr = '456', singleton=True, sug_area = 'roof'):
         pass
 
     val = i.dev_value(0xffffff04)  # check internal error counter
@@ -364,7 +386,7 @@ def test_table_definition():
     Infos._Infos__info_defs[0xfffffffe] =  {'name':['proxy', 'Internal_Test1'],  'singleton': True, 'ha':{'dev':'proxy', 'dev_cla': None,       'stat_cla': None, 'id':'intern_test1_'}}
 
     tests = 0
-    for d_json, comp, node_id, id in i.ha_confs(ha_prfx="tsun/", inv_snr='123', inv_node_id="garagendach/",proxy_node_id = 'proxy/', proxy_unique_id = '456', sug_area = 'roof'):
+    for d_json, comp, node_id, id in i.ha_confs(ha_prfx="tsun/", node_id = 'proxy/', snr = '456', singleton=True, sug_area = 'roof'):
         if id == 'intern_test1_456':
             tests +=1
 
@@ -376,7 +398,7 @@ def test_table_definition():
     # test missing 'dev' value
     Infos._Infos__info_defs[0xfffffffe] =  {'name':['proxy', 'Internal_Test2'],  'singleton': True, 'ha':{'dev_cla': None,       'stat_cla': None, 'id':'intern_test2_',  'fmt':'| int'}}
     tests = 0
-    for d_json, comp, node_id, id in i.ha_confs(ha_prfx="tsun/", inv_snr='123', inv_node_id="garagendach/",proxy_node_id = 'proxy/', proxy_unique_id = '456', sug_area = 'roof'):
+    for d_json, comp, node_id, id in i.ha_confs(ha_prfx="tsun/", node_id = 'proxy/', snr = '456', singleton=True, sug_area = 'roof'):
         if id == 'intern_test2_456':
             tests +=1
 
@@ -392,7 +414,7 @@ def test_table_definition():
 
     Infos._Infos__info_defs[0xfffffffe] =  {'name':['proxy', 'Internal_Test2'],  'singleton': True, 'ha':{'dev':'test_dev', 'dev_cla': None,       'stat_cla': None, 'id':'intern_test2_',  'fmt':'| int'}}
     tests = 0
-    for d_json, comp, node_id, id in i.ha_confs(ha_prfx="tsun/", inv_snr='123', inv_node_id="garagendach/",proxy_node_id = 'proxy/', proxy_unique_id = '456', sug_area = 'roof'):
+    for d_json, comp, node_id, id in i.ha_confs(ha_prfx="tsun/", node_id = 'proxy/', snr = '456', singleton=True, sug_area = 'roof'):
         if id == 'intern_test2_456':
             tests +=1
 
