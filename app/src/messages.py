@@ -65,7 +65,8 @@ class IterRegistry(type):
 
 class Message(metaclass=IterRegistry):
     _registry = []
-
+    new_stat_data = {}
+    
     def __init__(self):
         self._registry.append(weakref.ref(self))
         self.header_valid = False
@@ -103,11 +104,11 @@ class Message(metaclass=IterRegistry):
 
     def inc_counter(self, counter:str) -> None:
         self.db.inc_counter(counter)
-        self.new_data['proxy'] = True
+        self.new_stat_data['proxy'] = True
 
     def dec_counter(self, counter:str) -> None:
         self.db.dec_counter(counter)
-        self.new_data['proxy'] = True
+        self.new_stat_data['proxy'] = True
        
     def set_serial_no(self, serial_no : str):
         
