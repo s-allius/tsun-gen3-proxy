@@ -3,7 +3,7 @@ import asyncio
 import signal
 import functools
 import os
-# from logging import config
+from logging import config  # noqa F401
 from async_stream import AsyncStream
 from inverter import Inverter
 from config import Config
