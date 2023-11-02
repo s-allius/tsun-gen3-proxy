@@ -57,8 +57,8 @@ class Mqtt(metaclass=Singleton):
         mqtt = Config.get('mqtt')
         ha = Config.get('ha')
         logger_mqtt.info(f'start MQTT: host:{mqtt["host"]}  port:'
-                         '{mqtt["port"]}  '
-                         'user:{mqtt["user"]}')
+                         f'{mqtt["port"]}  '
+                         f'user:{mqtt["user"]}')
         self.client = aiomqtt.Client(hostname=mqtt['host'], port=mqtt['port'],
                                      username=mqtt['user'],
                                      password=mqtt['passwd'])
