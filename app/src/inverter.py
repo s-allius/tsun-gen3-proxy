@@ -192,9 +192,9 @@ class Inverter(AsyncStream):
                 self.entity_prfx, self.node_id, self.unique_id,
                 False, self.sug_area):
             logger_mqtt.debug(f"MQTT Register: cmp:'{component}'"
-                              " node_id:'{node_id}' {data_json}")
+                              f" node_id:'{node_id}' {data_json}")
             await self.mqtt.publish(f"{self.discovery_prfx}{component}"
-                                    "/{node_id}{id}/config", data_json)
+                                    f"/{node_id}{id}/config", data_json)
 
     def close(self) -> None:
         logging.debug(f'Inverter.close() {self.addr}')
