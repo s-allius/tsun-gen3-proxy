@@ -49,9 +49,6 @@ class MemoryStream(Message):
         self.msg_count += 1
         return
     
-    def __del__ (self):
-        super().__del__()
-
 
 @pytest.fixture
 def MsgContactInfo(): # Contact Info message
