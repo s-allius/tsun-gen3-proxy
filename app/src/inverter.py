@@ -76,10 +76,8 @@ class Inverter(AsyncStream):
         for data_json, component, node_id, id in cls.db_stat.ha_confs(
                  cls.entity_prfx, cls.proxy_node_id,
                  cls.proxy_unique_id, True):
-            logger_mqtt.debug(f'''MQTT Register: cmp:'{component}' node_id:'
-{node_id}' {data_json}''')
-            await cls.mqtt.publish(f'''{cls.discovery_prfx}{component}
-/{node_id}{id}/config''', data_json)
+            logger_mqtt.debug(f"MQTT Register: cmp:'{component}' node_id:'{node_id}' {data_json}")      # noqa: E501
+            await cls.mqtt.publish(f'{cls.discovery_prfx}{component}/{node_id}{id}/config', data_json)  # noqa: E501
 
     @classmethod
     async def __async_publ_mqtt_proxy_stat(cls, key) -> None:
@@ -185,8 +183,7 @@ class Inverter(AsyncStream):
             data_json = json.dumps(db[key])
             node_id = self.node_id
             logger_mqtt.debug(f'{key}: {data_json}')
-            await self.mqtt.publish(f'''{self.entity_prfx}{node_id}
-{key}''', data_json)
+            await self.mqtt.publish(f'{self.entity_prfx}{node_id}{key}', data_json)  # noqa: E501
             self.new_data[key] = False
 
     async def __register_home_assistant(self) -> None:

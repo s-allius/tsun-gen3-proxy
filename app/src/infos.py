@@ -203,8 +203,7 @@ class Infos:
                 if 'val_tpl' in ha:
                     attr['val_tpl'] = ha['val_tpl']
                 elif 'fmt' in ha:
-                    attr['val_tpl'] = '{{value_json' + f"['{row['name'][-1]}']"
-                    " {ha['fmt']}" + '}}'       # eg.   'val_tpl': "{{ value_json['Output_Power']|float }} # noqa: E501
+                    attr['val_tpl'] = '{{value_json' + f"['{row['name'][-1]}'] {ha['fmt']}" + '}}'       # eg.   'val_tpl': "{{ value_json['Output_Power']|float }} # noqa: E501
                 else:
                     self.inc_counter('Internal_Error')
                     logging.error(f"Infos.__info_defs: the row for {key} do"

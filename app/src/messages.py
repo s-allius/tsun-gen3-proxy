@@ -1,7 +1,7 @@
 import struct
 import logging
 import time
-import datetime
+from datetime import datetime
 import weakref
 
 if __name__ == "app.src.messages":
@@ -131,16 +131,14 @@ class Message(metaclass=IterRegistry):
                 inv = inverters[serial_no]
                 self.node_id = inv['node_id']
                 self.sug_area = inv['suggested_area']
-                logger.debug(f'''SerialNo {serial_no} allowed!
-  area:{self.sug_area}''')
+                logger.debug(f'SerialNo {serial_no} allowed! area:{self.sug_area}')  # noqa: E501
             else:
                 self.node_id = ''
                 self.sug_area = ''
                 if 'allow_all' not in inverters or not inverters['allow_all']:
                     self.inc_counter('Unknown_SNR')
                     self.unique_id = None
-                    logger.warning(f'''ignore message from unknow inverter!
- (SerialNo: {serial_no})''')
+                    logger.warning(f'ignore message from unknow inverter! (SerialNo: {serial_no})')  # noqa: E501
                     return
                 logger.debug(f'SerialNo {serial_no} not known but accepted!')
 
