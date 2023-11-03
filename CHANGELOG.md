@@ -9,7 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - increase test coverage of the Messages class
 - add error counter for unknown control bytes
-- 
+- register proxy dev as soon as the MQTT connection is established
+- lint code with flake8
+  
 ## [0.4.3] - 2023-10-26
 
 - fix typos by Lenz Grimmer

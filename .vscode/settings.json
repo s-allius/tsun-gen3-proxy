@@ -8,5 +8,8 @@
         "system_tests"
     ],
     "python.testing.unittestEnabled": false,
-    "python.testing.pytestEnabled": true
+    "python.testing.pytestEnabled": true,
+    "flake8.args": [
+        "--extend-exclude=app/tests/*.py system_tests/*.py"   
+    ]
 }

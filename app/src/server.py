@@ -1,17 +1,19 @@
-import logging, asyncio, signal, functools, os
-from logging import config
+import logging
+import asyncio
+import signal
+import functools
+import os
+from logging import config  # noqa F401
 from async_stream import AsyncStream
 from inverter import Inverter
 from config import Config
-from mqtt import Mqtt
-from infos import Infos
 
-    
+
 async def handle_client(reader, writer):
     '''Handles a new incoming connection and starts an async loop'''
 
     addr = writer.get_extra_info('peername')
-    await Inverter(reader, writer, addr).server_loop(addr) 
+    await Inverter(reader, writer, addr).server_loop(addr)
 
 
 def handle_SIGTERM(loop):
@@ -31,14 +33,15 @@ def handle_SIGTERM(loop):
     loop.stop()
 
     logging.info('Shutdown complete')
-    
+
 
 def get_log_level() -> int:
-    '''checks if LOG_LVL is set in the environment and returns the corresponding logging.LOG_LEVEL'''
+    '''checks if LOG_LVL is set in the environment and returns the
+    corresponding logging.LOG_LEVEL'''
     log_level = os.getenv('LOG_LVL', 'INFO')
-    if log_level== 'DEBUG':
+    if log_level == 'DEBUG':
         log_level = logging.DEBUG
-    elif log_level== 'WARN':
+    elif log_level == 'WARN':
         log_level = logging.WARNING
     else:
         log_level = logging.INFO
@@ -50,50 +53,46 @@ if __name__ == "__main__":
     # Setup our daily, rotating logger
     #
     serv_name = os.getenv('SERVICE_NAME', 'proxy')
-    version   = os.getenv('VERSION', 'unknown')
-    
+    version = os.getenv('VERSION', 'unknown')
+
     logging.config.fileConfig('logging.ini')
     logging.info(f'Server "{serv_name} - {version}" will be started')
-    
+
     # set lowest-severity for 'root', 'msg', 'conn' and 'data' logger
     log_level = get_log_level()
     logging.getLogger().setLevel(log_level)
     logging.getLogger('msg').setLevel(log_level)
     logging.getLogger('conn').setLevel(log_level)
     logging.getLogger('data').setLevel(log_level)
-    
+
     # read config file
-    Config.read()    
+    Config.read()
 
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
 
-    # call Mqtt singleton to establisch the connection to the mqtt broker
-    mqtt = Mqtt()
-    # initialize the proxy statistics
-    Infos.static_init()
-    
+    Inverter.class_init()
     #
-    # Register some UNIX Signal handler for a gracefully server shutdown on Docker restart and stop
-    #  
-    for signame in ('SIGINT','SIGTERM'):
-        loop.add_signal_handler(getattr(signal, signame), functools.partial(handle_SIGTERM, loop))
+    # Register some UNIX Signal handler for a gracefully server shutdown
+    # on Docker restart and stop
+    #
+    for signame in ('SIGINT', 'SIGTERM'):
+        loop.add_signal_handler(getattr(signal, signame),
+                                functools.partial(handle_SIGTERM, loop))
 
     #
-    # Create a task for our listening server. This must be a task! If we call start_server directly out
-    # of our main task, the eventloop will be blocked and we can't receive and handle the UNIX signals!
-    #   
+    # Create a task for our listening server. This must be a task! If we call
+    # start_server directly out of our main task, the eventloop will be blocked
+    # and we can't receive and handle the UNIX signals!
+    #
     loop.create_task(asyncio.start_server(handle_client, '0.0.0.0', 5005))
-       
+
     try:
         loop.run_forever()
     except KeyboardInterrupt:
         pass
     finally:
-        logging.info ('Close MQTT Task')        
-        loop.run_until_complete(mqtt.close())
-        mqtt = None   # release the last reference to the singleton
-        logging.info ('Close event loop')        
+        Inverter.class_close(loop)
+        logging.info('Close event loop')
         loop.close()
-        logging.info (f'Finally, exit Server "{serv_name}"')
-    
+        logging.info(f'Finally, exit Server "{serv_name}"')
