@@ -10,15 +10,14 @@ Infos.static_init()
 tracer = logging.getLogger('tracer')
     
 class MemoryStream(Message):
-    def __init__(self, msg, chunks = (0,)):
-        super().__init__()
+    def __init__(self, msg, chunks = (0,), server_side: bool = True):
+        super().__init__(server_side)
         self.__msg = msg
         self.__msg_len = len(msg)
         self.__chunks = chunks
         self.__offs = 0
         self.__chunk_idx = 0
         self.msg_count = 0
-        self.server_side = False
         self.addr = 'Test: SrvSide'
 
     def append_msg(self, msg):
@@ -278,7 +277,7 @@ def test_read_two_messages(ConfigTsunAllowAll, Msg2ContactInfo):
 
 def test_msg_contact_resp(ConfigTsunInv1, MsgContactResp):
     ConfigTsunInv1
-    m = MemoryStream(MsgContactResp, (0,))
+    m = MemoryStream(MsgContactResp, (0,), False)
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
     m.read()         # read complete msg, and dispatch msg
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
@@ -330,7 +329,7 @@ def test_msg_get_time(ConfigTsunInv1, MsgGetTime):
 
 def test_msg_time_resp(ConfigTsunInv1, MsgTimeResp):
     ConfigTsunInv1
-    m = MemoryStream(MsgTimeResp, (0,))
+    m = MemoryStream(MsgTimeResp, (0,), False)
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
     m.read()         # read complete msg, and dispatch msg
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
@@ -347,7 +346,7 @@ def test_msg_time_resp(ConfigTsunInv1, MsgTimeResp):
 
 def test_msg_time_invalid(ConfigTsunInv1, MsgTimeInvalid):
     ConfigTsunInv1
-    m = MemoryStream(MsgTimeInvalid, (0,))
+    m = MemoryStream(MsgTimeInvalid, (0,), False)
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
     m.read()         # read complete msg, and dispatch msg
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
@@ -384,7 +383,7 @@ def test_msg_cntrl_ind(ConfigTsunInv1, MsgControllerInd, MsgControllerAck):
 
 def test_msg_cntrl_ack(ConfigTsunInv1, MsgControllerAck):
     ConfigTsunInv1
-    m = MemoryStream(MsgControllerAck, (0,))
+    m = MemoryStream(MsgControllerAck, (0,), False)
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
     m.read()         # read complete msg, and dispatch msg
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
@@ -441,7 +440,7 @@ def test_msg_inv_ack(ConfigTsunInv1, MsgInverterAck):
     ConfigTsunInv1
     tracer.setLevel(logging.ERROR)
 
-    m = MemoryStream(MsgInverterAck, (0,))
+    m = MemoryStream(MsgInverterAck, (0,), False)
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
     m.read()         # read complete msg, and dispatch msg
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
@@ -459,7 +458,7 @@ def test_msg_inv_ack(ConfigTsunInv1, MsgInverterAck):
 
 def test_msg_inv_invalid(ConfigTsunInv1, MsgInverterInvalid):
     ConfigTsunInv1
-    m = MemoryStream(MsgInverterInvalid, (0,))
+    m = MemoryStream(MsgInverterInvalid, (0,), False)
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
     m.read()         # read complete msg, and dispatch msg
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
@@ -477,7 +476,7 @@ def test_msg_inv_invalid(ConfigTsunInv1, MsgInverterInvalid):
 
 def test_msg_unknown(ConfigTsunInv1, MsgUnknown):
     ConfigTsunInv1
-    m = MemoryStream(MsgUnknown, (0,))
+    m = MemoryStream(MsgUnknown, (0,), False)
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
     m.read()         # read complete msg, and dispatch msg
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
@@ -503,9 +502,9 @@ def test_ctrl_byte():
 
     
 def test_msg_iterator():
-    m1 = Message()
-    m2 = Message()
-    m3 = Message()
+    m1 = Message(server_side=True)
+    m2 = Message(server_side=True)
+    m3 = Message(server_side=True)
     m3.close()
     del m3
     test1 = 0
@@ -521,7 +520,7 @@ def test_msg_iterator():
     assert test2 == 1
 
 def test_proxy_counter():
-    m = Message()
+    m = Message(server_side=True)
     assert m.new_data == {}
     m.db.stat['proxy']['Unknown_Msg'] = 0
     m.new_stat_data['proxy'] =  False
