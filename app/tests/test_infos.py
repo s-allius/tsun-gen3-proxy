@@ -360,7 +360,7 @@ def test_dep_rules():
     res = i.ignore_this_device({'reg':0xffffff00, 'gte': 2})
     assert res == False
 
-    i.inc_counter('Inverter_Cnt')   is 3
+    i.inc_counter('Inverter_Cnt')   # is 3
     res = i.ignore_this_device({'reg':0xffffff00, 'less_eq': 2})
     assert res == True
     res = i.ignore_this_device({'reg':0xffffff00, 'gte': 2})
