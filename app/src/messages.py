@@ -74,8 +74,9 @@ class Message(metaclass=IterRegistry):
     _registry = []
     new_stat_data = {}
 
-    def __init__(self):
+    def __init__(self, server_side: bool):
         self._registry.append(weakref.ref(self))
+        self.server_side = server_side
         self.header_valid = False
         self.header_len = 0
         self.data_len = 0

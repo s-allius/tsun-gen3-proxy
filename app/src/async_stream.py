@@ -11,11 +11,10 @@ class AsyncStream(Message):
 
     def __init__(self, reader, writer, addr, remote_stream, server_side: bool
                  ) -> None:
-        super().__init__()
+        super().__init__(server_side)
         self.reader = reader
         self.writer = writer
         self.remoteStream = remote_stream
-        self.server_side = server_side
         self.addr = addr
 
     '''
