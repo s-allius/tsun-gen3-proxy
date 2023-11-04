@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.1] - 2023-11-05
+
+- fixes f-string by limes007
+- add description for dns settings by limes007
+
 ## [0.5.0] - 2023-11-04
 
 - fix issue [#21](https://github.com/s-allius/tsun-gen3-proxy/issues/21)
