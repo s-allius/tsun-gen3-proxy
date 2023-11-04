@@ -374,6 +374,6 @@ class Infos:
                 name = str(f'info-id.0x{info_id:x}')
 
             self.tracer.log(level, f'{name} : {result}{unit}'
-                            '  update: {update}')
+                            f'  update: {update}')
 
             i += 1
