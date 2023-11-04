@@ -7,9 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0] - 2023-11-04
+
+- fix issue [#21](https://github.com/s-allius/tsun-gen3-proxy/issues/21)
+- register proxy dev as soon as the MQTT connection is established
 - increase test coverage of the Messages class
 - add error counter for unknown control bytes
-- register proxy dev as soon as the MQTT connection is established
 - lint code with flake8
   
 ## [0.4.3] - 2023-10-26
