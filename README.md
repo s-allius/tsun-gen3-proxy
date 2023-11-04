@@ -131,6 +131,23 @@ suggested_area = 'balcony'    # Optional, suggested installation area for home-a
 
 ```
 
+## DNS Settings
+
+### Loop the proxy into the connection
+To include the proxy in the connection between the inverter and the TSUN Cloud, you must adapt the DNS record of *logger.talent-monitoring.com* within the network that your inverter uses. You need a mapping from logger.talent-monitoring.com to the IP address of the host running the Docker engine.
+
+This can be done, for example, by adding a local DNS record to the Pi-hole if you are using it.
+
+### DNS Rebind Protection
+If you are using a router as local DNS server, the router may have DNS rebind protection that needs to be adjusted. For security reasons, DNS rebind protection blocks DNS queries that refer to an IP address on the local network.
+
+If you are using a FRITZ!Box, you can do this in the Network Settings tab under Home Network / Network. Add logger.talent-monitoring.com as a hostname exception in DNS rebind protection.
+
+### DNS server of proxy
+The proxy itself must use a different DNS server to connect to the TSUN Cloud. If you use the DNS server with the adapted record, you will end up in an endless loop as soon as the proxy tries to send data to the TSUN Cloud.
+
+As described above, set a DNS sever in the Docker command or Docker compose file.
+
 ## License
 
 This project is licensed under the [BSD 3-clause License](https://opensource.org/licenses/BSD-3-Clause).
