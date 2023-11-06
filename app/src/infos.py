@@ -341,6 +341,9 @@ class Infos:
             elif data_type == 0x46:  # 'F' -> float32
                 result = round(struct.unpack_from('!f', buf, ind)[0], 2)
                 ind += 4
+            elif data_type == 0x4c:  # 'L' -> int64
+                result = struct.unpack_from('!q', buf, ind)[0]
+                ind += 8
             else:
                 self.inc_counter('Invalid_Data_Type')
                 logging.error(f"Infos.parse: data_type: {data_type}"
