@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 - add int64 data type to info parser
+- allow multiple calls to Message.close()
  
 ## [0.5.1] - 2023-11-05
 

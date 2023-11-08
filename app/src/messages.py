@@ -110,7 +110,7 @@ class Message(metaclass=IterRegistry):
         # we have refernces to methods of this class in self.switch
         # so we have to erase self.switch, otherwise this instance can't be
         # deallocated by the garbage collector ==> we get a memory leak
-        del self.switch
+        self.switch.clear()
 
     def inc_counter(self, counter: str) -> None:
         self.db.inc_counter(counter)
