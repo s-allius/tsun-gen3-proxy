@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.2] - 2023-11-09
+
 - add int64 data type to info parser
 - allow multiple calls to Message.close()
 - check for race cond. on closing and establishing client connections
