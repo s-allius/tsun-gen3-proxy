@@ -52,6 +52,8 @@ COPY --from=builder /root/wheels /root/wheels
 RUN python -m pip install --no-cache --no-index /root/wheels/* && \
     rm -rf /root/wheels
 
+RUN apk --purge del apk-tools
+
 # copy the content of the local src and config directory to the working directory
 COPY --chmod=0700 entrypoint.sh /root/entrypoint.sh
 COPY config .
