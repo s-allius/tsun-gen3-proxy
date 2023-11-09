@@ -16,11 +16,15 @@ class AsyncStream(Message):
         self.writer = writer
         self.remoteStream = remote_stream
         self.addr = addr
+        self.r_addr = ''
+        self.l_addr = ''
 
     '''
     Our puplic methods
     '''
-    async def loop(self) -> None:
+    async def loop(self):
+        self.r_addr = self.writer.get_extra_info('peername')
+        self.l_addr = self.writer.get_extra_info('sockname')
 
         while True:
             try:
@@ -35,26 +39,27 @@ class AsyncStream(Message):
                     ConnectionAbortedError,
                     BrokenPipeError,
                     RuntimeError) as error:
-                logger.warning(f'In loop for {self.addr}: {error}')
+                logger.warning(f'In loop for l{self.l_addr} | '
+                               f'r{self.r_addr}: {error}')
                 self.close()
-                return
+                return self
             except Exception:
                 logger.error(
                     f"Exception for {self.addr}:\n"
                     f"{traceback.format_exc()}")
                 self.close()
-                return
+                return self
 
     def disc(self) -> None:
-        logger.debug(f'in AsyncStream.disc() {self.addr}')
+        logger.debug(f'in AsyncStream.disc() l{self.l_addr} | r{self.r_addr}')
         self.writer.close()
 
     def close(self):
-        logger.debug(f'in AsyncStream.close() {self.addr}')
+        logger.debug(f'in AsyncStream.close() l{self.l_addr} | r{self.r_addr}')
         self.writer.close()
         super().close()         # call close handler in the parent class
 
-#        logger.info (f'AsyncStream refs: {gc.get_referrers(self)}')
+#        logger.info(f'AsyncStream refs: {gc.get_referrers(self)}')
 
     '''
     Our private methods
@@ -96,4 +101,4 @@ class AsyncStream(Message):
         pass
 
     def __del__(self):
-        logging.debug(f"AsyncStream.__del__  {self.addr}")
+        logging.debug(f"AsyncStream.__del__  l{self.l_addr} | r{self.r_addr}")

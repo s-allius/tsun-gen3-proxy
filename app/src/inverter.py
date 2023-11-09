@@ -107,7 +107,7 @@ class Inverter(AsyncStream):
         self.inc_counter('Inverter_Cnt')
         await self.loop()
         self.dec_counter('Inverter_Cnt')
-        logging.info(f'Server loop stopped for {addr}')
+        logging.info(f'Server loop stopped for r{self.r_addr}')
 
         # if the server connection closes, we also have to disconnect
         # the connection to te TSUN cloud
@@ -121,15 +121,22 @@ class Inverter(AsyncStream):
 
     async def client_loop(self, addr):
         '''Loop for receiving messages from the TSUN cloud (client-side)'''
-        await self.remoteStream.loop()
-        logging.info(f'Client loop stopped for {addr}')
+        clientStream = await self.remoteStream.loop()
+        logging.info(f'Client loop stopped for l{clientStream.l_addr}')
 
         # if the client connection closes, we don't touch the server
         # connection. Instead we erase the client connection stream,
         # thus on the next received packet from the inverter, we can
         # establish a new connection to the TSUN cloud
-        self.remoteStream.remoteStream = None    # erase backlink to inverter
-        self.remoteStream = None                 # than erase client connection
+
+        # erase backlink to inverter
+        clientStream.remoteStream = None
+
+        if self.remoteStream == clientStream:
+            # logging.debug(f'Client l{clientStream.l_addr} refs:'
+            #               f' {gc.get_referrers(clientStream)}')
+            # than erase client connection
+            self.remoteStream = None
 
     async def async_create_remote(self) -> None:
         '''Establish a client connection to the TSUN cloud'''
@@ -197,7 +204,7 @@ class Inverter(AsyncStream):
                                     f"/{node_id}{id}/config", data_json)
 
     def close(self) -> None:
-        logging.debug(f'Inverter.close() {self.addr}')
+        logging.debug(f'Inverter.close() l{self.l_addr} | r{self.r_addr}')
         super().close()         # call close handler in the parent class
 #        logger.debug (f'Inverter refs: {gc.get_referrers(self)}')
 
