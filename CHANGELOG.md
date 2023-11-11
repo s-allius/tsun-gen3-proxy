@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- remove apk packet manager from the final image
+- send contact info every time a client connection is established 
+  
 ## [0.5.2] - 2023-11-09
 
 - add int64 data type to info parser

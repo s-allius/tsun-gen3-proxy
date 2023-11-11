@@ -137,6 +137,7 @@ def test_send_contact_info1(ClientConnection, MsgContactInfo, MsgContactResp):
         pass
     assert data == MsgContactResp
 
+
 def test_send_contact_info2(ClientConnection, MsgContactInfo2, MsgContactInfo, MsgContactResp):
     s = ClientConnection  
     try:
@@ -154,7 +155,20 @@ def test_send_contact_info2(ClientConnection, MsgContactInfo2, MsgContactInfo, M
         pass
     assert data == MsgContactResp
 
-
+def test_send_contact_info3(ClientConnection, MsgContactInfo, MsgContactResp, MsgTimeStampReq):
+    s = ClientConnection
+    try:
+        s.sendall(MsgContactInfo)
+        data = s.recv(1024)
+    except TimeoutError:
+        pass
+    assert data == MsgContactResp
+    try:
+        s.sendall(MsgTimeStampReq)
+        data = s.recv(1024)
+    except TimeoutError:
+        pass
+ 
 
 def test_send_contact_resp(ClientConnection, MsgContactResp):
     s = ClientConnection  

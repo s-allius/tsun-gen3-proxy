@@ -9,9 +9,9 @@ logger = logging.getLogger('conn')
 
 class AsyncStream(Message):
 
-    def __init__(self, reader, writer, addr, remote_stream, server_side: bool
-                 ) -> None:
-        super().__init__(server_side)
+    def __init__(self, reader, writer, addr, remote_stream, server_side: bool,
+                 id_str=b'') -> None:
+        super().__init__(server_side, id_str)
         self.reader = reader
         self.writer = writer
         self.remoteStream = remote_stream
@@ -84,6 +84,10 @@ class AsyncStream(Message):
         if self._forward_buffer:
             if not self.remoteStream:
                 await self.async_create_remote()
+                if self.remoteStream:
+                    self.remoteStream._init_new_client_conn(self.contact_name,
+                                                            self.contact_mail)
+                    await self.remoteStream.__async_write()
 
             if self.remoteStream:
                 hex_dump_memory(logging.INFO,

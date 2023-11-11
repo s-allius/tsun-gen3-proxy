@@ -74,7 +74,7 @@ class Message(metaclass=IterRegistry):
     _registry = []
     new_stat_data = {}
 
-    def __init__(self, server_side: bool):
+    def __init__(self, server_side: bool, id_str=b''):
         self._registry.append(weakref.ref(self))
         self.server_side = server_side
         self.header_valid = False
@@ -83,6 +83,7 @@ class Message(metaclass=IterRegistry):
         self.unique_id = 0
         self.node_id = ''
         self.sug_area = ''
+        self.id_str = id_str
         self._recv_buffer = b''
         self._send_buffer = bytearray(0)
         self._forward_buffer = bytearray(0)
@@ -174,6 +175,16 @@ class Message(metaclass=IterRegistry):
             logger.info(self.__flow_str(self.server_side, 'forwrd') +
                         f' Ctl: {int(self.ctrl):#02x} Msg: {fnc.__name__!r}')
         return
+
+    def _init_new_client_conn(self, contact_name, contact_mail) -> None:
+        logger.info(f'name: {contact_name} mail: {contact_mail}')
+        self.msg_id = 0
+        self.__build_header(0x91)
+        self._send_buffer += struct.pack(f'!{len(contact_name)+1}p'
+                                         f'{len(contact_mail)+1}p',
+                                         contact_name, contact_mail)
+
+        self.__finish_send_msg()
 
     '''
     Our private methods
@@ -271,12 +282,30 @@ class Message(metaclass=IterRegistry):
             self.__build_header(0x99)
             self._send_buffer += b'\x01'
             self.__finish_send_msg()
+            self.__process_contact_info()
+            # don't forward this contact info here, we will build one
+            # when the remote connection is established
+            return
         elif self.ctrl.is_resp():
             return  # ignore received response from tsun
         else:
             self.inc_counter('Unknown_Ctrl')
+            self.forward(self._recv_buffer, self.header_len+self.data_len)
 
-        self.forward(self._recv_buffer, self.header_len+self.data_len)
+    def __process_contact_info(self):
+        result = struct.unpack_from('!B', self._recv_buffer, self.header_len)
+        name_len = result[0]
+
+        result = struct.unpack_from(f'!{name_len+1}pB', self._recv_buffer,
+                                    self.header_len)
+        self.contact_name = result[0]
+        mail_len = result[1]
+        logger.info(f'name: {self.contact_name}')
+
+        result = struct.unpack_from(f'!{mail_len+1}p', self._recv_buffer,
+                                    self.header_len+name_len+1)
+        self.contact_mail = result[0]
+        logger.info(f'mail: {self.contact_mail}')
 
     def msg_get_time(self):
         if self.ctrl.is_ind():
