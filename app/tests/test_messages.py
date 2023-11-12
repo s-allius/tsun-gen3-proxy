@@ -342,8 +342,8 @@ def test_msg_get_time(ConfigTsunInv1, MsgGetTime):
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
     m.close()
 
-def test_msg_time_resp(ConfigTsunInv1, MsgTimeResp):
-    ConfigTsunInv1
+def test_msg_time_resp(ConfigNoTsunInv1, MsgTimeResp):
+    ConfigNoTsunInv1
     m = MemoryStream(MsgTimeResp, (0,), False)
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
     m.read()         # read complete msg, and dispatch msg

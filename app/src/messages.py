@@ -318,6 +318,8 @@ class Message(metaclass=IterRegistry):
                                             self.header_len)
                 logger.debug(f'tsun-time: {result[0]:08x}'
                              f'  proxy-time: {ts:08x}')
+            elif not self.ctrl.is_ind():
+                self.inc_counter('Unknown_Ctrl')
         else:
             if self.ctrl.is_ind():
                 ts = self.__timestamp()
