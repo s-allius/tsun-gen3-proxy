@@ -68,6 +68,10 @@ def MsgContactResp(): # Contact Response message
     return b'\x00\x00\x00\x14\x10R170000000000001\x99\x00\x01'
 
 @pytest.fixture
+def MsgContactResp2(): # Contact Response message
+    return b'\x00\x00\x00\x14\x10R170000000000002\x99\x00\x01'
+
+@pytest.fixture
 def MsgContactInvalid(): # Contact Response message
     return b'\x00\x00\x00\x14\x10R170000000000001\x93\x00\x01'
 
@@ -246,7 +250,7 @@ def test_read_message_in_chunks2(MsgContactInfo):
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
     m.close()
 
-def test_read_two_messages(ConfigTsunAllowAll, Msg2ContactInfo):
+def test_read_two_messages(ConfigTsunAllowAll, Msg2ContactInfo,MsgContactResp,MsgContactResp2):
     ConfigTsunAllowAll
     m = MemoryStream(Msg2ContactInfo, (0,))
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
@@ -259,9 +263,15 @@ def test_read_two_messages(ConfigTsunAllowAll, Msg2ContactInfo):
     assert m.msg_id==0 
     assert m.header_len==23
     assert m.data_len==25
-    assert m._forward_buffer==b'\x00\x00\x00,\x10R170000000000001\x91\x00\x08solarhub\x0fsolarhub@123456'
+    assert m._forward_buffer==b''
+    assert m._send_buffer==MsgContactResp
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
 
+    m._send_buffer = bytearray(0) # clear send buffer for next test
+    m._init_new_client_conn(b'solarhub', b'solarhub@123456')
+    assert m._send_buffer==b'\x00\x00\x00,\x10R170000000000001\x91\x00\x08solarhub\x0fsolarhub@123456'
+
+    m._send_buffer = bytearray(0) # clear send buffer for next test
     m.read()         # read complete msg, and dispatch msg
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
     assert m.msg_count == 2
@@ -271,8 +281,13 @@ def test_read_two_messages(ConfigTsunAllowAll, Msg2ContactInfo):
     assert m.msg_id==0 
     assert m.header_len==23
     assert m.data_len==25
-    assert m._forward_buffer==b'\x00\x00\x00,\x10R170000000000002\x91\x00\x08solarhub\x0fsolarhub@123456'
+    assert m._forward_buffer==b''
+    assert m._send_buffer==MsgContactResp2
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
+
+    m._send_buffer = bytearray(0) # clear send buffer for next test
+    m._init_new_client_conn(b'solarhub', b'solarhub@123456')
+    assert m._send_buffer==b'\x00\x00\x00,\x10R170000000000002\x91\x00\x08solarhub\x0fsolarhub@123456'
     m.close()
 
 def test_msg_contact_resp(ConfigTsunInv1, MsgContactResp):

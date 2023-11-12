@@ -149,7 +149,8 @@ class Inverter(AsyncStream):
             logging.info(f'Connected to {addr}')
             connect = asyncio.open_connection(host, port)
             reader, writer = await connect
-            self.remoteStream = AsyncStream(reader, writer, addr, self, False)
+            self.remoteStream = AsyncStream(reader, writer, addr, self,
+                                            False, self.id_str)
             asyncio.create_task(self.client_loop(addr))
 
         except ConnectionRefusedError as error:
