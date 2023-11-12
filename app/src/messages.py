@@ -310,21 +310,30 @@ class Message(metaclass=IterRegistry):
         logger.info(f'mail: {self.contact_mail}')
 
     def msg_get_time(self):
-        if self.ctrl.is_ind():
-            ts = self.__timestamp()
-            logger.debug(f'time: {ts:08x}')
-
-            self.__build_header(0x99)
-            self._send_buffer += struct.pack('!q', ts)
-            self.__finish_send_msg()
-
-        elif self.ctrl.is_resp():
-            result = struct.unpack_from('!q', self._recv_buffer,
-                                        self.header_len)
-            logger.debug(f'tsun-time: {result[0]:08x}')
-            return  # ignore received response from tsun
+        tsun = Config.get('tsun')
+        if tsun['enabled']:
+            if self.ctrl.is_resp():
+                ts = self.__timestamp()
+                result = struct.unpack_from('!q', self._recv_buffer,
+                                            self.header_len)
+                logger.debug(f'tsun-time: {result[0]:08x}'
+                             f'  proxy-time: {ts:08x}')
         else:
-            self.inc_counter('Unknown_Ctrl')
+            if self.ctrl.is_ind():
+                ts = self.__timestamp()
+                logger.debug(f'time: {ts:08x}')
+
+                self.__build_header(0x99)
+                self._send_buffer += struct.pack('!q', ts)
+                self.__finish_send_msg()
+
+            elif self.ctrl.is_resp():
+                result = struct.unpack_from('!q', self._recv_buffer,
+                                            self.header_len)
+                logger.debug(f'tsun-time: {result[0]:08x}')
+                return  # ignore received response from tsun
+            else:
+                self.inc_counter('Unknown_Ctrl')
         self.forward(self._recv_buffer, self.header_len+self.data_len)
 
     def parse_msg_header(self):
