@@ -207,7 +207,7 @@ class Message(metaclass=IterRegistry):
             type += 'S'
         return switch.get(type, '???')
 
-    def __timestamp(self):
+    def _timestamp(self):   # pragma: no cover
         if False:
             # utc as epoche
             ts = time.time()
@@ -313,7 +313,7 @@ class Message(metaclass=IterRegistry):
         tsun = Config.get('tsun')
         if tsun['enabled']:
             if self.ctrl.is_resp():
-                ts = self.__timestamp()
+                ts = self._timestamp()
                 result = struct.unpack_from('!q', self._recv_buffer,
                                             self.header_len)
                 logger.debug(f'tsun-time: {result[0]:08x}'
@@ -323,7 +323,7 @@ class Message(metaclass=IterRegistry):
             self.forward(self._recv_buffer, self.header_len+self.data_len)
         else:
             if self.ctrl.is_ind():
-                ts = self.__timestamp()
+                ts = self._timestamp()
                 logger.debug(f'time: {ts:08x}')
 
                 self.__build_header(0x99)

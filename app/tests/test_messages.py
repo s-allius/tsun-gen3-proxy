@@ -42,6 +42,8 @@ class MemoryStream(Message):
             pass     
         return copied_bytes
     
+    def _timestamp(self):
+        return 1700260990000
     
     def _Message__flush_recv_msg(self) -> None:
         super()._Message__flush_recv_msg()
@@ -112,7 +114,7 @@ def MsgInverterInd(): # Data indication from the controller
     msg  =  b'\x00\x00\x00\x8b\x10R170000000000001\x91\x04\x01\x90\x00\x01\x10R170000000000001'
     msg +=  b'\x01\x00\x00\x01\x89\xc6\x63\x61\x08'
     msg +=  b'\x00\x00\x00\x06\x00\x00\x00\x0a\x54\x08\x4d\x69\x63\x72\x6f\x69\x6e\x76\x00\x00\x00\x14\x54\x04\x54\x53\x55\x4e\x00\x00\x00\x1E\x54\x07\x56\x35\x2e\x30\x2e\x31\x31\x00\x00\x00\x28'
-    msg +=  b'\x54\x10\x54\x31\x37\x45\x37\x33\x30\x37\x30\x32\x31\x44\x30\x30\x36\x41\x00\x00\x00\x32\x54\x0a\x54\x53\x4f\x4c\x2d\x4d\x53\x36\x30\x30\x00\x00\x00\x3c\x54\x05\x41\x2c\x42\x2c\x43'
+    msg +=  b'\x54\x10T170000000000001\x00\x00\x00\x32\x54\x0a\x54\x53\x4f\x4c\x2d\x4d\x53\x36\x30\x30\x00\x00\x00\x3c\x54\x05\x41\x2c\x42\x2c\x43'
     return msg
 
 @pytest.fixture
@@ -126,15 +128,6 @@ def MsgInverterInvalid(): # Get Time Request message
 @pytest.fixture
 def MsgUnknown(): # Get Time Request message
     return b'\x00\x00\x00\x17\x10R170000000000001\x91\x17\x01\x02\x03\x04'
-
-@pytest.fixture
-def MsgGetTime(): # Get Time Request message
-    return b'\x00\x00\x00\x13\x10R170000000000001\x91\x22'           
-
-
-@pytest.fixture
-def MsgTimeResp(): # Get Time Resonse message
-    return b'\x00\x00\x00\x1b\x10R170000000000001\x99\x22\x00\x00\x01\x89\xc6\x63\x4d\x80'
 
 @pytest.fixture
 def ConfigTsunAllowAll():
@@ -304,6 +297,7 @@ def test_msg_contact_resp(ConfigTsunInv1, MsgContactResp):
     assert m.header_len==23
     assert m.data_len==1
     assert m._forward_buffer==b''
+    assert m._send_buffer==b''
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
     m.close()
 
@@ -339,10 +333,47 @@ def test_msg_get_time(ConfigTsunInv1, MsgGetTime):
     assert m.header_len==23
     assert m.data_len==0
     assert m._forward_buffer==MsgGetTime
+    assert m._send_buffer==b''
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
     m.close()
 
-def test_msg_time_resp(ConfigNoTsunInv1, MsgTimeResp):
+def test_msg_get_time_autark(ConfigNoTsunInv1, MsgGetTime):
+    ConfigNoTsunInv1
+    m = MemoryStream(MsgGetTime, (0,))
+    m.db.stat['proxy']['Unknown_Ctrl'] = 0
+    m.read()         # read complete msg, and dispatch msg
+    assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
+    assert m.msg_count == 1
+    assert m.id_str == b"R170000000000001" 
+    assert m.unique_id == 'R170000000000001'
+    assert int(m.ctrl)==145
+    assert m.msg_id==34
+    assert m.header_len==23
+    assert m.data_len==0
+    assert m._forward_buffer==b''
+    assert m._send_buffer==b'\x00\x00\x00\x1b\x10R170000000000001\x99"\x00\x00\x01\x8b\xdfs\xcc0'
+    assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
+    m.close()
+
+def test_msg_time_resp(ConfigTsunInv1, MsgTimeResp):
+    ConfigTsunInv1
+    m = MemoryStream(MsgTimeResp, (0,), False)
+    m.db.stat['proxy']['Unknown_Ctrl'] = 0
+    m.read()         # read complete msg, and dispatch msg
+    assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
+    assert m.msg_count == 1
+    assert m.id_str == b"R170000000000001" 
+    assert m.unique_id == 'R170000000000001'
+    assert int(m.ctrl)==153
+    assert m.msg_id==34
+    assert m.header_len==23
+    assert m.data_len==8
+    assert m._forward_buffer==MsgTimeResp
+    assert m._send_buffer==b''
+    assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
+    m.close()
+
+def test_msg_time_resp_autark(ConfigNoTsunInv1, MsgTimeResp):
     ConfigNoTsunInv1
     m = MemoryStream(MsgTimeResp, (0,), False)
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
@@ -356,6 +387,7 @@ def test_msg_time_resp(ConfigNoTsunInv1, MsgTimeResp):
     assert m.header_len==23
     assert m.data_len==8
     assert m._forward_buffer==b''
+    assert m._send_buffer==b''
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
     m.close()
 
@@ -377,6 +409,23 @@ def test_msg_time_invalid(ConfigTsunInv1, MsgTimeInvalid):
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 1
     m.close()
 
+def test_msg_time_invalid_autark(ConfigNoTsunInv1, MsgTimeInvalid):
+    ConfigNoTsunInv1
+    m = MemoryStream(MsgTimeInvalid, (0,), False)
+    m.db.stat['proxy']['Unknown_Ctrl'] = 0
+    m.read()         # read complete msg, and dispatch msg
+    assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
+    assert m.msg_count == 1
+    assert m.id_str == b"R170000000000001" 
+    assert m.unique_id == 'R170000000000001'
+    assert int(m.ctrl)==148
+    assert m.msg_id==34
+    assert m.header_len==23
+    assert m.data_len==0
+    assert m._forward_buffer==b''
+    assert m._send_buffer==b''
+    assert m.db.stat['proxy']['Unknown_Ctrl'] == 1
+    m.close()
 
 def test_msg_cntrl_ind(ConfigTsunInv1, MsgControllerInd, MsgControllerAck):
     ConfigTsunInv1
