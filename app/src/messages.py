@@ -320,6 +320,7 @@ class Message(metaclass=IterRegistry):
                              f'  proxy-time: {ts:08x}')
             elif not self.ctrl.is_ind():
                 self.inc_counter('Unknown_Ctrl')
+            self.forward(self._recv_buffer, self.header_len+self.data_len)
         else:
             if self.ctrl.is_ind():
                 ts = self.__timestamp()
@@ -333,10 +334,8 @@ class Message(metaclass=IterRegistry):
                 result = struct.unpack_from('!q', self._recv_buffer,
                                             self.header_len)
                 logger.debug(f'tsun-time: {result[0]:08x}')
-                return  # ignore received response from tsun
             else:
                 self.inc_counter('Unknown_Ctrl')
-        self.forward(self._recv_buffer, self.header_len+self.data_len)
 
     def parse_msg_header(self):
         result = struct.unpack_from('!lB', self._recv_buffer, self.header_len)
