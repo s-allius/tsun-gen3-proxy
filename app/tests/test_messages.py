@@ -141,6 +141,36 @@ def ConfigNoTsunInv1():
 def ConfigTsunInv1():
     Config.config = {'tsun':{'enabled': True},'inverters':{'R170000000000001':{'node_id':'inv1','suggested_area':'roof'}}}
 
+@pytest.fixture
+def MsgOtaReq(): # Over the air update rewuest from tsun cloud
+    msg  =  b'\x00\x00\x01\x16\x10R170000000000001\x70\x13\x01\x02\x76\x35\x70\x68\x74\x74\x70'
+    msg +=  b'\x3a\x2f\x2f\x77\x77\x77\x2e\x74\x61\x6c\x65\x6e\x74\x2d\x6d\x6f'
+    msg +=  b'\x6e\x69\x74\x6f\x72\x69\x6e\x67\x2e\x63\x6f\x6d\x3a\x39\x30\x30'
+    msg +=  b'\x32\x2f\x70\x72\x6f\x64\x2d\x61\x70\x69\x2f\x72\x6f\x6d\x2f\x75'
+    msg +=  b'\x70\x64\x61\x74\x65\x2f\x64\x6f\x77\x6e\x6c\x6f\x61\x64\x3f\x76'
+    msg +=  b'\x65\x72\x3d\x56\x31\x2e\x30\x30\x2e\x31\x37\x26\x6e\x61\x6d\x65'
+    msg +=  b'\x3d\x47\x33\x2d\x57\x69\x46\x69\x2b\x2d\x56\x31\x2e\x30\x30\x2e'
+    msg +=  b'\x31\x37\x2d\x4f\x54\x41\x26\x65\x78\x74\x3d\x30\x60\x68\x74\x74'
+    msg +=  b'\x70\x3a\x2f\x2f\x77\x77\x77\x2e\x74\x61\x6c\x65\x6e\x74\x2d\x6d'
+    msg +=  b'\x6f\x6e\x69\x74\x6f\x72\x69\x6e\x67\x2e\x63\x6f\x6d\x3a\x39\x30'
+    msg +=  b'\x30\x32\x2f\x70\x72\x6f\x64\x2d\x61\x70\x69\x2f\x72\x6f\x6d\x2f'
+    msg +=  b'\x75\x70\x64\x61\x74\x65\x2f\x63\x61\x6c\x6c\x62\x61\x63\x6b\x3f'
+    msg +=  b'\x71\x69\x64\x3d\x31\x35\x30\x33\x36\x32\x26\x72\x69\x64\x3d\x32'
+    msg +=  b'\x32\x39\x26\x64\x69\x64\x3d\x31\x33\x34\x32\x32\x35\x20\x36\x35'
+    msg +=  b'\x66\x30\x64\x37\x34\x34\x62\x66\x33\x39\x61\x62\x38\x32\x34\x64'
+    msg +=  b'\x32\x38\x62\x38\x34\x64\x31\x39\x65\x64\x33\x31\x31\x63\x06\x34'
+    msg +=  b'\x36\x38\x36\x33\x33\x01\x31\x01\x30\x00'  
+    return msg    
+
+@pytest.fixture
+def MsgOtaAck(): # Over the air update rewuest from tsun cloud
+    return b'\x00\x00\x00\x14\x10R170000000000001\x91\x13\x01'
+
+@pytest.fixture
+def MsgOtaInvalid(): # Get Time Request message
+    return b'\x00\x00\x00\x14\x10R170000000000001\x99\x13\x01'
+
+
 def test_read_message(MsgContactInfo):
     m = MemoryStream(MsgContactInfo, (0,))
     m.read()         # read complete msg, and dispatch msg
@@ -534,6 +564,62 @@ def test_msg_inv_invalid(ConfigTsunInv1, MsgInverterInvalid):
     assert m.header_len==23
     assert m.data_len==1
     assert m._forward_buffer==MsgInverterInvalid
+    assert m._send_buffer==b''
+    assert m.db.stat['proxy']['Unknown_Ctrl'] == 1
+    m.close()
+
+def test_msg_ota_req(ConfigTsunInv1, MsgOtaReq):
+    ConfigTsunInv1
+    m = MemoryStream(MsgOtaReq, (0,), False)
+    m.db.stat['proxy']['Unknown_Ctrl'] = 0
+    m.read()         # read complete msg, and dispatch msg
+    assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
+    assert m.msg_count == 1
+    assert m.id_str == b"R170000000000001" 
+    assert m.unique_id == 'R170000000000001'
+    assert int(m.ctrl)==112
+    assert m.msg_id==19
+    assert m.header_len==23
+    assert m.data_len==259
+    assert m._forward_buffer==MsgOtaReq
+    assert m._send_buffer==b''
+    assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
+    m.close()
+
+def test_msg_ota_ack(ConfigTsunInv1, MsgOtaAck):
+    ConfigTsunInv1
+    tracer.setLevel(logging.ERROR)
+
+    m = MemoryStream(MsgOtaAck, (0,), False)
+    m.db.stat['proxy']['Unknown_Ctrl'] = 0
+    m.read()         # read complete msg, and dispatch msg
+    assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
+    assert m.msg_count == 1
+    assert m.id_str == b"R170000000000001" 
+    assert m.unique_id == 'R170000000000001'
+    assert int(m.ctrl)==145
+    assert m.msg_id==19
+    assert m.header_len==23
+    assert m.data_len==1
+    assert m._forward_buffer==MsgOtaAck
+    assert m._send_buffer==b''
+    assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
+    m.close()
+
+def test_msg_ota_invalid(ConfigTsunInv1, MsgOtaInvalid):
+    ConfigTsunInv1
+    m = MemoryStream(MsgOtaInvalid, (0,), False)
+    m.db.stat['proxy']['Unknown_Ctrl'] = 0
+    m.read()         # read complete msg, and dispatch msg
+    assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
+    assert m.msg_count == 1
+    assert m.id_str == b"R170000000000001" 
+    assert m.unique_id == 'R170000000000001'
+    assert int(m.ctrl)==153
+    assert m.msg_id==19
+    assert m.header_len==23
+    assert m.data_len==1
+    assert m._forward_buffer==MsgOtaInvalid
     assert m._send_buffer==b''
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 1
     m.close()
