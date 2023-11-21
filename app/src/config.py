@@ -33,16 +33,24 @@ class Config():
             'proxy_unique_id':  Use(str)
             },
         'inverters': {
-            'allow_all': Use(bool), And(Use(str), lambda s: len(s) == 16): {
+            'allow_all': Use(bool),
+            And(Use(str), lambda s: len(s) == 16 and s[:3] == 'R17'): {
                 Optional('node_id', default=""): And(Use(str),
                                                      Use(lambda s: s + '/'
                                                          if len(s) > 0 and
                                                          s[-1] != '/' else s)),
 
-                Optional('suggested_area',  default=""): Use(str)
-                }}
-            }, ignore_extra_keys=True
-        )
+                Optional('suggested_area',  default=""): Use(str),
+                Optional(Use(str), lambda s: s == 'pv1' or
+                         s == 'pv2' or s == 'pv3' or s == 'pv4'): {
+                    'type': Use(str),
+                    'manufacturer': Use(str),
+                    Optional('snr', default=None): Use(str)
+                    }
+                }
+            }
+        }, ignore_extra_keys=True
+    )
 
     @classmethod
     def read(cls) -> None:

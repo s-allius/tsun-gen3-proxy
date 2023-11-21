@@ -27,6 +27,7 @@ inverters.allow_all = true   # allow inverters, even if we have no inverter mapp
 [inverters."R170000000000001"]
 #node_id = ''          # Optional, MQTT replacement for inverters serial number  
 #suggested_area = ''  # Optional, suggested installation area for home-assistant
+pv1 = {type = 'type-name', manufacturer = 'manu'}
 
 #[inverters."R17xxxxxxxxxxxx2"]
 #node_id = ''          # Optional, MQTT replacement for inverters serial number  
