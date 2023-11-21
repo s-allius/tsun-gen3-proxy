@@ -572,6 +572,7 @@ def test_msg_ota_req(ConfigTsunInv1, MsgOtaReq):
     ConfigTsunInv1
     m = MemoryStream(MsgOtaReq, (0,), False)
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
+    m.db.stat['proxy']['OTA_Start_Msg'] = 0
     m.read()         # read complete msg, and dispatch msg
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
     assert m.msg_count == 1
@@ -584,6 +585,7 @@ def test_msg_ota_req(ConfigTsunInv1, MsgOtaReq):
     assert m._forward_buffer==MsgOtaReq
     assert m._send_buffer==b''
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
+    assert m.db.stat['proxy']['OTA_Start_Msg'] == 1
     m.close()
 
 def test_msg_ota_ack(ConfigTsunInv1, MsgOtaAck):
@@ -592,6 +594,7 @@ def test_msg_ota_ack(ConfigTsunInv1, MsgOtaAck):
 
     m = MemoryStream(MsgOtaAck, (0,), False)
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
+    m.db.stat['proxy']['OTA_Start_Msg'] = 0
     m.read()         # read complete msg, and dispatch msg
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
     assert m.msg_count == 1
@@ -604,12 +607,14 @@ def test_msg_ota_ack(ConfigTsunInv1, MsgOtaAck):
     assert m._forward_buffer==MsgOtaAck
     assert m._send_buffer==b''
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
+    assert m.db.stat['proxy']['OTA_Start_Msg'] == 0
     m.close()
 
 def test_msg_ota_invalid(ConfigTsunInv1, MsgOtaInvalid):
     ConfigTsunInv1
     m = MemoryStream(MsgOtaInvalid, (0,), False)
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
+    m.db.stat['proxy']['OTA_Start_Msg'] = 0
     m.read()         # read complete msg, and dispatch msg
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
     assert m.msg_count == 1
@@ -622,6 +627,7 @@ def test_msg_ota_invalid(ConfigTsunInv1, MsgOtaInvalid):
     assert m._forward_buffer==MsgOtaInvalid
     assert m._send_buffer==b''
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 1
+    assert m.db.stat['proxy']['OTA_Start_Msg'] == 0
     m.close()
 
 def test_msg_unknown(ConfigTsunInv1, MsgUnknown):
