@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- add message handler for over the air updates
+- add unit tests for ota messages
+- add unit test for int64 data type
+- cleanup msg_get_time_handler
 - remove python packages setuptools, wheel, pip from final image to reduce the attack surface
  
 ## [0.5.3] - 2023-11-12

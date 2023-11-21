@@ -55,8 +55,8 @@ class Control:
     def is_ind(self) -> bool:
         return (self.ctrl == 0x91)
 
-    # def is_req(self) -> bool:
-    #    return not (self.ctrl & 0x08)
+    def is_req(self) -> bool:
+        return (self.ctrl == 0x70)
 
     def is_resp(self) -> bool:
         return (self.ctrl == 0x99)
@@ -93,6 +93,7 @@ class Message(metaclass=IterRegistry):
         self.new_data = {}
         self.switch = {
             0x00: self.msg_contact_info,
+            0x13: self.msg_ota_update,
             0x22: self.msg_get_time,
             0x71: self.msg_collector_data,
             0x04: self.msg_inverter_data,
@@ -390,6 +391,15 @@ class Message(metaclass=IterRegistry):
                                                            + msg_hdr_len:]):
             if update:
                 self.new_data[key] = True
+
+    def msg_ota_update(self):
+        if self.ctrl.is_req():
+            pass
+        elif self.ctrl.is_ind():
+            pass
+        else:
+            self.inc_counter('Unknown_Ctrl')
+        self.forward(self._recv_buffer, self.header_len+self.data_len)
 
     def msg_unknown(self):
         logger.warning(f"Unknow Msg: ID:{self.msg_id}")
