@@ -22,11 +22,11 @@ fi
 
 echo version: $VERSION  build-date: $BUILD_DATE   image: $IMAGE
 if [[ $1 == dev ]];then
-docker build --build-arg "VERSION=${VERSION}" --build-arg "LOG_LVL=DEBUG" --label "org.label-schema.build-date=${BUILD_DATE}" --label "org.opencontainers.image.version=${VERSION}" -t ${IMAGE}:latest app
+docker build --build-arg "VERSION=${VERSION}" --build-arg environment=dev --build-arg "LOG_LVL=DEBUG" --label "org.label-schema.build-date=${BUILD_DATE}" --label "org.opencontainers.image.version=${VERSION}" -t ${IMAGE}:latest app
 elif [[ $1 == rc ]];then
-docker build --build-arg "VERSION=${VERSION}" --label "org.label-schema.build-date=${BUILD_DATE}" --label "org.opencontainers.image.version=${VERSION}" -t ${IMAGE}:latest app
+docker build --build-arg "VERSION=${VERSION}" --build-arg environment=production --label "org.label-schema.build-date=${BUILD_DATE}" --label "org.opencontainers.image.version=${VERSION}" -t ${IMAGE}:latest app
 elif [[ $1 == rel ]];then
-docker build --no-cache --build-arg "VERSION=${VERSION}" --label "org.label-schema.build-date=${BUILD_DATE}" --label "org.opencontainers.image.version=${VERSION}" -t ${IMAGE}:latest -t ${IMAGE}:${MAJOR} -t ${IMAGE}:${VERSION} app
+docker build --no-cache --build-arg "VERSION=${VERSION}" --build-arg environment=production --label "org.label-schema.build-date=${BUILD_DATE}" --label "org.opencontainers.image.version=${VERSION}" -t ${IMAGE}:latest -t ${IMAGE}:${MAJOR} -t ${IMAGE}:${VERSION} app
 docker push ghcr.io/s-allius/tsun-gen3-proxy:latest
 docker push ghcr.io/s-allius/tsun-gen3-proxy:${MAJOR}
 docker push ghcr.io/s-allius/tsun-gen3-proxy:${VERSION}
