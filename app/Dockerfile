@@ -7,27 +7,11 @@ ARG GID=1000
 FROM python:3.12-alpine AS base
 USER root
 
+COPY --chmod=0700 ./hardening_base.sh .
 RUN apk upgrade --no-cache && \
-    apk add --no-cache su-exec	
-
-RUN rm -fr /var/spool/cron && \
-    rm -fr /etc/crontabs && \
-    rm -fr /etc/periodic    
-# Remove unnecessary user accounts.
-RUN sed -i -r '/^(root)/!d' /etc/group && \
-    sed -i -r '/^(root)/!d' /etc/passwd    
-
-# Remove init scripts since we do not use them.
-RUN rm -fr /etc/inittab
-
-# Remove kernel tunables since we do not need them.
-RUN rm -fr /etc/sysctl* \
-    rm -fr /etc/modprobe.d \
-    rm -fr /etc/modules \
-    rm -fr /etc/mdev.conf
-
-# Remove fstab since we do not need it.
-RUN rm -f /etc/fstab
+    apk add --no-cache su-exec	&& \
+    ./hardening_base.sh && \
+    rm ./hardening_base.sh
 
 #
 # second stage for building wheels packages
@@ -55,44 +39,25 @@ ENV SERVICE_NAME=$SERVICE_NAME
 ENV UID=$UID
 ENV GID=$GID 
 ENV LOG_LVL=$LOG_LVL
+ENV HOME=/home/$SERVICE_NAME
 
     
 # set the working directory in the container
 WORKDIR /home/$SERVICE_NAME
-
-# update PATH environment variable
-ENV HOME=/home/$SERVICE_NAME
 
 VOLUME ["/home/$SERVICE_NAME/log", "/home/$SERVICE_NAME/config"]
 
 # install the requirements from the wheels packages from the builder stage 
 # and unistall python packages and alpine package manger to reduce attack surface
 COPY --from=builder /root/wheels /root/wheels
+COPY --chmod=0700 ./hardening_final.sh .
 RUN python -m pip install --no-cache --no-index /root/wheels/* && \
     rm -rf /root/wheels && \
     python -m pip uninstall --yes setuptools wheel pip && \
-    apk --purge del apk-tools
+    apk --purge del apk-tools && \
+    ./hardening_final.sh && \
+    rm ./hardening_final.sh
 
-
-# Remove all but a handful of admin commands and remove dangerous commands.
-RUN if [ "$environment" = "production" ] ; then \
-  find /sbin /usr/sbin  ! -type d \
-  -a ! -name su-exec \
-  -a ! -name nologin \
-  -a ! -name addgroup \
-  -a ! -name adduser \
-   -delete; \
-  sysdirs="/bin /etc /lib /sbin /usr"; \
-  find $sysdirs -xdev \( \
-  -name hexdump -o \
-  -name chgrp -o \
-  -name chmod -o \
-  -name ln -o \
-  -name od -o \
-  -name strings -o \
-  -name su \
-  \) -delete  \
-; fi
 
 # copy the content of the local src and config directory to the working directory
 COPY --chmod=0700 entrypoint.sh /root/entrypoint.sh
