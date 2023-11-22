@@ -394,7 +394,7 @@ class Message(metaclass=IterRegistry):
 
     def msg_ota_update(self):
         if self.ctrl.is_req():
-            pass
+            self.inc_counter('OTA_Start_Msg')
         elif self.ctrl.is_ind():
             pass
         else:
