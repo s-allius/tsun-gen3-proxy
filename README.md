@@ -148,6 +148,11 @@ The proxy itself must use a different DNS server to connect to the TSUN Cloud. I
 
 As described above, set a DNS sever in the Docker command or Docker compose file.
 
+### Over The Air (OTA) firmmware update
+Even if the proxy is connected between the inverter and the TSUN Cloud, an OTA update is supported. To do this, the inverter must be able to reach the website http://www.talent-monitoring.com:9002/ in order to download images from there.
+
+It must be ensured that this address is not mapped to the proxy!
+
 ## License
 
 This project is licensed under the [BSD 3-clause License](https://opensource.org/licenses/BSD-3-Clause).
