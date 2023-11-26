@@ -153,6 +153,20 @@ Even if the proxy is connected between the inverter and the TSUN Cloud, an OTA u
 
 It must be ensured that this address is not mapped to the proxy!
 
+## Compatibility
+In the following table you will find an overview of which inverter model has been tested for compatibility with which firmware version.
+A combination with a red question mark should work, but I have not checked it in detail.
+
+If you have one of these combinations, it would be very nice if you could send me a proxy trace so that I can carry out the detailed checks and adjust the device and system tests.
+
+MicroInverter Model | Fw. 1.00.06 | Fw. 1.00.17 | Fw. 1.00.20
+:---|:---:|:---:|:---:
+MS-300, MS-350, MS-400| ❓ | ❓ | ❓ 
+MS-600| ✔️ | ✔️ | ✔️
+MS-700, MS-800| ❓ | ❓ | ❓
+MS-1600, MS-1800, MS-2000| ❓ | ❓ | ❓ 
+balcony MicroInverter;<br>MS-400, MS-800, MS-2000| ❓ | ❓ | ❓ 
+
 ## License
 
 This project is licensed under the [BSD 3-clause License](https://opensource.org/licenses/BSD-3-Clause).
@@ -161,7 +175,6 @@ Note the aiomqtt library used is based on the paho-mqtt library, which has a dua
 
 - One use of "COPYRIGHT OWNER" (EDL) instead of "COPYRIGHT HOLDER" (BSD)
 - One use of "Eclipse Foundation, Inc." (EDL) instead of "copyright holder" (BSD)
-
 
 ## Versioning
 
