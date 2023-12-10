@@ -86,7 +86,7 @@ class Message(metaclass=IterRegistry):
         self.id_str = id_str
         self.contact_name = b''
         self.contact_mail = b''
-        self._recv_buffer = b''
+        self._recv_buffer = bytearray(0)
         self._send_buffer = bytearray(0)
         self._forward_buffer = bytearray(0)
         self.db = Infos()
@@ -387,8 +387,8 @@ class Message(metaclass=IterRegistry):
     def __process_data(self):
         msg_hdr_len = self.parse_msg_header()
 
-        for key, update in self.db.parse(self._recv_buffer[self.header_len
-                                                           + msg_hdr_len:]):
+        for key, update in self.db.parse(self._recv_buffer, self.header_len
+                                         + msg_hdr_len):
             if update:
                 self.new_data[key] = True
 
