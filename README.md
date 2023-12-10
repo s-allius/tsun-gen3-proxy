@@ -157,8 +157,6 @@ It must be ensured that this address is not mapped to the proxy!
 In the following table you will find an overview of which inverter model has been tested for compatibility with which firmware version.
 A combination with a red question mark should work, but I have not checked it in detail.
 
-If you have one of these combinations with a red question mark, it would be very nice if you could send me a proxy trace so that I can carry out the detailed checks and adjust the device and system tests. [Ask here how to send a trace](https://github.com/s-allius/tsun-gen3-proxy/discussions/categories/traces-for-compatibility-check)
-
 Micro Inverter Model | Fw. 1.00.06 | Fw. 1.00.17 | Fw. 1.00.20
 :---|:---:|:---:|:---:
 MS-300, MS-350, MS-400| ❓ | ❓ | ❓ 
@@ -166,6 +164,8 @@ MS-600| ✔️ | ✔️ | ✔️
 MS-700, MS-800| ❓ | ❓ | ❓
 MS-1600, MS-1800, MS-2000| ❓ | ❓ | ❓ 
 balcony micro inverters:<br>MS-400, MS-800, MS-2000| ❓ | ❓ | ❓ 
+
+If you have one of these combinations with a red question mark, it would be very nice if you could send me a proxy trace so that I can carry out the detailed checks and adjust the device and system tests. [Ask here how to send a trace](https://github.com/s-allius/tsun-gen3-proxy/discussions/categories/traces-for-compatibility-check)
 
 ## License
 
