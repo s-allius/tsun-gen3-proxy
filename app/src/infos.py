@@ -33,10 +33,12 @@ class Infos:
         'controller': {'via': 'proxy',      'name': 'Controller',     'mdl': 0x00092f90, 'mf': 0x000927c0, 'sw': 0x00092ba8},  # noqa: E501
         'inverter':   {'via': 'controller', 'name': 'Micro Inverter', 'mdl': 0x00000032, 'mf': 0x00000014, 'sw': 0x0000001e},  # noqa: E501
         'input_pv1':  {'via': 'inverter',   'name': 'Module PV1'},
-        'input_pv2':  {'via': 'inverter',   'name': 'Module PV2', 'dep': {'reg': 0x00095b50, 'gte': 2}},  # noqa: E501
-        'input_pv3':  {'via': 'inverter',   'name': 'Module PV3', 'dep': {'reg': 0x00095b50, 'gte': 3}},  # noqa: E501
-        'input_pv4':  {'via': 'inverter',   'name': 'Module PV4', 'dep': {'reg': 0x00095b50, 'gte': 4}},  # noqa: E501
+        'input_pv2':  {'via': 'inverter',   'name': 'Module PV2', 'dep': {'reg': 0x00013880, 'gte': 2}},  # noqa: E501
+        'input_pv3':  {'via': 'inverter',   'name': 'Module PV3', 'dep': {'reg': 0x00013880, 'gte': 3}},  # noqa: E501
+        'input_pv4':  {'via': 'inverter',   'name': 'Module PV4', 'dep': {'reg': 0x00013880, 'gte': 4}},  # noqa: E501
     }
+
+    __comm_type_val_tpl = "{%set com_types = ['n/a','Wi-Fi', 'G4', 'G5', 'GPRS'] %}{{com_types[value_json['Communication_Type']|int(0)]|default(value_json['Communication_Type'])}}"    # noqa: E501
 
     __info_defs = {
         # collector values used for device registration:
@@ -45,7 +47,6 @@ class Infos:
         0x00092f90:  {'name': ['collector', 'Chip_Model'],                 'level': logging.DEBUG, 'unit': ''},  # noqa: E501
         0x00095a88:  {'name': ['collector', 'Trace_URL'],                  'level': logging.DEBUG, 'unit': ''},  # noqa: E501
         0x00095aec:  {'name': ['collector', 'Logger_URL'],                 'level': logging.DEBUG, 'unit': ''},  # noqa: E501
-        0x00095b50:  {'name': ['collector', 'No_Inputs'],                  'level': logging.DEBUG, 'unit': ''},  # noqa: E501
 
         # inverter values used for device registration:
         0x0000000a:  {'name': ['inverter', 'Product_Name'],                'level': logging.DEBUG, 'unit': ''},  # noqa: E501
@@ -53,6 +54,7 @@ class Infos:
         0x0000001e:  {'name': ['inverter', 'Version'],                     'level': logging.INFO,  'unit': ''},  # noqa: E501
         0x00000028:  {'name': ['inverter', 'Serial_Number'],               'level': logging.DEBUG, 'unit': ''},  # noqa: E501
         0x00000032:  {'name': ['inverter', 'Equipment_Model'],             'level': logging.DEBUG, 'unit': ''},  # noqa: E501
+        0x00013880:  {'name': ['inverter', 'No_Inputs'],                   'level': logging.DEBUG, 'unit': ''},  # noqa: E501
 
         # proxy:
         0xffffff00:  {'name': ['proxy', 'Inverter_Cnt'],       'singleton': True,   'ha': {'dev': 'proxy', 'comp': 'sensor', 'dev_cla': None, 'stat_cla': None, 'id': 'inv_count_',     'fmt': '| int', 'name': 'Active Inverter Connections',    'icon': 'mdi:counter'}},  # noqa: E501
@@ -117,7 +119,11 @@ class Infos:
 
         # controller:
         0x000c3500:  {'name': ['controller', 'Signal_Strength'],           'level': logging.DEBUG, 'unit': '%',    'ha': {'dev': 'controller', 'dev_cla': None,       'stat_cla': 'measurement', 'id': 'signal_',         'fmt': '| int', 'name': 'Signal Strength', 'icon': 'mdi:wifi'}},  # noqa: E501
-        0x000c96a8:  {'name': ['controller', 'Power_On_Time'],             'level': logging.DEBUG, 'unit': 's',    'ha': {'dev': 'controller', 'dev_cla': 'duration', 'stat_cla': 'measurement', 'id': 'power_on_time_',                 'name': 'Power on Time',   'val_tpl': "{{ (value_json['Power_On_Time'] | float)}}", 'nat_prc': '3', 'ent_cat': 'diagnostic'}},  # noqa: E501
+        0x000c96a8:  {'name': ['controller', 'Power_On_Time'],             'level': logging.DEBUG, 'unit': 's',    'ha': {'dev': 'controller', 'dev_cla': 'duration', 'stat_cla': 'measurement', 'id': 'power_on_time_',       'name': 'Power on Time',   'val_tpl': "{{ (value_json['Power_On_Time'] | float)}}", 'nat_prc': '3', 'ent_cat': 'diagnostic'}},  # noqa: E501
+        0x000d0020:  {'name': ['controller', 'Collect_Interval'],          'level': logging.DEBUG, 'unit': 's',    'ha': {'dev': 'controller', 'dev_cla': None,       'stat_cla': 'measurement', 'id': 'data_collect_intval_', 'fmt': '| int', 'name': 'Data Collect Interval', 'icon': 'mdi:update', 'ent_cat': 'diagnostic'}},  # noqa: E501
+        0x000cfc38:  {'name': ['controller', 'Connect_Count'],             'level': logging.DEBUG, 'unit': 's',    'ha': {'dev': 'controller', 'comp': 'sensor', 'dev_cla': None, 'stat_cla': None, 'id': 'connect_count_',    'fmt': '| int', 'name': 'Connect Count',    'icon': 'mdi:counter'}},  # noqa: E501
+        0x000c7f38:  {'name': ['controller', 'Communication_Type'],        'level': logging.DEBUG, 'unit': '',     'ha': {'dev': 'controller', 'comp': 'sensor', 'dev_cla': None, 'stat_cla': None, 'id': 'comm_type_',        'name': 'Communication Type', 'val_tpl': __comm_type_val_tpl, 'icon': 'mdi:wifi'}},  # noqa: E501
+        # 0x000c7f38:  {'name': ['controller', 'Communication_Type'],        'level': logging.DEBUG, 'unit': 's',    'new_value': 5},  # noqa: E501
         0x000cf850:  {'name': ['controller', 'Data_Up_Interval'],          'level': logging.DEBUG, 'unit': 's',    'ha': {'dev': 'controller', 'dev_cla': None,       'stat_cla': 'measurement', 'id': 'data_up_intval_', 'fmt': '| int', 'name': 'Data Up Interval', 'icon': 'mdi:update', 'ent_cat': 'diagnostic'}},  # noqa: E501
 
     }
@@ -305,24 +311,27 @@ class Infos:
             must_incr = d['ha']['must_incr']
         else:
             must_incr = False
+        new_val = None
+        # if 'new_value' in d:
+        #     new_val = d['new_value']
 
-        return d['name'], d['level'], d['unit'], must_incr
+        return d['name'], d['level'], d['unit'], must_incr, new_val
 
-    def parse(self, buf) -> None:
+    def parse(self, buf, ind=0) -> None:
         '''parse a data sequence received from the inverter and
         stores the values in Infos.db
 
         buf: buffer of the sequence to parse'''
-        result = struct.unpack_from('!l', buf, 0)
+        result = struct.unpack_from('!l', buf, ind)
         elms = result[0]
         i = 0
-        ind = 4
+        ind += 4
         while i < elms:
             result = struct.unpack_from('!lB', buf, ind)
             info_id = result[0]
             data_type = result[1]
             ind += 5
-            keys, level, unit, must_incr = self.__key_obj(info_id)
+            keys, level, unit, must_incr, new_val = self.__key_obj(info_id)
 
             if data_type == 0x54:   # 'T' -> Pascal-String
                 str_len = buf[ind]
@@ -332,19 +341,29 @@ class Infos:
                 ind += str_len+1
 
             elif data_type == 0x49:  # 'I' -> int32
+                # if new_val:
+                #    struct.pack_into('!l', buf, ind, new_val)
                 result = struct.unpack_from('!l', buf, ind)[0]
                 ind += 4
 
             elif data_type == 0x53:  # 'S' -> short
+                # if new_val:
+                #     struct.pack_into('!h', buf, ind, new_val)
                 result = struct.unpack_from('!h', buf, ind)[0]
                 ind += 2
 
             elif data_type == 0x46:  # 'F' -> float32
+                # if new_val:
+                #     struct.pack_into('!f', buf, ind, new_val)
                 result = round(struct.unpack_from('!f', buf, ind)[0], 2)
                 ind += 4
+
             elif data_type == 0x4c:  # 'L' -> int64
+                # if new_val:
+                #     struct.pack_into('!q', buf, ind, new_val)
                 result = struct.unpack_from('!q', buf, ind)[0]
                 ind += 8
+
             else:
                 self.inc_counter('Invalid_Data_Type')
                 logging.error(f"Infos.parse: data_type: {data_type}"
