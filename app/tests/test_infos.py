@@ -181,7 +181,7 @@ def test_parse_control(ContrDataSeq):
         pass
 
     assert json.dumps(i.db) == json.dumps(
-{"collector": {"Collector_Fw_Version": "RSW_400_V1.00.06", "Chip_Type": "Raymon", "Chip_Model": "RSW-1-10001", "Trace_URL": "t.raymoniot.com", "Logger_URL": "logger.talent-monitoring.com", "No_Inputs": 2}, "controller": {"Signal_Strength": 100, "Power_On_Time": 29, "Data_Up_Interval": 300}})        
+{"collector": {"Collector_Fw_Version": "RSW_400_V1.00.06", "Chip_Type": "Raymon", "Chip_Model": "RSW-1-10001", "Trace_URL": "t.raymoniot.com", "Logger_URL": "logger.talent-monitoring.com"}, "controller": {"Collect_Interval": 1, "Signal_Strength": 100, "Power_On_Time": 29, "Communication_Type": 1, "Connect_Count": 1, "Data_Up_Interval": 300}})        
 
 def test_parse_control2(Contr2DataSeq):
     i = Infos()
@@ -189,7 +189,7 @@ def test_parse_control2(Contr2DataSeq):
         pass
 
     assert json.dumps(i.db) == json.dumps(
-{"collector": {"Collector_Fw_Version": "RSW_400_V1.00.20", "Chip_Type": "Raymon", "Chip_Model": "RSW-1-10001", "Trace_URL": "t.raymoniot.com", "Logger_URL": "logger.talent-monitoring.com", "No_Inputs": 2}, "controller": {"Signal_Strength": 16, "Power_On_Time": 334, "Data_Up_Interval": 300}})
+{"collector": {"Collector_Fw_Version": "RSW_400_V1.00.20", "Chip_Type": "Raymon", "Chip_Model": "RSW-1-10001", "Trace_URL": "t.raymoniot.com", "Logger_URL": "logger.talent-monitoring.com"}, "controller": {"Collect_Interval": 1, "Signal_Strength": 16, "Power_On_Time": 334, "Communication_Type": 1, "Connect_Count": 1, "Data_Up_Interval": 300}})
 
 def test_parse_inverter(InvDataSeq):
     i = Infos()
@@ -209,7 +209,7 @@ def test_parse_cont_and_invert(ContrDataSeq, InvDataSeq):
 
     assert json.dumps(i.db) == json.dumps(
     {
-"collector": {"Collector_Fw_Version": "RSW_400_V1.00.06", "Chip_Type": "Raymon", "Chip_Model": "RSW-1-10001", "Trace_URL": "t.raymoniot.com", "Logger_URL": "logger.talent-monitoring.com", "No_Inputs": 2}, "controller": {"Signal_Strength": 100, "Power_On_Time": 29, "Data_Up_Interval": 300},
+"collector": {"Collector_Fw_Version": "RSW_400_V1.00.06", "Chip_Type": "Raymon", "Chip_Model": "RSW-1-10001", "Trace_URL": "t.raymoniot.com", "Logger_URL": "logger.talent-monitoring.com"}, "controller": {"Collect_Interval": 1, "Signal_Strength": 100, "Power_On_Time": 29, "Communication_Type": 1, "Connect_Count": 1, "Data_Up_Interval": 300},
 "inverter": {"Product_Name": "Microinv", "Manufacturer": "TSUN", "Version": "V5.0.11", "Serial_Number": "T170000000000001", "Equipment_Model": "TSOL-MS600"}})
 
 
@@ -269,12 +269,13 @@ def test_build_ha_conf1(ContrDataSeq):
 
     assert tests==5
 
-def test_build_ha_conf2(ContrDataSeq, InvDataSeq):
+def test_build_ha_conf2(ContrDataSeq, InvDataSeq, InvDataSeq2):
     i = Infos()
     for key, result in i.parse (ContrDataSeq):
         pass
-
     for key, result in i.parse (InvDataSeq):
+        pass
+    for key, result in i.parse (InvDataSeq2):
         pass
 
     tests = 0
