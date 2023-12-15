@@ -28,7 +28,7 @@ class Inverter(AsyncStream):
     class methods:
         class_init():  initialize the common resources of the proxy (MQTT
                        broker, Proxy DB, etc). Must be called before the
-                       first Ib´verter instance can be created
+                       first inverter instance can be created
         class_close(): release the common resources of the proxy. Should not
                        be called before any instances of the class are
                        destroyed
