@@ -8,10 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 - Fixed detection of the connected inputs/MPPTs
-- Add data acquisition interval
-- Add number of connections
-- Add communication type
 - Preparation for overwriting received data
+- home assistant:
+  - Add unit 'W' to the `Rated Power` value for home assistant
+  - `Collect_Interval`, `Connect_Count` and `Data_Up_Interval` as diagnostic value and not as graph
+  - Add data acquisition interval
+  - Add number of connections
+  - Add communication type
 
 ## [0.5.4] - 2023-11-22
 
