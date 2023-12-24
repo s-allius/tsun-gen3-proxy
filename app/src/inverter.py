@@ -156,6 +156,7 @@ class Inverter(AsyncStream):
         except ConnectionRefusedError as error:
             logging.info(f'{error}')
         except Exception:
+            self.inc_counter('SW_Exception')
             logging.error(
                 f"Inverter: Exception for {addr}:\n"
                 f"{traceback.format_exc()}")
@@ -181,6 +182,7 @@ class Inverter(AsyncStream):
         except MqttCodeError as error:
             logging.error(f'Mqtt except: {error}')
         except Exception:
+            self.inc_counter('SW_Exception')
             logging.error(
                 f"Inverter: Exception:\n"
                 f"{traceback.format_exc()}")

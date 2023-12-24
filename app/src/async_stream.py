@@ -44,6 +44,7 @@ class AsyncStream(Message):
                 self.close()
                 return self
             except Exception:
+                self.inc_counter('SW_Exception')
                 logger.error(
                     f"Exception for {self.addr}:\n"
                     f"{traceback.format_exc()}")
