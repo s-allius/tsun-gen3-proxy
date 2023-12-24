@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Add data acquisition interval
   - Add number of connections
   - Add communication type
+  - Add 'Internal SW Exception' counter
 
 ## [0.5.4] - 2023-11-22
 
