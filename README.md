@@ -120,6 +120,7 @@ inverters.allow_all = false   # True: allow inverters, even if we have no invert
 # inverter mapping, maps a `serial_no* to a `node_id` and defines an optional `suggested_area` for `home-assistant`
 #
 # for each inverter add a block starting with [inverters."<16-digit serial numbeer>"]
+
 [inverters."R17xxxxxxxxxxxx1"]
 node_id = 'inv1'              # Optional, MQTT replacement for inverters serial number  
 suggested_area = 'roof'       # Optional, suggested installation area for home-assistant
