@@ -67,11 +67,11 @@ def Msg2ContactInfo(): # two Contact Info messages
 
 @pytest.fixture
 def MsgContactResp(): # Contact Response message
-    return b'\x00\x00\x00\x14\x10R170000000000001\x99\x00\x01'
+    return b'\x00\x00\x00\x14\x10R170000000000001\x91\x00\x01'
 
 @pytest.fixture
 def MsgContactResp2(): # Contact Response message
-    return b'\x00\x00\x00\x14\x10R170000000000002\x99\x00\x01'
+    return b'\x00\x00\x00\x14\x10R170000000000002\x91\x00\x01'
 
 @pytest.fixture
 def MsgContactInvalid(): # Contact Response message
@@ -83,7 +83,7 @@ def MsgGetTime(): # Get Time Request message
 
 @pytest.fixture
 def MsgTimeResp(): # Get Time Resonse message
-    return b'\x00\x00\x00\x1b\x10R170000000000001\x99\x22\x00\x00\x01\x89\xc6\x63\x4d\x80'
+    return b'\x00\x00\x00\x1b\x10R170000000000001\x91\x22\x00\x00\x01\x89\xc6\x63\x4d\x80'
 
 @pytest.fixture
 def MsgTimeInvalid(): # Get Time Request message
@@ -316,17 +316,39 @@ def test_read_two_messages(ConfigTsunAllowAll, Msg2ContactInfo,MsgContactResp,Ms
 def test_msg_contact_resp(ConfigTsunInv1, MsgContactResp):
     ConfigTsunInv1
     m = MemoryStream(MsgContactResp, (0,), False)
+    m.await_conn_resp_cnt = 1
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
     m.read()         # read complete msg, and dispatch msg
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
     assert m.msg_count == 1
+    assert m.await_conn_resp_cnt == 0
     assert m.id_str == b"R170000000000001" 
     assert m.unique_id == 'R170000000000001'
-    assert int(m.ctrl)==153
+    assert int(m.ctrl)==145
     assert m.msg_id==0
     assert m.header_len==23
     assert m.data_len==1
     assert m._forward_buffer==b''
+    assert m._send_buffer==b''
+    assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
+    m.close()
+
+def test_msg_contact_resp_2(ConfigTsunInv1, MsgContactResp):
+    ConfigTsunInv1
+    m = MemoryStream(MsgContactResp, (0,), False)
+    m.await_conn_resp_cnt = 0
+    m.db.stat['proxy']['Unknown_Ctrl'] = 0
+    m.read()         # read complete msg, and dispatch msg
+    assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
+    assert m.msg_count == 1
+    assert m.await_conn_resp_cnt == 0
+    assert m.id_str == b"R170000000000001" 
+    assert m.unique_id == 'R170000000000001'
+    assert int(m.ctrl)==145
+    assert m.msg_id==0
+    assert m.header_len==23
+    assert m.data_len==1
+    assert m._forward_buffer==MsgContactResp
     assert m._send_buffer==b''
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
     m.close()
@@ -381,7 +403,7 @@ def test_msg_get_time_autark(ConfigNoTsunInv1, MsgGetTime):
     assert m.header_len==23
     assert m.data_len==0
     assert m._forward_buffer==b''
-    assert m._send_buffer==b'\x00\x00\x00\x1b\x10R170000000000001\x99"\x00\x00\x01\x8b\xdfs\xcc0'
+    assert m._send_buffer==b'\x00\x00\x00\x1b\x10R170000000000001\x91"\x00\x00\x01\x8b\xdfs\xcc0'
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
     m.close()
 
@@ -394,7 +416,7 @@ def test_msg_time_resp(ConfigTsunInv1, MsgTimeResp):
     assert m.msg_count == 1
     assert m.id_str == b"R170000000000001" 
     assert m.unique_id == 'R170000000000001'
-    assert int(m.ctrl)==153
+    assert int(m.ctrl)==145
     assert m.msg_id==34
     assert m.header_len==23
     assert m.data_len==8
@@ -412,7 +434,7 @@ def test_msg_time_resp_autark(ConfigNoTsunInv1, MsgTimeResp):
     assert m.msg_count == 1
     assert m.id_str == b"R170000000000001" 
     assert m.unique_id == 'R170000000000001'
-    assert int(m.ctrl)==153
+    assert int(m.ctrl)==145
     assert m.msg_id==34
     assert m.header_len==23
     assert m.data_len==8
