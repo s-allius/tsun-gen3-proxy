@@ -7,10 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.5] - 2023-12-31
+
 - Fixed [#33](https://github.com/s-allius/tsun-gen3-proxy/issues/33)
 - Fixed detection of the connected inputs/MPPTs
 - Preparation for overwriting received data
-- home assistant:
+- home assistant improvements:
   - Add unit 'W' to the `Rated Power` value for home assistant
   - `Collect_Interval`, `Connect_Count` and `Data_Up_Interval` as diagnostic value and not as graph
   - Add data acquisition interval
