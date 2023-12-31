@@ -6,6 +6,7 @@ import os
 from logging import config  # noqa F401
 from async_stream import AsyncStream
 from inverter import Inverter
+from scheduler import Schedule
 from config import Config
 
 
@@ -64,6 +65,7 @@ if __name__ == "__main__":
     logging.getLogger('msg').setLevel(log_level)
     logging.getLogger('conn').setLevel(log_level)
     logging.getLogger('data').setLevel(log_level)
+    # logging.getLogger('mqtt').setLevel(log_level)
 
     # read config file
     Config.read()
@@ -72,6 +74,8 @@ if __name__ == "__main__":
     asyncio.set_event_loop(loop)
 
     Inverter.class_init()
+    Schedule.start()
+
     #
     # Register some UNIX Signal handler for a gracefully server shutdown
     # on Docker restart and stop
