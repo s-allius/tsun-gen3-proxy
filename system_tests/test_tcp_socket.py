@@ -20,7 +20,7 @@ def MsgContactInfo(): # Contact Info message
 
 @pytest.fixture
 def MsgContactResp(): # Contact Response message
-    return b'\x00\x00\x00\x14\x10'+get_sn()+b'\x99\x00\x01'
+    return b'\x00\x00\x00\x14\x10'+get_sn()+b'\x91\x00\x01'
 
 @pytest.fixture
 def MsgContactInfo2(): # Contact Info message
@@ -28,7 +28,7 @@ def MsgContactInfo2(): # Contact Info message
 
 @pytest.fixture
 def MsgContactResp2(): # Contact Response message
-    return b'\x00\x00\x00\x14\x10'+get_invalid_sn()+b'\x99\x00\x01'
+    return b'\x00\x00\x00\x14\x10'+get_invalid_sn()+b'\x91\x00\x01'
 
 @pytest.fixture
 def MsgTimeStampReq(): # Get Time Request message
@@ -199,7 +199,7 @@ def test_send_contact_resp(ClientConnection, MsgContactResp):
     except TimeoutError:
         assert True
     else:
-        assert data ==''
+        assert data == b''
 
 def test_send_ctrl_data(ClientConnection, MsgTimeStampReq, MsgTimeStampResp, MsgContollerInd):
     s = ClientConnection  
