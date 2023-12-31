@@ -353,6 +353,26 @@ def test_msg_contact_resp_2(ConfigTsunInv1, MsgContactResp):
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
     m.close()
 
+def test_msg_contact_resp_3(ConfigTsunInv1, MsgContactResp):
+    ConfigTsunInv1
+    m = MemoryStream(MsgContactResp, (0,), True)
+    m.await_conn_resp_cnt = 0
+    m.db.stat['proxy']['Unknown_Ctrl'] = 0
+    m.read()         # read complete msg, and dispatch msg
+    assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
+    assert m.msg_count == 1
+    assert m.await_conn_resp_cnt == 0
+    assert m.id_str == b"R170000000000001" 
+    assert m.unique_id == 'R170000000000001'
+    assert int(m.ctrl)==145
+    assert m.msg_id==0
+    assert m.header_len==23
+    assert m.data_len==1
+    assert m._forward_buffer==MsgContactResp
+    assert m._send_buffer==b''
+    assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
+    m.close()
+
 def test_msg_contact_invalid(ConfigTsunInv1, MsgContactInvalid):
     ConfigTsunInv1
     m = MemoryStream(MsgContactInvalid, (0,))
