@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- Fixed [#33](https://github.com/s-allius/tsun-gen3-proxy/issues/33)
 - Fixed detection of the connected inputs/MPPTs
 - Preparation for overwriting received data
 - home assistant:

@@ -83,6 +83,7 @@ class Message(metaclass=IterRegistry):
         self.unique_id = 0
         self.node_id = ''
         self.sug_area = ''
+        self.await_conn_resp_cnt = 0
         self.id_str = id_str
         self.contact_name = b''
         self.contact_mail = b''
@@ -182,6 +183,7 @@ class Message(metaclass=IterRegistry):
     def _init_new_client_conn(self, contact_name, contact_mail) -> None:
         logger.info(f'name: {contact_name} mail: {contact_mail}')
         self.msg_id = 0
+        self.await_conn_resp_cnt += 1
         self.__build_header(0x91)
         self._send_buffer += struct.pack(f'!{len(contact_name)+1}p'
                                          f'{len(contact_mail)+1}p',
@@ -282,23 +284,27 @@ class Message(metaclass=IterRegistry):
     '''
     def msg_contact_info(self):
         if self.ctrl.is_ind():
-            self.__build_header(0x99)
-            self._send_buffer += b'\x01'
-            self.__finish_send_msg()
-            self.__process_contact_info()
+            if self.server_side and self.__process_contact_info():
+                self.__build_header(0x91)
+                self._send_buffer += b'\x01'
+                self.__finish_send_msg()
             # don't forward this contact info here, we will build one
             # when the remote connection is established
+            elif self.await_conn_resp_cnt > 0:
+                self.await_conn_resp_cnt -= 1
+            else:
+                self.forward(self._recv_buffer, self.header_len+self.data_len)
             return
-        elif self.ctrl.is_resp():
-            return  # ignore received response from tsun
         else:
+            logger.warning('Unknown Ctrl')
             self.inc_counter('Unknown_Ctrl')
             self.forward(self._recv_buffer, self.header_len+self.data_len)
 
-    def __process_contact_info(self):
+    def __process_contact_info(self) -> bool:
         result = struct.unpack_from('!B', self._recv_buffer, self.header_len)
         name_len = result[0]
-
+        if self.data_len < name_len+2:
+            return False
         result = struct.unpack_from(f'!{name_len+1}pB', self._recv_buffer,
                                     self.header_len)
         self.contact_name = result[0]
@@ -309,33 +315,34 @@ class Message(metaclass=IterRegistry):
                                     self.header_len+name_len+1)
         self.contact_mail = result[0]
         logger.info(f'mail: {self.contact_mail}')
+        return True
 
     def msg_get_time(self):
         tsun = Config.get('tsun')
         if tsun['enabled']:
-            if self.ctrl.is_resp():
-                ts = self._timestamp()
-                result = struct.unpack_from('!q', self._recv_buffer,
-                                            self.header_len)
-                logger.debug(f'tsun-time: {result[0]:08x}'
-                             f'  proxy-time: {ts:08x}')
-            elif not self.ctrl.is_ind():
+            if self.ctrl.is_ind():
+                if self.data_len >= 8:
+                    ts = self._timestamp()
+                    result = struct.unpack_from('!q', self._recv_buffer,
+                                                self.header_len)
+                    logger.debug(f'tsun-time: {result[0]:08x}'
+                                 f'  proxy-time: {ts:08x}')
+            else:
+                logger.warning('Unknown Ctrl')
                 self.inc_counter('Unknown_Ctrl')
             self.forward(self._recv_buffer, self.header_len+self.data_len)
         else:
             if self.ctrl.is_ind():
-                ts = self._timestamp()
-                logger.debug(f'time: {ts:08x}')
+                if self.data_len == 0:
+                    ts = self._timestamp()
+                    logger.debug(f'time: {ts:08x}')
 
-                self.__build_header(0x99)
-                self._send_buffer += struct.pack('!q', ts)
-                self.__finish_send_msg()
+                    self.__build_header(0x91)
+                    self._send_buffer += struct.pack('!q', ts)
+                    self.__finish_send_msg()
 
-            elif self.ctrl.is_resp():
-                result = struct.unpack_from('!q', self._recv_buffer,
-                                            self.header_len)
-                logger.debug(f'tsun-time: {result[0]:08x}')
             else:
+                logger.warning('Unknown Ctrl')
                 self.inc_counter('Unknown_Ctrl')
 
     def parse_msg_header(self):
@@ -366,6 +373,7 @@ class Message(metaclass=IterRegistry):
         elif self.ctrl.is_resp():
             return  # ignore received response
         else:
+            logger.warning('Unknown Ctrl')
             self.inc_counter('Unknown_Ctrl')
 
         self.forward(self._recv_buffer, self.header_len+self.data_len)
@@ -380,6 +388,7 @@ class Message(metaclass=IterRegistry):
         elif self.ctrl.is_resp():
             return  # ignore received response
         else:
+            logger.warning('Unknown Ctrl')
             self.inc_counter('Unknown_Ctrl')
 
         self.forward(self._recv_buffer, self.header_len+self.data_len)
@@ -398,6 +407,7 @@ class Message(metaclass=IterRegistry):
         elif self.ctrl.is_ind():
             pass
         else:
+            logger.warning('Unknown Ctrl')
             self.inc_counter('Unknown_Ctrl')
         self.forward(self._recv_buffer, self.header_len+self.data_len)
 
