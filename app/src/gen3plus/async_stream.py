@@ -3,7 +3,7 @@ import traceback
 # from config import Config
 # import gc
 # from messages import Message, hex_dump_memory
-from v2.solarman_v5 import SolarmanV5
+from gen3plus.solarman_v5 import SolarmanV5
 
 logger = logging.getLogger('conn')
 

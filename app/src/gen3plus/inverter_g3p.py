@@ -1,6 +1,6 @@
 import logging
 from config import Config
-from v2.async_stream import AsyncStreamV2
+from gen3plus.async_stream import AsyncStreamV2
 
 # import gc
 
@@ -8,7 +8,7 @@ from v2.async_stream import AsyncStreamV2
 logger_mqtt = logging.getLogger('mqtt')
 
 
-class InverterV2(AsyncStreamV2):
+class InverterG3P(AsyncStreamV2):
     '''class Inverter is a derivation of an Async_Stream
 
     The class has some class method for managing common resources like a
@@ -39,7 +39,7 @@ class InverterV2(AsyncStreamV2):
     '''
     @classmethod
     def class_init(cls) -> None:
-        logging.debug('InverterV2.class_init')
+        logging.debug('InverterG3P.class_init')
         # initialize the proxy statistics
         # Infos.static_init()
         # cls.db_stat = Infos()
@@ -52,7 +52,7 @@ class InverterV2(AsyncStreamV2):
 
     @classmethod
     def class_close(cls, loop) -> None:
-        logging.debug('InverterV2.class_close')
+        logging.debug('InverterG3P.class_close')
         logging.info('Close MQTT Task')
 
     def __init__(self, reader, writer, addr):
@@ -68,10 +68,10 @@ class InverterV2(AsyncStreamV2):
         logging.info(f'Server loop stopped for r{self.r_addr}')
 
     def close(self) -> None:
-        logging.debug(f'InverterV2.close() l{self.l_addr} | r{self.r_addr}')
+        logging.debug(f'InverterG3P.close() l{self.l_addr} | r{self.r_addr}')
         super().close()         # call close handler in the parent class
 #        logger.debug (f'Inverter refs: {gc.get_referrers(self)}')
 
     def __del__(self):
-        logging.debug("InverterV2.__del__")
+        logging.debug("InverterG3P.__del__")
         super().__del__()
