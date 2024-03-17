@@ -34,6 +34,7 @@ class Config():
             },
         'inverters': {
             'allow_all': Use(bool), And(Use(str), lambda s: len(s) == 16): {
+                Optional('monitor_sn', default=0): Use(int),
                 Optional('node_id', default=""): And(Use(str),
                                                      Use(lambda s: s + '/'
                                                          if len(s) > 0 and
