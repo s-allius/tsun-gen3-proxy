@@ -6,6 +6,7 @@ import os
 from logging import config  # noqa F401
 from async_stream import AsyncStream
 from inverter import Inverter
+from v2.inverter_v2 import InverterV2
 from config import Config
 
 
@@ -14,6 +15,13 @@ async def handle_client(reader, writer):
 
     addr = writer.get_extra_info('peername')
     await Inverter(reader, writer, addr).server_loop(addr)
+
+
+async def handle_client_v2(reader, writer):
+    '''Handles a new incoming connection and starts an async loop'''
+
+    addr = writer.get_extra_info('peername')
+    await InverterV2(reader, writer, addr).server_loop(addr)
 
 
 def handle_SIGTERM(loop):
@@ -72,6 +80,7 @@ if __name__ == "__main__":
     asyncio.set_event_loop(loop)
 
     Inverter.class_init()
+    InverterV2.class_init()
     #
     # Register some UNIX Signal handler for a gracefully server shutdown
     # on Docker restart and stop
@@ -81,11 +90,12 @@ if __name__ == "__main__":
                                 functools.partial(handle_SIGTERM, loop))
 
     #
-    # Create a task for our listening server. This must be a task! If we call
+    # Create taska for our listening servera. These must be tasks! If we call
     # start_server directly out of our main task, the eventloop will be blocked
     # and we can't receive and handle the UNIX signals!
     #
     loop.create_task(asyncio.start_server(handle_client, '0.0.0.0', 5005))
+    loop.create_task(asyncio.start_server(handle_client_v2, '0.0.0.0', 10000))
 
     try:
         loop.run_forever()
@@ -93,6 +103,7 @@ if __name__ == "__main__":
         pass
     finally:
         Inverter.class_close(loop)
+        InverterV2.class_close(loop)
         logging.info('Close event loop')
         loop.close()
         logging.info(f'Finally, exit Server "{serv_name}"')
