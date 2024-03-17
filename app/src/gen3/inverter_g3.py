@@ -14,7 +14,7 @@ from infos import Infos
 logger_mqtt = logging.getLogger('mqtt')
 
 
-class Inverter(AsyncStream):
+class InverterG3(AsyncStream):
     '''class Inverter is a derivation of an Async_Stream
 
     The class has some class method for managing common resources like a
@@ -45,7 +45,7 @@ class Inverter(AsyncStream):
     '''
     @classmethod
     def class_init(cls) -> None:
-        logging.debug('Inverter.class_init')
+        logging.debug('InverterG3.class_init')
         # initialize the proxy statistics
         Infos.static_init()
         cls.db_stat = Infos()
@@ -92,7 +92,7 @@ class Inverter(AsyncStream):
 
     @classmethod
     def class_close(cls, loop) -> None:
-        logging.debug('Inverter.class_close')
+        logging.debug('InverterG3.class_close')
         logging.info('Close MQTT Task')
         loop.run_until_complete(cls.mqtt.close())
         cls.mqtt = None
@@ -153,7 +153,7 @@ class Inverter(AsyncStream):
                                             False, self.id_str)
             asyncio.create_task(self.client_loop(addr))
 
-        except ConnectionRefusedError as error:
+        except (ConnectionRefusedError, TimeoutError) as error:
             logging.info(f'{error}')
         except Exception:
             self.inc_counter('SW_Exception')
@@ -207,10 +207,10 @@ class Inverter(AsyncStream):
                                     f"/{node_id}{id}/config", data_json)
 
     def close(self) -> None:
-        logging.debug(f'Inverter.close() l{self.l_addr} | r{self.r_addr}')
+        logging.debug(f'InverterG3.close() l{self.l_addr} | r{self.r_addr}')
         super().close()         # call close handler in the parent class
 #        logger.debug (f'Inverter refs: {gc.get_referrers(self)}')
 
     def __del__(self):
-        logging.debug("Inverter.__del__")
+        logging.debug("InverterG3.__del__")
         super().__del__()

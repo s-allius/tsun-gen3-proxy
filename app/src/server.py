@@ -5,8 +5,8 @@ import functools
 import os
 from logging import config  # noqa F401
 from async_stream import AsyncStream
-from inverter import Inverter
-from v2.inverter_v2 import InverterV2
+from gen3.inverter_g3 import InverterG3
+from gen3plus.inverter_g3p import InverterG3P
 from config import Config
 
 
@@ -14,14 +14,14 @@ async def handle_client(reader, writer):
     '''Handles a new incoming connection and starts an async loop'''
 
     addr = writer.get_extra_info('peername')
-    await Inverter(reader, writer, addr).server_loop(addr)
+    await InverterG3(reader, writer, addr).server_loop(addr)
 
 
 async def handle_client_v2(reader, writer):
     '''Handles a new incoming connection and starts an async loop'''
 
     addr = writer.get_extra_info('peername')
-    await InverterV2(reader, writer, addr).server_loop(addr)
+    await InverterG3P(reader, writer, addr).server_loop(addr)
 
 
 def handle_SIGTERM(loop):
@@ -79,8 +79,8 @@ if __name__ == "__main__":
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
 
-    Inverter.class_init()
-    InverterV2.class_init()
+    InverterG3.class_init()
+    InverterG3P.class_init()
     #
     # Register some UNIX Signal handler for a gracefully server shutdown
     # on Docker restart and stop
@@ -102,8 +102,8 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         pass
     finally:
-        Inverter.class_close(loop)
-        InverterV2.class_close(loop)
+        InverterG3.class_close(loop)
+        InverterG3P.class_close(loop)
         logging.info('Close event loop')
         loop.close()
         logging.info(f'Finally, exit Server "{serv_name}"')

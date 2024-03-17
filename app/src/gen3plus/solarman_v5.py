@@ -1,7 +1,7 @@
 import logging
 import struct
 
-if __name__ == "app.src.v2.solarman_v5":
+if __name__ == "app.src.gen3plus.solarman_v5":
     from app.src.messages import hex_dump_memory
     from app.src.config import Config
 else:  # pragma: no cover

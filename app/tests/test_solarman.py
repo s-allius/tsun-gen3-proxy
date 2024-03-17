@@ -1,5 +1,5 @@
 import pytest, json
-from app.src.v2.solarman_v5 import SolarmanV5
+from app.src.gen3plus.solarman_v5 import SolarmanV5
 
 class MemoryStream(SolarmanV5):
     def __init__(self, msg, chunks = (0,), server_side: bool = True):
