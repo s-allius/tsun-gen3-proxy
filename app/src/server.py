@@ -4,7 +4,7 @@ import signal
 import functools
 import os
 from logging import config  # noqa F401
-from async_stream import AsyncStream
+from gen3.async_stream import AsyncStream
 from gen3.inverter_g3 import InverterG3
 from gen3plus.inverter_g3p import InverterG3P
 from config import Config
