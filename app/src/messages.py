@@ -62,3 +62,5 @@ class Message(metaclass=IterRegistry):
     '''
     Our puplic methods
     '''
+    def close(self) -> None:
+        pass  # pragma: no cover

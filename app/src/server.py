@@ -4,7 +4,7 @@ import signal
 import functools
 import os
 from logging import config  # noqa F401
-from gen3.async_stream import AsyncStream
+from messages import Message
 from gen3.inverter_g3 import InverterG3
 from gen3plus.inverter_g3p import InverterG3P
 from config import Config
@@ -32,7 +32,7 @@ def handle_SIGTERM(loop):
     #
     # first, close all open TCP connections
     #
-    for stream in AsyncStream:
+    for stream in Message:
         stream.close()
 
     #

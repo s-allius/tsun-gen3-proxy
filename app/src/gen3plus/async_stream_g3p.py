@@ -3,22 +3,18 @@ import traceback
 # from config import Config
 # import gc
 # from messages import Message, hex_dump_memory
+from async_stream import AsyncStream
 from gen3plus.solarman_v5 import SolarmanV5
 
 logger = logging.getLogger('conn')
 
 
-class AsyncStreamV2(SolarmanV5):  # Message):
+class AsyncStreamG3P(AsyncStream, SolarmanV5):
 
-    def __init__(self, reader, writer, addr, remote_stream, server_side: bool,
-                 id_str=b'') -> None:
-        super().__init__(server_side, id_str)
-        self.reader = reader
-        self.writer = writer
-        self.addr = addr
-        self.r_addr = ''
-        self.l_addr = ''
-        self._recv_buffer = bytearray(0)
+    def __init__(self, reader, writer, addr, remote_stream,
+                 server_side: bool) -> None:
+        AsyncStream.__init__(self, reader, writer, addr)
+        SolarmanV5.__init__(self, server_side)
 
     '''
     Our puplic methods
@@ -75,5 +71,5 @@ class AsyncStreamV2(SolarmanV5):  # Message):
             raise RuntimeError("Peer closed.")
 
     def __del__(self):
-        logger.debug(
-            f"AsyncStreamV2.__del__  l{self.l_addr} | r{self.r_addr}")
+        AsyncStream.__del__(self)
+        # SolarmanV5.__del__(self)
