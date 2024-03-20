@@ -1,6 +1,6 @@
 import logging
 from config import Config
-from gen3plus.async_stream import AsyncStreamV2
+from gen3plus.async_stream_g3p import AsyncStreamG3P
 
 # import gc
 
@@ -8,7 +8,7 @@ from gen3plus.async_stream import AsyncStreamV2
 logger_mqtt = logging.getLogger('mqtt')
 
 
-class InverterG3P(AsyncStreamV2):
+class InverterG3P(AsyncStreamG3P):
     '''class Inverter is a derivation of an Async_Stream
 
     The class has some class method for managing common resources like a

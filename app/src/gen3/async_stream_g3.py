@@ -2,23 +2,21 @@ import logging
 import traceback
 # from config import Config
 # import gc
+from async_stream import AsyncStream
 from gen3.messages_g3 import MessageG3
 from messages import hex_dump_memory
 
 logger = logging.getLogger('conn')
 
 
-class AsyncStream(MessageG3):
+class AsyncStreamG3(AsyncStream, MessageG3):
 
     def __init__(self, reader, writer, addr, remote_stream, server_side: bool,
                  id_str=b'') -> None:
-        super().__init__(server_side, id_str)
-        self.reader = reader
-        self.writer = writer
+        AsyncStream.__init__(self, reader, writer, addr)
+        MessageG3.__init__(self, server_side, id_str)
+
         self.remoteStream = remote_stream
-        self.addr = addr
-        self.r_addr = ''
-        self.l_addr = ''
 
     '''
     Our puplic methods
@@ -107,4 +105,5 @@ class AsyncStream(MessageG3):
         pass
 
     def __del__(self):
-        logging.debug(f"AsyncStream.__del__  l{self.l_addr} | r{self.r_addr}")
+        AsyncStream.__del__(self)
+        # MessageG3.__del__(self)

@@ -3,7 +3,7 @@ import logging
 import traceback
 import json
 from config import Config
-from gen3.async_stream import AsyncStream
+from gen3.async_stream_g3 import AsyncStreamG3
 from mqtt import Mqtt
 from aiomqtt import MqttCodeError
 from infos import Infos
@@ -14,7 +14,7 @@ from infos import Infos
 logger_mqtt = logging.getLogger('mqtt')
 
 
-class InverterG3(AsyncStream):
+class InverterG3(AsyncStreamG3):
     '''class Inverter is a derivation of an Async_Stream
 
     The class has some class method for managing common resources like a
@@ -149,8 +149,8 @@ class InverterG3(AsyncStream):
             logging.info(f'Connected to {addr}')
             connect = asyncio.open_connection(host, port)
             reader, writer = await connect
-            self.remoteStream = AsyncStream(reader, writer, addr, self,
-                                            False, self.id_str)
+            self.remoteStream = AsyncStreamG3(reader, writer, addr, self,
+                                              False, self.id_str)
             asyncio.create_task(self.client_loop(addr))
 
         except (ConnectionRefusedError, TimeoutError) as error:

@@ -14,7 +14,7 @@ logger = logging.getLogger('msg')
 
 class SolarmanV5(Message):
 
-    def __init__(self, server_side: bool, id_str=b''):
+    def __init__(self, server_side: bool):
         super().__init__(server_side)
 
         self.header_valid = False
