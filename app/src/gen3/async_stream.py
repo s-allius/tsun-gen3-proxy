@@ -2,12 +2,13 @@ import logging
 import traceback
 # from config import Config
 # import gc
-from messages import Message, hex_dump_memory
+from gen3.messages_g3 import MessageG3
+from messages import hex_dump_memory
 
 logger = logging.getLogger('conn')
 
 
-class AsyncStream(Message):
+class AsyncStream(MessageG3):
 
     def __init__(self, reader, writer, addr, remote_stream, server_side: bool,
                  id_str=b'') -> None:

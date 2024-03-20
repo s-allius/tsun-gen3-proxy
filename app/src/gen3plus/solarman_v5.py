@@ -2,21 +2,21 @@ import logging
 import struct
 
 if __name__ == "app.src.gen3plus.solarman_v5":
-    from app.src.messages import hex_dump_memory
+    from app.src.messages import hex_dump_memory, Message
     from app.src.config import Config
 else:  # pragma: no cover
-    from messages import hex_dump_memory
+    from messages import hex_dump_memory, Message
     from config import Config
 # import traceback
 
 logger = logging.getLogger('msg')
 
 
-class SolarmanV5():
+class SolarmanV5(Message):
 
     def __init__(self, server_side: bool, id_str=b''):
-        # self._registry.append(weakref.ref(self))
-        self.server_side = server_side
+        super().__init__(server_side)
+
         self.header_valid = False
         self.header_len = 11
         self.data_len = 0
@@ -34,15 +34,12 @@ class SolarmanV5():
         # self.db = Infos()
         # self.new_data = {}
         self.switch = {
-            0x4110: self.msg_dev_ind,
+            0x4110: self.msg_dev_ind,  # hello
+            0x4210: self.msg_unknown,  # data
+            0x4310: self.msg_unknown,
+            0x4710: self.msg_unknown,  # heatbeat
+            0x4810: self.msg_unknown,  # hello end
         }
-    '''
-    Empty methods, that have to be implemented in any child class which
-    don't use asyncio
-    '''
-    def _read(self) -> None:     # read data bytes from socket and copy them
-        # to our _recv_buffer
-        return  # pragma: no cover
 
     '''
     Our puplic methods
@@ -74,7 +71,8 @@ class SolarmanV5():
 
             for key, inv in inverters.items():
                 # logger.debug(f'key: {key} -> {inv}')
-                if type(inv) is dict and inv['monitor_sn'] == serial_no:
+                if (type(inv) is dict and 'monitor_sn' in inv
+                   and inv['monitor_sn'] == serial_no):
                     found = True
                     self.node_id = inv['node_id']
                     self.sug_area = inv['suggested_area']
@@ -194,9 +192,44 @@ class SolarmanV5():
                         f' Msg: {fnc.__name__!r}')
 
     def __flush_recv_msg(self) -> None:
-        self._recv_buffer = self._recv_buffer[(self.header_len+self.data_len):]
+        self._recv_buffer = self._recv_buffer[(self.header_len +
+                                               self.data_len+2):]
         self.header_valid = False
+    '''
+    def modbus(self, data):
+        POLY = 0xA001
 
+        crc = 0xFFFF
+        for byte in data:
+            crc ^= byte
+            for _ in range(8):
+                crc = ((crc >> 1) ^ POLY
+                if (crc & 0x0001)
+                else crc >> 1)
+        return crc
+
+    def validate_modbus_crc(self, frame):
+        # Calculate crc with all but the last 2 bytes of
+        # the frame (they contain the crc)
+        calc_crc = 0xFFFF
+        for pos in frame[:-2]:
+            calc_crc ^= pos
+            for i in range(8):
+                if (calc_crc & 1) != 0:
+                    calc_crc >>= 1
+                    calc_crc ^= 0xA001  # bitwise 'or' with modbus magic
+                                        # number (0xa001 == bitwise
+                                        # reverse of 0x8005)
+                else:
+                    calc_crc >>= 1
+
+        # Compare calculated crc with the one supplied in the frame....
+        frame_crc, = struct.unpack('<H', frame[-2:])
+        if calc_crc == frame_crc:
+            return 1
+        else:
+            return 0
+    '''
     '''
     Message handler methods
     '''
@@ -206,6 +239,27 @@ class SolarmanV5():
         # self.forward(self._recv_buffer, self.header_len+self.data_len)
 
     def msg_dev_ind(self):
-        logger.warning(f"Msg: Device Indication ID:{self.control}")
-        # self.inc_counter('Unknown_Msg')
+        data = self._recv_buffer[self.header_len:]
+        result = struct.unpack_from('<BLLL', data, 0)
+        code = result[0]  # always 2
+        total = result[1]
+        tim = result[2]
+        res = result[3]  # always zero
+        logger.info(f'code:{code} total:{total}s'
+                    f' timer:{tim}s  null:{res}')
+        if (code == 2):
+            result = struct.unpack_from('<BBBBBB40s', data, 13)
+            upload_period = result[0]
+            data_acq_period = result[1]
+            heart_beat = result[2]
+            res = result[3]
+            wifi = result[4]
+            ver = result[6]
+            # res2 = result[5]
+            logger.info(f'upload:{upload_period}min '
+                        f'data collect:{data_acq_period}s '
+                        f'heartbeat:{heart_beat}s '
+                        f'wifi:{wifi}%')
+            logger.info(f'ver:{ver}')
+
         # self.forward(self._recv_buffer, self.header_len+self.data_len)
