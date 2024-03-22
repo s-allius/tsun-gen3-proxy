@@ -22,7 +22,6 @@ class AsyncStreamG3P(AsyncStream, SolarmanV5):
     async def loop(self):
         self.r_addr = self.writer.get_extra_info('peername')
         self.l_addr = self.writer.get_extra_info('sockname')
-        logger.info(f'in AsyncStreamV2.loop() l{self.l_addr}')
 
         while True:
             try:
@@ -51,14 +50,14 @@ class AsyncStreamG3P(AsyncStream, SolarmanV5):
 
     def disc(self) -> None:
         logger.debug(
-            f'in AsyncStreamV2.disc() l{self.l_addr} | r{self.r_addr}')
+            f'in AsyncStreamG3P.disc() l{self.l_addr} | r{self.r_addr}')
         self.writer.close()
 
     def close(self):
         logger.debug(
-            f'in AsyncStreamV2.close() l{self.l_addr} | r{self.r_addr}')
+            f'in AsyncStreamG3P.close() l{self.l_addr} | r{self.r_addr}')
         self.writer.close()
-        # super().close()         # call close handler in the parent class
+        super().close()         # call close handler in the parent class
 
 #        logger.info(f'AsyncStream refs: {gc.get_referrers(self)}')
 
@@ -66,9 +65,7 @@ class AsyncStreamG3P(AsyncStream, SolarmanV5):
     Our private methods
     '''
     async def __async_read(self) -> None:
-        logger.debug('in AsyncStreamV2.__async_read()')
         data = await self.reader.read(4096)
-
         if data:
             self._recv_buffer += data
             self.read()                # call read in parent class
@@ -79,5 +76,4 @@ class AsyncStreamG3P(AsyncStream, SolarmanV5):
         pass
 
     def __del__(self):
-        AsyncStream.__del__(self)
-        # SolarmanV5.__del__(self)
+        super().__del__()

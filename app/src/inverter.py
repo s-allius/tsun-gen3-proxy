@@ -52,7 +52,7 @@ class Inverter():
         if key in stat and Infos.new_stat_data[key]:
             data_json = json.dumps(stat[key])
             node_id = cls.proxy_node_id
-            logger_mqtt.info(f'{key}: {data_json}')
+            logger_mqtt.debug(f'{key}: {data_json}')
             await cls.mqtt.publish(f"{cls.entity_prfx}{node_id}{key}",
                                    data_json)
             Infos.new_stat_data[key] = False

@@ -105,5 +105,4 @@ class AsyncStreamG3(AsyncStream, MessageG3):
         pass
 
     def __del__(self):
-        AsyncStream.__del__(self)
-        # MessageG3.__del__(self)
+        super().__del__()

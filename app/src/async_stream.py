@@ -6,7 +6,7 @@ logger = logging.getLogger('conn')
 class AsyncStream():
 
     def __init__(self, reader, writer, addr) -> None:
-        logger.info('in src.AsyncStream.__init__')
+        logger.debug('AsyncStream.__init__')
         self.reader = reader
         self.writer = writer
         self.addr = addr
