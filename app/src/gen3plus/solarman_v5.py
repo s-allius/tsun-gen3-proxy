@@ -1,11 +1,13 @@
-import logging
 import struct
+import logging
 
 if __name__ == "app.src.gen3plus.solarman_v5":
     from app.src.messages import hex_dump_memory, Message
+    from app.src.infos import Infos
     from app.src.config import Config
 else:  # pragma: no cover
     from messages import hex_dump_memory, Message
+    from infos import Infos
     from config import Config
 # import traceback
 
@@ -29,10 +31,10 @@ class SolarmanV5(Message):
         # self.await_conn_resp_cnt = 0
         # self.id_str = id_str
         self._recv_buffer = bytearray(0)
-        # self._send_buffer = bytearray(0)
+        self._send_buffer = bytearray(0)
         self._forward_buffer = bytearray(0)
-        # self.db = Infos()
-        # self.new_data = {}
+        self.db = Infos()
+        self.new_data = {}
         self.switch = {
             0x4110: self.msg_dev_ind,  # hello
             0x4210: self.msg_unknown,  # data
@@ -51,17 +53,17 @@ class SolarmanV5(Message):
         self.switch.clear()
 
     def inc_counter(self, counter: str) -> None:
-        # self.db.inc_counter(counter)
-        # self.new_stat_data['proxy'] = True
+        self.db.inc_counter(counter)
+        Infos.new_stat_data['proxy'] = True
         pass
 
     def dec_counter(self, counter: str) -> None:
-        # self.db.dec_counter(counter)
-        # self.new_stat_data['proxy'] = True
+        self.db.dec_counter(counter)
+        Infos.new_stat_data['proxy'] = True
         pass
 
-    def set_serial_no(self, serial_no: int):
-
+    def set_serial_no(self, snr: int):
+        serial_no = str(snr)
         if self.unique_id == serial_no:
             logger.debug(f'SerialNo: {serial_no}')
         else:
@@ -72,7 +74,7 @@ class SolarmanV5(Message):
             for key, inv in inverters.items():
                 # logger.debug(f'key: {key} -> {inv}')
                 if (type(inv) is dict and 'monitor_sn' in inv
-                   and inv['monitor_sn'] == serial_no):
+                   and inv['monitor_sn'] == snr):
                     found = True
                     self.node_id = inv['node_id']
                     self.sug_area = inv['suggested_area']
@@ -235,8 +237,8 @@ class SolarmanV5(Message):
     '''
     def msg_unknown(self):
         logger.warning(f"Unknow Msg: ID:{self.control}")
-        # self.inc_counter('Unknown_Msg')
-        # self.forward(self._recv_buffer, self.header_len+self.data_len)
+        self.inc_counter('Unknown_Msg')
+        self.forward(self._recv_buffer, self.header_len+self.data_len)
 
     def msg_dev_ind(self):
         data = self._recv_buffer[self.header_len:]

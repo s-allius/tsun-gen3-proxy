@@ -9,6 +9,8 @@ class Infos:
     app_name = os.getenv('SERVICE_NAME', 'proxy')
     version = os.getenv('VERSION', 'unknown')
 
+    new_stat_data = {}
+
     @classmethod
     def static_init(cls):
         logging.info('Initialize proxy statistics')
@@ -318,7 +320,7 @@ class Infos:
 
         return d['name'], d['level'], d['unit'], must_incr, new_val
 
-    def parse(self, buf, ind=0) -> None:
+    def parse(self, buf, ind=0):  # -> None | tuple[str,bool]:
         '''parse a data sequence received from the inverter and
         stores the values in Infos.db
 

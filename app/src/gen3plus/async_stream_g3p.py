@@ -28,6 +28,11 @@ class AsyncStreamG3P(AsyncStream, SolarmanV5):
             try:
                 await self.__async_read()
 
+                if self.unique_id:
+                    # await self.__async_write()
+                    # await self.__async_forward()
+                    await self.async_publ_mqtt()
+
             except (ConnectionResetError,
                     ConnectionAbortedError,
                     BrokenPipeError,
@@ -69,6 +74,9 @@ class AsyncStreamG3P(AsyncStream, SolarmanV5):
             self.read()                # call read in parent class
         else:
             raise RuntimeError("Peer closed.")
+
+    async def async_publ_mqtt(self) -> None:
+        pass
 
     def __del__(self):
         AsyncStream.__del__(self)
