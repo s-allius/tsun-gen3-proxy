@@ -5,6 +5,7 @@ import functools
 import os
 from logging import config  # noqa F401
 from messages import Message
+from inverter import Inverter
 from gen3.inverter_g3 import InverterG3
 from gen3plus.inverter_g3p import InverterG3P
 from config import Config
@@ -79,8 +80,7 @@ if __name__ == "__main__":
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
 
-    InverterG3.class_init()
-    InverterG3P.class_init()
+    Inverter.class_init()
     #
     # Register some UNIX Signal handler for a gracefully server shutdown
     # on Docker restart and stop
@@ -102,8 +102,7 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         pass
     finally:
-        InverterG3.class_close(loop)
-        InverterG3P.class_close(loop)
+        Inverter.class_close(loop)
         logging.info('Close event loop')
         loop.close()
         logging.info(f'Finally, exit Server "{serv_name}"')

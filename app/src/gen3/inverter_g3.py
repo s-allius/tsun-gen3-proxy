@@ -3,8 +3,8 @@ import logging
 import traceback
 import json
 from config import Config
+from inverter import Inverter
 from gen3.async_stream_g3 import AsyncStreamG3
-from mqtt import Mqtt
 from aiomqtt import MqttCodeError
 from infos import Infos
 
@@ -14,7 +14,7 @@ from infos import Infos
 logger_mqtt = logging.getLogger('mqtt')
 
 
-class InverterG3(AsyncStreamG3):
+class InverterG3(Inverter, AsyncStreamG3):
     '''class Inverter is a derivation of an Async_Stream
 
     The class has some class method for managing common resources like a
@@ -43,59 +43,6 @@ class InverterG3(AsyncStreamG3):
         close(): Release method which must be called before a instance can be
                  destroyed
     '''
-    @classmethod
-    def class_init(cls) -> None:
-        logging.debug('InverterG3.class_init')
-        # initialize the proxy statistics
-        Infos.static_init()
-        cls.db_stat = Infos()
-
-        ha = Config.get('ha')
-        cls.entity_prfx = ha['entity_prefix'] + '/'
-        cls.discovery_prfx = ha['discovery_prefix'] + '/'
-        cls.proxy_node_id = ha['proxy_node_id'] + '/'
-        cls.proxy_unique_id = ha['proxy_unique_id']
-
-        # call Mqtt singleton to establisch the connection to the mqtt broker
-        cls.mqtt = Mqtt(cls.__cb_mqtt_is_up)
-
-    @classmethod
-    async def __cb_mqtt_is_up(cls) -> None:
-        logging.info('Initialize proxy device on home assistant')
-        # register proxy status counters at home assistant
-        await cls.__register_proxy_stat_home_assistant()
-
-        # send values of the proxy status counters
-        await asyncio.sleep(0.5)            # wait a bit, before sending data
-        cls.new_stat_data['proxy'] = True   # force sending data to sync ha
-        await cls.__async_publ_mqtt_proxy_stat('proxy')
-
-    @classmethod
-    async def __register_proxy_stat_home_assistant(cls) -> None:
-        '''register all our topics at home assistant'''
-        for data_json, component, node_id, id in cls.db_stat.ha_confs(
-                 cls.entity_prfx, cls.proxy_node_id,
-                 cls.proxy_unique_id, True):
-            logger_mqtt.debug(f"MQTT Register: cmp:'{component}' node_id:'{node_id}' {data_json}")      # noqa: E501
-            await cls.mqtt.publish(f'{cls.discovery_prfx}{component}/{node_id}{id}/config', data_json)  # noqa: E501
-
-    @classmethod
-    async def __async_publ_mqtt_proxy_stat(cls, key) -> None:
-        stat = Infos.stat
-        if key in stat and cls.new_stat_data[key]:
-            data_json = json.dumps(stat[key])
-            node_id = cls.proxy_node_id
-            logger_mqtt.debug(f'{key}: {data_json}')
-            await cls.mqtt.publish(f"{cls.entity_prfx}{node_id}{key}",
-                                   data_json)
-            cls.new_stat_data[key] = False
-
-    @classmethod
-    def class_close(cls, loop) -> None:
-        logging.debug('InverterG3.class_close')
-        logging.info('Close MQTT Task')
-        loop.run_until_complete(cls.mqtt.close())
-        cls.mqtt = None
 
     def __init__(self, reader, writer, addr):
         super().__init__(reader, writer, addr, None, True)
@@ -115,7 +62,7 @@ class InverterG3(AsyncStreamG3):
             logging.debug("disconnect client connection")
             self.remoteStream.disc()
         try:
-            await self.__async_publ_mqtt_proxy_stat('proxy')
+            await self._async_publ_mqtt_proxy_stat('proxy')
         except Exception:
             pass
 
@@ -170,14 +117,14 @@ class InverterG3(AsyncStreamG3):
                     or ('collector' in self.new_data and
                         self.new_data['collector'])
                     or self.mqtt.ha_restarts != self.ha_restarts):
-                await self.__register_proxy_stat_home_assistant()
+                await self._register_proxy_stat_home_assistant()
                 await self.__register_home_assistant()
                 self.ha_restarts = self.mqtt.ha_restarts
 
             for key in self.new_data:
                 await self.__async_publ_mqtt_packet(key)
-            for key in self.new_stat_data:
-                await self.__async_publ_mqtt_proxy_stat(key)
+            for key in Infos.new_stat_data:
+                await self._async_publ_mqtt_proxy_stat(key)
 
         except MqttCodeError as error:
             logging.error(f'Mqtt except: {error}')

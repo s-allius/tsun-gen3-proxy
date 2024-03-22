@@ -33,7 +33,6 @@ class Control:
 
 
 class MessageG3(Message):
-    new_stat_data = {}
 
     def __init__(self, server_side: bool, id_str=b''):
         super().__init__(server_side)
@@ -71,11 +70,11 @@ class MessageG3(Message):
 
     def inc_counter(self, counter: str) -> None:
         self.db.inc_counter(counter)
-        self.new_stat_data['proxy'] = True
+        Infos.new_stat_data['proxy'] = True
 
     def dec_counter(self, counter: str) -> None:
         self.db.dec_counter(counter)
-        self.new_stat_data['proxy'] = True
+        Infos.new_stat_data['proxy'] = True
 
     def set_serial_no(self, serial_no: str):
 
