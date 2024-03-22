@@ -49,15 +49,24 @@ class InverterG3P(Inverter, AsyncStreamG3P):
 
     async def server_loop(self, addr):
         '''Loop for receiving messages from the inverter (server-side)'''
-        logging.info(f'Accept connection V2 from  {addr}')
+        logging.info(f'Accept connection from  {addr} (G3P)')
         self.inc_counter('Inverter_Cnt')
         await self.loop()
         self.dec_counter('Inverter_Cnt')
         logging.info(f'Server loop stopped for r{self.r_addr}')
 
+        # if the server connection closes, we also have to disconnect
+        # the connection to te TSUN cloud
+        # if self.remoteStream:
+        #    logging.debug("disconnect client connection")
+        #    self.remoteStream.disc()
+        try:
+            await self._async_publ_mqtt_proxy_stat('proxy')
+        except Exception:
+            pass
+
     async def async_publ_mqtt(self) -> None:
         '''publish data to MQTT broker'''
-        logging.info('in async_publ_mqtt')
         # check if new inverter or collector infos are available or when the
         #  home assistant has changed the status back to online
         try:

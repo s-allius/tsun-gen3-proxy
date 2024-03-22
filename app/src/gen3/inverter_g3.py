@@ -50,7 +50,7 @@ class InverterG3(Inverter, AsyncStreamG3):
 
     async def server_loop(self, addr):
         '''Loop for receiving messages from the inverter (server-side)'''
-        logging.info(f'Accept connection from  {addr}')
+        logging.info(f'Accept connection from  {addr} (G3)')
         self.inc_counter('Inverter_Cnt')
         await self.loop()
         self.dec_counter('Inverter_Cnt')
