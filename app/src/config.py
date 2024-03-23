@@ -19,6 +19,11 @@ class Config():
             'host':    Use(str),
             'port':    And(Use(int), lambda n: 1024 <= n <= 65535)
             },
+        'solarman': {
+            'enabled': Use(bool),
+            'host':    Use(str),
+            'port':    And(Use(int), lambda n: 1024 <= n <= 65535)
+            },
         'mqtt': {
             'host':    Use(str),
             'port':    And(Use(int), lambda n: 1024 <= n <= 65535),
@@ -68,6 +73,8 @@ class Config():
                 usr_config = tomllib.load(f)
 
             config['tsun'] = def_config['tsun'] | usr_config['tsun']
+            config['solarman'] = def_config['solarman'] | \
+                usr_config['solarman']
             config['mqtt'] = def_config['mqtt'] | usr_config['mqtt']
             config['ha'] = def_config['ha'] | usr_config['ha']
             config['inverters'] = def_config['inverters'] | \

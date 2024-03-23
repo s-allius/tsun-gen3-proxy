@@ -94,15 +94,15 @@ You find more details here: https://toml.io/en/v1.0.0
 
 
 ```toml
-# configuration to reach tsun cloud for 'generation 3' inverters
+# configuration for tsun cloud for 'generation 3' inverters
 tsun.enabled = true   # false: disables connecting to the tsun cloud, and avoids updates
 tsun.host    = 'logger.talent-monitoring.com'
 tsun.port    = 5005
 
-# configuration to reach the new tsun cloud  for 'generation 3 plus' inverters
-tsun_v2.enabled = true   # false: disables connecting to the tsun cloud, and avoids updates
-tsun_v2.host    = 'iot.talent-monitoring.com'
-tsun_v2.port    = 10000
+# configuration for solarman cloud  for 'generation 3 plus' inverters
+solarman.enabled = true   # false: disables connecting to the tsun cloud, and avoids updates
+solarman.host    = 'iot.talent-monitoring.com'
+solarman.port    = 10000
 
 
 # mqtt broker configuration
