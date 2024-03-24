@@ -1,6 +1,11 @@
 import logging
 import weakref
 
+if __name__ == "app.src.messages":
+    from app.src.infos import Infos
+else:  # pragma: no cover
+    from infos import Infos
+
 logger = logging.getLogger('msg')
 
 
@@ -50,6 +55,17 @@ class Message(metaclass=IterRegistry):
         self._registry.append(weakref.ref(self))
 
         self.server_side = server_side
+        self.header_valid = False
+        self.header_len = 0
+        self.data_len = 0
+        self.unique_id = 0
+        self.node_id = ''
+        self.sug_area = ''
+        self._recv_buffer = bytearray(0)
+        self._send_buffer = bytearray(0)
+        self._forward_buffer = bytearray(0)
+        self.db = Infos()
+        self.new_data = {}
 
     '''
     Empty methods, that have to be implemented in any child class which
@@ -64,3 +80,11 @@ class Message(metaclass=IterRegistry):
     '''
     def close(self) -> None:
         pass  # pragma: no cover
+
+    def inc_counter(self, counter: str) -> None:
+        self.db.inc_counter(counter)
+        Infos.new_stat_data['proxy'] = True
+
+    def dec_counter(self, counter: str) -> None:
+        self.db.dec_counter(counter)
+        Infos.new_stat_data['proxy'] = True

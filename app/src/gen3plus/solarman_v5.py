@@ -3,11 +3,9 @@ import logging
 
 if __name__ == "app.src.gen3plus.solarman_v5":
     from app.src.messages import hex_dump_memory, Message
-    from app.src.infos import Infos
     from app.src.config import Config
 else:  # pragma: no cover
     from messages import hex_dump_memory, Message
-    from infos import Infos
     from config import Config
 # import traceback
 
@@ -19,22 +17,12 @@ class SolarmanV5(Message):
     def __init__(self, server_side: bool):
         super().__init__(server_side)
 
-        self.header_valid = False
-        self.header_len = 11
-        self.data_len = 0
+        self.header_len = 11  # overwrite construcor in class Message
         self.control = 0
         self.serial = 0
         self.snr = 0
-        self.unique_id = 0
-        self.node_id = ''
-        self.sug_area = ''
         # self.await_conn_resp_cnt = 0
         # self.id_str = id_str
-        self._recv_buffer = bytearray(0)
-        self._send_buffer = bytearray(0)
-        self._forward_buffer = bytearray(0)
-        self.db = Infos()
-        self.new_data = {}
         self.switch = {
             0x4110: self.msg_dev_ind,  # hello
             0x4210: self.msg_unknown,  # data
@@ -51,16 +39,6 @@ class SolarmanV5(Message):
         # so we have to erase self.switch, otherwise this instance can't be
         # deallocated by the garbage collector ==> we get a memory leak
         self.switch.clear()
-
-    def inc_counter(self, counter: str) -> None:
-        self.db.inc_counter(counter)
-        Infos.new_stat_data['proxy'] = True
-        pass
-
-    def dec_counter(self, counter: str) -> None:
-        self.db.dec_counter(counter)
-        Infos.new_stat_data['proxy'] = True
-        pass
 
     def set_serial_no(self, snr: int):
         serial_no = str(snr)
