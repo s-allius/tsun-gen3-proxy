@@ -50,10 +50,6 @@ class AsyncStreamG3(AsyncStream, Talent):
                 self.close()
                 return self
 
-    def disc(self) -> None:
-        logger.debug(f'in AsyncStream.disc() l{self.l_addr} | r{self.r_addr}')
-        self.writer.close()
-
     def close(self):
         AsyncStream.close(self)
         Talent.close(self)

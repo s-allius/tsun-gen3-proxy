@@ -172,28 +172,29 @@
 <!-- A7 -->
 <g id="node8" class="node">
 <title>A7</title>
-<polygon fill="none" stroke="#000000" points="140.348,-522 140.348,-554 219.348,-554 219.348,-522 140.348,-522"/>
-<text text-anchor="start" x="150.122" y="-535" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">AsyncStream</text>
-<polygon fill="none" stroke="#000000" points="140.348,-442 140.348,-522 219.348,-522 219.348,-442 140.348,-442"/>
-<text text-anchor="start" x="165.401" y="-503" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">reader</text>
-<text text-anchor="start" x="167.631" y="-491" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">writer</text>
-<text text-anchor="start" x="169.845" y="-479" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">addr</text>
-<text text-anchor="start" x="165.401" y="-467" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">r_addr</text>
-<text text-anchor="start" x="165.956" y="-455" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">l_addr</text>
-<polygon fill="none" stroke="#000000" points="140.348,-410 140.348,-442 219.348,-442 219.348,-410 140.348,-410"/>
-<text text-anchor="start" x="164.8505" y="-423" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">close()</text>
+<polygon fill="none" stroke="#000000" points="140.348,-528 140.348,-560 219.348,-560 219.348,-528 140.348,-528"/>
+<text text-anchor="start" x="150.122" y="-541" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">AsyncStream</text>
+<polygon fill="none" stroke="#000000" points="140.348,-448 140.348,-528 219.348,-528 219.348,-448 140.348,-448"/>
+<text text-anchor="start" x="165.401" y="-509" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">reader</text>
+<text text-anchor="start" x="167.631" y="-497" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">writer</text>
+<text text-anchor="start" x="169.845" y="-485" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">addr</text>
+<text text-anchor="start" x="165.401" y="-473" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">r_addr</text>
+<text text-anchor="start" x="165.956" y="-461" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">l_addr</text>
+<polygon fill="none" stroke="#000000" points="140.348,-404 140.348,-448 219.348,-448 219.348,-404 140.348,-404"/>
+<text text-anchor="start" x="167.63" y="-429" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">disc()</text>
+<text text-anchor="start" x="164.8505" y="-417" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">close()</text>
 </g>
 <!-- A7&#45;&gt;A5 -->
 <g id="edge6" class="edge">
 <title>A7&#45;&gt;A5</title>
-<path fill="none" stroke="#000000" d="M142.9395,-400.9735C137.3273,-389.7498 131.3828,-378.4833 125.348,-368 112.9282,-346.4252 97.6678,-323.6113 84.0174,-304.2438"/>
-<polygon fill="none" stroke="#000000" points="139.8036,-402.528 147.3645,-409.9497 146.0821,-399.4328 139.8036,-402.528"/>
+<path fill="none" stroke="#000000" d="M139.7872,-394.7354C135.1213,-385.6015 130.2646,-376.5408 125.348,-368 112.9282,-346.4252 97.6678,-323.6113 84.0174,-304.2438"/>
+<polygon fill="none" stroke="#000000" points="136.7648,-396.5158 144.3846,-403.8771 143.0185,-393.3707 136.7648,-396.5158"/>
 </g>
 <!-- A7&#45;&gt;A6 -->
 <g id="edge7" class="edge">
 <title>A7&#45;&gt;A6</title>
-<path fill="none" stroke="#000000" d="M215.99,-400.5426C221.0761,-389.5694 226.2911,-378.4858 231.348,-368 244.4267,-340.8805 259.9685,-310.4533 271.5173,-288.1651"/>
-<polygon fill="none" stroke="#000000" points="212.7676,-399.1723 211.7543,-409.7185 219.1232,-402.1061 212.7676,-399.1723"/>
+<path fill="none" stroke="#000000" d="M218.6419,-394.8367C222.8772,-385.7493 227.1666,-376.6703 231.348,-368 244.4267,-340.8805 259.9685,-310.4533 271.5173,-288.1651"/>
+<polygon fill="none" stroke="#000000" points="215.4651,-393.3678 214.4306,-403.912 221.8147,-396.3142 215.4651,-393.3678"/>
 </g>
 <!-- A8 -->
 <g id="node9" class="node">

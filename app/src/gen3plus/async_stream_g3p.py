@@ -48,11 +48,6 @@ class AsyncStreamG3P(AsyncStream, SolarmanV5):
                 self.close()
                 return self
 
-    def disc(self) -> None:
-        logger.debug(
-            f'in AsyncStreamG3P.disc() l{self.l_addr} | r{self.r_addr}')
-        self.writer.close()
-
     def close(self):
         AsyncStream.close(self)
         SolarmanV5.close(self)
