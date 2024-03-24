@@ -1,5 +1,4 @@
 import logging
-import traceback
 # from config import Config
 # import gc
 from async_stream import AsyncStream
@@ -21,35 +20,6 @@ class AsyncStreamG3(AsyncStream, Talent):
     '''
     Our puplic methods
     '''
-    async def loop(self):
-        self.r_addr = self.writer.get_extra_info('peername')
-        self.l_addr = self.writer.get_extra_info('sockname')
-
-        while True:
-            try:
-                await self.__async_read()
-
-                if self.unique_id:
-                    await self.__async_write()
-                    await self.__async_forward()
-                    await self.async_publ_mqtt()
-
-            except (ConnectionResetError,
-                    ConnectionAbortedError,
-                    BrokenPipeError,
-                    RuntimeError) as error:
-                logger.warning(f'In loop for l{self.l_addr} | '
-                               f'r{self.r_addr}: {error}')
-                self.close()
-                return self
-            except Exception:
-                self.inc_counter('SW_Exception')
-                logger.error(
-                    f"Exception for {self.addr}:\n"
-                    f"{traceback.format_exc()}")
-                self.close()
-                return self
-
     def close(self):
         AsyncStream.close(self)
         Talent.close(self)
@@ -58,7 +28,7 @@ class AsyncStreamG3(AsyncStream, Talent):
     '''
     Our private methods
     '''
-    async def __async_read(self) -> None:
+    async def _async_read(self) -> None:
         data = await self.reader.read(4096)
         if data:
             self._recv_buffer += data
@@ -66,7 +36,7 @@ class AsyncStreamG3(AsyncStream, Talent):
         else:
             raise RuntimeError("Peer closed.")
 
-    async def __async_write(self) -> None:
+    async def _async_write(self) -> None:
         if self._send_buffer:
             hex_dump_memory(logging.INFO, f'Transmit to {self.addr}:',
                             self._send_buffer, len(self._send_buffer))
@@ -74,14 +44,14 @@ class AsyncStreamG3(AsyncStream, Talent):
             await self.writer.drain()
             self._send_buffer = bytearray(0)  # self._send_buffer[sent:]
 
-    async def __async_forward(self) -> None:
+    async def _async_forward(self) -> None:
         if self._forward_buffer:
             if not self.remoteStream:
                 await self.async_create_remote()
                 if self.remoteStream:
                     self.remoteStream._init_new_client_conn(self.contact_name,
                                                             self.contact_mail)
-                    await self.remoteStream.__async_write()
+                    await self.remoteStream._async_write()
 
             if self.remoteStream:
                 hex_dump_memory(logging.INFO,
