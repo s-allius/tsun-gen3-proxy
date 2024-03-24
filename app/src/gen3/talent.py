@@ -50,6 +50,7 @@ class Talent(Message):
     Our puplic methods
     '''
     def close(self) -> None:
+        logging.debug('Talent.close()')
         # we have refernces to methods of this class in self.switch
         # so we have to erase self.switch, otherwise this instance can't be
         # deallocated by the garbage collector ==> we get a memory leak

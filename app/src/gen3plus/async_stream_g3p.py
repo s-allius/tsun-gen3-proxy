@@ -54,12 +54,9 @@ class AsyncStreamG3P(AsyncStream, SolarmanV5):
         self.writer.close()
 
     def close(self):
-        logger.debug(
-            f'in AsyncStreamG3P.close() l{self.l_addr} | r{self.r_addr}')
-        self.writer.close()
-        super().close()         # call close handler in the parent class
-
-#        logger.info(f'AsyncStream refs: {gc.get_referrers(self)}')
+        AsyncStream.close(self)
+        SolarmanV5.close(self)
+        #  logger.info(f'AsyncStream refs: {gc.get_referrers(self)}')
 
     '''
     Our private methods

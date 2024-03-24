@@ -35,6 +35,7 @@ class SolarmanV5(Message):
     Our puplic methods
     '''
     def close(self) -> None:
+        logging.debug('Solarman.close()')
         # we have refernces to methods of this class in self.switch
         # so we have to erase self.switch, otherwise this instance can't be
         # deallocated by the garbage collector ==> we get a memory leak
