@@ -5,11 +5,9 @@ from datetime import datetime
 
 if __name__ == "app.src.gen3.messages_g3":
     from app.src.messages import hex_dump_memory, Message
-    from app.src.infos import Infos
     from app.src.config import Config
 else:  # pragma: no cover
     from messages import hex_dump_memory, Message
-    from infos import Infos
     from config import Config
 
 logger = logging.getLogger('msg')
@@ -36,21 +34,10 @@ class MessageG3(Message):
 
     def __init__(self, server_side: bool, id_str=b''):
         super().__init__(server_side)
-        self.header_valid = False
-        self.header_len = 0
-        self.data_len = 0
-        self.unique_id = 0
-        self.node_id = ''
-        self.sug_area = ''
         self.await_conn_resp_cnt = 0
         self.id_str = id_str
         self.contact_name = b''
         self.contact_mail = b''
-        self._recv_buffer = bytearray(0)
-        self._send_buffer = bytearray(0)
-        self._forward_buffer = bytearray(0)
-        self.db = Infos()
-        self.new_data = {}
         self.switch = {
             0x00: self.msg_contact_info,
             0x13: self.msg_ota_update,
@@ -67,14 +54,6 @@ class MessageG3(Message):
         # so we have to erase self.switch, otherwise this instance can't be
         # deallocated by the garbage collector ==> we get a memory leak
         self.switch.clear()
-
-    def inc_counter(self, counter: str) -> None:
-        self.db.inc_counter(counter)
-        Infos.new_stat_data['proxy'] = True
-
-    def dec_counter(self, counter: str) -> None:
-        self.db.dec_counter(counter)
-        Infos.new_stat_data['proxy'] = True
 
     def set_serial_no(self, serial_no: str):
 
