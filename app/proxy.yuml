@@ -8,10 +8,10 @@
 [Message]^[SolarmanV5|control;serial;snr;switch|msg_unknown();;close()]
 [Talent]^[AsyncStreamG3|remoteStream|close()]
 [SolarmanV5]^[AsyncStreamG3P|close()]
-[AsyncStream|reader;writer;addr;r_addr;l_addr|disc();close()]^[AsyncStreamG3]
+[AsyncStream|reader;writer;addr;r_addr;l_addr|<async>loop;;disc();close()]^[AsyncStreamG3]
 [AsyncStream]^[AsyncStreamG3P]
-[Inverter|cls.db_stat;cls.entity_prfx;cls.discovery_prfx;cls.proxy_node_id;cls.proxy_unique_id;cls.mqtt]^[InverterG3||async server_loop();async client_loop();;close()]
-[Inverter]^[InverterG3P||async server_loop();;close()]
+[Inverter|cls.db_stat;cls.entity_prfx;cls.discovery_prfx;cls.proxy_node_id;cls.proxy_unique_id;cls.mqtt]^[InverterG3||<async>server_loop();<async>client_loop();;close()]
+[Inverter]^[InverterG3P||<async>server_loop();;close()]
 [AsyncStreamG3]^[InverterG3]
 [AsyncStreamG3P]^[InverterG3P]
 
