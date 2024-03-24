@@ -1,6 +1,6 @@
 # test_with_pytest.py
 import pytest, logging
-from app.src.gen3.messages_g3 import MessageG3, Control
+from app.src.gen3.talent import Talent, Control
 from app.src.config import Config
 from app.src.infos import Infos
 
@@ -9,7 +9,7 @@ Infos.static_init()
 
 tracer = logging.getLogger('tracer')
     
-class MemoryStream(MessageG3):
+class MemoryStream(Talent):
     def __init__(self, msg, chunks = (0,), server_side: bool = True):
         super().__init__(server_side)
         self.__msg = msg
@@ -45,8 +45,8 @@ class MemoryStream(MessageG3):
     def _timestamp(self):
         return 1700260990000
     
-    def _MessageG3__flush_recv_msg(self) -> None:
-        super()._MessageG3__flush_recv_msg()
+    def _Talent__flush_recv_msg(self) -> None:
+        super()._Talent__flush_recv_msg()
         self.msg_count += 1
         return
     
@@ -700,14 +700,14 @@ def test_ctrl_byte():
 
     
 def test_msg_iterator():
-    m1 = MessageG3(server_side=True)
-    m2 = MessageG3(server_side=True)
-    m3 = MessageG3(server_side=True)
+    m1 = Talent(server_side=True)
+    m2 = Talent(server_side=True)
+    m3 = Talent(server_side=True)
     m3.close()
     del m3
     test1 = 0
     test2 = 0
-    for key in MessageG3:
+    for key in Talent:
         if key == m1:
             test1+=1
         elif key == m2:
@@ -718,7 +718,7 @@ def test_msg_iterator():
     assert test2 == 1
 
 def test_proxy_counter():
-    m = MessageG3(server_side=True)
+    m = Talent(server_side=True)
     assert m.new_data == {}
     m.db.stat['proxy']['Unknown_Msg'] = 0
     Infos.new_stat_data['proxy'] =  False

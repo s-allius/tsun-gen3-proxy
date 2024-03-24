@@ -3,18 +3,18 @@ import traceback
 # from config import Config
 # import gc
 from async_stream import AsyncStream
-from gen3.messages_g3 import MessageG3
+from gen3.talent import Talent
 from messages import hex_dump_memory
 
 logger = logging.getLogger('conn')
 
 
-class AsyncStreamG3(AsyncStream, MessageG3):
+class AsyncStreamG3(AsyncStream, Talent):
 
     def __init__(self, reader, writer, addr, remote_stream, server_side: bool,
                  id_str=b'') -> None:
         AsyncStream.__init__(self, reader, writer, addr)
-        MessageG3.__init__(self, server_side, id_str)
+        Talent.__init__(self, server_side, id_str)
 
         self.remoteStream = remote_stream
 

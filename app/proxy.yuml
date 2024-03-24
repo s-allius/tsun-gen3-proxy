@@ -4,9 +4,9 @@
 
 [note: You can stick notes on diagrams too!{bg:cornsilk}]
 [IterRegistry||__iter__]^[Message|server_side:bool;header_valid:bool;header_len:unsigned;data_len:unsigned;unique_id;node_id;sug_area;_recv_buffer:bytearray;_send_buffer:bytearray;_forward_buffer:bytearray;db:Infos;new_data:list|_read():void<abstract>;close():void;inc_counter():void;dec_counter():void]
-[Message]^[MessageG3|await_conn_resp_cnt;id_str;contact_name;contact_mail;switch|msg_contact_info();msg_ota_update();msg_get_time();msg_collector_data();msg_inverter_data();msg_unknown()]
+[Message]^[Talent|await_conn_resp_cnt;id_str;contact_name;contact_mail;switch|msg_contact_info();msg_ota_update();msg_get_time();msg_collector_data();msg_inverter_data();msg_unknown()]
 [Message]^[SolarmanV5|control;serial;snr;switch|msg_unknown()]
-[MessageG3]^[AsyncStreamG3|remoteStream]
+[Talent]^[AsyncStreamG3|remoteStream]
 [SolarmanV5]^[AsyncStreamG3P]
 [AsyncStream|reader;writer;addr;r_addr;l_addr]^[AsyncStreamG3]
 [AsyncStream]^[AsyncStreamG3P]

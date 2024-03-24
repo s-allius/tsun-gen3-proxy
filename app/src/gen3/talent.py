@@ -3,7 +3,7 @@ import logging
 import time
 from datetime import datetime
 
-if __name__ == "app.src.gen3.messages_g3":
+if __name__ == "app.src.gen3.talent":
     from app.src.messages import hex_dump_memory, Message
     from app.src.config import Config
 else:  # pragma: no cover
@@ -30,7 +30,7 @@ class Control:
         return (self.ctrl == 0x99)
 
 
-class MessageG3(Message):
+class Talent(Message):
 
     def __init__(self, server_side: bool, id_str=b''):
         super().__init__(server_side)
