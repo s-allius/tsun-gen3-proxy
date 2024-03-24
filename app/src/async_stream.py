@@ -13,6 +13,10 @@ class AsyncStream():
         self.r_addr = ''
         self.l_addr = ''
 
+    def close(self):
+        logger.debug(f'AsyncStream.close() l{self.l_addr} | r{self.r_addr}')
+        self.writer.close()
+
     def __del__(self):
         logger.debug(
             f"AsyncStream.__del__  l{self.l_addr} | r{self.r_addr}")
