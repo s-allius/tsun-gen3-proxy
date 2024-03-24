@@ -1,5 +1,9 @@
 import pytest, json
 from app.src.gen3plus.solarman_v5 import SolarmanV5
+from app.src.infos import Infos
+
+# initialize the proxy statistics
+Infos.static_init()
 
 class MemoryStream(SolarmanV5):
     def __init__(self, msg, chunks = (0,), server_side: bool = True):
@@ -87,22 +91,4 @@ def test_read_message(TestMsg):
     assert m.data_len == 0xd4
     assert m._forward_buffer==b''
     m.close()
-
-
-def test_parse_header(TestMsg):
-    i = SolarmanV5(True)
-    cnt = 0
-    for ctrl, buf in i.parse_header(TestMsg, len(TestMsg)):
-        cnt += 1
-        assert ctrl == 0x4110
-        assert buf == TestMsg[11:-2]
-        pass
-
-    assert cnt == 1
-    assert i.data_len == 0xd4
-    assert i.control == 0x4110
-    assert i.serial == 0x0100
-    assert i.snr == 2068651720
-    assert i.crc == 0x3c
-    assert i.stop == 0x15
 

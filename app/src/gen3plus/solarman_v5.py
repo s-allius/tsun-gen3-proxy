@@ -138,28 +138,6 @@ class SolarmanV5(Message):
 
         return True
 
-    def parse_header(self, buf: bytes, buf_len: int) -> None:
-
-        if (buf_len < self.header_len):      # header complete?
-            return
-
-        result = struct.unpack_from('<BHHHL', buf, 0)
-
-        start = result[0]    # len of complete message
-        self.data_len = result[1]    # len of variable id string
-        self.control = result[2]
-        self.serial = result[3]
-        self.snr = result[4]
-        if start != 0xA5:
-            return
-        if (buf_len < 13 + self.data_len):
-            return
-
-        self.crc = buf[self.data_len+11]
-        self.stop = buf[self.data_len+12]
-
-        yield self.control, buf[11:11+self.data_len]
-
     def __dispatch_msg(self) -> None:
         fnc = self.switch.get(self.control, self.msg_unknown)
         if self.unique_id:
