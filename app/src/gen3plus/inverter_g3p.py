@@ -60,7 +60,7 @@ class InverterG3P(Inverter, AsyncStreamG3P):
             connect = asyncio.open_connection(host, port)
             reader, writer = await connect
             self.remoteStream = AsyncStreamG3P(reader, writer, addr, self,
-                                               False, self.id_str)
+                                               False)
             asyncio.create_task(self.client_loop(addr))
 
         except (ConnectionRefusedError, TimeoutError) as error:
