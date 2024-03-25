@@ -76,9 +76,8 @@ class AsyncStream():
             if not self.remoteStream:
                 await self.async_create_remote()
                 if self.remoteStream:
-                    self.remoteStream._init_new_client_conn(self.contact_name,
-                                                            self.contact_mail)
-                    await self.remoteStream.__async_write()
+                    if self.remoteStream._init_new_client_conn():
+                        await self.remoteStream.__async_write()
 
             if self.remoteStream:
                 hex_dump_memory(logging.INFO,

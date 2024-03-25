@@ -111,7 +111,9 @@ class Talent(Message):
                         f' Ctl: {int(self.ctrl):#02x} Msg: {fnc.__name__!r}')
         return
 
-    def _init_new_client_conn(self, contact_name, contact_mail) -> None:
+    def _init_new_client_conn(self) -> bool:
+        contact_name = self.contact_name
+        contact_mail = self.contact_mail
         logger.info(f'name: {contact_name} mail: {contact_mail}')
         self.msg_id = 0
         self.await_conn_resp_cnt += 1
@@ -121,6 +123,7 @@ class Talent(Message):
                                          contact_name, contact_mail)
 
         self.__finish_send_msg()
+        return True
 
     '''
     Our private methods

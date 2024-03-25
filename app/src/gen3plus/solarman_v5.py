@@ -88,6 +88,30 @@ class SolarmanV5(Message):
             self.__flush_recv_msg()
         return
 
+    def forward(self, buffer, buflen) -> None:
+        tsun = Config.get('solarman')
+        if tsun['enabled']:
+            self._forward_buffer = buffer[:buflen]
+            hex_dump_memory(logging.DEBUG, 'Store for forwarding:',
+                            buffer, buflen)
+
+            self.__parse_header(self._forward_buffer,
+                                len(self._forward_buffer))
+            fnc = self.switch.get(self.control, self.msg_unknown)
+            logger.info(self.__flow_str(self.server_side, 'forwrd') +
+                        f' Ctl: {int(self.control):#04x}'
+                        f' Msg: {fnc.__name__!r}')
+        return
+
+    def _init_new_client_conn(self) -> bool:
+        # self.__build_header(0x91)
+        # self._send_buffer += struct.pack(f'!{len(contact_name)+1}p'
+        #                                  f'{len(contact_mail)+1}p',
+        #                                  contact_name, contact_mail)
+
+        # self.__finish_send_msg()
+        return False
+
     '''
     Our private methods
     '''
@@ -195,7 +219,7 @@ class SolarmanV5(Message):
     def msg_unknown(self):
         logger.warning(f"Unknow Msg: ID:{self.control}")
         self.inc_counter('Unknown_Msg')
-        self.forward(self._recv_buffer, self.header_len+self.data_len)
+        self.forward(self._recv_buffer, self.header_len+self.data_len+2)
 
     def msg_dev_ind(self):
         data = self._recv_buffer[self.header_len:]
@@ -221,4 +245,4 @@ class SolarmanV5(Message):
                         f'wifi:{wifi}%')
             logger.info(f'ver:{ver}')
 
-        # self.forward(self._recv_buffer, self.header_len+self.data_len)
+        self.forward(self._recv_buffer, self.header_len+self.data_len+2)
