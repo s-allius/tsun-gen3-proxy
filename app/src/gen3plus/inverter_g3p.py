@@ -1,7 +1,8 @@
+import asyncio
 import logging
 import traceback
 import json
-# from config import Config
+from config import Config
 from inverter import Inverter
 from gen3plus.async_stream_g3p import AsyncStreamG3P
 from aiomqtt import MqttCodeError
@@ -47,23 +48,28 @@ class InverterG3P(Inverter, AsyncStreamG3P):
         super().__init__(reader, writer, addr, None, True)
         self.ha_restarts = -1
 
-    async def server_loop(self, addr):
-        '''Loop for receiving messages from the inverter (server-side)'''
-        logging.info(f'Accept connection from  {addr} (G3P)')
-        self.inc_counter('Inverter_Cnt')
-        await self.loop()
-        self.dec_counter('Inverter_Cnt')
-        logging.info(f'Server loop stopped for r{self.r_addr}')
+    async def async_create_remote(self) -> None:
+        '''Establish a client connection to the TSUN cloud'''
+        tsun = Config.get('solarman')
+        host = tsun['host']
+        port = tsun['port']
+        addr = (host, port)
 
-        # if the server connection closes, we also have to disconnect
-        # the connection to te TSUN cloud
-        # if self.remoteStream:
-        #    logging.debug("disconnect client connection")
-        #    self.remoteStream.disc()
         try:
-            await self._async_publ_mqtt_proxy_stat('proxy')
+            logging.info(f'Connected to {addr}')
+            connect = asyncio.open_connection(host, port)
+            reader, writer = await connect
+            self.remoteStream = AsyncStreamG3P(reader, writer, addr, self,
+                                               False, self.id_str)
+            asyncio.create_task(self.client_loop(addr))
+
+        except (ConnectionRefusedError, TimeoutError) as error:
+            logging.info(f'{error}')
         except Exception:
-            pass
+            self.inc_counter('SW_Exception')
+            logging.error(
+                f"Inverter: Exception for {addr}:\n"
+                f"{traceback.format_exc()}")
 
     async def async_publ_mqtt(self) -> None:
         '''publish data to MQTT broker'''
