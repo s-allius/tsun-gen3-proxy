@@ -1,5 +1,7 @@
 import struct
 import logging
+# import time
+from datetime import datetime
 
 if __name__ == "app.src.gen3plus.solarman_v5":
     from app.src.messages import hex_dump_memory, Message
@@ -25,9 +27,12 @@ class SolarmanV5(Message):
         # self.id_str = id_str
         self.switch = {
             0x4110: self.msg_dev_ind,  # hello
+            0x1110: self.msg_dev_rsp,
             0x4210: self.msg_unknown,  # data
+            0x1210: self.msg_data_rsp,
             0x4310: self.msg_unknown,
             0x4710: self.msg_unknown,  # heatbeat
+            0x1710: self.msg_hbeat_rsp,
             0x4810: self.msg_unknown,  # hello end
         }
 
@@ -217,7 +222,7 @@ class SolarmanV5(Message):
     Message handler methods
     '''
     def msg_unknown(self):
-        logger.warning(f"Unknow Msg: ID:{self.control}")
+        logger.warning(f"Unknow Msg: ID:{int(self.control):#04x}")
         self.inc_counter('Unknown_Msg')
         self.forward(self._recv_buffer, self.header_len+self.data_len+2)
 
@@ -229,7 +234,10 @@ class SolarmanV5(Message):
         tim = result[2]
         res = result[3]  # always zero
         logger.info(f'code:{code} total:{total}s'
-                    f' timer:{tim}s  null:{res}')
+                    f' timer:{tim:08x}s  null:{res}')
+        dt = datetime.fromtimestamp(total)
+        logger.info(f'ts: {dt.strftime("%Y-%m-%d %H:%M:%S")}')
+
         if (code == 2):
             result = struct.unpack_from('<BBBBBB40s', data, 13)
             upload_period = result[0]
@@ -245,4 +253,27 @@ class SolarmanV5(Message):
                         f'wifi:{wifi}%')
             logger.info(f'ver:{ver}')
 
+        self.forward(self._recv_buffer, self.header_len+self.data_len+2)
+
+    def msg_dev_rsp(self):
+        self.msg_response()
+
+    def msg_data_rsp(self):
+        self.msg_response()
+
+    def msg_hbeat_rsp(self):
+        self.msg_response()
+
+    def msg_response(self):
+        data = self._recv_buffer[self.header_len:]
+        result = struct.unpack_from('<BBLL', data, 0)
+        code = result[0]  # always 2
+        valid = result[1] == 1  # status
+        ts = result[2]
+        repeat = result[3]  # always 60
+        logger.info(f'code:{code} accepted:{valid}'
+                    f' ts:{ts:08x}  repeat:{repeat}s')
+
+        dt = datetime.fromtimestamp(ts)
+        logger.info(f'ts: {dt.strftime("%Y-%m-%d %H:%M:%S")}')
         self.forward(self._recv_buffer, self.header_len+self.data_len+2)
