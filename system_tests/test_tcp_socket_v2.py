@@ -1,11 +1,17 @@
 # test_with_pytest.py and scapy
 #
-import pytest, socket, time
+import pytest, socket, time, os
+from dotenv import load_dotenv
+
 #from scapy.all import *
 #from scapy.layers.inet import IP, TCP, TCP_client
 
+load_dotenv()
+
+SOLARMAN_SNR = os.getenv('SOLARMAN_SNR', '00000080')
+
 def get_sn() -> bytes:
-    return b'\xc8\x1e\x4d\x7b'
+    return bytes.fromhex(SOLARMAN_SNR)
 
 def get_inv_no() -> bytes:
     return b'T170000000000001'
@@ -54,6 +60,14 @@ def ClientConnection():
         yield s
         s.close()
 
+def checkResponse(data, Msg):
+    check = bytearray(data)
+    check[5]= Msg[5]            # ignore seq
+    check[13:17]= Msg[13:17]    # ignore timestamp
+    check[21]= Msg[21]          # ignore crc
+    assert check == Msg
+
+
 def tempClientConnection():
     #host = '172.16.30.7'
     host = 'logger.talent-monitoring.com'
@@ -64,6 +78,7 @@ def tempClientConnection():
         s.connect((host, port))
         s.settimeout(1)
         yield s
+        time.sleep(2.5)
         s.close()
 
 def test_open_close():
@@ -78,10 +93,9 @@ def test_conn_msg(ClientConnection,MsgContactInfo, MsgContactResp):
     s = ClientConnection
     try:
         s.sendall(MsgContactInfo)
-        time.sleep(2.5)
+        # time.sleep(2.5)
         data = s.recv(1024)
     except TimeoutError:
         pass
-    time.sleep(2.5)
-
-    assert data == MsgContactResp
+    # time.sleep(2.5)
+    checkResponse(data, MsgContactResp)
