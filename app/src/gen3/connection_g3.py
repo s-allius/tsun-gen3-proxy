@@ -6,7 +6,7 @@ from gen3.talent import Talent
 logger = logging.getLogger('conn')
 
 
-class AsyncStreamG3(AsyncStream, Talent):
+class ConnectionG3(AsyncStream, Talent):
 
     def __init__(self, reader, writer, addr, remote_stream, server_side: bool,
                  id_str=b'') -> None:

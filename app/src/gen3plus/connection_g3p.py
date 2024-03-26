@@ -6,7 +6,7 @@ from gen3plus.solarman_v5 import SolarmanV5
 logger = logging.getLogger('conn')
 
 
-class AsyncStreamG3P(AsyncStream, SolarmanV5):
+class ConnectionG3P(AsyncStream, SolarmanV5):
 
     def __init__(self, reader, writer, addr, remote_stream,
                  server_side: bool) -> None:
