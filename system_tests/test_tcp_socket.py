@@ -128,6 +128,7 @@ def ClientConnection():
         s.connect((host, port))
         s.settimeout(1)
         yield s
+        time.sleep(2.5)
         s.close()
 
 def tempClientConnection():
