@@ -46,7 +46,7 @@ class InverterG3P(Inverter, ConnectionG3P):
 
     def __init__(self, reader, writer, addr):
         super().__init__(reader, writer, addr, None, True)
-        self.ha_restarts = -1
+        self.__ha_restarts = -1
 
     async def async_create_remote(self) -> None:
         '''Establish a client connection to the TSUN cloud'''
@@ -79,10 +79,10 @@ class InverterG3P(Inverter, ConnectionG3P):
             if (('inverter' in self.new_data and self.new_data['inverter'])
                     or ('collector' in self.new_data and
                         self.new_data['collector'])
-                    or self.mqtt.ha_restarts != self.ha_restarts):
+                    or self.mqtt.ha_restarts != self.__ha_restarts):
                 await self._register_proxy_stat_home_assistant()
                 await self.__register_home_assistant()
-                self.ha_restarts = self.mqtt.ha_restarts
+                self.__ha_restarts = self.mqtt.ha_restarts
 
             for key in self.new_data:
                 await self.__async_publ_mqtt_packet(key)
