@@ -18,8 +18,8 @@ class Singleton(type):
 
 
 class Mqtt(metaclass=Singleton):
-    client = None
-    cb_MqttIsUp = None
+    __client = None
+    __cb_MqttIsUp = None
 
     def __init__(self, cb_MqttIsUp):
         logger_mqtt.debug('MQTT: __init__')
@@ -50,8 +50,8 @@ class Mqtt(metaclass=Singleton):
 
     async def publish(self, topic: str, payload: str | bytes | bytearray
                       | int | float | None = None) -> None:
-        if self.client:
-            await self.client.publish(topic, payload)
+        if self.__client:
+            await self.__client.publish(topic, payload)
 
     async def __loop(self) -> None:
         mqtt = Config.get('mqtt')
@@ -59,22 +59,24 @@ class Mqtt(metaclass=Singleton):
         logger_mqtt.info(f'start MQTT: host:{mqtt["host"]}  port:'
                          f'{mqtt["port"]}  '
                          f'user:{mqtt["user"]}')
-        self.client = aiomqtt.Client(hostname=mqtt['host'], port=mqtt['port'],
-                                     username=mqtt['user'],
-                                     password=mqtt['passwd'])
+        self.__client = aiomqtt.Client(hostname=mqtt['host'],
+                                       port=mqtt['port'],
+                                       username=mqtt['user'],
+                                       password=mqtt['passwd'])
 
         interval = 5  # Seconds
         while True:
             try:
-                async with self.client:
+                async with self.__client:
                     logger_mqtt.info('MQTT broker connection established')
 
                     if self.cb_MqttIsUp:
                         await self.cb_MqttIsUp()
 
-                    async with self.client.messages() as messages:
-                        await self.client.subscribe(f"{ha['auto_conf_prefix']}"
-                                                    "/status")
+                    async with self.__client.messages() as messages:
+                        await self.__client.subscribe(
+                            f"{ha['auto_conf_prefix']}"
+                            "/status")
                         async for message in messages:
                             status = message.payload.decode("UTF-8")
                             logger_mqtt.info('Home-Assistant Status:'
@@ -89,5 +91,5 @@ class Mqtt(metaclass=Singleton):
                 await asyncio.sleep(interval)
             except asyncio.CancelledError:
                 logger_mqtt.debug("MQTT task cancelled")
-                self.client = None
+                self.__client = None
                 return
