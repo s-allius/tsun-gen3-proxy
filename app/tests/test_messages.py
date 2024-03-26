@@ -290,8 +290,10 @@ def test_read_two_messages(ConfigTsunAllowAll, Msg2ContactInfo,MsgContactResp,Ms
     assert m._send_buffer==MsgContactResp
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
 
-    m._send_buffer = bytearray(0) # clear send buffer for next test
-    m._init_new_client_conn(b'solarhub', b'solarhub@123456')
+    m._send_buffer = bytearray(0) # clear send buffer for next test  
+    m.contact_name = b'solarhub'
+    m.contact_mail = b'solarhub@123456'
+    m._init_new_client_conn()
     assert m._send_buffer==b'\x00\x00\x00,\x10R170000000000001\x91\x00\x08solarhub\x0fsolarhub@123456'
 
     m._send_buffer = bytearray(0) # clear send buffer for next test
@@ -308,8 +310,10 @@ def test_read_two_messages(ConfigTsunAllowAll, Msg2ContactInfo,MsgContactResp,Ms
     assert m._send_buffer==MsgContactResp2
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
 
-    m._send_buffer = bytearray(0) # clear send buffer for next test
-    m._init_new_client_conn(b'solarhub', b'solarhub@123456')
+    m._send_buffer = bytearray(0) # clear send buffer for next test    
+    m.contact_name = b'solarhub'
+    m.contact_mail = b'solarhub@123456'
+    m._init_new_client_conn()
     assert m._send_buffer==b'\x00\x00\x00,\x10R170000000000002\x91\x00\x08solarhub\x0fsolarhub@123456'
     m.close()
 
