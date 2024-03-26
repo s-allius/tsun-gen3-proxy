@@ -15,6 +15,43 @@ class AsyncStream():
         self.r_addr = ''
         self.l_addr = ''
 
+    async def server_loop(self, addr):
+        '''Loop for receiving messages from the inverter (server-side)'''
+        logging.info(f'Accept connection from  {addr} to {self.l_addr}')
+        self.inc_counter('Inverter_Cnt')
+        await self.loop()
+        self.dec_counter('Inverter_Cnt')
+        logging.info(f'Server loop stopped for r{self.r_addr}')
+
+        # if the server connection closes, we also have to disconnect
+        # the connection to te TSUN cloud
+        if self.remoteStream:
+            logging.debug("disconnect client connection")
+            self.remoteStream.disc()
+        try:
+            await self._async_publ_mqtt_proxy_stat('proxy')
+        except Exception:
+            pass
+
+    async def client_loop(self, addr):
+        '''Loop for receiving messages from the TSUN cloud (client-side)'''
+        clientStream = await self.remoteStream.loop()
+        logging.info(f'Client loop stopped for l{clientStream.l_addr}')
+
+        # if the client connection closes, we don't touch the server
+        # connection. Instead we erase the client connection stream,
+        # thus on the next received packet from the inverter, we can
+        # establish a new connection to the TSUN cloud
+
+        # erase backlink to inverter
+        clientStream.remoteStream = None
+
+        if self.remoteStream == clientStream:
+            # logging.debug(f'Client l{clientStream.l_addr} refs:'
+            #               f' {gc.get_referrers(clientStream)}')
+            # than erase client connection
+            self.remoteStream = None
+
     async def loop(self):
         self.r_addr = self.writer.get_extra_info('peername')
         self.l_addr = self.writer.get_extra_info('sockname')
