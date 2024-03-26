@@ -7,4 +7,5 @@ tsun_proxy/**
 Doku/**
 .DS_Store
 .coverage
+.env
 coverage.xml
