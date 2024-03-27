@@ -94,10 +94,15 @@ You find more details here: https://toml.io/en/v1.0.0
 
 
 ```toml
-# configuration to reach tsun cloud
+# configuration for tsun cloud for 'generation 3' inverters
 tsun.enabled = true   # false: disables connecting to the tsun cloud, and avoids updates
 tsun.host    = 'logger.talent-monitoring.com'
 tsun.port    = 5005
+
+# configuration for solarman cloud  for 'generation 3 plus' inverters
+solarman.enabled = true   # false: disables connecting to the tsun cloud, and avoids updates
+solarman.host    = 'iot.talent-monitoring.com'
+solarman.port    = 10000
 
 
 # mqtt broker configuration
@@ -125,10 +130,23 @@ inverters.allow_all = false   # True: allow inverters, even if we have no invert
 [inverters."R17xxxxxxxxxxxx1"]
 node_id = 'inv1'              # Optional, MQTT replacement for inverters serial number  
 suggested_area = 'roof'       # Optional, suggested installation area for home-assistant
+pv1 = {type = 'RSM40-8-410M', manufacturer = 'Risen'}
+pv2 = {type = 'RSM40-8-410M', manufacturer = 'Risen'}
 
 [inverters."R17xxxxxxxxxxxx2"]
 node_id = 'inv2'              # Optional, MQTT replacement for inverters serial number  
 suggested_area = 'balcony'    # Optional, suggested installation area for home-assistant
+pv1 = {type = 'RSM40-8-410M', manufacturer = 'Risen'}
+pv2 = {type = 'RSM40-8-410M', manufacturer = 'Risen'}
+
+[inverters."Y17xxxxxxxxxxxx1"]
+monitor_sn = 2000000000
+node_id = 'inv_3'              # MQTT replacement for inverters serial number  
+suggested_area = 'Garage'  # suggested installation place for home-assistant
+pv1 = {type = 'RSM40-8-410M', manufacturer = 'Risen'}
+pv2 = {type = 'RSM40-8-410M', manufacturer = 'Risen'}
+pv3 = {type = 'RSM40-8-405M', manufacturer = 'Risen'}
+pv4 = {type = 'RSM40-8-405M', manufacturer = 'Risen'}
 
 
 ```

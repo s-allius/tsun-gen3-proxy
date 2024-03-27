@@ -80,6 +80,7 @@ services:
       - $(DNS2:-4.4.4.4}
     ports: 
       - 5005:5005
+      - 10000:10000
     volumes:
       - ${PROJECT_DIR}./tsun-proxy/log:/home/tsun-proxy/log 
       - ${PROJECT_DIR}./tsun-proxy/config:/home/tsun-proxy/config 

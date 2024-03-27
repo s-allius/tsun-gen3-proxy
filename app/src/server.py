@@ -4,8 +4,10 @@ import signal
 import functools
 import os
 from logging import config  # noqa F401
-from async_stream import AsyncStream
+from messages import Message
 from inverter import Inverter
+from gen3.inverter_g3 import InverterG3
+from gen3plus.inverter_g3p import InverterG3P
 from config import Config
 
 
@@ -13,7 +15,14 @@ async def handle_client(reader, writer):
     '''Handles a new incoming connection and starts an async loop'''
 
     addr = writer.get_extra_info('peername')
-    await Inverter(reader, writer, addr).server_loop(addr)
+    await InverterG3(reader, writer, addr).server_loop(addr)
+
+
+async def handle_client_v2(reader, writer):
+    '''Handles a new incoming connection and starts an async loop'''
+
+    addr = writer.get_extra_info('peername')
+    await InverterG3P(reader, writer, addr).server_loop(addr)
 
 
 def handle_SIGTERM(loop):
@@ -24,7 +33,7 @@ def handle_SIGTERM(loop):
     #
     # first, close all open TCP connections
     #
-    for stream in AsyncStream:
+    for stream in Message:
         stream.close()
 
     #
@@ -81,11 +90,12 @@ if __name__ == "__main__":
                                 functools.partial(handle_SIGTERM, loop))
 
     #
-    # Create a task for our listening server. This must be a task! If we call
+    # Create taska for our listening servera. These must be tasks! If we call
     # start_server directly out of our main task, the eventloop will be blocked
     # and we can't receive and handle the UNIX signals!
     #
     loop.create_task(asyncio.start_server(handle_client, '0.0.0.0', 5005))
+    loop.create_task(asyncio.start_server(handle_client_v2, '0.0.0.0', 10000))
 
     try:
         loop.run_forever()
