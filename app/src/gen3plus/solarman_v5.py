@@ -26,14 +26,14 @@ class SolarmanV5(Message):
         # self.await_conn_resp_cnt = 0
         # self.id_str = id_str
         self.switch = {
-            0x4110: self.msg_dev_ind,  # hello
+            0x4110: self.msg_dev_ind,    # hello
             0x1110: self.msg_dev_rsp,
-            0x4210: self.msg_unknown,  # data
+            0x4210: self.msg_data_ind,   # data every 5 minutes
             0x1210: self.msg_data_rsp,
-            0x4310: self.msg_unknown,
-            0x4710: self.msg_unknown,  # heatbeat
-            0x1710: self.msg_hbeat_rsp,
-            0x4810: self.msg_unknown,  # hello end
+            0x4310: self.msg_unknown,    # regulary after 3-6 hours
+            0x4710: self.msg_hbeat_ind,  # heatbeat
+            0x1710: self.msg_hbeat_rsp,  # every 2 minutes
+            0x4810: self.msg_unknown,    # hello end
         }
 
     '''
@@ -229,17 +229,17 @@ class SolarmanV5(Message):
     def msg_dev_ind(self):
         data = self._recv_buffer[self.header_len:]
         result = struct.unpack_from('<BLLL', data, 0)
-        code = result[0]  # always 2
+        ftype = result[0]  # always 2
         total = result[1]
         tim = result[2]
         res = result[3]  # always zero
-        logger.info(f'code:{code} total:{total}s'
+        logger.info(f'frame type:{ftype} total:{total}s'
                     f' timer:{tim:08x}s  null:{res}')
         dt = datetime.fromtimestamp(total)
         logger.info(f'ts: {dt.strftime("%Y-%m-%d %H:%M:%S")}')
 
-        if (code == 2):
-            result = struct.unpack_from('<BBBBBB40s', data, 13)
+        if (ftype == 2):
+            result = struct.unpack_from('!BBBBBB40s', data, 13)
             upload_period = result[0]
             data_acq_period = result[1]
             heart_beat = result[2]
@@ -258,8 +258,56 @@ class SolarmanV5(Message):
     def msg_dev_rsp(self):
         self.msg_response()
 
+    def msg_data_ind(self):
+        data = self._recv_buffer
+        result = struct.unpack_from('<BLLLLL', data, self.header_len)
+        ftype = result[0]  # 1 or 0x81
+        total = result[1]
+        tim = result[2]
+        offset = result[3]
+        unkn = result[4]
+        cnt = result[5]
+        logger.info(f'ftype:{ftype} total:{total}s'
+                    f' timer:{tim:08x}s  ofs:{offset}'
+                    f' ??: {unkn:08x} cnt:{cnt}')
+        dt = datetime.fromtimestamp(total)
+        logger.info(f'ts: {dt.strftime("%Y-%m-%d %H:%M:%S")}')
+
+        if (ftype == 1):
+            result = struct.unpack_from('!HH', data, 0xdc)
+            rated = result[0]/1
+            actual = result[1]/10
+            logger.info(f'Rated Power:{rated}W, Actual Power:{actual}W')
+
+            result = struct.unpack_from('!HLHLHLHLHL', data, 0xf8)
+            daily = result[0]/100
+            total = result[1]/100
+            pv1_daily = result[2]/100
+            pv1_total = result[3]/100
+            pv2_daily = result[4]/100
+            pv2_total = result[5]/100
+            pv3_daily = result[6]/100
+            pv3_total = result[7]/100
+            pv4_daily = result[8]/100
+            pv4_total = result[9]/100
+            logger.info(f'daily:{daily}kWh '
+                        f'tolal:{total}kWh\n'
+                        f'pv daily:{pv1_daily}kWh, {pv2_daily}kWh, {pv3_daily}kWh, {pv4_daily}kWh\n'   # noqa: E501
+                        f'pv total:{pv1_total}kWh, {pv2_total}kWh, {pv3_total}kWh, {pv4_total}kWh')    # noqa: E501
+
+        self.forward(self._recv_buffer, self.header_len+self.data_len+2)
+
     def msg_data_rsp(self):
         self.msg_response()
+
+    def msg_hbeat_ind(self):
+        data = self._recv_buffer[self.header_len:]
+        result = struct.unpack_from('<B', data, 0)
+        ftype = result[0]  # always 0
+        if ftype != 0:
+            logger.info(f'hb frame_type:{ftype}')
+
+        self.forward(self._recv_buffer, self.header_len+self.data_len+2)
 
     def msg_hbeat_rsp(self):
         self.msg_response()
@@ -267,11 +315,11 @@ class SolarmanV5(Message):
     def msg_response(self):
         data = self._recv_buffer[self.header_len:]
         result = struct.unpack_from('<BBLL', data, 0)
-        code = result[0]  # always 2
+        ftype = result[0]  # always 2
         valid = result[1] == 1  # status
         ts = result[2]
         repeat = result[3]  # always 60
-        logger.info(f'code:{code} accepted:{valid}'
+        logger.info(f'ftype:{ftype} accepted:{valid}'
                     f' ts:{ts:08x}  repeat:{repeat}s')
 
         dt = datetime.fromtimestamp(ts)
