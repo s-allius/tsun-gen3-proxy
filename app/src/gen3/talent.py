@@ -6,9 +6,11 @@ from datetime import datetime
 if __name__ == "app.src.gen3.talent":
     from app.src.messages import hex_dump_memory, Message
     from app.src.config import Config
+    from app.src.gen3.infos_g3 import InfosG3
 else:  # pragma: no cover
     from messages import hex_dump_memory, Message
     from config import Config
+    from gen3.infos_g3 import InfosG3
 
 logger = logging.getLogger('msg')
 
@@ -38,6 +40,7 @@ class Talent(Message):
         self.id_str = id_str
         self.contact_name = b''
         self.contact_mail = b''
+        self.db = InfosG3()
         self.switch = {
             0x00: self.msg_contact_info,
             0x13: self.msg_ota_update,

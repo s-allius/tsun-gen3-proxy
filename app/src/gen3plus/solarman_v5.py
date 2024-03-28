@@ -6,9 +6,11 @@ from datetime import datetime
 if __name__ == "app.src.gen3plus.solarman_v5":
     from app.src.messages import hex_dump_memory, Message
     from app.src.config import Config
+    from app.src.gen3plus.infos_g3p import InfosG3P
 else:  # pragma: no cover
     from messages import hex_dump_memory, Message
     from config import Config
+    from gen3plus.infos_g3p import InfosG3P
 # import traceback
 
 logger = logging.getLogger('msg')
@@ -25,6 +27,7 @@ class SolarmanV5(Message):
         self.snr = 0
         # self.await_conn_resp_cnt = 0
         # self.id_str = id_str
+        self.db = InfosG3P()
         self.switch = {
             0x4110: self.msg_dev_ind,    # hello
             0x1110: self.msg_dev_rsp,

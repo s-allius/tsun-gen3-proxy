@@ -1,6 +1,6 @@
 # test_with_pytest.py
 import pytest, json
-from app.src.infos import Infos
+from app.src.gen3.infos_g3 import InfosG3
 
 @pytest.fixture
 def ContrDataSeq(): # Get Time Request message
@@ -176,7 +176,7 @@ def InvDataSeq2_Zero(): # Data indication from the controller
 
 
 def test_parse_control(ContrDataSeq):
-    i = Infos()
+    i = InfosG3()
     for key, result in i.parse (ContrDataSeq):
         pass
 
@@ -184,7 +184,7 @@ def test_parse_control(ContrDataSeq):
 {"collector": {"Collector_Fw_Version": "RSW_400_V1.00.06", "Chip_Type": "Raymon", "Chip_Model": "RSW-1-10001", "Trace_URL": "t.raymoniot.com", "Logger_URL": "logger.talent-monitoring.com"}, "controller": {"Collect_Interval": 1, "Signal_Strength": 100, "Power_On_Time": 29, "Communication_Type": 1, "Connect_Count": 1, "Data_Up_Interval": 300}})        
 
 def test_parse_control2(Contr2DataSeq):
-    i = Infos()
+    i = InfosG3()
     for key, result in i.parse (Contr2DataSeq):
         pass
 
@@ -192,7 +192,7 @@ def test_parse_control2(Contr2DataSeq):
 {"collector": {"Collector_Fw_Version": "RSW_400_V1.00.20", "Chip_Type": "Raymon", "Chip_Model": "RSW-1-10001", "Trace_URL": "t.raymoniot.com", "Logger_URL": "logger.talent-monitoring.com"}, "controller": {"Collect_Interval": 1, "Signal_Strength": 16, "Power_On_Time": 334, "Communication_Type": 1, "Connect_Count": 1, "Data_Up_Interval": 300}})
 
 def test_parse_inverter(InvDataSeq):
-    i = Infos()
+    i = InfosG3()
     for key, result in i.parse (InvDataSeq):
         pass
 
@@ -200,7 +200,7 @@ def test_parse_inverter(InvDataSeq):
 {"inverter": {"Product_Name": "Microinv", "Manufacturer": "TSUN", "Version": "V5.0.11", "Serial_Number": "T170000000000001", "Equipment_Model": "TSOL-MS600"}})
 
 def test_parse_cont_and_invert(ContrDataSeq, InvDataSeq):
-    i = Infos()
+    i = InfosG3()
     for key, result in i.parse (ContrDataSeq):
         pass
 
@@ -214,7 +214,7 @@ def test_parse_cont_and_invert(ContrDataSeq, InvDataSeq):
 
 
 def test_build_ha_conf1(ContrDataSeq):
-    i = Infos()
+    i = InfosG3()
     i.static_init()                # initialize counter
 
     tests = 0
@@ -270,7 +270,7 @@ def test_build_ha_conf1(ContrDataSeq):
     assert tests==5
 
 def test_build_ha_conf2(ContrDataSeq, InvDataSeq, InvDataSeq2):
-    i = Infos()
+    i = InfosG3()
     for key, result in i.parse (ContrDataSeq):
         pass
     for key, result in i.parse (InvDataSeq):
@@ -308,7 +308,7 @@ def test_build_ha_conf2(ContrDataSeq, InvDataSeq, InvDataSeq2):
     assert tests==5
 
 def test_must_incr_total(InvDataSeq2, InvDataSeq2_Zero):
-    i = Infos()
+    i = InfosG3()
     tests = 0
     for key, update in i.parse (InvDataSeq2):
         if key == 'total':
@@ -353,7 +353,7 @@ def test_must_incr_total(InvDataSeq2, InvDataSeq2_Zero):
     assert json.dumps(i.db['env']) == json.dumps({"Inverter_Temp": 0, "Rated_Power": 0})
 
 def test_must_incr_total2(InvDataSeq2, InvDataSeq2_Zero):
-    i = Infos()
+    i = InfosG3()
     tests = 0
     for key, update in i.parse (InvDataSeq2_Zero):
         if key == 'total':
@@ -398,7 +398,7 @@ def test_must_incr_total2(InvDataSeq2, InvDataSeq2_Zero):
 
 
 def test_statistic_counter():
-    i = Infos()
+    i = InfosG3()
     val = i.dev_value("Test-String")
     assert val == "Test-String"
 
@@ -424,7 +424,7 @@ def test_statistic_counter():
     assert val == 0
 
 def test_dep_rules():
-    i = Infos()
+    i = InfosG3()
     i.static_init()                # initialize counter
 
     res = i.ignore_this_device({})
@@ -456,7 +456,7 @@ def test_dep_rules():
     assert res == False
 
 def test_table_definition():
-    i = Infos()
+    i = InfosG3()
     i.static_init()                # initialize counter
 
     val = i.dev_value(0xffffff04)  # check internal error counter
@@ -472,7 +472,7 @@ def test_table_definition():
     assert val == 0
 
     # test missing 'fmt' value
-    Infos._Infos__info_defs[0xfffffffe] =  {'name':['proxy', 'Internal_Test1'],  'singleton': True, 'ha':{'dev':'proxy', 'dev_cla': None,       'stat_cla': None, 'id':'intern_test1_'}}
+    i.info_defs[0xfffffffe] =  {'name':['proxy', 'Internal_Test1'],  'singleton': True, 'ha':{'dev':'proxy', 'dev_cla': None,       'stat_cla': None, 'id':'intern_test1_'}}
 
     tests = 0
     for d_json, comp, node_id, id in i.ha_confs(ha_prfx="tsun/", node_id = 'proxy/', snr = '456', singleton=True, sug_area = 'roof'):
@@ -485,7 +485,7 @@ def test_table_definition():
     assert val == 1
 
     # test missing 'dev' value
-    Infos._Infos__info_defs[0xfffffffe] =  {'name':['proxy', 'Internal_Test2'],  'singleton': True, 'ha':{'dev_cla': None,       'stat_cla': None, 'id':'intern_test2_',  'fmt':'| int'}}
+    i.info_defs[0xfffffffe] =  {'name':['proxy', 'Internal_Test2'],  'singleton': True, 'ha':{'dev_cla': None,       'stat_cla': None, 'id':'intern_test2_',  'fmt':'| int'}}
     tests = 0
     for d_json, comp, node_id, id in i.ha_confs(ha_prfx="tsun/", node_id = 'proxy/', snr = '456', singleton=True, sug_area = 'roof'):
         if id == 'intern_test2_456':
@@ -499,9 +499,9 @@ def test_table_definition():
 
 
     # test invalid 'via' value
-    Infos._Infos__info_devs['test_dev'] = {'via':'xyz',   'name':'Module PV1'}
+    i.info_devs['test_dev'] = {'via':'xyz',   'name':'Module PV1'}
 
-    Infos._Infos__info_defs[0xfffffffe] =  {'name':['proxy', 'Internal_Test2'],  'singleton': True, 'ha':{'dev':'test_dev', 'dev_cla': None,       'stat_cla': None, 'id':'intern_test2_',  'fmt':'| int'}}
+    i.info_defs[0xfffffffe] =  {'name':['proxy', 'Internal_Test2'],  'singleton': True, 'ha':{'dev':'test_dev', 'dev_cla': None,       'stat_cla': None, 'id':'intern_test2_',  'fmt':'| int'}}
     tests = 0
     for d_json, comp, node_id, id in i.ha_confs(ha_prfx="tsun/", node_id = 'proxy/', snr = '456', singleton=True, sug_area = 'roof'):
         if id == 'intern_test2_456':
@@ -514,7 +514,7 @@ def test_table_definition():
 
 
 def test_invalid_data_type(InvalidDataSeq):
-    i = Infos()
+    i = InfosG3()
     i.static_init()                # initialize counter
 
     val = i.dev_value(0xffffff03)  # check invalid data type counter

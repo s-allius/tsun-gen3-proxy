@@ -64,7 +64,6 @@ class Message(metaclass=IterRegistry):
         self._recv_buffer = bytearray(0)
         self._send_buffer = bytearray(0)
         self._forward_buffer = bytearray(0)
-        self.db = Infos()
         self.new_data = {}
 
     '''
