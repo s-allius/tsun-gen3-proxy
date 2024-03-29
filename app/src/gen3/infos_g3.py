@@ -87,7 +87,8 @@ class RegisterMap:
 
 class InfosG3(Infos):
 
-    def ha_confs(self, ha_prfx, node_id, snr,  singleton: bool, sug_area='') \
+    def ha_confs(self, ha_prfx: str, node_id: str, snr: str,
+                 sug_area: str = '') \
             -> Generator[tuple[dict, str], None, None]:
         '''Generator function yields a json register struct for home-assistant
         auto configuration and a unique entity string
@@ -98,11 +99,8 @@ class InfosG3(Infos):
                          entity strings
         sug_area:str ==> suggested area string from the config file'''
         # iterate over RegisterMap.map and get the register values
-        for key, reg in RegisterMap.map.items():
-            if reg not in self.info_defs:
-                continue
-            row = self.info_defs[reg]
-            res = self.ha_conf(row, reg, ha_prfx, node_id, snr, singleton, sug_area)  # noqa: E501
+        for reg in RegisterMap.map.values():
+            res = self.ha_conf(reg, ha_prfx, node_id, snr, False, sug_area)  # noqa: E501
             if res:
                 yield res
 

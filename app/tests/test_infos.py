@@ -219,7 +219,7 @@ def test_build_ha_conf1(ContrDataSeq):
     i.static_init()                # initialize counter
 
     tests = 0
-    for d_json, comp, node_id, id in i.ha_confs(ha_prfx="tsun/", node_id="garagendach/", snr='123', singleton=False):
+    for d_json, comp, node_id, id in i.ha_confs(ha_prfx="tsun/", node_id="garagendach/", snr='123'):
 
         if id == 'out_power_123':
             assert comp == 'sensor'
@@ -250,7 +250,7 @@ def test_build_ha_conf1(ContrDataSeq):
     assert tests==4
 
 
-    for d_json, comp, node_id, id in i.ha_confs(ha_prfx="tsun/", node_id = 'proxy/', snr = '456', singleton=True):
+    for d_json, comp, node_id, id in i.ha_proxy_confs(ha_prfx="tsun/", node_id = 'proxy/', snr = '456'):
 
         if id == 'out_power_123':
             assert False
@@ -280,7 +280,7 @@ def test_build_ha_conf2(ContrDataSeq, InvDataSeq, InvDataSeq2):
         pass
 
     tests = 0
-    for d_json, comp, node_id, id in i.ha_confs(ha_prfx="tsun/", node_id="garagendach/", snr='123', singleton=False, sug_area = 'roof'):
+    for d_json, comp, node_id, id in i.ha_confs(ha_prfx="tsun/", node_id="garagendach/", snr='123', sug_area = 'roof'):
 
         if id == 'out_power_123':
             assert comp == 'sensor'
@@ -463,10 +463,10 @@ def test_table_definition():
     val = i.dev_value(Register.INTERNAL_ERROR)  # check internal error counter
     assert val == 0
 
-    for d_json, comp, node_id, id in i.ha_confs(ha_prfx="tsun/", node_id="garagendach/", snr='123', singleton=False, sug_area = 'roof'):
+    for d_json, comp, node_id, id in i.ha_confs(ha_prfx="tsun/", node_id="garagendach/", snr='123', sug_area = 'roof'):
         pass
 
-    for d_json, comp, node_id, id in i.ha_confs(ha_prfx="tsun/", node_id = 'proxy/', snr = '456', singleton=True, sug_area = 'roof'):
+    for d_json, comp, node_id, id in i.ha_proxy_confs(ha_prfx="tsun/", node_id = 'proxy/', snr = '456'):
         pass
 
     val = i.dev_value(Register.INTERNAL_ERROR)  # check internal error counter
@@ -476,7 +476,7 @@ def test_table_definition():
     i.info_defs[Register.TEST_REG1] =  {'name':['proxy', 'Internal_Test1'],  'singleton': True, 'ha':{'dev':'proxy', 'dev_cla': None,       'stat_cla': None, 'id':'intern_test1_'}}
 
     tests = 0
-    for d_json, comp, node_id, id in i.ha_confs(ha_prfx="tsun/", node_id = 'proxy/', snr = '456', singleton=True, sug_area = 'roof'):
+    for d_json, comp, node_id, id in i.ha_proxy_confs(ha_prfx="tsun/", node_id = 'proxy/', snr = '456'):
         if id == 'intern_test1_456':
             tests +=1
 
@@ -488,7 +488,7 @@ def test_table_definition():
     # test missing 'dev' value
     i.info_defs[Register.TEST_REG1] =  {'name':['proxy', 'Internal_Test2'],  'singleton': True, 'ha':{'dev_cla': None,       'stat_cla': None, 'id':'intern_test2_',  'fmt':'| int'}}
     tests = 0
-    for d_json, comp, node_id, id in i.ha_confs(ha_prfx="tsun/", node_id = 'proxy/', snr = '456', singleton=True, sug_area = 'roof'):
+    for d_json, comp, node_id, id in i.ha_proxy_confs(ha_prfx="tsun/", node_id = 'proxy/', snr = '456'):
         if id == 'intern_test2_456':
             tests +=1
 
@@ -502,9 +502,9 @@ def test_table_definition():
     # test invalid 'via' value
     i.info_devs['test_dev'] = {'via':'xyz',   'name':'Module PV1'}
 
-    i.info_defs[0xfffffffe] =  {'name':['proxy', 'Internal_Test2'],  'singleton': True, 'ha':{'dev':'test_dev', 'dev_cla': None,       'stat_cla': None, 'id':'intern_test2_',  'fmt':'| int'}}
+    i.info_defs[Register.TEST_REG1] =  {'name':['proxy', 'Internal_Test2'],  'singleton': True, 'ha':{'dev':'test_dev', 'dev_cla': None,       'stat_cla': None, 'id':'intern_test2_',  'fmt':'| int'}}
     tests = 0
-    for d_json, comp, node_id, id in i.ha_confs(ha_prfx="tsun/", node_id = 'proxy/', snr = '456', singleton=True, sug_area = 'roof'):
+    for d_json, comp, node_id, id in i.ha_proxy_confs(ha_prfx="tsun/", node_id = 'proxy/', snr = '456'):
         if id == 'intern_test2_456':
             tests +=1
 

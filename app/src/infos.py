@@ -267,32 +267,37 @@ class Infos:
         dict = self.stat['proxy']
         dict[counter] -= 1
 
-    def ha_proxy_confs(self, ha_prfx, node_id, snr,  singleton: bool,
-                       sug_area='') -> Generator[tuple[dict, str], None, None]:
-        '''Generator function yields a json register struct for home-assistant
-        auto configuration and a unique entity string
+    def ha_proxy_confs(self, ha_prfx: str, node_id: str, snr: str) \
+            -> Generator[tuple[dict, str], None, None]:
+        '''Generator function yields json register struct for home-assistant
+        auto configuration and the unique entity string, for all proxy
+        registers
 
         arguments:
-        prfx:str     ==> MQTT prefix for the home assistant 'stat_t string
+        ha_prfx:str  ==> MQTT prefix for the home assistant 'stat_t string
+        node_id:str  ==> node id of the inverter, used to build unique entity
         snr:str      ==> serial number of the inverter, used to build unique
                          entity strings
-        sug_area:str ==> suggested area string from the config file'''
-        # iterate over RegisterMap.map and get the register values
-        tab = self._info_defs
-        for reg in tab:
-            row = tab[reg]
-
-            res = self.ha_conf(row, reg, ha_prfx, node_id, snr, singleton, sug_area)  # noqa: E501
+        '''
+        # iterate over RegisterMap.map and get the register values for entries
+        # with Singleton=True, which means that this is a proxy register
+        for reg in self._info_defs.keys():
+            res = self.ha_conf(reg, ha_prfx, node_id, snr, True)  # noqa: E501
             if res:
                 yield res
 
-    def ha_conf(self, row, key, ha_prfx, node_id, snr,  singleton: bool, sug_area: str) -> tuple[str, str, str, str]:  # noqa: E501
+    def ha_conf(self, key, ha_prfx, node_id, snr,  singleton: bool, sug_area: str = '') -> tuple[str, str, str, str]:  # noqa: E501
+        if key not in self.info_defs:
+            return None
+        row = self.info_defs[key]
+
         if 'singleton' in row:
             if singleton != row['singleton']:
                 return None
         elif singleton:
             return None
         prfx = ha_prfx + node_id
+
         # check if we have details for home assistant
         if 'ha' in row:
             ha = row['ha']
