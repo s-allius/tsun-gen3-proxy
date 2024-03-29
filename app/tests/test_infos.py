@@ -1,5 +1,6 @@
 # test_with_pytest.py
 import pytest, json
+from app.src.infos import Register
 from app.src.gen3.infos_g3 import InfosG3
 
 @pytest.fixture
@@ -405,22 +406,22 @@ def test_statistic_counter():
     val = i.dev_value(0xffffffff)  # invalid addr
     assert val == None
     
-    val = i.dev_value(0xffffff00)  # valid addr but not initiliazed
+    val = i.dev_value(Register.INVERTER_CNT)  # valid addr but not initiliazed
     assert val == None or val == 0
 
     i.static_init()                # initialize counter
     assert json.dumps(i.stat) == json.dumps({"proxy": {"Inverter_Cnt": 0, "Unknown_SNR": 0, "Unknown_Msg": 0, "Invalid_Data_Type": 0, "Internal_Error": 0,"Unknown_Ctrl": 0, "OTA_Start_Msg": 0, "SW_Exception": 0}})
                                             
-    val = i.dev_value(0xffffff00)  # valid and initiliazed addr
+    val = i.dev_value(Register.INVERTER_CNT)  # valid and initiliazed addr
     assert val == 0
 
     i.inc_counter('Inverter_Cnt')
     assert json.dumps(i.stat) == json.dumps({"proxy": {"Inverter_Cnt": 1, "Unknown_SNR": 0, "Unknown_Msg": 0, "Invalid_Data_Type": 0, "Internal_Error": 0,"Unknown_Ctrl": 0, "OTA_Start_Msg": 0, "SW_Exception": 0}})
-    val = i.dev_value(0xffffff00)
+    val = i.dev_value(Register.INVERTER_CNT)
     assert val == 1
 
     i.dec_counter('Inverter_Cnt')
-    val = i.dev_value(0xffffff00)
+    val = i.dev_value(Register.INVERTER_CNT)
     assert val == 0
 
 def test_dep_rules():
@@ -434,32 +435,32 @@ def test_dep_rules():
     assert res == True
 
     i.inc_counter('Inverter_Cnt')    # is 1
-    val = i.dev_value(0xffffff00)
+    val = i.dev_value(Register.INVERTER_CNT)
     assert val == 1
-    res = i.ignore_this_device({'reg':0xffffff00})
+    res = i.ignore_this_device({'reg': Register.INVERTER_CNT})
     assert res == True
-    res = i.ignore_this_device({'reg':0xffffff00, 'less_eq': 2})
+    res = i.ignore_this_device({'reg': Register.INVERTER_CNT, 'less_eq': 2})
     assert res == False
-    res = i.ignore_this_device({'reg':0xffffff00, 'gte': 2})
+    res = i.ignore_this_device({'reg': Register.INVERTER_CNT, 'gte': 2})
     assert res == True
 
     i.inc_counter('Inverter_Cnt')   # is 2
-    res = i.ignore_this_device({'reg':0xffffff00, 'less_eq': 2})
+    res = i.ignore_this_device({'reg': Register.INVERTER_CNT, 'less_eq': 2})
     assert res == False
-    res = i.ignore_this_device({'reg':0xffffff00, 'gte': 2})
+    res = i.ignore_this_device({'reg': Register.INVERTER_CNT, 'gte': 2})
     assert res == False
 
     i.inc_counter('Inverter_Cnt')   # is 3
-    res = i.ignore_this_device({'reg':0xffffff00, 'less_eq': 2})
+    res = i.ignore_this_device({'reg': Register.INVERTER_CNT, 'less_eq': 2})
     assert res == True
-    res = i.ignore_this_device({'reg':0xffffff00, 'gte': 2})
+    res = i.ignore_this_device({'reg': Register.INVERTER_CNT, 'gte': 2})
     assert res == False
 
 def test_table_definition():
     i = InfosG3()
     i.static_init()                # initialize counter
 
-    val = i.dev_value(0xffffff04)  # check internal error counter
+    val = i.dev_value(Register.INTERNAL_ERROR)  # check internal error counter
     assert val == 0
 
     for d_json, comp, node_id, id in i.ha_confs(ha_prfx="tsun/", node_id="garagendach/", snr='123', singleton=False, sug_area = 'roof'):
@@ -468,11 +469,11 @@ def test_table_definition():
     for d_json, comp, node_id, id in i.ha_confs(ha_prfx="tsun/", node_id = 'proxy/', snr = '456', singleton=True, sug_area = 'roof'):
         pass
 
-    val = i.dev_value(0xffffff04)  # check internal error counter
+    val = i.dev_value(Register.INTERNAL_ERROR)  # check internal error counter
     assert val == 0
 
     # test missing 'fmt' value
-    i.info_defs[0xfffffffe] =  {'name':['proxy', 'Internal_Test1'],  'singleton': True, 'ha':{'dev':'proxy', 'dev_cla': None,       'stat_cla': None, 'id':'intern_test1_'}}
+    i.info_defs[Register.TEST_REG1] =  {'name':['proxy', 'Internal_Test1'],  'singleton': True, 'ha':{'dev':'proxy', 'dev_cla': None,       'stat_cla': None, 'id':'intern_test1_'}}
 
     tests = 0
     for d_json, comp, node_id, id in i.ha_confs(ha_prfx="tsun/", node_id = 'proxy/', snr = '456', singleton=True, sug_area = 'roof'):
@@ -481,11 +482,11 @@ def test_table_definition():
 
     assert tests == 1
 
-    val = i.dev_value(0xffffff04)  # check internal error counter
+    val = i.dev_value(Register.INTERNAL_ERROR)  # check internal error counter
     assert val == 1
 
     # test missing 'dev' value
-    i.info_defs[0xfffffffe] =  {'name':['proxy', 'Internal_Test2'],  'singleton': True, 'ha':{'dev_cla': None,       'stat_cla': None, 'id':'intern_test2_',  'fmt':'| int'}}
+    i.info_defs[Register.TEST_REG1] =  {'name':['proxy', 'Internal_Test2'],  'singleton': True, 'ha':{'dev_cla': None,       'stat_cla': None, 'id':'intern_test2_',  'fmt':'| int'}}
     tests = 0
     for d_json, comp, node_id, id in i.ha_confs(ha_prfx="tsun/", node_id = 'proxy/', snr = '456', singleton=True, sug_area = 'roof'):
         if id == 'intern_test2_456':
@@ -493,7 +494,7 @@ def test_table_definition():
 
     assert tests == 1
 
-    val = i.dev_value(0xffffff04)  # check internal error counter
+    val = i.dev_value(Register.INTERNAL_ERROR)  # check internal error counter
     assert val == 2
 
 
@@ -509,7 +510,7 @@ def test_table_definition():
 
     assert tests == 1
 
-    val = i.dev_value(0xffffff04)  # check internal error counter
+    val = i.dev_value(Register.INTERNAL_ERROR)  # check internal error counter
     assert val == 3
 
 
@@ -517,7 +518,7 @@ def test_invalid_data_type(InvalidDataSeq):
     i = InfosG3()
     i.static_init()                # initialize counter
 
-    val = i.dev_value(0xffffff03)  # check invalid data type counter
+    val = i.dev_value(Register.INVALID_DATA_TYPE)  # check invalid data type counter
     assert val == 0
 
 
@@ -525,6 +526,6 @@ def test_invalid_data_type(InvalidDataSeq):
         pass
     assert json.dumps(i.db) == json.dumps({"inverter": {"Product_Name": "Microinv"}})
 
-    val = i.dev_value(0xffffff03)  # check invalid data type counter
+    val = i.dev_value(Register.INVALID_DATA_TYPE)  # check invalid data type counter
     assert val == 1
 
