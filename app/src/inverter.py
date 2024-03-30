@@ -40,9 +40,8 @@ class Inverter():
     @classmethod
     async def _register_proxy_stat_home_assistant(cls) -> None:
         '''register all our topics at home assistant'''
-        for data_json, component, node_id, id in cls.db_stat.ha_confs(
-                 cls.entity_prfx, cls.proxy_node_id,
-                 cls.proxy_unique_id, True):
+        for data_json, component, node_id, id in cls.db_stat.ha_proxy_confs(
+                 cls.entity_prfx, cls.proxy_node_id, cls.proxy_unique_id):
             logger_mqtt.debug(f"MQTT Register: cmp:'{component}' node_id:'{node_id}' {data_json}")      # noqa: E501
             await cls.mqtt.publish(f'{cls.discovery_prfx}{component}/{node_id}{id}/config', data_json)  # noqa: E501
 

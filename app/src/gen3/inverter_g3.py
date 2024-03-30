@@ -110,7 +110,7 @@ class InverterG3(Inverter, ConnectionG3):
         '''register all our topics at home assistant'''
         for data_json, component, node_id, id in self.db.ha_confs(
                 self.entity_prfx, self.node_id, self.unique_id,
-                False, self.sug_area):
+                self.sug_area):
             logger_mqtt.debug(f"MQTT Register: cmp:'{component}'"
                               f" node_id:'{node_id}' {data_json}")
             await self.mqtt.publish(f"{self.discovery_prfx}{component}"

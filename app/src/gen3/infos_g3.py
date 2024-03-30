@@ -1,17 +1,94 @@
 
 import struct
-import json
 import logging
 from typing import Generator
 
 if __name__ == "app.src.gen3.infos_g3":
-    from app.src.infos import Infos
+    from app.src.infos import Infos, Register
 else:  # pragma: no cover
-    from infos import Infos
+    from infos import Infos, Register
+
+
+class RegisterMap:
+    map = {
+        0x00092ba8: Register.COLLECTOR_FW_VERSION,
+        0x000927c0: Register.CHIP_TYPE,
+        0x00092f90: Register.CHIP_MODEL,
+        0x00095a88: Register.TRACE_URL,
+        0x00095aec: Register.LOGGER_URL,
+        0x0000000a: Register.PRODUCT_NAME,
+        0x00000014: Register.MANUFACTURER,
+        0x0000001e: Register.VERSION,
+        0x00000028: Register.SERIAL_NUMBER,
+        0x00000032: Register.EQUIPMENT_MODEL,
+        0x00013880: Register.NO_INPUTS,
+        0xffffff00: Register.INVERTER_CNT,
+        0xffffff01: Register.UNKNOWN_SNR,
+        0xffffff02: Register.UNKNOWN_MSG,
+        0xffffff03: Register.INVALID_DATA_TYPE,
+        0xffffff04: Register.INTERNAL_ERROR,
+        0xffffff05: Register.UNKNOWN_CTRL,
+        0xffffff06: Register.OTA_START_MSG,
+        0xffffff07: Register.SW_EXCEPTION,
+        0xfffffffe: Register.TEST_REG1,
+        0xffffffff: Register.TEST_REG2,
+        0x00000640: Register.OUTPUT_POWER,
+        0x000005dc: Register.RATED_POWER,
+        0x00000514: Register.INVERTER_TEMP,
+        0x000006a4: Register.PV1_VOLTAGE,
+        0x00000708: Register.PV1_CURRENT,
+        0x0000076c: Register.PV1_POWER,
+        0x000007d0: Register.PV2_VOLTAGE,
+        0x00000834: Register.PV2_CURRENT,
+        0x00000898: Register.PV2_POWER,
+        0x000008fc: Register.PV3_VOLTAGE,
+        0x00000960: Register.PV3_CURRENT,
+        0x000009c4: Register.PV3_POWER,
+        0x00000a28: Register.PV4_VOLTAGE,
+        0x00000a8c: Register.PV4_CURRENT,
+        0x00000af0: Register.PV4_POWER,
+        0x00000c1c: Register.PV1_DAILY_GENERATION,
+        0x00000c80: Register.PV1_TOTAL_GENERATION,
+        0x00000ce4: Register.PV2_DAILY_GENERATION,
+        0x00000d48: Register.PV2_TOTAL_GENERATION,
+        0x00000dac: Register.PV3_DAILY_GENERATION,
+        0x00000e10: Register.PV3_TOTAL_GENERATION,
+        0x00000e74: Register.PV4_DAILY_GENERATION,
+        0x00000ed8: Register.PV4_TOTAL_GENERATION,
+        0x00000b54: Register.DAILY_GENERATION,
+        0x00000bb8: Register.TOTAL_GENERATION,
+        0x000003e8: Register.GRID_VOLTAGE,
+        0x0000044c: Register.GRID_CURRENT,
+        0x000004b0: Register.GRID_FREQUENCY,
+        0x000cfc38: Register.CONNECT_COUNT,
+        0x000c3500: Register.SIGNAL_STRENGTH,
+        0x000c96a8: Register.POWER_ON_TIME,
+        0x000d0020: Register.COLLECT_INTERVAL,
+        0x000cf850: Register.DATA_UP_INTERVAL,
+        0x000c7f38: Register.COMMUNICATION_TYPE,
+        0x00000191: Register.EVENT_401,
+        0x00000192: Register.EVENT_402,
+        0x00000193: Register.EVENT_403,
+        0x00000194: Register.EVENT_404,
+        0x00000195: Register.EVENT_405,
+        0x00000196: Register.EVENT_406,
+        0x00000197: Register.EVENT_407,
+        0x00000198: Register.EVENT_408,
+        0x00000199: Register.EVENT_409,
+        0x0000019a: Register.EVENT_410,
+        0x0000019b: Register.EVENT_411,
+        0x0000019c: Register.EVENT_412,
+        0x0000019d: Register.EVENT_413,
+        0x0000019e: Register.EVENT_414,
+        0x0000019f: Register.EVENT_415,
+        0x000001a0: Register.EVENT_416,
+    }
 
 
 class InfosG3(Infos):
-    def ha_confs(self, ha_prfx, node_id, snr,  singleton: bool, sug_area='') \
+
+    def ha_confs(self, ha_prfx: str, node_id: str, snr: str,
+                 sug_area: str = '') \
             -> Generator[tuple[dict, str], None, None]:
         '''Generator function yields a json register struct for home-assistant
         auto configuration and a unique entity string
@@ -21,119 +98,11 @@ class InfosG3(Infos):
         snr:str      ==> serial number of the inverter, used to build unique
                          entity strings
         sug_area:str ==> suggested area string from the config file'''
-        tab = self.info_defs
-        for key in tab:
-            row = tab[key]
-            if 'singleton' in row:
-                if singleton != row['singleton']:
-                    continue
-            elif singleton:
-                continue
-            prfx = ha_prfx + node_id
-
-            # check if we have details for home assistant
-            if 'ha' in row:
-                ha = row['ha']
-                if 'comp' in ha:
-                    component = ha['comp']
-                else:
-                    component = 'sensor'
-                attr = {}
-                if 'name' in ha:
-                    attr['name'] = ha['name']
-                else:
-                    attr['name'] = row['name'][-1]
-
-                attr['stat_t'] = prfx + row['name'][0]
-                attr['dev_cla'] = ha['dev_cla']
-                attr['stat_cla'] = ha['stat_cla']
-                attr['uniq_id'] = ha['id']+snr
-                if 'val_tpl' in ha:
-                    attr['val_tpl'] = ha['val_tpl']
-                elif 'fmt' in ha:
-                    attr['val_tpl'] = '{{value_json' + f"['{row['name'][-1]}'] {ha['fmt']}" + '}}'       # eg.   'val_tpl': "{{ value_json['Output_Power']|float }} # noqa: E501
-                else:
-                    self.inc_counter('Internal_Error')
-                    logging.error(f"Infos._info_defs: the row for {key} do"
-                                  " not have a 'val_tpl' nor a 'fmt' value")
-
-                # add unit_of_meas only, if status_class isn't none. If
-                # status_cla is None we want a number format and not line
-                # graph in home assistant. A unit will change the number
-                # format to a line graph
-                if 'unit' in row and attr['stat_cla'] is not None:
-                    attr['unit_of_meas'] = row['unit']  # 'unit_of_meas'
-                if 'icon' in ha:
-                    attr['ic'] = ha['icon']             # icon for the entity
-                if 'nat_prc' in ha:
-                    attr['sug_dsp_prc'] = ha['nat_prc']  # precison of floats
-                if 'ent_cat' in ha:
-                    attr['ent_cat'] = ha['ent_cat']     # diagnostic, config
-
-                # enabled_by_default is deactivated, since it avoid the via
-                # setup of the devices. It seems, that there is a bug in home
-                # assistant. tested with 'Home Assistant 2023.10.4'
-                # if 'en' in ha:                       # enabled_by_default
-                #    attr['en'] = ha['en']
-
-                if 'dev' in ha:
-                    device = self.info_devs[ha['dev']]
-
-                    if 'dep' in device and self.ignore_this_device(device['dep']):  # noqa: E501
-                        continue
-
-                    dev = {}
-
-                    # the same name for 'name' and 'suggested area', so we get
-                    # dedicated devices in home assistant with short value
-                    # name and headline
-                    if (sug_area == '' or
-                            ('singleton' in device and device['singleton'])):
-                        dev['name'] = device['name']
-                        dev['sa'] = device['name']
-                    else:
-                        dev['name'] = device['name']+' - '+sug_area
-                        dev['sa'] = device['name']+' - '+sug_area
-
-                    if 'via' in device:  # add the link to the parent device
-                        via = device['via']
-                        if via in self.info_devs:
-                            via_dev = self.info_devs[via]
-                            if 'singleton' in via_dev and via_dev['singleton']:
-                                dev['via_device'] = via
-                            else:
-                                dev['via_device'] = f"{via}_{snr}"
-                        else:
-                            self.inc_counter('Internal_Error')
-                            logging.error(f"Infos._info_defs: the row for "
-                                          f"{key} has an invalid via value: "
-                                          f"{via}")
-
-                    for key in ('mdl', 'mf', 'sw', 'hw'):      # add optional
-                        # values fpr 'modell', 'manufacturer', 'sw version' and
-                        # 'hw version'
-                        if key in device:
-                            data = self.dev_value(device[key])
-                            if data is not None:
-                                dev[key] = data
-
-                    if 'singleton' in device and device['singleton']:
-                        dev['ids'] = [f"{ha['dev']}"]
-                    else:
-                        dev['ids'] = [f"{ha['dev']}_{snr}"]
-
-                    attr['dev'] = dev
-
-                    origin = {}
-                    origin['name'] = self.app_name
-                    origin['sw'] = self.version
-                    attr['o'] = origin
-                else:
-                    self.inc_counter('Internal_Error')
-                    logging.error(f"Infos._info_defs: the row for {key} "
-                                  "missing 'dev' value for ha register")
-
-                yield json.dumps(attr), component, node_id, attr['uniq_id']
+        # iterate over RegisterMap.map and get the register values
+        for reg in RegisterMap.map.values():
+            res = self.ha_conf(reg, ha_prfx, node_id, snr, False, sug_area)  # noqa: E501
+            if res:
+                yield res
 
     def parse(self, buf, ind=0) -> Generator[tuple[str, bool], None, None]:
         '''parse a data sequence received from the inverter and
@@ -146,10 +115,13 @@ class InfosG3(Infos):
         ind += 4
         while i < elms:
             result = struct.unpack_from('!lB', buf, ind)
-            info_id = result[0]
+            addr = result[0]
+            if addr not in RegisterMap.map:
+                info_id = -1
+            else:
+                info_id = RegisterMap.map[addr]
             data_type = result[1]
             ind += 5
-            keys, level, unit, must_incr, new_val = self._key_obj(info_id)
 
             if data_type == 0x54:   # 'T' -> Pascal-String
                 str_len = buf[ind]
@@ -159,26 +131,18 @@ class InfosG3(Infos):
                 ind += str_len+1
 
             elif data_type == 0x49:  # 'I' -> int32
-                # if new_val:
-                #    struct.pack_into('!l', buf, ind, new_val)
                 result = struct.unpack_from('!l', buf, ind)[0]
                 ind += 4
 
             elif data_type == 0x53:  # 'S' -> short
-                # if new_val:
-                #     struct.pack_into('!h', buf, ind, new_val)
                 result = struct.unpack_from('!h', buf, ind)[0]
                 ind += 2
 
             elif data_type == 0x46:  # 'F' -> float32
-                # if new_val:
-                #     struct.pack_into('!f', buf, ind, new_val)
                 result = round(struct.unpack_from('!f', buf, ind)[0], 2)
                 ind += 4
 
             elif data_type == 0x4c:  # 'L' -> int64
-                # if new_val:
-                #     struct.pack_into('!q', buf, ind, new_val)
                 result = struct.unpack_from('!q', buf, ind)[0]
                 ind += 8
 
@@ -188,31 +152,14 @@ class InfosG3(Infos):
                               " not supported")
                 return
 
+            keys, level, unit, must_incr, new_val = self._key_obj(info_id)
+
             if keys:
-                dict = self.db
-                name = ''
-
-                for key in keys[:-1]:
-                    if key not in dict:
-                        dict[key] = {}
-                    dict = dict[key]
-                    name += key + '.'
-
-                if keys[-1] not in dict:
-                    update = (not must_incr or result > 0)
-                else:
-                    if must_incr:
-                        update = dict[keys[-1]] < result
-                    else:
-                        update = dict[keys[-1]] != result
-
-                if update:
-                    dict[keys[-1]] = result
-                name += keys[-1]
+                name, update = self.update_db(keys, must_incr, result)
                 yield keys[0], update
             else:
                 update = False
-                name = str(f'info-id.0x{info_id:x}')
+                name = str(f'info-id.0x{addr:x}')
 
             self.tracer.log(level, f'{name} : {result}{unit}'
                             f'  update: {update}')

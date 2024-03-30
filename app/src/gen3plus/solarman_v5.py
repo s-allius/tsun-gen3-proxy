@@ -236,26 +236,12 @@ class SolarmanV5(Message):
         total = result[1]
         tim = result[2]
         res = result[3]  # always zero
-        logger.info(f'frame type:{ftype} total:{total}s'
+        logger.info(f'frame type:{ftype:02x} total:{total}s'
                     f' timer:{tim:08x}s  null:{res}')
         dt = datetime.fromtimestamp(total)
         logger.info(f'ts: {dt.strftime("%Y-%m-%d %H:%M:%S")}')
 
-        if (ftype == 2):
-            result = struct.unpack_from('!BBBBBB40s', data, 13)
-            upload_period = result[0]
-            data_acq_period = result[1]
-            heart_beat = result[2]
-            res = result[3]
-            wifi = result[4]
-            ver = result[6]
-            # res2 = result[5]
-            logger.info(f'upload:{upload_period}min '
-                        f'data collect:{data_acq_period}s '
-                        f'heartbeat:{heart_beat}s '
-                        f'wifi:{wifi}%')
-            logger.info(f'ver:{ver}')
-
+        self.__process_data(ftype)
         self.forward(self._recv_buffer, self.header_len+self.data_len+2)
 
     def msg_dev_rsp(self):
@@ -270,35 +256,20 @@ class SolarmanV5(Message):
         offset = result[3]
         unkn = result[4]
         cnt = result[5]
-        logger.info(f'ftype:{ftype} total:{total}s'
+        logger.info(f'ftype:{ftype:02x} total:{total}s'
                     f' timer:{tim:08x}s  ofs:{offset}'
                     f' ??: {unkn:08x} cnt:{cnt}')
         dt = datetime.fromtimestamp(total)
         logger.info(f'ts: {dt.strftime("%Y-%m-%d %H:%M:%S")}')
 
-        if (ftype == 1):
-            result = struct.unpack_from('!HH', data, 0xdc)
-            rated = result[0]/1
-            actual = result[1]/10
-            logger.info(f'Rated Power:{rated}W, Actual Power:{actual}W')
-
-            result = struct.unpack_from('!HLHLHLHLHL', data, 0xf8)
-            daily = result[0]/100
-            total = result[1]/100
-            pv1_daily = result[2]/100
-            pv1_total = result[3]/100
-            pv2_daily = result[4]/100
-            pv2_total = result[5]/100
-            pv3_daily = result[6]/100
-            pv3_total = result[7]/100
-            pv4_daily = result[8]/100
-            pv4_total = result[9]/100
-            logger.info(f'daily:{daily}kWh '
-                        f'tolal:{total}kWh\n'
-                        f'pv daily:{pv1_daily}kWh, {pv2_daily}kWh, {pv3_daily}kWh, {pv4_daily}kWh\n'   # noqa: E501
-                        f'pv total:{pv1_total}kWh, {pv2_total}kWh, {pv3_total}kWh, {pv4_total}kWh')    # noqa: E501
-
+        self.__process_data(ftype & 0x7f)
         self.forward(self._recv_buffer, self.header_len+self.data_len+2)
+
+    def __process_data(self, ftype):
+        msg_type = self.control >> 8
+        for key, update in self.db.parse(self._recv_buffer, msg_type, ftype):
+            if update:
+                self.new_data[key] = True
 
     def msg_data_rsp(self):
         self.msg_response()
