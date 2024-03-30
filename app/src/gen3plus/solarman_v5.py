@@ -277,6 +277,8 @@ class SolarmanV5(Message):
         logger.info(f'ts: {dt.strftime("%Y-%m-%d %H:%M:%S")}')
 
         if (ftype == 1):
+            self.__process_data()
+
             result = struct.unpack_from('!HH', data, 0xdc)
             rated = result[0]/1
             actual = result[1]/10
@@ -299,6 +301,11 @@ class SolarmanV5(Message):
                         f'pv total:{pv1_total}kWh, {pv2_total}kWh, {pv3_total}kWh, {pv4_total}kWh')    # noqa: E501
 
         self.forward(self._recv_buffer, self.header_len+self.data_len+2)
+
+    def __process_data(self):
+        for key, update in self.db.parse(self._recv_buffer, 0):
+            if update:
+                self.new_data[key] = True
 
     def msg_data_rsp(self):
         self.msg_response()

@@ -402,3 +402,23 @@ class Infos:
         #     new_val = d['new_value']
 
         return d['name'], d['level'], d['unit'], must_incr, new_val
+
+    def update_db(self, keys, must_incr, result):
+        name = ''
+        dict = self.db
+        for key in keys[:-1]:
+            if key not in dict:
+                dict[key] = {}
+            dict = dict[key]
+            name += key + '.'
+        if keys[-1] not in dict:
+            update = (not must_incr or result > 0)
+        else:
+            if must_incr:
+                update = dict[keys[-1]] < result
+            else:
+                update = dict[keys[-1]] != result
+        if update:
+            dict[keys[-1]] = result
+        name += keys[-1]
+        return name, update

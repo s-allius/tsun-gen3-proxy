@@ -122,7 +122,6 @@ class InfosG3(Infos):
                 info_id = RegisterMap.map[addr]
             data_type = result[1]
             ind += 5
-            keys, level, unit, must_incr, new_val = self._key_obj(info_id)
 
             if data_type == 0x54:   # 'T' -> Pascal-String
                 str_len = buf[ind]
@@ -132,26 +131,18 @@ class InfosG3(Infos):
                 ind += str_len+1
 
             elif data_type == 0x49:  # 'I' -> int32
-                # if new_val:
-                #    struct.pack_into('!l', buf, ind, new_val)
                 result = struct.unpack_from('!l', buf, ind)[0]
                 ind += 4
 
             elif data_type == 0x53:  # 'S' -> short
-                # if new_val:
-                #     struct.pack_into('!h', buf, ind, new_val)
                 result = struct.unpack_from('!h', buf, ind)[0]
                 ind += 2
 
             elif data_type == 0x46:  # 'F' -> float32
-                # if new_val:
-                #     struct.pack_into('!f', buf, ind, new_val)
                 result = round(struct.unpack_from('!f', buf, ind)[0], 2)
                 ind += 4
 
             elif data_type == 0x4c:  # 'L' -> int64
-                # if new_val:
-                #     struct.pack_into('!q', buf, ind, new_val)
                 result = struct.unpack_from('!q', buf, ind)[0]
                 ind += 8
 
@@ -161,31 +152,14 @@ class InfosG3(Infos):
                               " not supported")
                 return
 
+            keys, level, unit, must_incr, new_val = self._key_obj(info_id)
+
             if keys:
-                dict = self.db
-                name = ''
-
-                for key in keys[:-1]:
-                    if key not in dict:
-                        dict[key] = {}
-                    dict = dict[key]
-                    name += key + '.'
-
-                if keys[-1] not in dict:
-                    update = (not must_incr or result > 0)
-                else:
-                    if must_incr:
-                        update = dict[keys[-1]] < result
-                    else:
-                        update = dict[keys[-1]] != result
-
-                if update:
-                    dict[keys[-1]] = result
-                name += keys[-1]
+                name, update = self.update_db(keys, must_incr, result)
                 yield keys[0], update
             else:
                 update = False
-                name = str(f'info-id.0x{info_id:x}')
+                name = str(f'info-id.0x{addr:x}')
 
             self.tracer.log(level, f'{name} : {result}{unit}'
                             f'  update: {update}')
