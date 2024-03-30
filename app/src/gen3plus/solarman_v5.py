@@ -153,6 +153,7 @@ class SolarmanV5(Message):
         self.snr = result[4]
 
         if start != 0xA5:
+            self.inc_counter('Invalid_Msg_Format')
             return
         self.header_valid = True
         return
@@ -161,9 +162,11 @@ class SolarmanV5(Message):
         crc = buf[self.data_len+11]
         stop = buf[self.data_len+12]
         if stop != 0x15:
+            self.inc_counter('Invalid_Msg_Format')
             return False
         check = sum(buf[1:buf_len-2]) & 0xff
         if check != crc:
+            self.inc_counter('Invalid_Msg_Format')
             logger.debug(f'CRC {int(crc):#02x} {int(check):#08x}'
                          f' Stop:{int(stop):#02x}')
             return False
