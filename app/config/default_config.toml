@@ -36,5 +36,8 @@ inverters.allow_all = true   # allow inverters, even if we have no inverter mapp
 #node_id = ''          # Optional, MQTT replacement for inverters serial number  
 #suggested_area = ''  # Optional, suggested installation area for home-assistant
 
-
+[inverters."Y170000000000001"]
+monitor_sn = 2070233889
+#node_id = ''          # Optional, MQTT replacement for inverters serial number  
+#suggested_area = ''  # Optional, suggested installation area for home-assistant
 
