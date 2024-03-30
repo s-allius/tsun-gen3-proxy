@@ -101,13 +101,13 @@ class Infos:
         logging.info('Initialize proxy statistics')
         # init proxy counter in the class.stat dictionary
         cls.stat['proxy'] = {}
-        for key in cls._info_defs:
-            name = cls._info_defs[key]['name']
+        for key in cls.__info_defs:
+            name = cls.__info_defs[key]['name']
             if name[0] == 'proxy':
                 cls.stat['proxy'][name[1]] = 0
 
         # add values from the environment to the device definition table
-        prxy = cls._info_devs['proxy']
+        prxy = cls.__info_devs['proxy']
         prxy['sw'] = cls.version
         prxy['mdl'] = cls.app_name
 
@@ -115,7 +115,7 @@ class Infos:
         self.db = {}
         self.tracer = logging.getLogger('data')
 
-    _info_devs = {
+    __info_devs = {
         'proxy':      {'singleton': True,   'name': 'Proxy', 'mf': 'Stefan Allius'},  # noqa: E501
         'controller': {'via': 'proxy',      'name': 'Controller',     'mdl': Register.CHIP_MODEL, 'mf': Register.CHIP_TYPE, 'sw': Register.COLLECTOR_FW_VERSION},  # noqa: E501
         'inverter':   {'via': 'controller', 'name': 'Micro Inverter', 'mdl': Register.EQUIPMENT_MODEL, 'mf': Register.MANUFACTURER, 'sw': Register.VERSION},  # noqa: E501
@@ -127,7 +127,7 @@ class Infos:
 
     __comm_type_val_tpl = "{%set com_types = ['n/a','Wi-Fi', 'G4', 'G5', 'GPRS'] %}{{com_types[value_json['Communication_Type']|int(0)]|default(value_json['Communication_Type'])}}"    # noqa: E501
 
-    _info_defs = {
+    __info_defs = {
         # collector values used for device registration:
         Register.COLLECTOR_FW_VERSION:  {'name': ['collector', 'Collector_Fw_Version'],       'level': logging.INFO,  'unit': ''},  # noqa: E501
         Register.CHIP_TYPE:  {'name': ['collector', 'Chip_Type'],                  'level': logging.DEBUG, 'unit': ''},  # noqa: E501
@@ -136,12 +136,12 @@ class Infos:
         Register.LOGGER_URL: {'name': ['collector', 'Logger_URL'],                 'level': logging.DEBUG, 'unit': ''},  # noqa: E501
 
         # inverter values used for device registration:
-        Register.PRODUCT_NAME:    {'name': ['inverter', 'Product_Name'],                'level': logging.DEBUG, 'unit': ''},  # noqa: E501
-        Register.MANUFACTURER:    {'name': ['inverter', 'Manufacturer'],                'level': logging.DEBUG, 'unit': ''},  # noqa: E501
-        Register.VERSION:         {'name': ['inverter', 'Version'],                     'level': logging.INFO,  'unit': ''},  # noqa: E501
-        Register.SERIAL_NUMBER:   {'name': ['inverter', 'Serial_Number'],               'level': logging.DEBUG, 'unit': ''},  # noqa: E501
-        Register.EQUIPMENT_MODEL: {'name': ['inverter', 'Equipment_Model'],             'level': logging.DEBUG, 'unit': ''},  # noqa: E501
-        Register.NO_INPUTS:       {'name': ['inverter', 'No_Inputs'],                   'level': logging.DEBUG, 'unit': ''},  # noqa: E501
+        Register.PRODUCT_NAME:    {'name': ['inverter', 'Product_Name'],           'level': logging.DEBUG, 'unit': ''},  # noqa: E501
+        Register.MANUFACTURER:    {'name': ['inverter', 'Manufacturer'],           'level': logging.DEBUG, 'unit': ''},  # noqa: E501
+        Register.VERSION:         {'name': ['inverter', 'Version'],                'level': logging.INFO,  'unit': ''},  # noqa: E501
+        Register.SERIAL_NUMBER:   {'name': ['inverter', 'Serial_Number'],          'level': logging.DEBUG, 'unit': ''},  # noqa: E501
+        Register.EQUIPMENT_MODEL: {'name': ['inverter', 'Equipment_Model'],        'level': logging.DEBUG, 'unit': ''},  # noqa: E501
+        Register.NO_INPUTS:       {'name': ['inverter', 'No_Inputs'],              'level': logging.DEBUG, 'unit': ''},  # noqa: E501
 
         # proxy:
         Register.INVERTER_CNT:      {'name': ['proxy', 'Inverter_Cnt'],       'singleton': True,   'ha': {'dev': 'proxy', 'comp': 'sensor', 'dev_cla': None, 'stat_cla': None, 'id': 'inv_count_',     'fmt': '| int', 'name': 'Active Inverter Connections',    'icon': 'mdi:counter'}},  # noqa: E501
@@ -173,25 +173,25 @@ class Infos:
         Register.EVENT_416:  {'name': ['events', '416_'],                          'level': logging.DEBUG, 'unit': ''},  # noqa: E501
 
         # grid measures:
-        Register.GRID_VOLTAGE:    {'name': ['grid', 'Voltage'],                         'level': logging.DEBUG, 'unit': 'V',    'ha': {'dev': 'inverter', 'dev_cla': 'voltage',     'stat_cla': 'measurement', 'id': 'out_volt_',  'fmt': '| float', 'name': 'Grid Voltage', 'ent_cat': 'diagnostic'}},  # noqa: E501
-        Register.GRID_CURRENT:    {'name': ['grid', 'Current'],                         'level': logging.DEBUG, 'unit': 'A',    'ha': {'dev': 'inverter', 'dev_cla': 'current',     'stat_cla': 'measurement', 'id': 'out_cur_',   'fmt': '| float', 'name': 'Grid Current', 'ent_cat': 'diagnostic'}},  # noqa: E501
-        Register.GRID_FREQUENCY:  {'name': ['grid', 'Frequency'],                       'level': logging.DEBUG, 'unit': 'Hz',   'ha': {'dev': 'inverter', 'dev_cla': 'frequency',   'stat_cla': 'measurement', 'id': 'out_freq_',  'fmt': '| float', 'name': 'Grid Frequency', 'ent_cat': 'diagnostic'}},  # noqa: E501
-        Register.OUTPUT_POWER:    {'name': ['grid', 'Output_Power'],                    'level': logging.INFO,  'unit': 'W',    'ha': {'dev': 'inverter', 'dev_cla': 'power',       'stat_cla': 'measurement', 'id': 'out_power_', 'fmt': '| float', 'name': 'Power'}},  # noqa: E501
-        Register.RATED_POWER:     {'name': ['env',  'Rated_Power'],                     'level': logging.DEBUG, 'unit': 'W',    'ha': {'dev': 'inverter', 'dev_cla': None,          'stat_cla': None,          'id': 'rated_power_', 'fmt': '| string + " W"', 'name': 'Rated Power', 'icon': 'mdi:lightning-bolt', 'ent_cat': 'diagnostic'}},  # noqa: E501
-        Register.INVERTER_TEMP:   {'name': ['env',  'Inverter_Temp'],                   'level': logging.DEBUG, 'unit': '°C',   'ha': {'dev': 'inverter', 'dev_cla': 'temperature', 'stat_cla': 'measurement', 'id': 'temp_',       'fmt': '| int', 'name': 'Temperature'}},  # noqa: E501
+        Register.GRID_VOLTAGE:    {'name': ['grid', 'Voltage'],                    'level': logging.DEBUG, 'unit': 'V',    'ha': {'dev': 'inverter', 'dev_cla': 'voltage',     'stat_cla': 'measurement', 'id': 'out_volt_',  'fmt': '| float', 'name': 'Grid Voltage', 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.GRID_CURRENT:    {'name': ['grid', 'Current'],                    'level': logging.DEBUG, 'unit': 'A',    'ha': {'dev': 'inverter', 'dev_cla': 'current',     'stat_cla': 'measurement', 'id': 'out_cur_',   'fmt': '| float', 'name': 'Grid Current', 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.GRID_FREQUENCY:  {'name': ['grid', 'Frequency'],                  'level': logging.DEBUG, 'unit': 'Hz',   'ha': {'dev': 'inverter', 'dev_cla': 'frequency',   'stat_cla': 'measurement', 'id': 'out_freq_',  'fmt': '| float', 'name': 'Grid Frequency', 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.OUTPUT_POWER:    {'name': ['grid', 'Output_Power'],               'level': logging.INFO,  'unit': 'W',    'ha': {'dev': 'inverter', 'dev_cla': 'power',       'stat_cla': 'measurement', 'id': 'out_power_', 'fmt': '| float', 'name': 'Power'}},  # noqa: E501
+        Register.RATED_POWER:     {'name': ['env',  'Rated_Power'],                'level': logging.DEBUG, 'unit': 'W',    'ha': {'dev': 'inverter', 'dev_cla': None,          'stat_cla': None,          'id': 'rated_power_', 'fmt': '| string + " W"', 'name': 'Rated Power', 'icon': 'mdi:lightning-bolt', 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.INVERTER_TEMP:   {'name': ['env',  'Inverter_Temp'],              'level': logging.DEBUG, 'unit': '°C',   'ha': {'dev': 'inverter', 'dev_cla': 'temperature', 'stat_cla': 'measurement', 'id': 'temp_',       'fmt': '| int', 'name': 'Temperature'}},  # noqa: E501
 
         # input measures:
-        Register.PV1_VOLTAGE:  {'name': ['input', 'pv1', 'Voltage'],                 'level': logging.DEBUG, 'unit': 'V',    'ha': {'dev': 'input_pv1', 'dev_cla': 'voltage', 'stat_cla': 'measurement', 'id': 'volt_pv1_',  'val_tpl': "{{ (value_json['pv1']['Voltage'] | float)}}", 'icon': 'mdi:gauge', 'ent_cat': 'diagnostic'}},  # noqa: E501
-        Register.PV1_CURRENT:  {'name': ['input', 'pv1', 'Current'],                 'level': logging.DEBUG, 'unit': 'A',    'ha': {'dev': 'input_pv1', 'dev_cla': 'current', 'stat_cla': 'measurement', 'id': 'cur_pv1_',   'val_tpl': "{{ (value_json['pv1']['Current'] | float)}}", 'icon': 'mdi:gauge', 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.PV1_VOLTAGE:  {'name': ['input', 'pv1', 'Voltage'],               'level': logging.DEBUG, 'unit': 'V',    'ha': {'dev': 'input_pv1', 'dev_cla': 'voltage', 'stat_cla': 'measurement', 'id': 'volt_pv1_',  'val_tpl': "{{ (value_json['pv1']['Voltage'] | float)}}", 'icon': 'mdi:gauge', 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.PV1_CURRENT:  {'name': ['input', 'pv1', 'Current'],               'level': logging.DEBUG, 'unit': 'A',    'ha': {'dev': 'input_pv1', 'dev_cla': 'current', 'stat_cla': 'measurement', 'id': 'cur_pv1_',   'val_tpl': "{{ (value_json['pv1']['Current'] | float)}}", 'icon': 'mdi:gauge', 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.PV1_POWER:  {'name': ['input', 'pv1', 'Power'],                   'level': logging.INFO,  'unit': 'W',    'ha': {'dev': 'input_pv1', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'power_pv1_', 'val_tpl': "{{ (value_json['pv1']['Power'] | float)}}"}},  # noqa: E501
-        Register.PV2_VOLTAGE:  {'name': ['input', 'pv2', 'Voltage'],                 'level': logging.DEBUG, 'unit': 'V',    'ha': {'dev': 'input_pv2', 'dev_cla': 'voltage', 'stat_cla': 'measurement', 'id': 'volt_pv2_',  'val_tpl': "{{ (value_json['pv2']['Voltage'] | float)}}", 'icon': 'mdi:gauge', 'ent_cat': 'diagnostic'}},  # noqa: E501
-        Register.PV2_CURRENT:  {'name': ['input', 'pv2', 'Current'],                 'level': logging.DEBUG, 'unit': 'A',    'ha': {'dev': 'input_pv2', 'dev_cla': 'current', 'stat_cla': 'measurement', 'id': 'cur_pv2_',   'val_tpl': "{{ (value_json['pv2']['Current'] | float)}}", 'icon': 'mdi:gauge', 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.PV2_VOLTAGE:  {'name': ['input', 'pv2', 'Voltage'],               'level': logging.DEBUG, 'unit': 'V',    'ha': {'dev': 'input_pv2', 'dev_cla': 'voltage', 'stat_cla': 'measurement', 'id': 'volt_pv2_',  'val_tpl': "{{ (value_json['pv2']['Voltage'] | float)}}", 'icon': 'mdi:gauge', 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.PV2_CURRENT:  {'name': ['input', 'pv2', 'Current'],               'level': logging.DEBUG, 'unit': 'A',    'ha': {'dev': 'input_pv2', 'dev_cla': 'current', 'stat_cla': 'measurement', 'id': 'cur_pv2_',   'val_tpl': "{{ (value_json['pv2']['Current'] | float)}}", 'icon': 'mdi:gauge', 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.PV2_POWER:  {'name': ['input', 'pv2', 'Power'],                   'level': logging.INFO,  'unit': 'W',    'ha': {'dev': 'input_pv2', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'power_pv2_', 'val_tpl': "{{ (value_json['pv2']['Power'] | float)}}"}},  # noqa: E501
-        Register.PV3_VOLTAGE:  {'name': ['input', 'pv3', 'Voltage'],                 'level': logging.DEBUG, 'unit': 'V',    'ha': {'dev': 'input_pv3', 'dev_cla': 'voltage', 'stat_cla': 'measurement', 'id': 'volt_pv3_',  'val_tpl': "{{ (value_json['pv3']['Voltage'] | float)}}", 'icon': 'mdi:gauge', 'ent_cat': 'diagnostic'}},  # noqa: E501
-        Register.PV3_CURRENT:  {'name': ['input', 'pv3', 'Current'],                 'level': logging.DEBUG, 'unit': 'A',    'ha': {'dev': 'input_pv3', 'dev_cla': 'current', 'stat_cla': 'measurement', 'id': 'cur_pv3_',   'val_tpl': "{{ (value_json['pv3']['Current'] | float)}}", 'icon': 'mdi:gauge', 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.PV3_VOLTAGE:  {'name': ['input', 'pv3', 'Voltage'],               'level': logging.DEBUG, 'unit': 'V',    'ha': {'dev': 'input_pv3', 'dev_cla': 'voltage', 'stat_cla': 'measurement', 'id': 'volt_pv3_',  'val_tpl': "{{ (value_json['pv3']['Voltage'] | float)}}", 'icon': 'mdi:gauge', 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.PV3_CURRENT:  {'name': ['input', 'pv3', 'Current'],               'level': logging.DEBUG, 'unit': 'A',    'ha': {'dev': 'input_pv3', 'dev_cla': 'current', 'stat_cla': 'measurement', 'id': 'cur_pv3_',   'val_tpl': "{{ (value_json['pv3']['Current'] | float)}}", 'icon': 'mdi:gauge', 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.PV3_POWER:  {'name': ['input', 'pv3', 'Power'],                   'level': logging.DEBUG, 'unit': 'W',    'ha': {'dev': 'input_pv3', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'power_pv3_', 'val_tpl': "{{ (value_json['pv3']['Power'] | float)}}"}},  # noqa: E501
-        Register.PV4_VOLTAGE:  {'name': ['input', 'pv4', 'Voltage'],                 'level': logging.DEBUG, 'unit': 'V',    'ha': {'dev': 'input_pv4', 'dev_cla': 'voltage', 'stat_cla': 'measurement', 'id': 'volt_pv4_',  'val_tpl': "{{ (value_json['pv4']['Voltage'] | float)}}", 'icon': 'mdi:gauge', 'ent_cat': 'diagnostic'}},  # noqa: E501
-        Register.PV4_CURRENT:  {'name': ['input', 'pv4', 'Current'],                 'level': logging.DEBUG, 'unit': 'A',    'ha': {'dev': 'input_pv4', 'dev_cla': 'current', 'stat_cla': 'measurement', 'id': 'cur_pv4_',   'val_tpl': "{{ (value_json['pv4']['Current'] | float)}}", 'icon': 'mdi:gauge', 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.PV4_VOLTAGE:  {'name': ['input', 'pv4', 'Voltage'],               'level': logging.DEBUG, 'unit': 'V',    'ha': {'dev': 'input_pv4', 'dev_cla': 'voltage', 'stat_cla': 'measurement', 'id': 'volt_pv4_',  'val_tpl': "{{ (value_json['pv4']['Voltage'] | float)}}", 'icon': 'mdi:gauge', 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.PV4_CURRENT:  {'name': ['input', 'pv4', 'Current'],               'level': logging.DEBUG, 'unit': 'A',    'ha': {'dev': 'input_pv4', 'dev_cla': 'current', 'stat_cla': 'measurement', 'id': 'cur_pv4_',   'val_tpl': "{{ (value_json['pv4']['Current'] | float)}}", 'icon': 'mdi:gauge', 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.PV4_POWER:  {'name': ['input', 'pv4', 'Power'],                   'level': logging.DEBUG, 'unit': 'W',    'ha': {'dev': 'input_pv4', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'power_pv4_', 'val_tpl': "{{ (value_json['pv4']['Power'] | float)}}"}},  # noqa: E501
         Register.PV1_DAILY_GENERATION:  {'name': ['input', 'pv1', 'Daily_Generation'],        'level': logging.DEBUG, 'unit': 'kWh',  'ha': {'dev': 'input_pv1', 'dev_cla': 'energy', 'stat_cla': 'total_increasing', 'id': 'daily_gen_pv1_', 'name': 'Daily Generation', 'val_tpl': "{{ (value_json['pv1']['Daily_Generation'] | float)}}", 'icon': 'mdi:solar-power-variant', 'must_incr': True}},  # noqa: E501
         Register.PV1_TOTAL_GENERATION:  {'name': ['input', 'pv1', 'Total_Generation'],        'level': logging.DEBUG, 'unit': 'kWh',  'ha': {'dev': 'input_pv1', 'dev_cla': 'energy', 'stat_cla': 'total',            'id': 'total_gen_pv1_', 'name': 'Total Generation', 'val_tpl': "{{ (value_json['pv1']['Total_Generation'] | float)}}", 'icon': 'mdi:solar-power', 'must_incr': True}},  # noqa: E501
@@ -202,33 +202,35 @@ class Infos:
         Register.PV4_DAILY_GENERATION:  {'name': ['input', 'pv4', 'Daily_Generation'],        'level': logging.DEBUG, 'unit': 'kWh',  'ha': {'dev': 'input_pv4', 'dev_cla': 'energy', 'stat_cla': 'total_increasing', 'id': 'daily_gen_pv4_', 'name': 'Daily Generation', 'val_tpl': "{{ (value_json['pv4']['Daily_Generation'] | float)}}", 'icon': 'mdi:solar-power-variant', 'must_incr': True}},  # noqa: E501
         Register.PV4_TOTAL_GENERATION:  {'name': ['input', 'pv4', 'Total_Generation'],        'level': logging.DEBUG, 'unit': 'kWh',  'ha': {'dev': 'input_pv4', 'dev_cla': 'energy', 'stat_cla': 'total',            'id': 'total_gen_pv4_', 'name': 'Total Generation', 'val_tpl': "{{ (value_json['pv4']['Total_Generation'] | float)}}", 'icon': 'mdi:solar-power', 'must_incr': True}},  # noqa: E501
         # total:
-        Register.DAILY_GENERATION:  {'name': ['total', 'Daily_Generation'],               'level': logging.INFO,  'unit': 'kWh',  'ha': {'dev': 'inverter', 'dev_cla': 'energy', 'stat_cla': 'total_increasing', 'id': 'daily_gen_', 'fmt': '| float', 'name': 'Daily Generation', 'icon': 'mdi:solar-power-variant', 'must_incr': True}},  # noqa: E501
-        Register.TOTAL_GENERATION:  {'name': ['total', 'Total_Generation'],               'level': logging.INFO,  'unit': 'kWh',  'ha': {'dev': 'inverter', 'dev_cla': 'energy', 'stat_cla': 'total',            'id': 'total_gen_', 'fmt': '| float', 'name': 'Total Generation', 'icon': 'mdi:solar-power', 'must_incr': True}},  # noqa: E501
+        Register.DAILY_GENERATION:  {'name': ['total', 'Daily_Generation'],        'level': logging.INFO,  'unit': 'kWh',  'ha': {'dev': 'inverter', 'dev_cla': 'energy', 'stat_cla': 'total_increasing', 'id': 'daily_gen_', 'fmt': '| float', 'name': 'Daily Generation', 'icon': 'mdi:solar-power-variant', 'must_incr': True}},  # noqa: E501
+        Register.TOTAL_GENERATION:  {'name': ['total', 'Total_Generation'],        'level': logging.INFO,  'unit': 'kWh',  'ha': {'dev': 'inverter', 'dev_cla': 'energy', 'stat_cla': 'total',            'id': 'total_gen_', 'fmt': '| float', 'name': 'Total Generation', 'icon': 'mdi:solar-power', 'must_incr': True}},  # noqa: E501
 
         # controller:
-        Register.SIGNAL_STRENGTH:    {'name': ['controller', 'Signal_Strength'],           'level': logging.DEBUG, 'unit': '%',    'ha': {'dev': 'controller', 'dev_cla': None,       'stat_cla': 'measurement', 'id': 'signal_',              'fmt': '| int',           'name': 'Signal Strength', 'icon': 'mdi:wifi'}},  # noqa: E501
-        Register.POWER_ON_TIME:      {'name': ['controller', 'Power_On_Time'],             'level': logging.DEBUG, 'unit': 's',    'ha': {'dev': 'controller', 'dev_cla': 'duration', 'stat_cla': 'measurement', 'id': 'power_on_time_',       'fmt': '| float',         'name': 'Power on Time', 'nat_prc': '3', 'ent_cat': 'diagnostic'}},  # noqa: E501
-        Register.COLLECT_INTERVAL:   {'name': ['controller', 'Collect_Interval'],          'level': logging.DEBUG, 'unit': 's',    'ha': {'dev': 'controller', 'dev_cla': None,       'stat_cla': None,          'id': 'data_collect_intval_', 'fmt': '| string + " s"', 'name': 'Data Collect Interval', 'icon': 'mdi:update', 'ent_cat': 'diagnostic'}},  # noqa: E501
-        Register.CONNECT_COUNT:      {'name': ['controller', 'Connect_Count'],             'level': logging.DEBUG, 'unit': '',     'ha': {'dev': 'controller', 'dev_cla': None,       'stat_cla': None,          'id': 'connect_count_',       'fmt': '| int',           'name': 'Connect Count',    'icon': 'mdi:counter', 'comp': 'sensor', 'ent_cat': 'diagnostic'}},  # noqa: E501
-        Register.COMMUNICATION_TYPE: {'name': ['controller', 'Communication_Type'],        'level': logging.DEBUG, 'unit': '',     'ha': {'dev': 'controller', 'dev_cla': None,       'stat_cla': None,          'id': 'comm_type_',           'name': 'Communication Type', 'val_tpl': __comm_type_val_tpl, 'comp': 'sensor', 'icon': 'mdi:wifi'}},  # noqa: E501
-        Register.DATA_UP_INTERVAL:   {'name': ['controller', 'Data_Up_Interval'],          'level': logging.DEBUG, 'unit': 's',    'ha': {'dev': 'controller', 'dev_cla': None,       'stat_cla': None,          'id': 'data_up_intval_', 'fmt': '| string + " s"', 'name': 'Data Up Interval', 'icon': 'mdi:update', 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.SIGNAL_STRENGTH:    {'name': ['controller', 'Signal_Strength'],    'level': logging.DEBUG, 'unit': '%',    'ha': {'dev': 'controller', 'dev_cla': None,       'stat_cla': 'measurement', 'id': 'signal_',              'fmt': '| int',           'name': 'Signal Strength', 'icon': 'mdi:wifi'}},  # noqa: E501
+        Register.POWER_ON_TIME:      {'name': ['controller', 'Power_On_Time'],      'level': logging.DEBUG, 'unit': 's',    'ha': {'dev': 'controller', 'dev_cla': 'duration', 'stat_cla': 'measurement', 'id': 'power_on_time_',       'fmt': '| float',         'name': 'Power on Time', 'nat_prc': '3', 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.COLLECT_INTERVAL:   {'name': ['controller', 'Collect_Interval'],   'level': logging.DEBUG, 'unit': 's',    'ha': {'dev': 'controller', 'dev_cla': None,       'stat_cla': None,          'id': 'data_collect_intval_', 'fmt': '| string + " s"', 'name': 'Data Collect Interval', 'icon': 'mdi:update', 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.CONNECT_COUNT:      {'name': ['controller', 'Connect_Count'],      'level': logging.DEBUG, 'unit': '',     'ha': {'dev': 'controller', 'dev_cla': None,       'stat_cla': None,          'id': 'connect_count_',       'fmt': '| int',           'name': 'Connect Count',    'icon': 'mdi:counter', 'comp': 'sensor', 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.COMMUNICATION_TYPE: {'name': ['controller', 'Communication_Type'], 'level': logging.DEBUG, 'unit': '',     'ha': {'dev': 'controller', 'dev_cla': None,       'stat_cla': None,          'id': 'comm_type_',           'name': 'Communication Type', 'val_tpl': __comm_type_val_tpl, 'comp': 'sensor', 'icon': 'mdi:wifi'}},  # noqa: E501
+        Register.DATA_UP_INTERVAL:   {'name': ['controller', 'Data_Up_Interval'],   'level': logging.DEBUG, 'unit': 's',    'ha': {'dev': 'controller', 'dev_cla': None,       'stat_cla': None,          'id': 'data_up_intval_', 'fmt': '| string + " s"', 'name': 'Data Up Interval', 'icon': 'mdi:update', 'ent_cat': 'diagnostic'}},  # noqa: E501
     }
 
     @property
     def info_devs(self) -> dict:
-        return self._info_devs
-
-    @info_devs.setter
-    def info_devs(self, value: dict) -> None:
-        self._info_devs = value
+        return self.__info_devs
 
     @property
     def info_defs(self) -> dict:
-        return self._info_defs
+        return self.__info_defs
+    '''
+    if __name__ == "app.src.messages":
+        @info_defs.setter
+        def info_defs(self, value: dict) -> None:
+            self.__info_defs = value
 
-    @info_defs.setter
-    def info_defs(self, value: dict) -> None:
-        self._info_defs = value
+        @info_devs.setter
+        def info_devs(self, value: dict) -> None:
+            self.__info_devs = value
+    '''
 
     def dev_value(self, idx: str | int) -> str | int | float | None:
         '''returns the stored device value from our database
@@ -240,8 +242,8 @@ class Infos:
         '''
         if type(idx) is str:
             return idx               # return idx as a fixed value
-        elif idx in self._info_defs:
-            row = self._info_defs[idx]
+        elif idx in self.info_defs:
+            row = self.info_defs[idx]
             if 'singleton' in row and row['singleton']:
                 dict = self.stat
             else:
@@ -255,7 +257,7 @@ class Infos:
                 dict = dict[key]
             return dict              # value of the reqeusted entry
 
-        return None                  # unknwon idx, not in __info_defs
+        return None                  # unknwon idx, not in info_defs
 
     def inc_counter(self, counter: str) -> None:
         '''inc proxy statistic counter'''
@@ -281,7 +283,7 @@ class Infos:
         '''
         # iterate over RegisterMap.map and get the register values for entries
         # with Singleton=True, which means that this is a proxy register
-        for reg in self._info_defs.keys():
+        for reg in self.info_defs.keys():
             res = self.ha_conf(reg, ha_prfx, node_id, snr, True)  # noqa: E501
             if res:
                 yield res
@@ -320,7 +322,7 @@ class Infos:
                 attr['val_tpl'] = '{{value_json' + f"['{row['name'][-1]}'] {ha['fmt']}" + '}}'       # eg.   'val_tpl': "{{ value_json['Output_Power']|float }} # noqa: E501
             else:
                 self.inc_counter('Internal_Error')
-                logging.error(f"Infos._info_defs: the row for {key} do"
+                logging.error(f"Infos.info_defs: the row for {key} do"
                               " not have a 'val_tpl' nor a 'fmt' value")
             # add unit_of_meas only, if status_class isn't none. If
             # status_cla is None we want a number format and not line
@@ -364,7 +366,7 @@ class Infos:
                             dev['via_device'] = f"{via}_{snr}"
                     else:
                         self.inc_counter('Internal_Error')
-                        logging.error(f"Infos._info_defs: the row for "
+                        logging.error(f"Infos.info_defs: the row for "
                                       f"{key} has an invalid via value: "
                                       f"{via}")
                 for key in ('mdl', 'mf', 'sw', 'hw'):      # add optional
@@ -385,14 +387,14 @@ class Infos:
                 attr['o'] = origin
             else:
                 self.inc_counter('Internal_Error')
-                logging.error(f"Infos._info_defs: the row for {key} "
+                logging.error(f"Infos.info_defs: the row for {key} "
                               "missing 'dev' value for ha register")
             return json.dumps(attr), component, node_id, attr['uniq_id']
         return None
 
     def _key_obj(self, id) -> list:
-        d = self._info_defs.get(id, {'name': None, 'level': logging.DEBUG,
-                                     'unit': ''})
+        d = self.info_defs.get(id, {'name': None, 'level': logging.DEBUG,
+                                    'unit': ''})
         if 'ha' in d and 'must_incr' in d['ha']:
             must_incr = d['ha']['must_incr']
         else:
