@@ -11,60 +11,68 @@ else:  # pragma: no cover
 class RegisterMap:
     # make the class read/only by using __slots__
 
-    # __slots__ = ()
+    __slots__ = ()
     map = {
-        0x00d2: {'reg': Register.GRID_VOLTAGE,         'fmt': '!H', 'ratio':  0.1},  # noqa: E501
-        0x00d4: {'reg': Register.GRID_CURRENT,         'fmt': '!H', 'ratio': 0.01},  # noqa: E501
-        0x00d6: {'reg': Register.GRID_FREQUENCY,       'fmt': '!H', 'ratio': 0.01},  # noqa: E501
-        0x00d8: {'reg': Register.INVERTER_TEMP,        'fmt': '!H', 'ratio':    1},  # noqa: E501
-        0x00dc: {'reg': Register.RATED_POWER,          'fmt': '!H', 'ratio':    1},  # noqa: E501
-        0x00de: {'reg': Register.OUTPUT_POWER,         'fmt': '!H', 'ratio':  0.1},  # noqa: E501
-        0x00e0: {'reg': Register.PV1_VOLTAGE,          'fmt': '!H', 'ratio':  0.1},  # noqa: E501
-        0x00e2: {'reg': Register.PV1_CURRENT,          'fmt': '!H', 'ratio': 0.01},  # noqa: E501
-        0x00e4: {'reg': Register.PV1_POWER,            'fmt': '!H', 'ratio':  0.1},  # noqa: E501
-        0x00e6: {'reg': Register.PV2_VOLTAGE,          'fmt': '!H', 'ratio':  0.1},  # noqa: E501
-        0x00e8: {'reg': Register.PV2_CURRENT,          'fmt': '!H', 'ratio': 0.01},  # noqa: E501
-        0x00ea: {'reg': Register.PV2_POWER,            'fmt': '!H', 'ratio':  0.1},  # noqa: E501
-        0x00ec: {'reg': Register.PV3_VOLTAGE,          'fmt': '!H', 'ratio':  0.1},  # noqa: E501
-        0x00ee: {'reg': Register.PV3_CURRENT,          'fmt': '!H', 'ratio': 0.01},  # noqa: E501
-        0x00f0: {'reg': Register.PV3_POWER,            'fmt': '!H', 'ratio':  0.1},  # noqa: E501
-        0x00f2: {'reg': Register.PV4_VOLTAGE,          'fmt': '!H', 'ratio':  0.1},  # noqa: E501
-        0x00f4: {'reg': Register.PV4_CURRENT,          'fmt': '!H', 'ratio': 0.01},  # noqa: E501
-        0x00f6: {'reg': Register.PV4_POWER,            'fmt': '!H', 'ratio':  0.1},  # noqa: E501
-        0x00f8: {'reg': Register.DAILY_GENERATION,     'fmt': '!H', 'ratio': 0.01},  # noqa: E501
-        0x00fa: {'reg': Register.TOTAL_GENERATION,     'fmt': '!L', 'ratio': 0.01},  # noqa: E501
-        0x00fe: {'reg': Register.PV1_DAILY_GENERATION, 'fmt': '!H', 'ratio': 0.01},  # noqa: E501
-        0x0100: {'reg': Register.PV1_TOTAL_GENERATION, 'fmt': '!L', 'ratio': 0.01},  # noqa: E501
-        0x0104: {'reg': Register.PV2_DAILY_GENERATION, 'fmt': '!H', 'ratio': 0.01},  # noqa: E501
-        0x0106: {'reg': Register.PV2_TOTAL_GENERATION, 'fmt': '!L', 'ratio': 0.01},  # noqa: E501
-        0x010a: {'reg': Register.PV3_DAILY_GENERATION, 'fmt': '!H', 'ratio': 0.01},  # noqa: E501
-        0x010c: {'reg': Register.PV3_TOTAL_GENERATION, 'fmt': '!L', 'ratio': 0.01},  # noqa: E501
-        0x0110: {'reg': Register.PV4_DAILY_GENERATION, 'fmt': '!H', 'ratio': 0.01},  # noqa: E501
-        0x0112: {'reg': Register.PV4_TOTAL_GENERATION, 'fmt': '!L', 'ratio': 0.01},  # noqa: E501
+        # 0x41020007: {'reg': Register.DEVICE_SNR,           'fmt': '<L'},                 # noqa: E501
+        0x41020018: {'reg': Register.DATA_UP_INTERVAL,     'fmt': '!B', 'ratio':   60},  # noqa: E501
+        0x41020019: {'reg': Register.COLLECT_INTERVAL,     'fmt': '!B', 'ratio':    1},  # noqa: E501
+        0x4102001e: {'reg': Register.COLLECTOR_FW_VERSION, 'fmt': '!40s'},               # noqa: E501
+        0x41020064: {'reg': Register.VERSION,              'fmt': '!40s'},               # noqa: E501
+
+        0x42010020: {'reg': Register.SERIAL_NUMBER,        'fmt': '!16s'},               # noqa: E501
+        0x420100d2: {'reg': Register.GRID_VOLTAGE,         'fmt': '!H', 'ratio':  0.1},  # noqa: E501
+        0x420100d4: {'reg': Register.GRID_CURRENT,         'fmt': '!H', 'ratio': 0.01},  # noqa: E501
+        0x420100d6: {'reg': Register.GRID_FREQUENCY,       'fmt': '!H', 'ratio': 0.01},  # noqa: E501
+        0x420100d8: {'reg': Register.INVERTER_TEMP,        'fmt': '!H', 'eval': '(result-32)/1.8'},  # noqa: E501
+        0x420100dc: {'reg': Register.RATED_POWER,          'fmt': '!H', 'ratio':    1},  # noqa: E501
+        0x420100de: {'reg': Register.OUTPUT_POWER,         'fmt': '!H', 'ratio':  0.1},  # noqa: E501
+        0x420100e0: {'reg': Register.PV1_VOLTAGE,          'fmt': '!H', 'ratio':  0.1},  # noqa: E501
+        0x420100e2: {'reg': Register.PV1_CURRENT,          'fmt': '!H', 'ratio': 0.01},  # noqa: E501
+        0x420100e4: {'reg': Register.PV1_POWER,            'fmt': '!H', 'ratio':  0.1},  # noqa: E501
+        0x420100e6: {'reg': Register.PV2_VOLTAGE,          'fmt': '!H', 'ratio':  0.1},  # noqa: E501
+        0x420100e8: {'reg': Register.PV2_CURRENT,          'fmt': '!H', 'ratio': 0.01},  # noqa: E501
+        0x420100ea: {'reg': Register.PV2_POWER,            'fmt': '!H', 'ratio':  0.1},  # noqa: E501
+        0x420100ec: {'reg': Register.PV3_VOLTAGE,          'fmt': '!H', 'ratio':  0.1},  # noqa: E501
+        0x420100ee: {'reg': Register.PV3_CURRENT,          'fmt': '!H', 'ratio': 0.01},  # noqa: E501
+        0x420100f0: {'reg': Register.PV3_POWER,            'fmt': '!H', 'ratio':  0.1},  # noqa: E501
+        0x420100f2: {'reg': Register.PV4_VOLTAGE,          'fmt': '!H', 'ratio':  0.1},  # noqa: E501
+        0x420100f4: {'reg': Register.PV4_CURRENT,          'fmt': '!H', 'ratio': 0.01},  # noqa: E501
+        0x420100f6: {'reg': Register.PV4_POWER,            'fmt': '!H', 'ratio':  0.1},  # noqa: E501
+        0x420100f8: {'reg': Register.DAILY_GENERATION,     'fmt': '!H', 'ratio': 0.01},  # noqa: E501
+        0x420100fa: {'reg': Register.TOTAL_GENERATION,     'fmt': '!L', 'ratio': 0.01},  # noqa: E501
+        0x420100fe: {'reg': Register.PV1_DAILY_GENERATION, 'fmt': '!H', 'ratio': 0.01},  # noqa: E501
+        0x42010100: {'reg': Register.PV1_TOTAL_GENERATION, 'fmt': '!L', 'ratio': 0.01},  # noqa: E501
+        0x42010104: {'reg': Register.PV2_DAILY_GENERATION, 'fmt': '!H', 'ratio': 0.01},  # noqa: E501
+        0x42010106: {'reg': Register.PV2_TOTAL_GENERATION, 'fmt': '!L', 'ratio': 0.01},  # noqa: E501
+        0x4201010a: {'reg': Register.PV3_DAILY_GENERATION, 'fmt': '!H', 'ratio': 0.01},  # noqa: E501
+        0x4201010c: {'reg': Register.PV3_TOTAL_GENERATION, 'fmt': '!L', 'ratio': 0.01},  # noqa: E501
+        0x42010110: {'reg': Register.PV4_DAILY_GENERATION, 'fmt': '!H', 'ratio': 0.01},  # noqa: E501
+        0x42010112: {'reg': Register.PV4_TOTAL_GENERATION, 'fmt': '!L', 'ratio': 0.01},  # noqa: E501
+        0x42010170: {'reg': Register.NO_INPUTS,            'fmt': '!B'},                 # noqa: E501
+
     }
     '''
     COMMUNICATION_TYPE = 400
     SIGNAL_STRENGTH = 401
     POWER_ON_TIME = 402
-    COLLECT_INTERVAL = 403
-    DATA_UP_INTERVAL = 404
     CONNECT_COUNT = 405
-
-        COLLECTOR_FW_VERSION = 1
     CHIP_TYPE = 2
     CHIP_MODEL = 3
     TRACE_URL = 4
     LOGGER_URL = 5
     PRODUCT_NAME = 20
     MANUFACTURER = 21
-    VERSION = 22
-    SERIAL_NUMBER = 23
     EQUIPMENT_MODEL = 24
-    NO_INPUTS = 25
     '''
 
 
 class InfosG3P(Infos):
+    def __init__(self):
+        super().__init__()
+        self.set_db_def_value(Register.MANUFACTURER, 'TSUN')
+        self.set_db_def_value(Register.EQUIPMENT_MODEL, 'TSOL-MS2000')
+        self.set_db_def_value(Register.CHIP_TYPE, 'IGEN TECH')
+
     def ha_confs(self, ha_prfx: str, node_id: str, snr: str,
                  sug_area: str = '') \
             -> Generator[tuple[dict, str], None, None]:
@@ -83,20 +91,29 @@ class InfosG3P(Infos):
             if res:
                 yield res
 
-    def parse(self, buf, ind=0) -> Generator[tuple[str, bool], None, None]:
+    def parse(self, buf, msg_type: int, rcv_ftype: int) \
+            -> Generator[tuple[str, bool], None, None]:
         '''parse a data sequence received from the inverter and
         stores the values in Infos.db
 
         buf: buffer of the sequence to parse'''
-        for addr, row in RegisterMap.map.items():
+        for idx, row in RegisterMap.map.items():
+            addr = idx & 0xffff
+            ftype = (idx >> 16) & 0xff
+            mtype = (idx >> 24) & 0xff
+            if ftype != rcv_ftype or mtype != msg_type:
+                continue
             if isinstance(row, dict):
                 info_id = row['reg']
                 fmt = row['fmt']
                 res = struct.unpack_from(fmt, buf, addr)
                 result = res[0]
+                if isinstance(result, (bytearray, bytes)):
+                    result = result.decode('utf-8')
+                if 'eval' in row:
+                    result = eval(row['eval'])
                 if 'ratio' in row:
-                    ratio = row['ratio']
-                    result *= ratio
+                    result = round(result * row['ratio'], 2)
 
             keys, level, unit, must_incr, new_val = self._key_obj(info_id)
 
