@@ -424,3 +424,10 @@ class Infos:
             dict[keys[-1]] = result
         name += keys[-1]
         return name, update
+
+    def set_db_def_value(self, id, value):
+        '''set default value'''
+        row = self.info_defs[id]
+        if isinstance(row, dict):
+            keys = row['name']
+            self.update_db(keys, False, value)
