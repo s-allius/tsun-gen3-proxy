@@ -26,6 +26,7 @@ class Register(Enum):
     OTA_START_MSG = 56
     SW_EXCEPTION = 57
     INVALID_MSG_FMT = 58
+    AT_COMMAND = 59
     OUTPUT_POWER = 83
     RATED_POWER = 84
     INVERTER_TEMP = 85
@@ -154,6 +155,7 @@ class Infos:
         Register.OTA_START_MSG:     {'name': ['proxy', 'OTA_Start_Msg'],      'singleton': True,   'ha': {'dev': 'proxy', 'comp': 'sensor', 'dev_cla': None, 'stat_cla': None, 'id': 'ota_start_cmd_', 'fmt': '| int', 'name': 'OTA Start Cmd',        'icon': 'mdi:counter', 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.SW_EXCEPTION:      {'name': ['proxy', 'SW_Exception'],       'singleton': True,   'ha': {'dev': 'proxy', 'comp': 'sensor', 'dev_cla': None, 'stat_cla': None, 'id': 'sw_exception_',  'fmt': '| int', 'name': 'Internal SW Exception', 'icon': 'mdi:counter', 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.INVALID_MSG_FMT:   {'name': ['proxy', 'Invalid_Msg_Format'], 'singleton': True,   'ha': {'dev': 'proxy', 'comp': 'sensor', 'dev_cla': None, 'stat_cla': None, 'id': 'inv_msg_fmt_',   'fmt': '| int', 'name': 'Invalid Message Format', 'icon': 'mdi:counter', 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.AT_COMMAND:        {'name': ['proxy', 'AT_Command'],         'singleton': True,   'ha': {'dev': 'proxy', 'comp': 'sensor', 'dev_cla': None, 'stat_cla': None, 'id': 'at_cmd_',        'fmt': '| int', 'name': 'AT Command',           'icon': 'mdi:counter', 'ent_cat': 'diagnostic'}},  # noqa: E501
         # 0xffffff03:  {'name':['proxy', 'Voltage'],                        'level': logging.DEBUG, 'unit': 'V',    'ha':{'dev':'proxy', 'dev_cla': 'voltage',     'stat_cla': 'measurement', 'id':'proxy_volt_',  'fmt':'| float','name': 'Grid Voltage'}},  # noqa: E501
 
         # events

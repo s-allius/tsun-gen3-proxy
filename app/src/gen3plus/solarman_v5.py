@@ -55,8 +55,8 @@ class SolarmanV5(Message):
 
             #
             # AT cmd
-            0x4510: self.msg_unknown,    # from server
-            0x1510: self.msg_forward,    # from inverter
+            0x4510: self.at_command_ind,  # from server
+            0x1510: self.msg_forward,     # from inverter
         }
 
     '''
@@ -329,3 +329,7 @@ class SolarmanV5(Message):
         dt = datetime.fromtimestamp(ts)
         logger.info(f'ts: {dt.strftime("%Y-%m-%d %H:%M:%S")}')
         self.forward(self._recv_buffer, self.header_len+self.data_len+2)
+
+    def at_command_ind(self):
+        self.inc_counter('AT_Command')
+        self.msg_forward()

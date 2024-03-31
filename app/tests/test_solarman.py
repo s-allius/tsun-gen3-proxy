@@ -17,6 +17,7 @@ class MemoryStream(SolarmanV5):
         self.msg_count = 0
         self.addr = 'Test: SrvSide'
         self.db.stat['proxy']['Invalid_Msg_Format'] = 0
+        self.db.stat['proxy']['AT_Command'] = 0
 
 
     def append_msg(self, msg):
@@ -216,6 +217,14 @@ def HeartbeatIndMsg():  # 0x4710
 def HeartbeatRspMsg():  # 0x1710
     msg  = b'\xa5\x0a\x00\x10\x17\x10\x84' +get_sn()  +b'\x00\x01\x22\x71\x09'
     msg += b'\x66\x78\x00\x00\x00'               
+    msg += correct_checksum(msg)
+    msg += b'\x15'
+    return msg
+
+@pytest.fixture
+def AtCommandIndMsg():  # 0x4510
+    msg  = b'\xa5\x01\x00\x10\x45\x10\x84' +get_sn()
+    msg += b'\x00'               
     msg += correct_checksum(msg)
     msg += b'\x15'
     return msg
@@ -588,4 +597,23 @@ def test_heartbeat_rsp(ConfigTsunInv1, HeartbeatRspMsg):
     assert m._send_buffer==b''
     assert m._forward_buffer==HeartbeatRspMsg
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
+    m.close()
+
+def test_at_command_ind(ConfigTsunInv1, AtCommandIndMsg):
+    ConfigTsunInv1
+    m = MemoryStream(AtCommandIndMsg, (0,))
+    m.read()         # read complete msg, and dispatch msg
+    assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
+    assert m.msg_count == 1
+    assert m.header_len==11
+    assert m.snr == 2070233889
+    # assert m.unique_id == '2070233889'
+    assert m.control == 0x4510
+    assert m.serial == 0x8410
+    assert m.data_len == 0x01
+    assert m._recv_buffer==b''
+    assert m._send_buffer==b''
+    assert m._forward_buffer==AtCommandIndMsg
+    assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
+    assert m.db.stat['proxy']['AT_Command'] == 1
     m.close()
