@@ -147,6 +147,38 @@ def InvalidChecksum(): # 0x4110
     msg += b'\x15'
     return msg
 
+@pytest.fixture
+def InverterIndMsg():  # 0x4210
+    msg  = b'\xa5\x99\x01\x10\x42\xe6\x9e' +get_sn()  +b'\x01\xb0\x02\xbc\xc8'
+    msg += b'\x24\x32\x6c\x1f\x00\x00\xa0\x47\xe4\x33\x01\x00\x03\x08\x00\x00'
+    msg += b'\x59\x31\x37\x45\x37\x41\x30\x46\x30\x31\x30\x42\x30\x31\x33\x45'
+    msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+    msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+    msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+    msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+    msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+    msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+    msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+    msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+    msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+    msg += b'\x00\x01\x00\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+    msg += b'\x40\x10\x08\xc8\x00\x49\x13\x8d\x00\x36\x00\x00\x02\x58\x06\x7a'
+    msg += b'\x01\x61\x00\xa8\x02\x54\x01\x5a\x00\x8a\x01\xe4\x01\x5a\x00\xbd'
+    msg += b'\x02\x8f\x00\x11\x00\x01\x00\x00\x00\x0b\x00\x00\x27\x98\x00\x04'
+    msg += b'\x00\x00\x0c\x04\x00\x03\x00\x00\x0a\xe7\x00\x05\x00\x00\x0c\x75'
+    msg += b'\x00\x00\x00\x00\x06\x16\x02\x00\x00\x00\x55\xaa\x00\x01\x00\x00'
+    msg += b'\x00\x00\x00\x00\xff\xff\x07\xd0\x00\x03\x04\x00\x04\x00\x04\x00'
+    msg += b'\x04\x00\x00\x01\xff\xff\x00\x01\x00\x06\x00\x68\x00\x68\x05\x00'
+    msg += b'\x09\xcd\x07\xb6\x13\x9c\x13\x24\x00\x01\x07\xae\x04\x0f\x00\x41'
+    msg += b'\x00\x0f\x0a\x64\x0a\x64\x00\x06\x00\x06\x09\xf6\x12\x8c\x12\x8c'
+    msg += b'\x00\x10\x00\x10\x14\x52\x14\x52\x00\x10\x00\x10\x01\x51\x00\x05'
+    msg += b'\x04\x00\x00\x01\x13\x9c\x0f\xa0\x00\x4e\x00\x66\x03\xe8\x04\x00'
+    msg += b'\x09\xce\x07\xa8\x13\x9c\x13\x26\x00\x00\x00\x00\x00\x00\x00\x00'
+    msg += b'\x00\x00\x00\x00\x04\x00\x04\x00\x00\x00\x00\x00\xff\xff\x00\x00'
+    msg += b'\x00\x00\x00\x00'
+    msg += correct_checksum(msg)
+    msg += b'\x15'
+    return msg
 
 @pytest.fixture
 def ConfigTsunAllowAll():
@@ -171,12 +203,18 @@ def test_read_message(DeviceIndMsg):
     assert m.control == 0x4110
     assert m.serial == 0x0100
     assert m.data_len == 0xd4
+    assert m._recv_buffer==b''
+    assert m._send_buffer==b''
     assert m._forward_buffer==b''
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
     m.close()
 
-def test_invalid_start_byte(InvalidStartByte):
+def test_invalid_start_byte(InvalidStartByte, DeviceIndMsg):
+    # received a message with wrong start byte plus an valid message
+    # the complete receive buffer must be cleared to 
+    # find the next valid message
     m = MemoryStream(InvalidStartByte, (0,))
+    m.append_msg(DeviceIndMsg)
     m.read()         # read complete msg, and dispatch msg
     assert not m.header_valid  # must be invalid, since start byte is wrong
     assert m.msg_count == 0
@@ -186,12 +224,16 @@ def test_invalid_start_byte(InvalidStartByte):
     assert m.control == 0x4110
     assert m.serial == 0x0100
     assert m.data_len == 0xd4
+    assert m._recv_buffer==b''
+    assert m._send_buffer==b''
     assert m._forward_buffer==b''
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 1
-
     m.close()
 
 def test_invalid_stop_byte(InvalidStopByte):
+    # received a message with wrong stop byte
+    # the complete receive buffer must be cleared to 
+    # find the next valid message
     m = MemoryStream(InvalidStopByte, (0,))
     m.read()         # read complete msg, and dispatch msg
     assert not m.header_valid  # must be invalid, since start byte is wrong
@@ -202,12 +244,17 @@ def test_invalid_stop_byte(InvalidStopByte):
     assert m.control == 0x4110
     assert m.serial == 0x0100
     assert m.data_len == 0xd4
+    assert m._recv_buffer==b''
+    assert m._send_buffer==b''
     assert m._forward_buffer==b''
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 1
     m.close()
 
-def test_invalid_checksum(InvalidChecksum):
-    m = MemoryStream(InvalidChecksum, (0,))
+def test_invalid_stop_byte2(InvalidStopByte, DeviceIndMsg):
+    # received a message with wrong stop byte plus an valid message
+    # only the first message must be discarded
+    m = MemoryStream(InvalidStopByte, (0,))
+    m.append_msg(DeviceIndMsg)
     m.read()         # read complete msg, and dispatch msg
     assert not m.header_valid  # must be invalid, since start byte is wrong
     assert m.msg_count == 1     # msg flush was called
@@ -217,6 +264,78 @@ def test_invalid_checksum(InvalidChecksum):
     assert m.control == 0x4110
     assert m.serial == 0x0100
     assert m.data_len == 0xd4
+    assert m._recv_buffer==DeviceIndMsg
+    assert m._send_buffer==b''
+    assert m._forward_buffer==b''
+    assert m.db.stat['proxy']['Invalid_Msg_Format'] == 1
+
+    m.read()         # read complete msg, and dispatch msg
+    assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
+    assert m.msg_count == 2
+    assert m.header_len==11
+    assert m.snr == 2070233889
+    assert m.unique_id == None
+    assert m.control == 0x4110
+    assert m.serial == 0x0100
+    assert m.data_len == 0xd4
+    assert m._recv_buffer==b''
+    assert m._send_buffer==b''
+    assert m._forward_buffer==b''
+    assert m.db.stat['proxy']['Invalid_Msg_Format'] == 1
+    m.close()
+
+def test_invalid_stop_start_byte(InvalidStopByte, InvalidStartByte):
+    # received a message with wrong stop byte plus an invalid message
+    # with fron start byte
+    # the complete receive buffer must be cleared to 
+    # find the next valid message
+    m = MemoryStream(InvalidStopByte, (0,))
+    m.append_msg(InvalidStartByte)
+    m.read()         # read complete msg, and dispatch msg
+    assert not m.header_valid  # must be invalid, since start byte is wrong
+    assert m.msg_count == 1     # msg flush was called
+    assert m.header_len==11
+    assert m.snr == 2070233889
+    assert m.unique_id == 0
+    assert m.control == 0x4110
+    assert m.serial == 0x0100
+    assert m.data_len == 0xd4
+    assert m._recv_buffer==b''
+    assert m._send_buffer==b''
+    assert m._forward_buffer==b''
+    assert m.db.stat['proxy']['Invalid_Msg_Format'] == 1
+    m.close()
+
+def test_invalid_checksum(InvalidChecksum, DeviceIndMsg):
+    # received a message with wrong checksum plus an valid message
+    # only the first message must be discarded
+    m = MemoryStream(InvalidChecksum, (0,))
+    m.append_msg(DeviceIndMsg)
+    m.read()         # read complete msg, and dispatch msg
+    assert not m.header_valid  # must be invalid, since start byte is wrong
+    assert m.msg_count == 1     # msg flush was called
+    assert m.header_len==11
+    assert m.snr == 2070233889
+    assert m.unique_id == 0
+    assert m.control == 0x4110
+    assert m.serial == 0x0100
+    assert m.data_len == 0xd4
+    assert m._recv_buffer==DeviceIndMsg
+    assert m._send_buffer==b''
+    assert m._forward_buffer==b''
+    assert m.db.stat['proxy']['Invalid_Msg_Format'] == 1
+
+    m.read()         # read complete msg, and dispatch msg
+    assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
+    assert m.msg_count == 2
+    assert m.header_len==11
+    assert m.snr == 2070233889
+    assert m.unique_id == None
+    assert m.control == 0x4110
+    assert m.serial == 0x0100
+    assert m.data_len == 0xd4
+    assert m._recv_buffer==b''
+    assert m._send_buffer==b''
     assert m._forward_buffer==b''
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 1
     m.close()
@@ -293,4 +412,49 @@ def test_read_message_in_chunks2(DeviceIndMsg):
     assert m.msg_count == 1
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
+    m.close()
+
+def test_read_two_messages(ConfigTsunAllowAll, DeviceIndMsg, InverterIndMsg):
+    ConfigTsunAllowAll
+    m = MemoryStream(DeviceIndMsg, (0,))
+    m.append_msg(InverterIndMsg)
+    m.read()         # read complete msg, and dispatch msg
+    assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
+    assert m.msg_count == 1
+    assert m.header_len==11
+    assert m.snr == 2070233889
+    assert m.unique_id == '2070233889'
+    assert m.control == 0x4110
+    assert m.serial == 0x0100
+    assert m.data_len == 0xd4
+    assert m.msg_count == 1
+    assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
+    assert m._forward_buffer==DeviceIndMsg
+    assert m._send_buffer==b''
+    # assert m._send_buffer==MsgContactResp
+
+    # m._send_buffer = bytearray(0) # clear send buffer for next test  
+    # m._init_new_client_conn()
+    # assert m._send_buffer==b'\x00\x00\x00,\x10R170000000000001\x91\x00\x08solarhub\x0fsolarhub@123456'
+    assert m._recv_buffer==InverterIndMsg
+    
+    m._send_buffer = bytearray(0) # clear send buffer for next test
+    m._forward_buffer = bytearray(0) # clear forward buffer for next test
+    m.read()         # read complete msg, and dispatch msg
+    assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
+    assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
+    assert m.msg_count == 2
+    assert m.header_len==11
+    assert m.snr == 2070233889
+    assert m.unique_id == '2070233889'
+    assert m.control == 0x4210
+    assert m.serial == 0x9ee6
+    assert m.data_len == 0x199
+    assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
+    assert m._forward_buffer==InverterIndMsg
+    assert m._send_buffer==b''
+
+    # m._send_buffer = bytearray(0) # clear send buffer for next test    
+    # m._init_new_client_conn()
+    # assert m._send_buffer==b'\x00\x00\x00,\x10R170000000000002\x91\x00\x08solarhub\x0fsolarhub@123456'
     m.close()

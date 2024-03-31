@@ -154,6 +154,8 @@ class SolarmanV5(Message):
 
         if start != 0xA5:
             self.inc_counter('Invalid_Msg_Format')
+            # erase broken recv buffer
+            self._recv_buffer = bytearray()
             return
         self.header_valid = True
         return
@@ -163,12 +165,19 @@ class SolarmanV5(Message):
         stop = buf[self.data_len+12]
         if stop != 0x15:
             self.inc_counter('Invalid_Msg_Format')
+            if len(self._recv_buffer) > (self.data_len+13):
+                next_start = buf[self.data_len+13]
+                if next_start != 0xa5:
+                    # erase broken recv buffer
+                    self._recv_buffer = bytearray()
+
             return False
         check = sum(buf[1:buf_len-2]) & 0xff
         if check != crc:
             self.inc_counter('Invalid_Msg_Format')
             logger.debug(f'CRC {int(crc):#02x} {int(check):#08x}'
                          f' Stop:{int(stop):#02x}')
+            # start & stop byte are valid, discard only this message
             return False
 
         return True
