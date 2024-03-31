@@ -166,18 +166,3 @@ class InfosG3(Infos):
 
             i += 1
 
-    def ignore_this_device(self, dep: dict) -> bool:
-        '''Checks the equation in the dep dict
-
-            returns 'False' only if the equation is valid;
-                    'True'  in any other case'''
-        if 'reg' in dep:
-            value = self.dev_value(dep['reg'])
-            if not value:
-                return True
-
-            if 'gte' in dep:
-                return not value >= dep['gte']
-            elif 'less_eq' in dep:
-                return not value <= dep['less_eq']
-        return True
