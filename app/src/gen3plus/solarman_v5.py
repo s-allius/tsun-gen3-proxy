@@ -29,14 +29,34 @@ class SolarmanV5(Message):
         # self.id_str = id_str
         self.db = InfosG3P()
         self.switch = {
-            0x4110: self.msg_dev_ind,    # hello
-            0x1110: self.msg_dev_rsp,
-            0x4210: self.msg_data_ind,   # data every 5 minutes
-            0x1210: self.msg_data_rsp,
-            0x4310: self.msg_unknown,    # regulary after 3-6 hours
+
+            0x4210: self.msg_data_ind,   # real time data
+            0x1210: self.msg_data_rsp,   # at least every 5 minutes
+
             0x4710: self.msg_hbeat_ind,  # heatbeat
             0x1710: self.msg_hbeat_rsp,  # every 2 minutes
-            0x4810: self.msg_unknown,    # hello end
+
+            # every 3 hours comes a sync seuqence:
+            # 00:00:00  0x4110   device data     ftype: 0x02
+            # 00:00:02  0x4210   real time data  ftype: 0x01
+            # 00:00:03  0x4210   real time data  ftype: 0x81
+            # 00:00:05  0x4310   wifi data       ftype: 0x81    sub-id 0x0018: 0c   # noqa: E501
+            # 00:00:06  0x4310   wifi data       ftype: 0x81    sub-id 0x0018: 1c   # noqa: E501
+            # 00:00:07  0x4310   wifi data       ftype: 0x01    sub-id 0x0018: 0c   # noqa: E501
+            # 00:00:08  0x4810   options?        ftype: 0x01
+
+            0x4110: self.msg_dev_ind,    # device data, sync start
+            0x1110: self.msg_dev_rsp,    # every 3 hours
+
+            0x4310: self.msg_forward,    # regulary after 3-6 hours
+            0x1310: self.msg_forward,
+            0x4810: self.msg_forward,    # sync end
+            0x1810: self.msg_forward,
+
+            #
+            # AT cmd
+            0x4510: self.msg_unknown,    # from server
+            0x1510: self.msg_forward,    # from inverter
         }
 
     '''
@@ -239,6 +259,9 @@ class SolarmanV5(Message):
     def msg_unknown(self):
         logger.warning(f"Unknow Msg: ID:{int(self.control):#04x}")
         self.inc_counter('Unknown_Msg')
+        self.msg_forward()
+
+    def msg_forward(self):
         self.forward(self._recv_buffer, self.header_len+self.data_len+2)
 
     def msg_dev_ind(self):
@@ -274,7 +297,8 @@ class SolarmanV5(Message):
         dt = datetime.fromtimestamp(total)
         logger.info(f'ts: {dt.strftime("%Y-%m-%d %H:%M:%S")}')
 
-        self.__process_data(ftype & 0x7f)
+        ftype &= 0x7f  # mask bit 7  (0x80)
+        self.__process_data(ftype)
         self.forward(self._recv_buffer, self.header_len+self.data_len+2)
 
     def __process_data(self, ftype):
@@ -287,12 +311,6 @@ class SolarmanV5(Message):
         self.msg_response()
 
     def msg_hbeat_ind(self):
-        data = self._recv_buffer[self.header_len:]
-        result = struct.unpack_from('<B', data, 0)
-        ftype = result[0]  # always 0
-        if ftype != 0:
-            logger.info(f'hb frame_type:{ftype}')
-
         self.forward(self._recv_buffer, self.header_len+self.data_len+2)
 
     def msg_hbeat_rsp(self):
