@@ -166,6 +166,7 @@ class SolarmanV5(Message):
             return False
         check = sum(buf[1:buf_len-2]) & 0xff
         if check != crc:
+            self.inc_counter('Invalid_Msg_Format')
             logger.debug(f'CRC {int(crc):#02x} {int(check):#08x}'
                          f' Stop:{int(stop):#02x}')
             self.inc_counter('Invalid_Msg_Format')
