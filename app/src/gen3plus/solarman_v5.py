@@ -169,6 +169,7 @@ class SolarmanV5(Message):
             self.inc_counter('Invalid_Msg_Format')
             logger.debug(f'CRC {int(crc):#02x} {int(check):#08x}'
                          f' Stop:{int(stop):#02x}')
+            self.inc_counter('Invalid_Msg_Format')
             return False
 
         return True
