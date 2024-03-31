@@ -101,7 +101,7 @@ def ClientConnection():
 def checkResponse(data, Msg):
     check = bytearray(data)
     check[5]= Msg[5]            # ignore seq
-    check[13:17]= Msg[13:17]    # ignore timestamp
+    check[13:18]= Msg[13:18]    # ignore timestamp + first byte of repeat time
     check[21]= Msg[21]          # ignore crc
     assert check == Msg
 
