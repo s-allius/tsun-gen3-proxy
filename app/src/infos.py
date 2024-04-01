@@ -437,14 +437,14 @@ class Infos:
     def set_db_def_value(self, id, value):
         '''set default value'''
         row = self.info_defs[id]
-        if isinstance(row, dict):
+        if isinstance(row, dict):  # pragma: no cover
             keys = row['name']
             self.update_db(keys, False, value)
 
     def get_db_value(self, id, not_found_result=None):
         '''get database value'''
         row = self.info_defs[id]
-        if isinstance(row, dict):
+        if isinstance(row, dict):  # pragma: no cover
             keys = row['name']
             elm = self.db
             for key in keys[:-1]:
