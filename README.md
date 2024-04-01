@@ -41,10 +41,10 @@ If you use a Pi-hole, you can also store the host entry in the Pi-hole.
 ## Features
 
 - supports TSUN G3 inverters: TSOL MS-300, MS-350, MS-400, MS-600, MS-700 and MS-800
-- support for TSUN G3 Plus inverters is in preperation (e.g. MS-2000)
+- support for TSUN G3 Plus inverters since proxy version 0.6 (e.g. MS-2000)
 - `MQTT` support
 - `Home-Assistant` auto-discovery support
-- Self-sufficient island operation without internet
+- Self-sufficient island operation without internet (for TSUN G3 Plus inverters in preparation)
 - non-root Docker Container
 
 ## Home Assistant Screenshots
@@ -67,7 +67,7 @@ docker build https://github.com/s-allius/tsun-gen3-proxy.git#main:app -t tsun-pr
 ```
 after that you can run the image:
 ```sh
-docker run  --dns '8.8.8.8' --env 'UID=1000' -p '5005:5005'  -v ./config:/home/tsun-proxy/config -v ./log:/home/tsun-proxy/log tsun-proxy
+docker run  --dns '8.8.8.8' --env 'UID=1000' -p '5005:5005' -p '10000:10000' -v ./config:/home/tsun-proxy/config -v ./log:/home/tsun-proxy/log tsun-proxy
 ```
 You will surely see a message that the configuration file was not found. So that we can create this without admin rights, the `uid` must still be adapted. To do this, simply stop the proxy with ctrl-c and use the `id` command to determine your own UserId: 
 ```sh
@@ -76,7 +76,7 @@ uid=1050(sallius) gid=20(staff) ...
 ```
 With this information we can customize the `docker run`` statement:
 ```sh
-docker run  --dns '8.8.8.8' --env 'UID=1050' -p '5005:5005'  -v ./config:/home/tsun-proxy/config -v ./log:/home/tsun-proxy/log tsun-proxy
+docker run  --dns '8.8.8.8' --env 'UID=1050' -p '5005:5005' -p '10000:10000' -v ./config:/home/tsun-proxy/config -v ./log:/home/tsun-proxy/log tsun-proxy
 ```
 
 ###
@@ -84,7 +84,7 @@ docker run  --dns '8.8.8.8' --env 'UID=1050' -p '5005:5005'  -v ./config:/home/t
 The Docker container does not require any special configuration. 
 On the host, two directories (for log files and for config files) must be mapped. If necessary, the UID of the proxy process can be adjusted, which is also the owner of the log and configuration files.
 
-The proxy can be configured via the file 'config.toml'. When the proxy is started, a file 'config.example.toml' is copied into the config directory. This file shows all possible parameters and their default values. Changes in the example file itself are not evaluated. To configure the proxy, the config.example.toml file should be renamed to config.toml. After that the corresponding values can be adjusted. To load the new configuration, the proxy must be restarted. 
+The proxy can be configured via the file 'config.toml'. When the proxy is started, a file 'config.example.toml' is copied into the config directory. This file shows all possible parameters and their default values. Changes in the example file itself are not evaluated. To configure the proxy, the config.example.toml file should be renamed to config.toml. After that the corresponding values can be adjusted. To load the new configuration, the proxy must be restarted.
 
 
 ## Proxy Configuration
@@ -136,9 +136,9 @@ node_id = 'inv2'              # Optional, MQTT replacement for inverters serial 
 suggested_area = 'balcony'    # Optional, suggested installation area for home-assistant
 
 [inverters."Y17xxxxxxxxxxxx1"]
-monitor_sn = 2000000000
-node_id = 'inv_3'              # MQTT replacement for inverters serial number  
-suggested_area = 'garage'  # suggested installation place for home-assistant
+monitor_sn = 2000000000       # The "Monitoring SN:" can be found on a sticker enclosed with the inverter
+node_id = 'inv_3'             # MQTT replacement for inverters serial number  
+suggested_area = 'garage'     # suggested installation place for home-assistant
 
 
 ```
@@ -147,6 +147,8 @@ suggested_area = 'garage'  # suggested installation place for home-assistant
 
 ### Loop the proxy into the connection
 To include the proxy in the connection between the inverter and the TSUN Cloud, you must adapt the DNS record of *logger.talent-monitoring.com* within the network that your inverter uses. You need a mapping from logger.talent-monitoring.com to the IP address of the host running the Docker engine.
+
+The new Generation 3 Plus inverters use a different URL. Here, *iot.talent-monitoring.com* must be redirected.
 
 This can be done, for example, by adding a local DNS record to the Pi-hole if you are using it.
 
@@ -173,7 +175,7 @@ Micro Inverter Model | Fw. 1.00.06 | Fw. 1.00.17 | Fw. 1.00.20| Fw. 1.1.00.0B
 :---|:---:|:---:|:---:|:---:|
 G3 micro inverters (single MPPT):<br>MS-300, MS-350, MS-400| ❓ | ❓ | ❓ |➖
 G3 micro inverters (dual MPPT):<br>MS-600, MS-700, MS-800| ✔️ | ✔️ | ✔️ |➖
-G3 PLUS micro inverters:<br>MS-1600, MS-1800, MS-2000| ➖  |➖ | ➖ | 🚧 
+G3 Plus micro inverters:<br>MS-1600, MS-1800, MS-2000| ➖  |➖ | ➖ | 🚧 
 balcony micro inverters:<br>MS-400-D, MS-800-D, MS-2000-D| ❓ | ❓ | ❓| ❓ 
 
 ```
@@ -183,7 +185,7 @@ Legend
 ❓: proxy support possible but not testet
 🚧: Proxy support in preparation
 ```
-❗The new inverters of the G3Plus generation (e.g. MS-2000) use a completely different protocol for data transmission to the TSUN server. I already have such an inverter in operation and am working on the integration for the proxy version 0.6. The serial numbers of these inverters start with `Y17E` instead of `R17E`
+❗The new inverters of the G3 Plus generation (e.g. MS-2000) use a completely different protocol for data transmission to the TSUN server. These inverters are supported from proxy version 0.6.ial numbers of these inverters start with `Y17E` instead of `R17E`
 
 If you have one of these combinations with a red question mark, it would be very nice if you could send me a proxy trace so that I can carry out the detailed checks and adjust the device and system tests. [Ask here how to send a trace](https://github.com/s-allius/tsun-gen3-proxy/discussions/categories/traces-for-compatibility-check)
 
