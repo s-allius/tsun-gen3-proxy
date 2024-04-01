@@ -17,6 +17,7 @@ class Register(Enum):
     SERIAL_NUMBER = 23
     EQUIPMENT_MODEL = 24
     NO_INPUTS = 25
+    MAX_DESIGNED_POWER = 26
     INVERTER_CNT = 50
     UNKNOWN_SNR = 51
     UNKNOWN_MSG = 52
@@ -71,6 +72,8 @@ class Register(Enum):
     COLLECT_INTERVAL = 403
     DATA_UP_INTERVAL = 404
     CONNECT_COUNT = 405
+    HEARTBEAT_INTERVAL = 406
+    IP_ADRESS = 407
     EVENT_401 = 500
     EVENT_402 = 501
     EVENT_403 = 502
@@ -87,6 +90,7 @@ class Register(Enum):
     EVENT_414 = 513
     EVENT_415 = 514
     EVENT_416 = 515
+    VALUE_1 = 9000
     TEST_REG1 = 10000
     TEST_REG2 = 10001
 
@@ -182,7 +186,9 @@ class Infos:
         Register.GRID_FREQUENCY:  {'name': ['grid', 'Frequency'],                  'level': logging.DEBUG, 'unit': 'Hz',   'ha': {'dev': 'inverter', 'dev_cla': 'frequency',   'stat_cla': 'measurement', 'id': 'out_freq_',  'fmt': '| float', 'name': 'Grid Frequency', 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.OUTPUT_POWER:    {'name': ['grid', 'Output_Power'],               'level': logging.INFO,  'unit': 'W',    'ha': {'dev': 'inverter', 'dev_cla': 'power',       'stat_cla': 'measurement', 'id': 'out_power_', 'fmt': '| float', 'name': 'Power'}},  # noqa: E501
         Register.RATED_POWER:     {'name': ['env',  'Rated_Power'],                'level': logging.DEBUG, 'unit': 'W',    'ha': {'dev': 'inverter', 'dev_cla': None,          'stat_cla': None,          'id': 'rated_power_', 'fmt': '| string + " W"', 'name': 'Rated Power', 'icon': 'mdi:lightning-bolt', 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.MAX_DESIGNED_POWER: {'name': ['env',  'Max_Designed_Power'],      'level': logging.DEBUG, 'unit': 'W',    'ha': {'dev': 'inverter', 'dev_cla': None,          'stat_cla': None,          'id': 'designed_power_', 'fmt': '| string + " W"', 'name': 'Max Designed Power', 'icon': 'mdi:lightning-bolt', 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.INVERTER_TEMP:   {'name': ['env',  'Inverter_Temp'],              'level': logging.DEBUG, 'unit': '°C',   'ha': {'dev': 'inverter', 'dev_cla': 'temperature', 'stat_cla': 'measurement', 'id': 'temp_',       'fmt': '| int', 'name': 'Temperature'}},  # noqa: E501
+        Register.VALUE_1:         {'name': ['env',  'Value_1'],                    'level': logging.INFO,  'unit': '',     'ha': {'dev': 'inverter', 'dev_cla': None,          'stat_cla': 'measurement', 'id': 'value_1_',   'fmt': '| int', 'name': 'Value 1',  'ent_cat': 'diagnostic'}},  # noqa: E501
 
         # input measures:
         Register.PV1_VOLTAGE:  {'name': ['input', 'pv1', 'Voltage'],               'level': logging.DEBUG, 'unit': 'V',    'ha': {'dev': 'input_pv1', 'dev_cla': 'voltage', 'stat_cla': 'measurement', 'id': 'volt_pv1_',  'val_tpl': "{{ (value_json['pv1']['Voltage'] | float)}}", 'icon': 'mdi:gauge', 'ent_cat': 'diagnostic'}},  # noqa: E501
@@ -216,6 +222,8 @@ class Infos:
         Register.CONNECT_COUNT:      {'name': ['controller', 'Connect_Count'],      'level': logging.DEBUG, 'unit': '',     'ha': {'dev': 'controller', 'dev_cla': None,       'stat_cla': None,          'id': 'connect_count_',       'fmt': '| int',           'name': 'Connect Count',    'icon': 'mdi:counter', 'comp': 'sensor', 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.COMMUNICATION_TYPE: {'name': ['controller', 'Communication_Type'], 'level': logging.DEBUG, 'unit': '',     'ha': {'dev': 'controller', 'dev_cla': None,       'stat_cla': None,          'id': 'comm_type_',           'name': 'Communication Type', 'val_tpl': __comm_type_val_tpl, 'comp': 'sensor', 'icon': 'mdi:wifi'}},  # noqa: E501
         Register.DATA_UP_INTERVAL:   {'name': ['controller', 'Data_Up_Interval'],   'level': logging.DEBUG, 'unit': 's',    'ha': {'dev': 'controller', 'dev_cla': None,       'stat_cla': None,          'id': 'data_up_intval_', 'fmt': '| string + " s"', 'name': 'Data Up Interval', 'icon': 'mdi:update', 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.HEARTBEAT_INTERVAL: {'name': ['controller', 'Heartbeat_Interval'], 'level': logging.DEBUG, 'unit': 's',    'ha': {'dev': 'controller', 'dev_cla': None,       'stat_cla': None,          'id': 'heartbeat_intval_',    'fmt': '| string + " s"', 'name': 'Heartbeat Interval', 'icon': 'mdi:update', 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.IP_ADRESS:          {'name': ['controller', 'IP_Adress'],          'level': logging.DEBUG, 'unit': '',     'ha': {'dev': 'controller', 'dev_cla': None,       'stat_cla': None,          'id': 'ip_adress_',           'fmt': '| string',        'name': 'IP Adress', 'icon': 'mdi:wifi', 'ent_cat': 'diagnostic'}},  # noqa: E501
     }
 
     @property
