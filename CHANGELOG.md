@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- Refactoring to support Solarman V5 protocol
+- Add unittest for Solarman V5 implementation
+- Handle checksum errors
+- Handle wrong start or Stop bytes
+- Watch for AT commands and signal their occurrence to HA
+- Build inverter type names for MS-1600 .. MS-2000
+- Build device name for Solarman logger module  
+
 ## [0.5.5] - 2023-12-31
 
 - Fixed [#33](https://github.com/s-allius/tsun-gen3-proxy/issues/33)
