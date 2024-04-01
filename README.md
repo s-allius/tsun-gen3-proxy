@@ -40,11 +40,11 @@ If you use a Pi-hole, you can also store the host entry in the Pi-hole.
 
 ## Features
 
-- supports TSUN G3 inverters: TSOL MS-300, MS-350, MS-400, MS-600, MS-700 and MS-800
-- support for TSUN G3 Plus inverters since proxy version 0.6 (e.g. MS-2000)
+- supports TSUN GEN3 inverters: TSOL MS-300, MS-350, MS-400, MS-600, MS-700 and MS-800
+- support for TSUN GEN3 PLUS inverters since proxy version 0.6 (e.g. MS-2000)
 - `MQTT` support
 - `Home-Assistant` auto-discovery support
-- Self-sufficient island operation without internet (for TSUN G3 Plus inverters in preparation)
+- Self-sufficient island operation without internet (for TSUN GEN3 PLUS inverters in preparation)
 - non-root Docker Container
 
 ## Home Assistant Screenshots
@@ -94,12 +94,12 @@ You find more details here: https://toml.io/en/v1.0.0
 
 
 ```toml
-# configuration for tsun cloud for 'generation 3' inverters
+# configuration for tsun cloud for 'GEN3' inverters
 tsun.enabled = true   # false: disables connecting to the tsun cloud, and avoids updates
 tsun.host    = 'logger.talent-monitoring.com'
 tsun.port    = 5005
 
-# configuration for solarman cloud  for 'generation 3 plus' inverters
+# configuration for solarman cloud  for 'GEN3 PLUS' inverters
 solarman.enabled = true   # false: disables connecting to the tsun cloud, and avoids updates
 solarman.host    = 'iot.talent-monitoring.com'
 solarman.port    = 10000
@@ -148,7 +148,7 @@ suggested_area = 'garage'     # suggested installation place for home-assistant
 ### Loop the proxy into the connection
 To include the proxy in the connection between the inverter and the TSUN Cloud, you must adapt the DNS record of *logger.talent-monitoring.com* within the network that your inverter uses. You need a mapping from logger.talent-monitoring.com to the IP address of the host running the Docker engine.
 
-The new Generation 3 Plus inverters use a different URL. Here, *iot.talent-monitoring.com* must be redirected.
+The new GEN3 PLUS inverters use a different URL. Here, *iot.talent-monitoring.com* must be redirected.
 
 This can be done, for example, by adding a local DNS record to the Pi-hole if you are using it.
 
@@ -173,11 +173,11 @@ A combination with a red question mark should work, but I have not checked it in
 
 Micro Inverter Model | Fw. 1.00.06 | Fw. 1.00.17 | Fw. 1.00.20| Fw. 1.1.00.0B
 :---|:---:|:---:|:---:|:---:|
-G3 micro inverters (single MPPT):<br>MS-300, MS-350, MS-400| ❓ | ❓ | ❓ |➖
-G3 micro inverters (dual MPPT):<br>MS-600, MS-700, MS-800| ✔️ | ✔️ | ✔️ |➖
-G3 Plus micro inverters:<br>MS-1600, MS-1800, MS-2000| ➖  |➖ | ➖ | 🚧 
-balcony micro inverters:<br>MS-400-D, MS-800-D, MS-2000-D| ❓ | ❓ | ❓| ❓ 
-
+GEN3 micro inverters (single MPPT):<br>MS300, MS350,MS-400| ❓ | ❓ | ❓ |➖
+GEN3 micro inverters (dual MPPT):<br>MS600, MS700, MS800| ✔️ | ✔️ | ✔️ |➖
+GEN3 PLUS micro inverters:<br>MS1600, MS1800, MS2000| ➖  |➖ | ➖ | ✔️ 
+Balcony micro inverters:<br>MS400-D, MS800-D, MS2000-D| ❓ | ❓ | ❓| ❓ 
+TITAN micro inverters:<br>TSOL-MP3000, MP2250, MS3000| ❓ | ❓ | ❓| ❓
 ```
 Legend
 ➖: Firmware not available for this devices
@@ -185,7 +185,7 @@ Legend
 ❓: proxy support possible but not testet
 🚧: Proxy support in preparation
 ```
-❗The new inverters of the G3 Plus generation (e.g. MS-2000) use a completely different protocol for data transmission to the TSUN server. These inverters are supported from proxy version 0.6. The serial numbers of these inverters start with `Y17E` instead of `R17E`
+❗The new inverters of the GEN3 Plus generation (e.g. MS-2000) use a completely different protocol for data transmission to the TSUN server. These inverters are supported from proxy version 0.6. The serial numbers of these inverters start with `Y17E` instead of `R17E`
 
 If you have one of these combinations with a red question mark, it would be very nice if you could send me a proxy trace so that I can carry out the detailed checks and adjust the device and system tests. [Ask here how to send a trace](https://github.com/s-allius/tsun-gen3-proxy/discussions/categories/traces-for-compatibility-check)
 
