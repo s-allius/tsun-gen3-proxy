@@ -29,15 +29,15 @@ inverters.allow_all = true   # allow inverters, even if we have no inverter mapp
 #
 # for each inverter add a block starting with [inverters."<16-digit serial numbeer>"]
 [inverters."R170000000000001"]
-#node_id = ''          # Optional, MQTT replacement for inverters serial number  
-#suggested_area = ''  # Optional, suggested installation area for home-assistant
+#node_id = ''                 # Optional, MQTT replacement for inverters serial number  
+#suggested_area = ''          # Optional, suggested installation area for home-assistant
 
 #[inverters."R17xxxxxxxxxxxx2"]
-#node_id = ''          # Optional, MQTT replacement for inverters serial number  
-#suggested_area = ''  # Optional, suggested installation area for home-assistant
+#node_id = ''                 # Optional, MQTT replacement for inverters serial number  
+#suggested_area = ''          # Optional, suggested installation area for home-assistant
 
 [inverters."Y170000000000001"]
-monitor_sn = 2070233889
-#node_id = ''          # Optional, MQTT replacement for inverters serial number  
-#suggested_area = ''  # Optional, suggested installation area for home-assistant
+#monitor_sn = 2000000000      # The "Monitoring SN:" can be found on a sticker enclosed with the inverter
+#node_id = ''                 # Optional, MQTT replacement for inverters serial number  
+#suggested_area = ''          # Optional, suggested installation place for home-assistant
 
