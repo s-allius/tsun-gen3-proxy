@@ -403,11 +403,8 @@ class Infos:
             must_incr = d['ha']['must_incr']
         else:
             must_incr = False
-        new_val = None
-        # if 'new_value' in d:
-        #     new_val = d['new_value']
 
-        return d['name'], d['level'], d['unit'], must_incr, new_val
+        return d['name'], d['level'], d['unit'], must_incr
 
     def update_db(self, keys, must_incr, result):
         name = ''

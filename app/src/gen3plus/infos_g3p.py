@@ -115,7 +115,7 @@ class InfosG3P(Infos):
                 if 'ratio' in row:
                     result = round(result * row['ratio'], 2)
 
-            keys, level, unit, must_incr, new_val = self._key_obj(info_id)
+            keys, level, unit, must_incr = self._key_obj(info_id)
 
             if keys:
                 name, update = self.update_db(keys, must_incr, result)

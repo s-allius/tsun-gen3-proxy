@@ -152,7 +152,7 @@ class InfosG3(Infos):
                               " not supported")
                 return
 
-            keys, level, unit, must_incr, new_val = self._key_obj(info_id)
+            keys, level, unit, must_incr = self._key_obj(info_id)
 
             if keys:
                 name, update = self.update_db(keys, must_incr, result)
@@ -165,4 +165,3 @@ class InfosG3(Infos):
                             f'  update: {update}')
 
             i += 1
-

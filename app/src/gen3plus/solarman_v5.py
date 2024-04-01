@@ -25,8 +25,6 @@ class SolarmanV5(Message):
         self.control = 0
         self.serial = 0
         self.snr = 0
-        # self.await_conn_resp_cnt = 0
-        # self.id_str = id_str
         self.db = InfosG3P()
         self.switch = {
 
