@@ -22,7 +22,7 @@ class RegisterMap:
         0x4102004c: {'reg': Register.IP_ADRESS,            'fmt': '!16s'},               # noqa: E501
         0x41020064: {'reg': Register.VERSION,              'fmt': '!40s'},               # noqa: E501
 
-        0x4201001c: {'reg': Register.VALUE_1,              'fmt': '!H', 'ratio':    1},  # noqa: E501
+        0x4201001c: {'reg': Register.POWER_ON_TIME,        'fmt': '!H', 'ratio':    1},  # noqa: E501
         0x42010020: {'reg': Register.SERIAL_NUMBER,        'fmt': '!16s'},               # noqa: E501
         0x420100d2: {'reg': Register.GRID_VOLTAGE,         'fmt': '!H', 'ratio':  0.1},  # noqa: E501
         0x420100d4: {'reg': Register.GRID_CURRENT,         'fmt': '!H', 'ratio': 0.01},  # noqa: E501
@@ -57,19 +57,6 @@ class RegisterMap:
         0x42010170: {'reg': Register.NO_INPUTS,            'fmt': '!B'},                 # noqa: E501
 
     }
-    '''
-    COMMUNICATION_TYPE = 400
-    SIGNAL_STRENGTH = 401
-    POWER_ON_TIME = 402
-    CONNECT_COUNT = 405
-    CHIP_TYPE = 2
-    CHIP_MODEL = 3
-    TRACE_URL = 4
-    LOGGER_URL = 5
-    PRODUCT_NAME = 20
-    MANUFACTURER = 21
-    EQUIPMENT_MODEL = 24
-    '''
 
 
 class InfosG3P(Infos):
