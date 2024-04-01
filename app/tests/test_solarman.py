@@ -768,3 +768,14 @@ def test_build_modell_2000(ConfigTsunAllowAll, InverterIndMsg2000):
     assert 2000 == m.db.get_db_value(Register.RATED_POWER, 0)
     assert 'TSOL-MS2000' == m.db.get_db_value(Register.EQUIPMENT_MODEL, 0)
     m.close()
+
+def test_build_logger_modell(ConfigTsunAllowAll, DeviceIndMsg):
+    ConfigTsunAllowAll
+    m = MemoryStream(DeviceIndMsg, (0,))
+    assert 0 == m.db.get_db_value(Register.COLLECTOR_FW_VERSION, 0)
+    assert 'IGEN TECH' == m.db.get_db_value(Register.CHIP_TYPE, None)
+    assert None == m.db.get_db_value(Register.CHIP_MODEL, None)
+    m.read()         # read complete msg, and dispatch msg
+    assert 'LSW5BLE_17_02B0_1.05' == m.db.get_db_value(Register.COLLECTOR_FW_VERSION, 0).rstrip('\00')
+    assert 'LSW5BLE' == m.db.get_db_value(Register.CHIP_MODEL, 0)
+    m.close()
