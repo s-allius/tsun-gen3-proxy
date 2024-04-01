@@ -185,7 +185,7 @@ Legend
 ❓: proxy support possible but not testet
 🚧: Proxy support in preparation
 ```
-❗The new inverters of the G3 Plus generation (e.g. MS-2000) use a completely different protocol for data transmission to the TSUN server. These inverters are supported from proxy version 0.6.ial numbers of these inverters start with `Y17E` instead of `R17E`
+❗The new inverters of the G3 Plus generation (e.g. MS-2000) use a completely different protocol for data transmission to the TSUN server. These inverters are supported from proxy version 0.6. The serial numbers of these inverters start with `Y17E` instead of `R17E`
 
 If you have one of these combinations with a red question mark, it would be very nice if you could send me a proxy trace so that I can carry out the detailed checks and adjust the device and system tests. [Ask here how to send a trace](https://github.com/s-allius/tsun-gen3-proxy/discussions/categories/traces-for-compatibility-check)
 
