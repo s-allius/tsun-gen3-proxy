@@ -76,7 +76,7 @@ class InfosG3P(Infos):
     def __init__(self):
         super().__init__()
         self.set_db_def_value(Register.MANUFACTURER, 'TSUN')
-        self.set_db_def_value(Register.EQUIPMENT_MODEL, 'TSOL-MS2000')
+        self.set_db_def_value(Register.EQUIPMENT_MODEL, 'TSOL-MSxx00')
         self.set_db_def_value(Register.CHIP_TYPE, 'IGEN TECH')
 
     def ha_confs(self, ha_prfx: str, node_id: str, snr: str,

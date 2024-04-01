@@ -1,4 +1,5 @@
 import struct
+# import json
 import logging
 # import time
 from datetime import datetime
@@ -7,10 +8,12 @@ if __name__ == "app.src.gen3plus.solarman_v5":
     from app.src.messages import hex_dump_memory, Message
     from app.src.config import Config
     from app.src.gen3plus.infos_g3p import InfosG3P
+    from app.src.infos import Register
 else:  # pragma: no cover
     from messages import hex_dump_memory, Message
     from config import Config
     from gen3plus.infos_g3p import InfosG3P
+    from infos import Register
 # import traceback
 
 logger = logging.getLogger('msg')
@@ -76,7 +79,7 @@ class SolarmanV5(Message):
             inverters = Config.get('inverters')
             # logger.debug(f'Inverters: {inverters}')
 
-            for key, inv in inverters.items():
+            for inv in inverters.values():
                 # logger.debug(f'key: {key} -> {inv}')
                 if (type(inv) is dict and 'monitor_sn' in inv
                    and inv['monitor_sn'] == snr):
@@ -300,10 +303,29 @@ class SolarmanV5(Message):
         self.forward(self._recv_buffer, self.header_len+self.data_len+2)
 
     def __process_data(self, ftype):
+        inv_update = False
         msg_type = self.control >> 8
         for key, update in self.db.parse(self._recv_buffer, msg_type, ftype):
             if update:
+                if key == 'inverter':
+                    inv_update = True
                 self.new_data[key] = True
+
+        if inv_update:
+            db = self.db
+            MaxPow = db.get_db_value(Register.MAX_DESIGNED_POWER, 0)
+            Rated = db.get_db_value(Register.RATED_POWER, 0)
+            Model = None
+            if MaxPow == 2000:
+                if Rated == 800 or Rated == 600:
+                    Model = f'TSOL-MS{MaxPow}({Rated})'
+                else:
+                    Model = f'TSOL-MS{MaxPow}'
+            elif MaxPow == 1800 or MaxPow == 1600:
+                Model = f'TSOL-MS{MaxPow}'
+            if Model:
+                logger.info(f'Model: {Model}')
+                self.db.set_db_def_value(Register.EQUIPMENT_MODEL, Model)
 
     def msg_data_rsp(self):
         self.msg_response()

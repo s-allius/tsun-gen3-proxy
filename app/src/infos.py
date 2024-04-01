@@ -148,6 +148,8 @@ class Infos:
         Register.SERIAL_NUMBER:   {'name': ['inverter', 'Serial_Number'],          'level': logging.DEBUG, 'unit': ''},  # noqa: E501
         Register.EQUIPMENT_MODEL: {'name': ['inverter', 'Equipment_Model'],        'level': logging.DEBUG, 'unit': ''},  # noqa: E501
         Register.NO_INPUTS:       {'name': ['inverter', 'No_Inputs'],              'level': logging.DEBUG, 'unit': ''},  # noqa: E501
+        Register.MAX_DESIGNED_POWER: {'name': ['inverter',  'Max_Designed_Power'], 'level': logging.DEBUG, 'unit': 'W',    'ha': {'dev': 'inverter', 'dev_cla': None,          'stat_cla': None,          'id': 'designed_power_', 'fmt': '| string + " W"', 'name': 'Max Designed Power', 'icon': 'mdi:lightning-bolt', 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.RATED_POWER:     {'name': ['inverter',  'Rated_Power'],           'level': logging.DEBUG, 'unit': 'W',    'ha': {'dev': 'inverter', 'dev_cla': None,          'stat_cla': None,          'id': 'rated_power_', 'fmt': '| string + " W"', 'name': 'Rated Power', 'icon': 'mdi:lightning-bolt', 'ent_cat': 'diagnostic'}},  # noqa: E501
 
         # proxy:
         Register.INVERTER_CNT:      {'name': ['proxy', 'Inverter_Cnt'],       'singleton': True,   'ha': {'dev': 'proxy', 'comp': 'sensor', 'dev_cla': None, 'stat_cla': None, 'id': 'inv_count_',     'fmt': '| int', 'name': 'Active Inverter Connections',    'icon': 'mdi:counter'}},  # noqa: E501
@@ -185,8 +187,6 @@ class Infos:
         Register.GRID_CURRENT:    {'name': ['grid', 'Current'],                    'level': logging.DEBUG, 'unit': 'A',    'ha': {'dev': 'inverter', 'dev_cla': 'current',     'stat_cla': 'measurement', 'id': 'out_cur_',   'fmt': '| float', 'name': 'Grid Current', 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.GRID_FREQUENCY:  {'name': ['grid', 'Frequency'],                  'level': logging.DEBUG, 'unit': 'Hz',   'ha': {'dev': 'inverter', 'dev_cla': 'frequency',   'stat_cla': 'measurement', 'id': 'out_freq_',  'fmt': '| float', 'name': 'Grid Frequency', 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.OUTPUT_POWER:    {'name': ['grid', 'Output_Power'],               'level': logging.INFO,  'unit': 'W',    'ha': {'dev': 'inverter', 'dev_cla': 'power',       'stat_cla': 'measurement', 'id': 'out_power_', 'fmt': '| float', 'name': 'Power'}},  # noqa: E501
-        Register.RATED_POWER:     {'name': ['env',  'Rated_Power'],                'level': logging.DEBUG, 'unit': 'W',    'ha': {'dev': 'inverter', 'dev_cla': None,          'stat_cla': None,          'id': 'rated_power_', 'fmt': '| string + " W"', 'name': 'Rated Power', 'icon': 'mdi:lightning-bolt', 'ent_cat': 'diagnostic'}},  # noqa: E501
-        Register.MAX_DESIGNED_POWER: {'name': ['env',  'Max_Designed_Power'],      'level': logging.DEBUG, 'unit': 'W',    'ha': {'dev': 'inverter', 'dev_cla': None,          'stat_cla': None,          'id': 'designed_power_', 'fmt': '| string + " W"', 'name': 'Max Designed Power', 'icon': 'mdi:lightning-bolt', 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.INVERTER_TEMP:   {'name': ['env',  'Inverter_Temp'],              'level': logging.DEBUG, 'unit': '°C',   'ha': {'dev': 'inverter', 'dev_cla': 'temperature', 'stat_cla': 'measurement', 'id': 'temp_',       'fmt': '| int', 'name': 'Temperature'}},  # noqa: E501
         Register.VALUE_1:         {'name': ['env',  'Value_1'],                    'level': logging.INFO,  'unit': '',     'ha': {'dev': 'inverter', 'dev_cla': None,          'stat_cla': 'measurement', 'id': 'value_1_',   'fmt': '| int', 'name': 'Value 1',  'ent_cat': 'diagnostic'}},  # noqa: E501
 
@@ -440,6 +440,21 @@ class Infos:
         if isinstance(row, dict):
             keys = row['name']
             self.update_db(keys, False, value)
+
+    def get_db_value(self, id, not_found_result=None):
+        '''get database value'''
+        row = self.info_defs[id]
+        if isinstance(row, dict):
+            keys = row['name']
+            elm = self.db
+            for key in keys[:-1]:
+                if key not in elm:
+                    return not_found_result
+                elm = elm[key]
+
+            if keys[-1] in elm:
+                return elm[keys[-1]]
+        return not_found_result
 
     def ignore_this_device(self, dep: dict) -> bool:
         '''Checks the equation in the dep dict

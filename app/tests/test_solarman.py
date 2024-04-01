@@ -1,7 +1,7 @@
 import pytest, json
 from app.src.gen3plus.solarman_v5 import SolarmanV5
 from app.src.config import Config
-from app.src.infos import Infos
+from app.src.infos import Infos, Register
 
 # initialize the proxy statistics
 Infos.static_init()
@@ -616,4 +616,33 @@ def test_at_command_ind(ConfigTsunInv1, AtCommandIndMsg):
     assert m._forward_buffer==AtCommandIndMsg
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
     assert m.db.stat['proxy']['AT_Command'] == 1
+    m.close()
+
+def test_build_modell(ConfigTsunAllowAll, InverterIndMsg):
+    ConfigTsunAllowAll
+    m = MemoryStream(InverterIndMsg, (0,))
+    assert m.db.db['inverter']['Equipment_Model'] == 'TSOL-MSxx00'
+    assert 'Max_Designed_Power' not in m.db.db['inverter']
+    assert 'Rated_Power' not in m.db.db['inverter']
+    m.read()         # read complete msg, and dispatch msg
+    assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
+    assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
+    assert m.msg_count == 1
+    assert m.header_len==11
+    assert m.snr == 2070233889
+    assert m.unique_id == '2070233889'
+    assert m.control == 0x4210
+    assert m.serial == 0x9ee6
+    assert m.data_len == 0x199
+    assert m._forward_buffer==InverterIndMsg
+    assert m._send_buffer==b''
+    assert m.db.db['inverter']['Max_Designed_Power'] == 2000
+    assert 2000 == m.db.get_db_value(Register.MAX_DESIGNED_POWER, 0)
+    assert m.db.db['inverter']['Rated_Power'] == 600
+    assert 600 == m.db.get_db_value(Register.RATED_POWER, 0)
+    assert m.db.db['inverter']['Equipment_Model'] == 'TSOL-MS2000(600)'
+
+    m._send_buffer = bytearray(0) # clear send buffer for next test    
+    m._init_new_client_conn()
+    assert m._send_buffer==b''
     m.close()
