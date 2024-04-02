@@ -171,13 +171,15 @@ It must be ensured that this address is not mapped to the proxy!
 In the following table you will find an overview of which inverter model has been tested for compatibility with which firmware version.
 A combination with a red question mark should work, but I have not checked it in detail.
 
-Micro Inverter Model | Fw. 1.00.06 | Fw. 1.00.17 | Fw. 1.00.20| Fw. 1.1.00.0B
-:---|:---:|:---:|:---:|:---:|
-GEN3 micro inverters (single MPPT):<br>MS300, MS350,MS-400| ❓ | ❓ | ❓ |➖
-GEN3 micro inverters (dual MPPT):<br>MS600, MS700, MS800| ✔️ | ✔️ | ✔️ |➖
-GEN3 PLUS micro inverters:<br>MS1600, MS1800, MS2000| ➖  |➖ | ➖ | ✔️ 
-Balcony micro inverters:<br>MS400-D, MS800-D, MS2000-D| ❓ | ❓ | ❓| ❓ 
-TITAN micro inverters:<br>TSOL-MP3000, MP2250, MS3000| ❓ | ❓ | ❓| ❓
+<table align="center">
+  <tr><th align="center">Micro Inverter Model</th><th align="center">Fw. 1.00.06</th><th align="center">Fw. 1.00.17</th><th align="center">Fw. 1.00.20</th><th align="center">Fw. 1.1.00.0B</th></tr>
+  <tr><td>GEN3 micro inverters (single MPPT):<br>MS300, MS350, MS400</td><td align="center">❓</td><td align="center">❓</td><td align="center">❓</td><td align="center">➖</td></tr>
+  <tr><td>GEN3 micro inverters (dual MPPT):<br>MS600, MS700, MS800</td><td align="center">✔️</td><td align="center">✔️</td><td align="center">✔️</td><td align="center">➖</td></tr>
+  <tr><td>GEN3 PLUS micro inverters:<br>MS1600, MS1800, MS2000</td><td align="center">➖</td><td align="center">➖</td><td align="center">➖</td><td align="center">✔️</td></tr>
+  <tr><td>Balcony micro inverters:<br>MS400-D, MS800-D, MS2000-D</td><td align="center">❓</td><td align="center">❓</td><td align="center">❓</td><td align="center">❓</td></tr>
+  <tr><td>TITAN micro inverters:<br>TSOL-MP3000, MP2250, MS3000</td><td align="center">❓</td><td align="center">❓</td><td align="center">❓</td><td align="center">❓</td></tr>
+</table>
+
 ```
 Legend
 ➖: Firmware not available for this devices
