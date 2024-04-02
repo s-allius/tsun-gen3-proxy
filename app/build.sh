@@ -1,4 +1,12 @@
 #!/bin/bash
+# Usage: ./build.sh [dev|rc|rel]
+# dev: development build
+# rc: release candidate build
+# rel: release build and push to ghcr.io
+# Note: for release build, you need to set GHCR_TOKEN
+# export GHCR_TOKEN=<YOUR_GITHUB_TOKEN>
+# see also: https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry
+
 
 set -e
 
@@ -27,6 +35,8 @@ elif [[ $1 == rc ]];then
 docker build --build-arg "VERSION=${VERSION}" --build-arg environment=production --label "org.label-schema.build-date=${BUILD_DATE}" --label "org.opencontainers.image.version=${VERSION}" -t ${IMAGE}:latest app
 elif [[ $1 == rel ]];then
 docker build --no-cache --build-arg "VERSION=${VERSION}" --build-arg environment=production --label "org.label-schema.build-date=${BUILD_DATE}" --label "org.opencontainers.image.version=${VERSION}" -t ${IMAGE}:latest -t ${IMAGE}:${MAJOR} -t ${IMAGE}:${VERSION} app
+echo 'login to ghcr.io'    
+echo $GHCR_TOKEN | docker login ghcr.io -u s-allius --password-stdin
 docker push ghcr.io/s-allius/tsun-gen3-proxy:latest
 docker push ghcr.io/s-allius/tsun-gen3-proxy:${MAJOR}
 docker push ghcr.io/s-allius/tsun-gen3-proxy:${VERSION}
