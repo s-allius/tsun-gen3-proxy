@@ -17,7 +17,7 @@ class AsyncStream():
 
     async def server_loop(self, addr):
         '''Loop for receiving messages from the inverter (server-side)'''
-        logging.info(f'Accept connection from  {addr} to {self.l_addr}')
+        logging.info(f'Accept connection from  {addr}')
         self.inc_counter('Inverter_Cnt')
         await self.loop()
         self.dec_counter('Inverter_Cnt')
