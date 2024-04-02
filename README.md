@@ -13,7 +13,6 @@
 </p>
 
 
-###
 # Overview
 
 This proxy enables a reliable connection between TSUN third generation inverters and an MQTT broker. With the proxy, you can easily retrieve real-time values such as power, current and daily energy and integrate the inverter into typical home automations. This works even without an internet connection. The optional connection to the TSUN Cloud can be disabled!
@@ -58,7 +57,6 @@ https://github.com/s-allius/tsun-gen3-proxy/wiki/home-assistant#home-assistant-s
 - Ability to loop the proxy into the connection between the inverter and the TSUN cloud
 
 
-###
 # Getting Started
 
 To run the proxy, you first need to create the image. You can do this quite simply as follows:
@@ -79,7 +77,6 @@ With this information we can customize the `docker run`` statement:
 docker run  --dns '8.8.8.8' --env 'UID=1050' -p '5005:5005' -p '10000:10000' -v ./config:/home/tsun-proxy/config -v ./log:/home/tsun-proxy/log tsun-proxy
 ```
 
-###
 # Configuration
 The Docker container does not require any special configuration. 
 On the host, two directories (for log files and for config files) must be mapped. If necessary, the UID of the proxy process can be adjusted, which is also the owner of the log and configuration files.
