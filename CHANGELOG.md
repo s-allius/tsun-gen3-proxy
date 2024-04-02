@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.0] - 2024-04-02
+
 - Refactoring to support Solarman V5 protocol
 - Add unittest for Solarman V5 implementation
 - Handle checksum errors
