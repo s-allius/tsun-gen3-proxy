@@ -1,27 +1,57 @@
 import logging
 import traceback
-# from config import Config
-# import gc
-from messages import Message, hex_dump_memory
+from messages import hex_dump_memory
 
 logger = logging.getLogger('conn')
 
 
-class AsyncStream(Message):
+class AsyncStream():
 
-    def __init__(self, reader, writer, addr, remote_stream, server_side: bool,
-                 id_str=b'') -> None:
-        super().__init__(server_side, id_str)
+    def __init__(self, reader, writer, addr) -> None:
+        logger.debug('AsyncStream.__init__')
         self.reader = reader
         self.writer = writer
-        self.remoteStream = remote_stream
         self.addr = addr
         self.r_addr = ''
         self.l_addr = ''
 
-    '''
-    Our puplic methods
-    '''
+    async def server_loop(self, addr):
+        '''Loop for receiving messages from the inverter (server-side)'''
+        logging.info(f'Accept connection from  {addr}')
+        self.inc_counter('Inverter_Cnt')
+        await self.loop()
+        self.dec_counter('Inverter_Cnt')
+        logging.info(f'Server loop stopped for r{self.r_addr}')
+
+        # if the server connection closes, we also have to disconnect
+        # the connection to te TSUN cloud
+        if self.remoteStream:
+            logging.debug("disconnect client connection")
+            self.remoteStream.disc()
+        try:
+            await self._async_publ_mqtt_proxy_stat('proxy')
+        except Exception:
+            pass
+
+    async def client_loop(self, addr):
+        '''Loop for receiving messages from the TSUN cloud (client-side)'''
+        clientStream = await self.remoteStream.loop()
+        logging.info(f'Client loop stopped for l{clientStream.l_addr}')
+
+        # if the client connection closes, we don't touch the server
+        # connection. Instead we erase the client connection stream,
+        # thus on the next received packet from the inverter, we can
+        # establish a new connection to the TSUN cloud
+
+        # erase backlink to inverter
+        clientStream.remoteStream = None
+
+        if self.remoteStream == clientStream:
+            # logging.debug(f'Client l{clientStream.l_addr} refs:'
+            #               f' {gc.get_referrers(clientStream)}')
+            # than erase client connection
+            self.remoteStream = None
+
     async def loop(self):
         self.r_addr = self.writer.get_extra_info('peername')
         self.l_addr = self.writer.get_extra_info('sockname')
@@ -52,15 +82,12 @@ class AsyncStream(Message):
                 return self
 
     def disc(self) -> None:
-        logger.debug(f'in AsyncStream.disc() l{self.l_addr} | r{self.r_addr}')
+        logger.debug(f'AsyncStream.disc() l{self.l_addr} | r{self.r_addr}')
         self.writer.close()
 
     def close(self):
-        logger.debug(f'in AsyncStream.close() l{self.l_addr} | r{self.r_addr}')
+        logger.debug(f'AsyncStream.close() l{self.l_addr} | r{self.r_addr}')
         self.writer.close()
-        super().close()         # call close handler in the parent class
-
-#        logger.info(f'AsyncStream refs: {gc.get_referrers(self)}')
 
     '''
     Our private methods
@@ -86,9 +113,8 @@ class AsyncStream(Message):
             if not self.remoteStream:
                 await self.async_create_remote()
                 if self.remoteStream:
-                    self.remoteStream._init_new_client_conn(self.contact_name,
-                                                            self.contact_mail)
-                    await self.remoteStream.__async_write()
+                    if self.remoteStream._init_new_client_conn():
+                        await self.remoteStream.__async_write()
 
             if self.remoteStream:
                 hex_dump_memory(logging.INFO,
@@ -99,11 +125,6 @@ class AsyncStream(Message):
                 await self.remoteStream.writer.drain()
                 self._forward_buffer = bytearray(0)
 
-    async def async_create_remote(self) -> None:
-        pass
-
-    async def async_publ_mqtt(self) -> None:
-        pass
-
     def __del__(self):
-        logging.debug(f"AsyncStream.__del__  l{self.l_addr} | r{self.r_addr}")
+        logger.debug(
+            f"AsyncStream.__del__  l{self.l_addr} | r{self.r_addr}")

@@ -1,6 +1,7 @@
 # test_with_pytest.py
 import pytest, json
-from app.src.infos import Infos
+from app.src.infos import Register
+from app.src.gen3.infos_g3 import InfosG3
 
 @pytest.fixture
 def ContrDataSeq(): # Get Time Request message
@@ -176,7 +177,7 @@ def InvDataSeq2_Zero(): # Data indication from the controller
 
 
 def test_parse_control(ContrDataSeq):
-    i = Infos()
+    i = InfosG3()
     for key, result in i.parse (ContrDataSeq):
         pass
 
@@ -184,7 +185,7 @@ def test_parse_control(ContrDataSeq):
 {"collector": {"Collector_Fw_Version": "RSW_400_V1.00.06", "Chip_Type": "Raymon", "Chip_Model": "RSW-1-10001", "Trace_URL": "t.raymoniot.com", "Logger_URL": "logger.talent-monitoring.com"}, "controller": {"Collect_Interval": 1, "Signal_Strength": 100, "Power_On_Time": 29, "Communication_Type": 1, "Connect_Count": 1, "Data_Up_Interval": 300}})        
 
 def test_parse_control2(Contr2DataSeq):
-    i = Infos()
+    i = InfosG3()
     for key, result in i.parse (Contr2DataSeq):
         pass
 
@@ -192,7 +193,7 @@ def test_parse_control2(Contr2DataSeq):
 {"collector": {"Collector_Fw_Version": "RSW_400_V1.00.20", "Chip_Type": "Raymon", "Chip_Model": "RSW-1-10001", "Trace_URL": "t.raymoniot.com", "Logger_URL": "logger.talent-monitoring.com"}, "controller": {"Collect_Interval": 1, "Signal_Strength": 16, "Power_On_Time": 334, "Communication_Type": 1, "Connect_Count": 1, "Data_Up_Interval": 300}})
 
 def test_parse_inverter(InvDataSeq):
-    i = Infos()
+    i = InfosG3()
     for key, result in i.parse (InvDataSeq):
         pass
 
@@ -200,7 +201,7 @@ def test_parse_inverter(InvDataSeq):
 {"inverter": {"Product_Name": "Microinv", "Manufacturer": "TSUN", "Version": "V5.0.11", "Serial_Number": "T170000000000001", "Equipment_Model": "TSOL-MS600"}})
 
 def test_parse_cont_and_invert(ContrDataSeq, InvDataSeq):
-    i = Infos()
+    i = InfosG3()
     for key, result in i.parse (ContrDataSeq):
         pass
 
@@ -214,11 +215,11 @@ def test_parse_cont_and_invert(ContrDataSeq, InvDataSeq):
 
 
 def test_build_ha_conf1(ContrDataSeq):
-    i = Infos()
+    i = InfosG3()
     i.static_init()                # initialize counter
 
     tests = 0
-    for d_json, comp, node_id, id in i.ha_confs(ha_prfx="tsun/", node_id="garagendach/", snr='123', singleton=False):
+    for d_json, comp, node_id, id in i.ha_confs(ha_prfx="tsun/", node_id="garagendach/", snr='123'):
 
         if id == 'out_power_123':
             assert comp == 'sensor'
@@ -249,7 +250,7 @@ def test_build_ha_conf1(ContrDataSeq):
     assert tests==4
 
 
-    for d_json, comp, node_id, id in i.ha_confs(ha_prfx="tsun/", node_id = 'proxy/', snr = '456', singleton=True):
+    for d_json, comp, node_id, id in i.ha_proxy_confs(ha_prfx="tsun/", node_id = 'proxy/', snr = '456'):
 
         if id == 'out_power_123':
             assert False
@@ -270,7 +271,7 @@ def test_build_ha_conf1(ContrDataSeq):
     assert tests==5
 
 def test_build_ha_conf2(ContrDataSeq, InvDataSeq, InvDataSeq2):
-    i = Infos()
+    i = InfosG3()
     for key, result in i.parse (ContrDataSeq):
         pass
     for key, result in i.parse (InvDataSeq):
@@ -279,7 +280,7 @@ def test_build_ha_conf2(ContrDataSeq, InvDataSeq, InvDataSeq2):
         pass
 
     tests = 0
-    for d_json, comp, node_id, id in i.ha_confs(ha_prfx="tsun/", node_id="garagendach/", snr='123', singleton=False, sug_area = 'roof'):
+    for d_json, comp, node_id, id in i.ha_confs(ha_prfx="tsun/", node_id="garagendach/", snr='123', sug_area = 'roof'):
 
         if id == 'out_power_123':
             assert comp == 'sensor'
@@ -308,21 +309,16 @@ def test_build_ha_conf2(ContrDataSeq, InvDataSeq, InvDataSeq2):
     assert tests==5
 
 def test_must_incr_total(InvDataSeq2, InvDataSeq2_Zero):
-    i = Infos()
+    i = InfosG3()
     tests = 0
     for key, update in i.parse (InvDataSeq2):
-        if key == 'total':
+        if key == 'total' or key == 'inverter' or key == 'env':
             assert update == True
             tests +=1   
-        elif key == 'env':
-            assert update == True
-            tests +=1
-
-
-    assert tests==4
+    assert tests==5
     assert json.dumps(i.db['total']) == json.dumps({'Daily_Generation': 1.7, 'Total_Generation': 17.36})
     assert json.dumps(i.db['input']) == json.dumps({"pv1": {"Voltage": 33.6, "Current": 1.91, "Power": 64.5, "Daily_Generation": 1.08, "Total_Generation": 9.74}, "pv2": {"Voltage": 33.5, "Current": 1.36, "Power": 45.7, "Daily_Generation": 0.62, "Total_Generation": 7.62}, "pv3": {"Voltage": 0.0, "Current": 0.0, "Power": 0.0}, "pv4": {"Voltage": 0.0, "Current": 0.0, "Power": 0.0}})
-    assert json.dumps(i.db['env']) == json.dumps({"Inverter_Temp": 23, "Rated_Power": 600})
+    assert json.dumps(i.db['env']) == json.dumps({"Inverter_Temp": 23})
     tests = 0
     for key, update in i.parse (InvDataSeq2):
         if key == 'total':
@@ -332,11 +328,11 @@ def test_must_incr_total(InvDataSeq2, InvDataSeq2_Zero):
             assert update == False
             tests +=1
 
-
-    assert tests==4
+    assert tests==3
     assert json.dumps(i.db['total']) == json.dumps({'Daily_Generation': 1.7, 'Total_Generation': 17.36})
     assert json.dumps(i.db['input']) == json.dumps({"pv1": {"Voltage": 33.6, "Current": 1.91, "Power": 64.5, "Daily_Generation": 1.08, "Total_Generation": 9.74}, "pv2": {"Voltage": 33.5, "Current": 1.36, "Power": 45.7, "Daily_Generation": 0.62, "Total_Generation": 7.62}, "pv3": {"Voltage": 0.0, "Current": 0.0, "Power": 0.0}, "pv4": {"Voltage": 0.0, "Current": 0.0, "Power": 0.0}})
-    assert json.dumps(i.db['env']) == json.dumps({"Inverter_Temp": 23, "Rated_Power": 600})
+    assert json.dumps(i.db['env']) == json.dumps({"Inverter_Temp": 23})
+    assert json.dumps(i.db['inverter']) == json.dumps({"Rated_Power": 600, "No_Inputs": 2})
         
     tests = 0
     for key, update in i.parse (InvDataSeq2_Zero):
@@ -345,15 +341,15 @@ def test_must_incr_total(InvDataSeq2, InvDataSeq2_Zero):
             tests +=1   
         elif key == 'env':
             assert update == True
-            tests +=1
+            tests +=1   
 
-    assert tests==4
+    assert tests==3
     assert json.dumps(i.db['total']) == json.dumps({'Daily_Generation': 1.7, 'Total_Generation': 17.36})
     assert json.dumps(i.db['input']) == json.dumps({"pv1": {"Voltage": 33.6, "Current": 1.91, "Power": 0.0, "Daily_Generation": 1.08, "Total_Generation": 9.74}, "pv2": {"Voltage": 33.5, "Current": 1.36, "Power": 0.0, "Daily_Generation": 0.62, "Total_Generation": 7.62}, "pv3": {"Voltage": 0.0, "Current": 0.0, "Power": 0.0}, "pv4": {"Voltage": 0.0, "Current": 0.0, "Power": 0.0}})
-    assert json.dumps(i.db['env']) == json.dumps({"Inverter_Temp": 0, "Rated_Power": 0})
+    assert json.dumps(i.db['env']) == json.dumps({"Inverter_Temp": 0})
 
 def test_must_incr_total2(InvDataSeq2, InvDataSeq2_Zero):
-    i = Infos()
+    i = InfosG3()
     tests = 0
     for key, update in i.parse (InvDataSeq2_Zero):
         if key == 'total':
@@ -363,10 +359,10 @@ def test_must_incr_total2(InvDataSeq2, InvDataSeq2_Zero):
             assert update == True
             tests +=1
 
-    assert tests==4
+    assert tests==3
     assert json.dumps(i.db['total']) == json.dumps({})
     assert json.dumps(i.db['input']) == json.dumps({"pv1": {"Voltage": 33.6, "Current": 1.91, "Power": 0.0}, "pv2": {"Voltage": 33.5, "Current": 1.36, "Power": 0.0}, "pv3": {"Voltage": 0.0, "Current": 0.0, "Power": 0.0}, "pv4": {"Voltage": 0.0, "Current": 0.0, "Power": 0.0}})
-    assert json.dumps(i.db['env']) == json.dumps({"Inverter_Temp": 0, "Rated_Power": 0})
+    assert json.dumps(i.db['env']) == json.dumps({"Inverter_Temp": 0})
     
     tests = 0
     for key, update in i.parse (InvDataSeq2_Zero):
@@ -377,10 +373,10 @@ def test_must_incr_total2(InvDataSeq2, InvDataSeq2_Zero):
             assert update == False
             tests +=1
 
-    assert tests==4
+    assert tests==3
     assert json.dumps(i.db['total']) == json.dumps({})
     assert json.dumps(i.db['input']) == json.dumps({"pv1": {"Voltage": 33.6, "Current": 1.91, "Power": 0.0}, "pv2": {"Voltage": 33.5, "Current": 1.36, "Power": 0.0}, "pv3": {"Voltage": 0.0, "Current": 0.0, "Power": 0.0}, "pv4": {"Voltage": 0.0, "Current": 0.0, "Power": 0.0}})
-    assert json.dumps(i.db['env']) == json.dumps({"Inverter_Temp": 0, "Rated_Power": 0})
+    assert json.dumps(i.db['env']) == json.dumps({"Inverter_Temp": 0})
 
     tests = 0
     for key, update in i.parse (InvDataSeq2):
@@ -391,40 +387,40 @@ def test_must_incr_total2(InvDataSeq2, InvDataSeq2_Zero):
             assert update == True
             tests +=1
 
-    assert tests==4
+    assert tests==3
     assert json.dumps(i.db['total']) == json.dumps({'Daily_Generation': 1.7, 'Total_Generation': 17.36})
     assert json.dumps(i.db['input']) == json.dumps({"pv1": {"Voltage": 33.6, "Current": 1.91, "Power": 64.5, "Daily_Generation": 1.08, "Total_Generation": 9.74}, "pv2": {"Voltage": 33.5, "Current": 1.36, "Power": 45.7, "Daily_Generation": 0.62, "Total_Generation": 7.62}, "pv3": {"Voltage": 0.0, "Current": 0.0, "Power": 0.0}, "pv4": {"Voltage": 0.0, "Current": 0.0, "Power": 0.0}})
-    assert json.dumps(i.db['env']) == json.dumps({"Inverter_Temp": 23, "Rated_Power": 600})
+    assert json.dumps(i.db['env']) == json.dumps({"Inverter_Temp": 23})
 
 
 def test_statistic_counter():
-    i = Infos()
+    i = InfosG3()
     val = i.dev_value("Test-String")
     assert val == "Test-String"
 
     val = i.dev_value(0xffffffff)  # invalid addr
     assert val == None
     
-    val = i.dev_value(0xffffff00)  # valid addr but not initiliazed
+    val = i.dev_value(Register.INVERTER_CNT)  # valid addr but not initiliazed
     assert val == None or val == 0
 
     i.static_init()                # initialize counter
-    assert json.dumps(i.stat) == json.dumps({"proxy": {"Inverter_Cnt": 0, "Unknown_SNR": 0, "Unknown_Msg": 0, "Invalid_Data_Type": 0, "Internal_Error": 0,"Unknown_Ctrl": 0, "OTA_Start_Msg": 0, "SW_Exception": 0}})
+    assert json.dumps(i.stat) == json.dumps({"proxy": {"Inverter_Cnt": 0, "Unknown_SNR": 0, "Unknown_Msg": 0, "Invalid_Data_Type": 0, "Internal_Error": 0,"Unknown_Ctrl": 0, "OTA_Start_Msg": 0, "SW_Exception": 0, "Invalid_Msg_Format": 0, "AT_Command": 0}})
                                             
-    val = i.dev_value(0xffffff00)  # valid and initiliazed addr
+    val = i.dev_value(Register.INVERTER_CNT)  # valid and initiliazed addr
     assert val == 0
 
     i.inc_counter('Inverter_Cnt')
-    assert json.dumps(i.stat) == json.dumps({"proxy": {"Inverter_Cnt": 1, "Unknown_SNR": 0, "Unknown_Msg": 0, "Invalid_Data_Type": 0, "Internal_Error": 0,"Unknown_Ctrl": 0, "OTA_Start_Msg": 0, "SW_Exception": 0}})
-    val = i.dev_value(0xffffff00)
+    assert json.dumps(i.stat) == json.dumps({"proxy": {"Inverter_Cnt": 1, "Unknown_SNR": 0, "Unknown_Msg": 0, "Invalid_Data_Type": 0, "Internal_Error": 0,"Unknown_Ctrl": 0, "OTA_Start_Msg": 0, "SW_Exception": 0, "Invalid_Msg_Format": 0, "AT_Command": 0}})
+    val = i.dev_value(Register.INVERTER_CNT)
     assert val == 1
 
     i.dec_counter('Inverter_Cnt')
-    val = i.dev_value(0xffffff00)
+    val = i.dev_value(Register.INVERTER_CNT)
     assert val == 0
 
 def test_dep_rules():
-    i = Infos()
+    i = InfosG3()
     i.static_init()                # initialize counter
 
     res = i.ignore_this_device({})
@@ -434,90 +430,90 @@ def test_dep_rules():
     assert res == True
 
     i.inc_counter('Inverter_Cnt')    # is 1
-    val = i.dev_value(0xffffff00)
+    val = i.dev_value(Register.INVERTER_CNT)
     assert val == 1
-    res = i.ignore_this_device({'reg':0xffffff00})
+    res = i.ignore_this_device({'reg': Register.INVERTER_CNT})
     assert res == True
-    res = i.ignore_this_device({'reg':0xffffff00, 'less_eq': 2})
+    res = i.ignore_this_device({'reg': Register.INVERTER_CNT, 'less_eq': 2})
     assert res == False
-    res = i.ignore_this_device({'reg':0xffffff00, 'gte': 2})
+    res = i.ignore_this_device({'reg': Register.INVERTER_CNT, 'gte': 2})
     assert res == True
 
     i.inc_counter('Inverter_Cnt')   # is 2
-    res = i.ignore_this_device({'reg':0xffffff00, 'less_eq': 2})
+    res = i.ignore_this_device({'reg': Register.INVERTER_CNT, 'less_eq': 2})
     assert res == False
-    res = i.ignore_this_device({'reg':0xffffff00, 'gte': 2})
+    res = i.ignore_this_device({'reg': Register.INVERTER_CNT, 'gte': 2})
     assert res == False
 
     i.inc_counter('Inverter_Cnt')   # is 3
-    res = i.ignore_this_device({'reg':0xffffff00, 'less_eq': 2})
+    res = i.ignore_this_device({'reg': Register.INVERTER_CNT, 'less_eq': 2})
     assert res == True
-    res = i.ignore_this_device({'reg':0xffffff00, 'gte': 2})
+    res = i.ignore_this_device({'reg': Register.INVERTER_CNT, 'gte': 2})
     assert res == False
 
 def test_table_definition():
-    i = Infos()
+    i = InfosG3()
     i.static_init()                # initialize counter
 
-    val = i.dev_value(0xffffff04)  # check internal error counter
+    val = i.dev_value(Register.INTERNAL_ERROR)  # check internal error counter
     assert val == 0
 
-    for d_json, comp, node_id, id in i.ha_confs(ha_prfx="tsun/", node_id="garagendach/", snr='123', singleton=False, sug_area = 'roof'):
+    for d_json, comp, node_id, id in i.ha_confs(ha_prfx="tsun/", node_id="garagendach/", snr='123', sug_area = 'roof'):
         pass
 
-    for d_json, comp, node_id, id in i.ha_confs(ha_prfx="tsun/", node_id = 'proxy/', snr = '456', singleton=True, sug_area = 'roof'):
+    for d_json, comp, node_id, id in i.ha_proxy_confs(ha_prfx="tsun/", node_id = 'proxy/', snr = '456'):
         pass
 
-    val = i.dev_value(0xffffff04)  # check internal error counter
+    val = i.dev_value(Register.INTERNAL_ERROR)  # check internal error counter
     assert val == 0
 
     # test missing 'fmt' value
-    Infos._Infos__info_defs[0xfffffffe] =  {'name':['proxy', 'Internal_Test1'],  'singleton': True, 'ha':{'dev':'proxy', 'dev_cla': None,       'stat_cla': None, 'id':'intern_test1_'}}
+    i.info_defs[Register.TEST_REG1] =  {'name':['proxy', 'Internal_Test1'],  'singleton': True, 'ha':{'dev':'proxy', 'dev_cla': None,       'stat_cla': None, 'id':'intern_test1_'}}
 
     tests = 0
-    for d_json, comp, node_id, id in i.ha_confs(ha_prfx="tsun/", node_id = 'proxy/', snr = '456', singleton=True, sug_area = 'roof'):
+    for d_json, comp, node_id, id in i.ha_proxy_confs(ha_prfx="tsun/", node_id = 'proxy/', snr = '456'):
         if id == 'intern_test1_456':
             tests +=1
 
     assert tests == 1
 
-    val = i.dev_value(0xffffff04)  # check internal error counter
+    val = i.dev_value(Register.INTERNAL_ERROR)  # check internal error counter
     assert val == 1
 
     # test missing 'dev' value
-    Infos._Infos__info_defs[0xfffffffe] =  {'name':['proxy', 'Internal_Test2'],  'singleton': True, 'ha':{'dev_cla': None,       'stat_cla': None, 'id':'intern_test2_',  'fmt':'| int'}}
+    i.info_defs[Register.TEST_REG1] =  {'name':['proxy', 'Internal_Test2'],  'singleton': True, 'ha':{'dev_cla': None,       'stat_cla': None, 'id':'intern_test2_',  'fmt':'| int'}}
     tests = 0
-    for d_json, comp, node_id, id in i.ha_confs(ha_prfx="tsun/", node_id = 'proxy/', snr = '456', singleton=True, sug_area = 'roof'):
+    for d_json, comp, node_id, id in i.ha_proxy_confs(ha_prfx="tsun/", node_id = 'proxy/', snr = '456'):
         if id == 'intern_test2_456':
             tests +=1
 
     assert tests == 1
 
-    val = i.dev_value(0xffffff04)  # check internal error counter
+    val = i.dev_value(Register.INTERNAL_ERROR)  # check internal error counter
     assert val == 2
 
 
 
     # test invalid 'via' value
-    Infos._Infos__info_devs['test_dev'] = {'via':'xyz',   'name':'Module PV1'}
+    i.info_devs['test_dev'] = {'via':'xyz',   'name':'Module PV1'}
 
-    Infos._Infos__info_defs[0xfffffffe] =  {'name':['proxy', 'Internal_Test2'],  'singleton': True, 'ha':{'dev':'test_dev', 'dev_cla': None,       'stat_cla': None, 'id':'intern_test2_',  'fmt':'| int'}}
+    i.info_defs[Register.TEST_REG1] =  {'name':['proxy', 'Internal_Test2'],  'singleton': True, 'ha':{'dev':'test_dev', 'dev_cla': None,       'stat_cla': None, 'id':'intern_test2_',  'fmt':'| int'}}
     tests = 0
-    for d_json, comp, node_id, id in i.ha_confs(ha_prfx="tsun/", node_id = 'proxy/', snr = '456', singleton=True, sug_area = 'roof'):
+    for d_json, comp, node_id, id in i.ha_proxy_confs(ha_prfx="tsun/", node_id = 'proxy/', snr = '456'):
         if id == 'intern_test2_456':
             tests +=1
 
     assert tests == 1
 
-    val = i.dev_value(0xffffff04)  # check internal error counter
+    val = i.dev_value(Register.INTERNAL_ERROR)  # check internal error counter
     assert val == 3
 
 
 def test_invalid_data_type(InvalidDataSeq):
-    i = Infos()
+    i = InfosG3()
     i.static_init()                # initialize counter
 
-    val = i.dev_value(0xffffff03)  # check invalid data type counter
+    val = i.dev_value(Register.INVALID_DATA_TYPE)  # check invalid data type counter
     assert val == 0
 
 
@@ -525,6 +521,6 @@ def test_invalid_data_type(InvalidDataSeq):
         pass
     assert json.dumps(i.db) == json.dumps({"inverter": {"Product_Name": "Microinv"}})
 
-    val = i.dev_value(0xffffff03)  # check invalid data type counter
+    val = i.dev_value(Register.INVALID_DATA_TYPE)  # check invalid data type counter
     assert val == 1
 

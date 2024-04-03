@@ -1,6 +1,6 @@
 # test_with_pytest.py
 import pytest, logging
-from app.src.messages import Message, Control
+from app.src.gen3.talent import Talent, Control
 from app.src.config import Config
 from app.src.infos import Infos
 
@@ -9,7 +9,7 @@ Infos.static_init()
 
 tracer = logging.getLogger('tracer')
     
-class MemoryStream(Message):
+class MemoryStream(Talent):
     def __init__(self, msg, chunks = (0,), server_side: bool = True):
         super().__init__(server_side)
         self.__msg = msg
@@ -45,8 +45,8 @@ class MemoryStream(Message):
     def _timestamp(self):
         return 1700260990000
     
-    def _Message__flush_recv_msg(self) -> None:
-        super()._Message__flush_recv_msg()
+    def _Talent__flush_recv_msg(self) -> None:
+        super()._Talent__flush_recv_msg()
         self.msg_count += 1
         return
     
@@ -290,8 +290,10 @@ def test_read_two_messages(ConfigTsunAllowAll, Msg2ContactInfo,MsgContactResp,Ms
     assert m._send_buffer==MsgContactResp
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
 
-    m._send_buffer = bytearray(0) # clear send buffer for next test
-    m._init_new_client_conn(b'solarhub', b'solarhub@123456')
+    m._send_buffer = bytearray(0) # clear send buffer for next test  
+    m.contact_name = b'solarhub'
+    m.contact_mail = b'solarhub@123456'
+    m._init_new_client_conn()
     assert m._send_buffer==b'\x00\x00\x00,\x10R170000000000001\x91\x00\x08solarhub\x0fsolarhub@123456'
 
     m._send_buffer = bytearray(0) # clear send buffer for next test
@@ -308,8 +310,10 @@ def test_read_two_messages(ConfigTsunAllowAll, Msg2ContactInfo,MsgContactResp,Ms
     assert m._send_buffer==MsgContactResp2
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
 
-    m._send_buffer = bytearray(0) # clear send buffer for next test
-    m._init_new_client_conn(b'solarhub', b'solarhub@123456')
+    m._send_buffer = bytearray(0) # clear send buffer for next test    
+    m.contact_name = b'solarhub'
+    m.contact_mail = b'solarhub@123456'
+    m._init_new_client_conn()
     assert m._send_buffer==b'\x00\x00\x00,\x10R170000000000002\x91\x00\x08solarhub\x0fsolarhub@123456'
     m.close()
 
@@ -700,14 +704,14 @@ def test_ctrl_byte():
 
     
 def test_msg_iterator():
-    m1 = Message(server_side=True)
-    m2 = Message(server_side=True)
-    m3 = Message(server_side=True)
+    m1 = Talent(server_side=True)
+    m2 = Talent(server_side=True)
+    m3 = Talent(server_side=True)
     m3.close()
     del m3
     test1 = 0
     test2 = 0
-    for key in Message:
+    for key in Talent:
         if key == m1:
             test1+=1
         elif key == m2:
@@ -718,19 +722,19 @@ def test_msg_iterator():
     assert test2 == 1
 
 def test_proxy_counter():
-    m = Message(server_side=True)
+    m = Talent(server_side=True)
     assert m.new_data == {}
     m.db.stat['proxy']['Unknown_Msg'] = 0
-    m.new_stat_data['proxy'] =  False
+    Infos.new_stat_data['proxy'] =  False
 
     m.inc_counter('Unknown_Msg')
     assert m.new_data == {}
-    assert m.new_stat_data == {'proxy': True}
+    assert Infos.new_stat_data == {'proxy': True}
     assert 1 == m.db.stat['proxy']['Unknown_Msg']
 
-    m.new_stat_data['proxy'] =  False
+    Infos.new_stat_data['proxy'] =  False
     m.dec_counter('Unknown_Msg')
     assert m.new_data == {}
-    assert m.new_stat_data == {'proxy': True}
+    assert Infos.new_stat_data == {'proxy': True}
     assert 0 == m.db.stat['proxy']['Unknown_Msg']
     m.close()
