@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- Prepare support of inverters with 6 MTPPs
+- Clear `Daily Generation` values at midnigth
+
 ## [0.6.0] - 2024-04-02
 
 - Refactoring to support Solarman V5 protocol
