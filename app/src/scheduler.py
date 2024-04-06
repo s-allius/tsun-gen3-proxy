@@ -11,7 +11,8 @@ class Schedule:
     mqtt = None
 
     @classmethod
-    def start(cls):
+    def start(cls) -> None:
+        '''Start the scheduler and schedule the tasks (cron jobs)'''
         logging.info("Scheduler init")
         cls.mqtt = Mqtt(None)
 
@@ -19,7 +20,8 @@ class Schedule:
         # crontab('*/5 * * * *', func=cls.atmidnight, start=True)
 
     @classmethod
-    async def atmidnight(cls):
+    async def atmidnight(cls) -> None:
+        '''Clear daily counters at midnight'''
         logging.info("Clear daily counters at midnight")
 
         for key, data in ClrAtMidnight.elm():
