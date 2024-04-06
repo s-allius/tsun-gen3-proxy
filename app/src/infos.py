@@ -100,7 +100,7 @@ class ClrAtMidnight:
     db = {}
 
     @classmethod
-    def add(cls, keys, prfx: str, reg: Register):
+    def add(cls, keys: list, prfx: str, reg: Register) -> None:
         if reg not in cls.__clr_at_midnight:
             return
 
@@ -117,7 +117,7 @@ class ClrAtMidnight:
         dict[keys[-1]] = 0
 
     @classmethod
-    def elm(cls) -> Generator:
+    def elm(cls) -> Generator[tuple[str, dict], None, None]:
         for reg, name in cls.db.items():
             yield reg, name
         cls.db = {}
@@ -273,24 +273,14 @@ class Infos:
     @property
     def info_defs(self) -> dict:
         return self.__info_defs
-    '''
-    if __name__ == "app.src.messages":
-        @info_defs.setter
-        def info_defs(self, value: dict) -> None:
-            self.__info_defs = value
-
-        @info_devs.setter
-        def info_devs(self, value: dict) -> None:
-            self.__info_devs = value
-    '''
 
     def dev_value(self, idx: str | int) -> str | int | float | None:
         '''returns the stored device value from our database
 
         idx:int ==> lookup the value in the database and return it as str,
-                    int or flout. If the value is not available return 'None'
+                    int or float. If the value is not available return 'None'
         idx:str ==> returns the string as a fixed value without a
-                    database loopup
+                    database lookup
         '''
         if type(idx) is str:
             return idx               # return idx as a fixed value
@@ -340,7 +330,8 @@ class Infos:
             if res:
                 yield res
 
-    def ha_conf(self, key, ha_prfx, node_id, snr,  singleton: bool, sug_area: str = '') -> tuple[str, str, str, str]:  # noqa: E501
+    def ha_conf(self, key, ha_prfx, node_id, snr,  singleton: bool,
+                sug_area: str = '') -> tuple[str, str, str, str] | None:
         if key not in self.info_defs:
             return None
         row = self.info_defs[key]
@@ -444,7 +435,7 @@ class Infos:
             return json.dumps(attr), component, node_id, attr['uniq_id']
         return None
 
-    def _key_obj(self, id) -> list:
+    def _key_obj(self, id: Register) -> list:
         d = self.info_defs.get(id, {'name': None, 'level': logging.DEBUG,
                                     'unit': ''})
         if 'ha' in d and 'must_incr' in d['ha']:
@@ -454,7 +445,7 @@ class Infos:
 
         return d['name'], d['level'], d['unit'], must_incr
 
-    def update_db(self, keys, must_incr, result):
+    def update_db(self, keys: list, must_incr: bool, result):
         name = ''
         dict = self.db
         for key in keys[:-1]:
@@ -474,14 +465,20 @@ class Infos:
         name += keys[-1]
         return name, update
 
-    def set_db_def_value(self, id, value):
+    def set_db_def_value(self, id: Register, value) -> None:
         '''set default value'''
         row = self.info_defs[id]
         if isinstance(row, dict):
             keys = row['name']
             self.update_db(keys, False, value)
 
-    def reg_clr_at_midnight(self, prfx: str):
+    def reg_clr_at_midnight(self, prfx: str) -> None:
+        '''register all registers for the 'ClrAtMidnight' class and
+        check if device of every register is available otherwise ignore
+        the register.
+
+        prfx:str ==> prefix for the home assistant 'stat_t string''
+        '''
         for id, row in self.info_defs.items():
             if 'ha' in row:
                 ha = row['ha']
@@ -493,23 +490,21 @@ class Infos:
             keys = row['name']
             ClrAtMidnight.add(keys, prfx, id)
 
-    def get_db_value(self, id, not_found_result=None):
+    def get_db_value(self, id: Register, not_found_result: any = None):
         '''get database value'''
         row = self.info_defs[id]
         if isinstance(row, dict):
             keys = row['name']
             elm = self.db
-            for key in keys[:-1]:
+            for key in keys:
                 if key not in elm:
                     return not_found_result
                 elm = elm[key]
-
-            if keys[-1] in elm:
-                return elm[keys[-1]]
+            return elm
         return not_found_result
 
     def ignore_this_device(self, dep: dict) -> bool:
-        '''Checks the equation in the dep dict
+        '''Checks the equation in the dep(endency) dict
 
             returns 'False' only if the equation is valid;
                     'True'  in any other case'''
