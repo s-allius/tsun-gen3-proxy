@@ -1,6 +1,6 @@
 # test_with_pytest.py
 import pytest, json
-from app.src.infos import Register
+from app.src.infos import Register, ClrAtMidnight
 from app.src.gen3.infos_g3 import InfosG3
 
 @pytest.fixture
@@ -524,3 +524,25 @@ def test_invalid_data_type(InvalidDataSeq):
     val = i.dev_value(Register.INVALID_DATA_TYPE)  # check invalid data type counter
     assert val == 1
 
+def test_clr_at_midnight():
+    i = InfosG3()
+    i.static_init()                # initialize counter
+    i.set_db_def_value(Register.NO_INPUTS, 2)
+    val = i.dev_value(Register.NO_INPUTS)  # valid addr but not initiliazed     
+    assert val == 2
+    
+    i.reg_clr_at_midnight('tsun/inv_1/')
+    # tsun/inv_2/input
+    assert json.dumps(ClrAtMidnight.db['tsun/inv_1/total']) == json.dumps({'Daily_Generation': 0})
+    assert json.dumps(ClrAtMidnight.db['tsun/inv_1/input']) == json.dumps({"pv1": {"Daily_Generation": 0}, "pv2": {"Daily_Generation": 0}})
+
+    test = 0
+    for key, data in ClrAtMidnight.elm():
+        if key == 'tsun/inv_1/total':
+            assert json.dumps(data) == json.dumps({'Daily_Generation': 0})
+            test += 1
+        elif key == 'tsun/inv_1/input':
+            assert json.dumps(data) == json.dumps({"pv1": {"Daily_Generation": 0}, "pv2": {"Daily_Generation": 0}})
+            test += 1
+    assert test == 2
+    assert json.dumps(ClrAtMidnight.db) == json.dumps({})

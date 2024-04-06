@@ -8,6 +8,7 @@ from messages import Message
 from inverter import Inverter
 from gen3.inverter_g3 import InverterG3
 from gen3plus.inverter_g3p import InverterG3P
+from scheduler import Schedule
 from config import Config
 
 
@@ -73,6 +74,7 @@ if __name__ == "__main__":
     logging.getLogger('msg').setLevel(log_level)
     logging.getLogger('conn').setLevel(log_level)
     logging.getLogger('data').setLevel(log_level)
+    # logging.getLogger('mqtt').setLevel(log_level)
 
     # read config file
     Config.read()
@@ -81,6 +83,8 @@ if __name__ == "__main__":
     asyncio.set_event_loop(loop)
 
     Inverter.class_init()
+    Schedule.start()
+
     #
     # Register some UNIX Signal handler for a gracefully server shutdown
     # on Docker restart and stop
