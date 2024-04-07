@@ -123,7 +123,7 @@ class ClrAtMidnight:
         dict = dict[prfx]
 
         for key in keys[1:-1]:
-            if key not in dict:  # pragma: no cover
+            if key not in dict:
                 dict[key] = {}
             dict = dict[key]
         dict[keys[-1]] = 0
