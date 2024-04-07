@@ -59,7 +59,7 @@ class Talent(Message):
         # deallocated by the garbage collector ==> we get a memory leak
         self.switch.clear()
 
-    def set_serial_no(self, serial_no: str):
+    def __set_serial_no(self, serial_no: str):
 
         if self.unique_id == serial_no:
             logger.debug(f'SerialNo: {serial_no}')
@@ -72,6 +72,7 @@ class Talent(Message):
                 self.node_id = inv['node_id']
                 self.sug_area = inv['suggested_area']
                 logger.debug(f'SerialNo {serial_no} allowed! area:{self.sug_area}')  # noqa: E501
+                self.db.set_pv_module_details(inv)
             else:
                 self.node_id = ''
                 self.sug_area = ''
@@ -95,7 +96,7 @@ class Talent(Message):
             hex_dump_memory(logging.INFO, f'Received from {self.addr}:',
                             self._recv_buffer, self.header_len+self.data_len)
 
-            self.set_serial_no(self.id_str.decode("utf-8"))
+            self.__set_serial_no(self.id_str.decode("utf-8"))
             self.__dispatch_msg()
             self.__flush_recv_msg()
         return

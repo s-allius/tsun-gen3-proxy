@@ -34,21 +34,33 @@ class Register(Enum):
     PV1_VOLTAGE = 100
     PV1_CURRENT = 101
     PV1_POWER = 102
+    PV1_MANUFACTURER = 103
+    PV1_MODEL = 104
     PV2_VOLTAGE = 110
     PV2_CURRENT = 111
     PV2_POWER = 112
+    PV2_MANUFACTURER = 113
+    PV2_MODEL = 114
     PV3_VOLTAGE = 120
     PV3_CURRENT = 121
     PV3_POWER = 122
+    PV3_MANUFACTURER = 123
+    PV3_MODEL = 124
     PV4_VOLTAGE = 130
     PV4_CURRENT = 131
     PV4_POWER = 132
+    PV4_MANUFACTURER = 133
+    PV4_MODEL = 134
     PV5_VOLTAGE = 140
     PV5_CURRENT = 141
     PV5_POWER = 142
+    PV5_MANUFACTURER = 143
+    PV5_MODEL = 144
     PV6_VOLTAGE = 150
     PV6_CURRENT = 151
     PV6_POWER = 152
+    PV6_MANUFACTURER = 153
+    PV6_MODEL = 154
     PV1_DAILY_GENERATION = 200
     PV1_TOTAL_GENERATION = 201
     PV2_DAILY_GENERATION = 210
@@ -111,7 +123,7 @@ class ClrAtMidnight:
         dict = dict[prfx]
 
         for key in keys[1:-1]:
-            if key not in dict:  # pragma: no cover
+            if key not in dict:
                 dict[key] = {}
             dict = dict[key]
         dict[keys[-1]] = 0
@@ -153,12 +165,12 @@ class Infos:
         'proxy':      {'singleton': True,   'name': 'Proxy', 'mf': 'Stefan Allius'},  # noqa: E501
         'controller': {'via': 'proxy',      'name': 'Controller',     'mdl': Register.CHIP_MODEL, 'mf': Register.CHIP_TYPE, 'sw': Register.COLLECTOR_FW_VERSION},  # noqa: E501
         'inverter':   {'via': 'controller', 'name': 'Micro Inverter', 'mdl': Register.EQUIPMENT_MODEL, 'mf': Register.MANUFACTURER, 'sw': Register.VERSION},  # noqa: E501
-        'input_pv1':  {'via': 'inverter',   'name': 'Module PV1'},
-        'input_pv2':  {'via': 'inverter',   'name': 'Module PV2', 'dep': {'reg': Register.NO_INPUTS, 'gte': 2}},  # noqa: E501
-        'input_pv3':  {'via': 'inverter',   'name': 'Module PV3', 'dep': {'reg': Register.NO_INPUTS, 'gte': 3}},  # noqa: E501
-        'input_pv4':  {'via': 'inverter',   'name': 'Module PV4', 'dep': {'reg': Register.NO_INPUTS, 'gte': 4}},  # noqa: E501
-        'input_pv5':  {'via': 'inverter',   'name': 'Module PV5', 'dep': {'reg': Register.NO_INPUTS, 'gte': 5}},  # noqa: E501
-        'input_pv6':  {'via': 'inverter',   'name': 'Module PV6', 'dep': {'reg': Register.NO_INPUTS, 'gte': 6}},  # noqa: E501
+        'input_pv1':  {'via': 'inverter',   'name': 'Module PV1', 'mdl': Register.PV1_MODEL, 'mf': Register.PV1_MANUFACTURER},  # noqa: E501
+        'input_pv2':  {'via': 'inverter',   'name': 'Module PV2', 'mdl': Register.PV2_MODEL, 'mf': Register.PV2_MANUFACTURER, 'dep': {'reg': Register.NO_INPUTS, 'gte': 2}},  # noqa: E501
+        'input_pv3':  {'via': 'inverter',   'name': 'Module PV3', 'mdl': Register.PV3_MODEL, 'mf': Register.PV3_MANUFACTURER, 'dep': {'reg': Register.NO_INPUTS, 'gte': 3}},  # noqa: E501
+        'input_pv4':  {'via': 'inverter',   'name': 'Module PV4', 'mdl': Register.PV4_MODEL, 'mf': Register.PV4_MANUFACTURER, 'dep': {'reg': Register.NO_INPUTS, 'gte': 4}},  # noqa: E501
+        'input_pv5':  {'via': 'inverter',   'name': 'Module PV5', 'mdl': Register.PV5_MODEL, 'mf': Register.PV5_MANUFACTURER, 'dep': {'reg': Register.NO_INPUTS, 'gte': 5}},  # noqa: E501
+        'input_pv6':  {'via': 'inverter',   'name': 'Module PV6', 'mdl': Register.PV6_MODEL, 'mf': Register.PV6_MANUFACTURER, 'dep': {'reg': Register.NO_INPUTS, 'gte': 6}},  # noqa: E501
     }
 
     __comm_type_val_tpl = "{%set com_types = ['n/a','Wi-Fi', 'G4', 'G5', 'GPRS'] %}{{com_types[value_json['Communication_Type']|int(0)]|default(value_json['Communication_Type'])}}"    # noqa: E501
@@ -180,6 +192,19 @@ class Infos:
         Register.NO_INPUTS:       {'name': ['inverter', 'No_Inputs'],              'level': logging.DEBUG, 'unit': ''},  # noqa: E501
         Register.MAX_DESIGNED_POWER: {'name': ['inverter',  'Max_Designed_Power'], 'level': logging.DEBUG, 'unit': 'W',    'ha': {'dev': 'inverter', 'dev_cla': None,          'stat_cla': None,          'id': 'designed_power_', 'fmt': '| string + " W"', 'name': 'Max Designed Power', 'icon': 'mdi:lightning-bolt', 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.RATED_POWER:     {'name': ['inverter',  'Rated_Power'],           'level': logging.DEBUG, 'unit': 'W',    'ha': {'dev': 'inverter', 'dev_cla': None,          'stat_cla': None,          'id': 'rated_power_', 'fmt': '| string + " W"', 'name': 'Rated Power', 'icon': 'mdi:lightning-bolt', 'ent_cat': 'diagnostic'}},  # noqa: E501
+
+        Register.PV1_MANUFACTURER: {'name': ['inverter', 'PV1_Manufacturer'],      'level': logging.DEBUG, 'unit': ''},  # noqa: E501
+        Register.PV1_MODEL:        {'name': ['inverter', 'PV1_Model'],             'level': logging.DEBUG, 'unit': ''},  # noqa: E501
+        Register.PV2_MANUFACTURER: {'name': ['inverter', 'PV2_Manufacturer'],      'level': logging.DEBUG, 'unit': ''},  # noqa: E501
+        Register.PV2_MODEL:        {'name': ['inverter', 'PV2_Model'],             'level': logging.DEBUG, 'unit': ''},  # noqa: E501
+        Register.PV3_MANUFACTURER: {'name': ['inverter', 'PV3_Manufacturer'],      'level': logging.DEBUG, 'unit': ''},  # noqa: E501
+        Register.PV3_MODEL:        {'name': ['inverter', 'PV3_Model'],             'level': logging.DEBUG, 'unit': ''},  # noqa: E501
+        Register.PV4_MANUFACTURER: {'name': ['inverter', 'PV4_Manufacturer'],      'level': logging.DEBUG, 'unit': ''},  # noqa: E501
+        Register.PV4_MODEL:        {'name': ['inverter', 'PV4_Model'],             'level': logging.DEBUG, 'unit': ''},  # noqa: E501
+        Register.PV5_MANUFACTURER: {'name': ['inverter', 'PV5_Manufacturer'],      'level': logging.DEBUG, 'unit': ''},  # noqa: E501
+        Register.PV5_MODEL:        {'name': ['inverter', 'PV5_Model'],             'level': logging.DEBUG, 'unit': ''},  # noqa: E501
+        Register.PV6_MANUFACTURER: {'name': ['inverter', 'PV6_Manufacturer'],      'level': logging.DEBUG, 'unit': ''},  # noqa: E501
+        Register.PV6_MODEL:        {'name': ['inverter', 'PV6_Model'],             'level': logging.DEBUG, 'unit': ''},  # noqa: E501
 
         # proxy:
         Register.INVERTER_CNT:      {'name': ['proxy', 'Inverter_Cnt'],       'singleton': True,   'ha': {'dev': 'proxy', 'comp': 'sensor', 'dev_cla': None, 'stat_cla': None, 'id': 'inv_count_',     'fmt': '| int', 'name': 'Active Inverter Connections',    'icon': 'mdi:counter'}},  # noqa: E501
@@ -518,3 +543,20 @@ class Infos:
             elif 'less_eq' in dep:
                 return not value <= dep['less_eq']
         return True
+
+    def set_pv_module_details(self, inv: dict) -> None:
+        map = {'pv1': {'manufacturer': Register.PV1_MANUFACTURER, 'model': Register.PV1_MODEL},  # noqa: E501
+               'pv2': {'manufacturer': Register.PV2_MANUFACTURER, 'model': Register.PV2_MODEL},  # noqa: E501
+               'pv3': {'manufacturer': Register.PV3_MANUFACTURER, 'model': Register.PV3_MODEL},  # noqa: E501
+               'pv4': {'manufacturer': Register.PV4_MANUFACTURER, 'model': Register.PV4_MODEL},  # noqa: E501
+               'pv5': {'manufacturer': Register.PV5_MANUFACTURER, 'model': Register.PV5_MODEL},  # noqa: E501
+               'pv6': {'manufacturer': Register.PV6_MANUFACTURER, 'model': Register.PV6_MODEL}  # noqa: E501
+               }
+
+        for key, reg in map.items():
+            if key in inv:
+                if 'manufacturer' in inv[key]:
+                    self.set_db_def_value(reg['manufacturer'],
+                                          inv[key]['manufacturer'])
+                if 'type' in inv[key]:
+                    self.set_db_def_value(reg['model'], inv[key]['type'])
