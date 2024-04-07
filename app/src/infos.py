@@ -34,21 +34,33 @@ class Register(Enum):
     PV1_VOLTAGE = 100
     PV1_CURRENT = 101
     PV1_POWER = 102
+    PV1_MANUFACTURER = 103
+    PV1_MODEL = 104
     PV2_VOLTAGE = 110
     PV2_CURRENT = 111
     PV2_POWER = 112
+    PV2_MANUFACTURER = 113
+    PV2_MODEL = 114
     PV3_VOLTAGE = 120
     PV3_CURRENT = 121
     PV3_POWER = 122
+    PV3_MANUFACTURER = 123
+    PV3_MODEL = 124
     PV4_VOLTAGE = 130
     PV4_CURRENT = 131
     PV4_POWER = 132
+    PV4_MANUFACTURER = 133
+    PV4_MODEL = 134
     PV5_VOLTAGE = 140
     PV5_CURRENT = 141
     PV5_POWER = 142
+    PV5_MANUFACTURER = 143
+    PV5_MODEL = 144
     PV6_VOLTAGE = 150
     PV6_CURRENT = 151
     PV6_POWER = 152
+    PV6_MANUFACTURER = 153
+    PV6_MODEL = 154
     PV1_DAILY_GENERATION = 200
     PV1_TOTAL_GENERATION = 201
     PV2_DAILY_GENERATION = 210
@@ -153,12 +165,12 @@ class Infos:
         'proxy':      {'singleton': True,   'name': 'Proxy', 'mf': 'Stefan Allius'},  # noqa: E501
         'controller': {'via': 'proxy',      'name': 'Controller',     'mdl': Register.CHIP_MODEL, 'mf': Register.CHIP_TYPE, 'sw': Register.COLLECTOR_FW_VERSION},  # noqa: E501
         'inverter':   {'via': 'controller', 'name': 'Micro Inverter', 'mdl': Register.EQUIPMENT_MODEL, 'mf': Register.MANUFACTURER, 'sw': Register.VERSION},  # noqa: E501
-        'input_pv1':  {'via': 'inverter',   'name': 'Module PV1'},
-        'input_pv2':  {'via': 'inverter',   'name': 'Module PV2', 'dep': {'reg': Register.NO_INPUTS, 'gte': 2}},  # noqa: E501
-        'input_pv3':  {'via': 'inverter',   'name': 'Module PV3', 'dep': {'reg': Register.NO_INPUTS, 'gte': 3}},  # noqa: E501
-        'input_pv4':  {'via': 'inverter',   'name': 'Module PV4', 'dep': {'reg': Register.NO_INPUTS, 'gte': 4}},  # noqa: E501
-        'input_pv5':  {'via': 'inverter',   'name': 'Module PV5', 'dep': {'reg': Register.NO_INPUTS, 'gte': 5}},  # noqa: E501
-        'input_pv6':  {'via': 'inverter',   'name': 'Module PV6', 'dep': {'reg': Register.NO_INPUTS, 'gte': 6}},  # noqa: E501
+        'input_pv1':  {'via': 'inverter',   'name': 'Module PV1', 'mdl': Register.PV1_MODEL, 'mf': Register.PV1_MANUFACTURER},  # noqa: E501
+        'input_pv2':  {'via': 'inverter',   'name': 'Module PV2', 'mdl': Register.PV2_MODEL, 'mf': Register.PV2_MANUFACTURER, 'dep': {'reg': Register.NO_INPUTS, 'gte': 2}},  # noqa: E501
+        'input_pv3':  {'via': 'inverter',   'name': 'Module PV3', 'mdl': Register.PV3_MODEL, 'mf': Register.PV3_MANUFACTURER, 'dep': {'reg': Register.NO_INPUTS, 'gte': 3}},  # noqa: E501
+        'input_pv4':  {'via': 'inverter',   'name': 'Module PV4', 'mdl': Register.PV4_MODEL, 'mf': Register.PV4_MANUFACTURER, 'dep': {'reg': Register.NO_INPUTS, 'gte': 4}},  # noqa: E501
+        'input_pv5':  {'via': 'inverter',   'name': 'Module PV5', 'mdl': Register.PV5_MODEL, 'mf': Register.PV5_MANUFACTURER, 'dep': {'reg': Register.NO_INPUTS, 'gte': 5}},  # noqa: E501
+        'input_pv6':  {'via': 'inverter',   'name': 'Module PV6', 'mdl': Register.PV6_MODEL, 'mf': Register.PV6_MANUFACTURER, 'dep': {'reg': Register.NO_INPUTS, 'gte': 6}},  # noqa: E501
     }
 
     __comm_type_val_tpl = "{%set com_types = ['n/a','Wi-Fi', 'G4', 'G5', 'GPRS'] %}{{com_types[value_json['Communication_Type']|int(0)]|default(value_json['Communication_Type'])}}"    # noqa: E501
