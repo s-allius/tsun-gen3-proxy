@@ -193,6 +193,19 @@ class Infos:
         Register.MAX_DESIGNED_POWER: {'name': ['inverter',  'Max_Designed_Power'], 'level': logging.DEBUG, 'unit': 'W',    'ha': {'dev': 'inverter', 'dev_cla': None,          'stat_cla': None,          'id': 'designed_power_', 'fmt': '| string + " W"', 'name': 'Max Designed Power', 'icon': 'mdi:lightning-bolt', 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.RATED_POWER:     {'name': ['inverter',  'Rated_Power'],           'level': logging.DEBUG, 'unit': 'W',    'ha': {'dev': 'inverter', 'dev_cla': None,          'stat_cla': None,          'id': 'rated_power_', 'fmt': '| string + " W"', 'name': 'Rated Power', 'icon': 'mdi:lightning-bolt', 'ent_cat': 'diagnostic'}},  # noqa: E501
 
+        Register.PV1_MANUFACTURER: {'name': ['inverter', 'PV1_Manufacturer'],      'level': logging.DEBUG, 'unit': ''},  # noqa: E501
+        Register.PV1_MODEL:        {'name': ['inverter', 'PV1_Model'],             'level': logging.DEBUG, 'unit': ''},  # noqa: E501
+        Register.PV2_MANUFACTURER: {'name': ['inverter', 'PV2_Manufacturer'],      'level': logging.DEBUG, 'unit': ''},  # noqa: E501
+        Register.PV2_MODEL:        {'name': ['inverter', 'PV2_Model'],             'level': logging.DEBUG, 'unit': ''},  # noqa: E501
+        Register.PV3_MANUFACTURER: {'name': ['inverter', 'PV3_Manufacturer'],      'level': logging.DEBUG, 'unit': ''},  # noqa: E501
+        Register.PV3_MODEL:        {'name': ['inverter', 'PV3_Model'],             'level': logging.DEBUG, 'unit': ''},  # noqa: E501
+        Register.PV4_MANUFACTURER: {'name': ['inverter', 'PV4_Manufacturer'],      'level': logging.DEBUG, 'unit': ''},  # noqa: E501
+        Register.PV4_MODEL:        {'name': ['inverter', 'PV4_Model'],             'level': logging.DEBUG, 'unit': ''},  # noqa: E501
+        Register.PV5_MANUFACTURER: {'name': ['inverter', 'PV5_Manufacturer'],      'level': logging.DEBUG, 'unit': ''},  # noqa: E501
+        Register.PV5_MODEL:        {'name': ['inverter', 'PV5_Model'],             'level': logging.DEBUG, 'unit': ''},  # noqa: E501
+        Register.PV6_MANUFACTURER: {'name': ['inverter', 'PV6_Manufacturer'],      'level': logging.DEBUG, 'unit': ''},  # noqa: E501
+        Register.PV6_MODEL:        {'name': ['inverter', 'PV6_Model'],             'level': logging.DEBUG, 'unit': ''},  # noqa: E501
+
         # proxy:
         Register.INVERTER_CNT:      {'name': ['proxy', 'Inverter_Cnt'],       'singleton': True,   'ha': {'dev': 'proxy', 'comp': 'sensor', 'dev_cla': None, 'stat_cla': None, 'id': 'inv_count_',     'fmt': '| int', 'name': 'Active Inverter Connections',    'icon': 'mdi:counter'}},  # noqa: E501
         Register.UNKNOWN_SNR:       {'name': ['proxy', 'Unknown_SNR'],        'singleton': True,   'ha': {'dev': 'proxy', 'comp': 'sensor', 'dev_cla': None, 'stat_cla': None, 'id': 'unknown_snr_',   'fmt': '| int', 'name': 'Unknown Serial No',    'icon': 'mdi:counter', 'ent_cat': 'diagnostic'}},  # noqa: E501
@@ -530,3 +543,20 @@ class Infos:
             elif 'less_eq' in dep:
                 return not value <= dep['less_eq']
         return True
+
+    def set_pv_module_details(self, inv: dict) -> None:
+        map = {'pv1': {'manufacturer': Register.PV1_MANUFACTURER, 'model': Register.PV1_MODEL},  # noqa: E501
+               'pv2': {'manufacturer': Register.PV2_MANUFACTURER, 'model': Register.PV2_MODEL},  # noqa: E501
+               'pv3': {'manufacturer': Register.PV3_MANUFACTURER, 'model': Register.PV3_MODEL},  # noqa: E501
+               'pv4': {'manufacturer': Register.PV4_MANUFACTURER, 'model': Register.PV4_MODEL},  # noqa: E501
+               'pv5': {'manufacturer': Register.PV5_MANUFACTURER, 'model': Register.PV5_MODEL},  # noqa: E501
+               'pv6': {'manufacturer': Register.PV6_MANUFACTURER, 'model': Register.PV6_MODEL}  # noqa: E501
+               }
+
+        for key, reg in map.items():
+            if key in inv:
+                if 'manufacturer' in inv[key]:
+                    self.set_db_def_value(reg['manufacturer'],
+                                          inv[key]['manufacturer'])
+                if 'type' in inv[key]:
+                    self.set_db_def_value(reg['model'], inv[key]['type'])
