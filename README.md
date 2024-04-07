@@ -127,15 +127,23 @@ inverters.allow_all = false   # True: allow inverters, even if we have no invert
 [inverters."R17xxxxxxxxxxxx1"]
 node_id = 'inv1'              # Optional, MQTT replacement for inverters serial number  
 suggested_area = 'roof'       # Optional, suggested installation area for home-assistant
+pv1 = {type = 'RSM40-8-395M', manufacturer = 'Risen'}   # Optional, PV module descr
+pv2 = {type = 'RSM40-8-395M', manufacturer = 'Risen'}   # Optional, PV module descr
 
 [inverters."R17xxxxxxxxxxxx2"]
 node_id = 'inv2'              # Optional, MQTT replacement for inverters serial number  
 suggested_area = 'balcony'    # Optional, suggested installation area for home-assistant
+pv1 = {type = 'RSM40-8-405M', manufacturer = 'Risen'}   # Optional, PV module descr
+pv2 = {type = 'RSM40-8-405M', manufacturer = 'Risen'}   # Optional, PV module descr
 
 [inverters."Y17xxxxxxxxxxxx1"]
 monitor_sn = 2000000000       # The "Monitoring SN:" can be found on a sticker enclosed with the inverter
 node_id = 'inv_3'             # MQTT replacement for inverters serial number  
 suggested_area = 'garage'     # suggested installation place for home-assistant
+pv1 = {type = 'RSM40-8-410M', manufacturer = 'Risen'}   # Optional, PV module descr
+pv2 = {type = 'RSM40-8-410M', manufacturer = 'Risen'}   # Optional, PV module descr
+pv3 = {type = 'RSM40-8-410M', manufacturer = 'Risen'}   # Optional, PV module descr
+pv4 = {type = 'RSM40-8-410M', manufacturer = 'Risen'}   # Optional, PV module descr
 
 
 ```
