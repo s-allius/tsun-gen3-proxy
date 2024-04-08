@@ -73,17 +73,17 @@ class Mqtt(metaclass=Singleton):
                     if self.cb_MqttIsUp:
                         await self.cb_MqttIsUp()
 
-                    async with self.__client.messages() as messages:
-                        await self.__client.subscribe(
-                            f"{ha['auto_conf_prefix']}"
-                            "/status")
-                        async for message in messages:
-                            status = message.payload.decode("UTF-8")
-                            logger_mqtt.info('Home-Assistant Status:'
-                                             f' {status}')
-                            if status == 'online':
-                                self.ha_restarts += 1
-                                await self.cb_MqttIsUp()
+                    # async with self.__client.messages() as messages:
+                    await self.__client.subscribe(
+                        f"{ha['auto_conf_prefix']}"
+                        "/status")
+                    async for message in self.__client.messages:
+                        status = message.payload.decode("UTF-8")
+                        logger_mqtt.info('Home-Assistant Status:'
+                                         f' {status}')
+                        if status == 'online':
+                            self.ha_restarts += 1
+                            await self.cb_MqttIsUp()
 
             except aiomqtt.MqttError:
                 logger_mqtt.info(f"Connection lost; Reconnecting in {interval}"
