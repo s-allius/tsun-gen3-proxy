@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Clear `Daily Generation` values at midnigth
 - Read pv module details from config file and use it for the Home Assistant registration
   see: [#43](https://github.com/s-allius/tsun-gen3-proxy/issues/43)
+- migrate to aiomqtt version 2.0.0  
 
 ## [0.6.0] - 2024-04-02
 
