@@ -20,7 +20,7 @@ IMAGE=tsun-gen3-proxy
 
 if [[ $1 == dev ]] || [[ $1 == rc ]] ;then
 IMAGE=docker.io/sallius/${IMAGE}
-VERSION=${VERSION}-$1-${BRANCH}-$(date +%Y%m%d%H%M)
+VERSION=${VERSION}-$1-${BRANCH}
 elif [[ $1 == rel ]];then
 IMAGE=ghcr.io/s-allius/${IMAGE}
 else
