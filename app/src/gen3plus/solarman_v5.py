@@ -70,7 +70,7 @@ class SolarmanV5(Message):
         # deallocated by the garbage collector ==> we get a memory leak
         self.switch.clear()
 
-    def set_serial_no(self, snr: int):
+    def __set_serial_no(self, snr: int):
         serial_no = str(snr)
         if self.unique_id == serial_no:
             logger.debug(f'SerialNo: {serial_no}')
@@ -87,6 +87,7 @@ class SolarmanV5(Message):
                     self.node_id = inv['node_id']
                     self.sug_area = inv['suggested_area']
                     logger.debug(f'SerialNo {serial_no} allowed! area:{self.sug_area}')  # noqa: E501
+                    self.db.set_pv_module_details(inv)
 
             if not found:
                 self.node_id = ''
@@ -112,7 +113,7 @@ class SolarmanV5(Message):
                             self._recv_buffer, self.header_len+self.data_len+2)
             if self.__trailer_is_ok(self._recv_buffer, self.header_len
                                     + self.data_len + 2):
-                self.set_serial_no(self.snr)
+                self.__set_serial_no(self.snr)
                 self.__dispatch_msg()
             self.__flush_recv_msg()
         return
@@ -352,9 +353,9 @@ class SolarmanV5(Message):
         ftype = result[0]  # always 2
         valid = result[1] == 1  # status
         ts = result[2]
-        repeat = result[3]  # always 60
+        set_hb = result[3]  # always 60 or 120
         logger.info(f'ftype:{ftype} accepted:{valid}'
-                    f' ts:{ts:08x}  repeat:{repeat}s')
+                    f' ts:{ts:08x}  nextHeartbeat: {set_hb}s')
 
         dt = datetime.fromtimestamp(ts)
         logger.info(f'ts: {dt.strftime("%Y-%m-%d %H:%M:%S")}')

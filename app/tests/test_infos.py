@@ -1,6 +1,6 @@
 # test_with_pytest.py
 import pytest, json
-from app.src.infos import Register
+from app.src.infos import Register, ClrAtMidnight
 from app.src.gen3.infos_g3 import InfosG3
 
 @pytest.fixture
@@ -523,4 +523,70 @@ def test_invalid_data_type(InvalidDataSeq):
 
     val = i.dev_value(Register.INVALID_DATA_TYPE)  # check invalid data type counter
     assert val == 1
+
+def test_clr_at_midnight():
+    i = InfosG3()
+    i.static_init()                # initialize counter
+    i.set_db_def_value(Register.NO_INPUTS, 2)
+    val = i.dev_value(Register.NO_INPUTS)  # valid addr but not initiliazed     
+    assert val == 2
+    i.info_defs[Register.TEST_REG1] = {  # add a entry with incomplete ha definition 
+        'name': ['test', 'grp', 'REG_1'], 'ha': {'dev_cla': None }
+        }
+    i.reg_clr_at_midnight('tsun/inv_1/')
+    # tsun/inv_2/input
+    assert json.dumps(ClrAtMidnight.db['tsun/inv_1/total']) == json.dumps({'Daily_Generation': 0})
+    assert json.dumps(ClrAtMidnight.db['tsun/inv_1/input']) == json.dumps({"pv1": {"Daily_Generation": 0}, "pv2": {"Daily_Generation": 0}})
+
+    i.reg_clr_at_midnight('tsun/inv_1/')
+    assert json.dumps(ClrAtMidnight.db['tsun/inv_1/total']) == json.dumps({'Daily_Generation': 0})
+    assert json.dumps(ClrAtMidnight.db['tsun/inv_1/input']) == json.dumps({"pv1": {"Daily_Generation": 0}, "pv2": {"Daily_Generation": 0}})
+
+    test = 0
+    for key, data in ClrAtMidnight.elm():
+        if key == 'tsun/inv_1/total':
+            assert json.dumps(data) == json.dumps({'Daily_Generation': 0})
+            test += 1
+        elif key == 'tsun/inv_1/input':
+            assert json.dumps(data) == json.dumps({"pv1": {"Daily_Generation": 0}, "pv2": {"Daily_Generation": 0}})
+            test += 1
+    assert test == 2
+    assert json.dumps(ClrAtMidnight.db) == json.dumps({})
+
+    i.reg_clr_at_midnight('tsun/inv_1/')
+
+
+
+
+def test_pv_module_config():
+    i = InfosG3()
+    # i.set_db_def_value(Register.NO_INPUTS, 2)
+
+    dt = {
+        'pv1':{'manufacturer':'TSUN1','type': 'Module 100W'},
+        'pv2':{'manufacturer':'TSUN2'},
+        'pv3':{'manufacturer':'TSUN3','type': 'Module 300W'},
+        'pv4':{'type': 'Module 400W'},
+        'pv5':{},
+                 }
+    i.set_pv_module_details(dt)
+    assert 'TSUN1' == i.dev_value(Register.PV1_MANUFACTURER)
+    assert 'TSUN2' == i.dev_value(Register.PV2_MANUFACTURER)
+    assert 'TSUN3' == i.dev_value(Register.PV3_MANUFACTURER)
+    assert None == i.dev_value(Register.PV4_MANUFACTURER)
+    assert None == i.dev_value(Register.PV5_MANUFACTURER)
+    assert 'Module 100W' == i.dev_value(Register.PV1_MODEL)
+    assert  None == i.dev_value(Register.PV2_MODEL)
+    assert 'Module 300W' == i.dev_value(Register.PV3_MODEL)
+    assert 'Module 400W' == i.dev_value(Register.PV4_MODEL)
+    assert  None == i.dev_value(Register.PV5_MODEL)
+
+def test_broken_info_defs():
+    i = InfosG3()
+    val = i.get_db_value(Register.NO_INPUTS, 666)
+    assert val == 666
+    i.info_defs[Register.TEST_REG1] = 'test'  # add a string instead of a dict 
+    val = i.get_db_value(Register.TEST_REG1, 666)
+    assert val == 666
+    i.set_db_def_value(Register.TEST_REG1, 2)
 

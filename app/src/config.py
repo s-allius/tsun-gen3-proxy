@@ -45,7 +45,31 @@ class Config():
                                                          if len(s) > 0 and
                                                          s[-1] != '/' else s)),
 
-                Optional('suggested_area',  default=""): Use(str)
+                Optional('suggested_area',  default=""): Use(str),
+                Optional('pv1'): {
+                    Optional('type'): Use(str),
+                    Optional('manufacturer'): Use(str),
+                    },
+                Optional('pv2'): {
+                    Optional('type'): Use(str),
+                    Optional('manufacturer'): Use(str),
+                    },
+                Optional('pv3'): {
+                    Optional('type'): Use(str),
+                    Optional('manufacturer'): Use(str),
+                    },
+                Optional('pv4'): {
+                    Optional('type'): Use(str),
+                    Optional('manufacturer'): Use(str),
+                    },
+                Optional('pv5'): {
+                    Optional('type'): Use(str),
+                    Optional('manufacturer'): Use(str),
+                    },
+                Optional('pv6'): {
+                    Optional('type'): Use(str),
+                    Optional('manufacturer'): Use(str),
+                    }
                 }}
             }, ignore_extra_keys=True
         )

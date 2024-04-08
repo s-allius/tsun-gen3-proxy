@@ -8,6 +8,7 @@
     <a href="https://opensource.org/licenses/BSD-3-Clause"><img alt="License: BSD-3-Clause" src="https://img.shields.io/badge/License-BSD_3--Clause-green.svg"></a>
     <a href="https://www.python.org/downloads/release/python-3120/"><img alt="Supported Python versions" src="https://img.shields.io/badge/python-3.12-blue.svg"></a>
     <a href="https://sbtinstruments.github.io/aiomqtt/introduction.html"><img alt="Supported aiomqtt versions" src="https://img.shields.io/badge/aiomqtt-1.2.1-lightblue.svg"></a>
+    <a href="https://libraries.io/pypi/aiocron"><img alt="Supported aiocron versions" src="https://img.shields.io/badge/aiocron-1.8-lightblue.svg"></a>
     <a href="https://toml.io/en/v1.0.0"><img alt="Supported toml versions" src="https://img.shields.io/badge/toml-1.0.0-lightblue.svg"></a>
 
 </p>
@@ -127,15 +128,23 @@ inverters.allow_all = false   # True: allow inverters, even if we have no invert
 [inverters."R17xxxxxxxxxxxx1"]
 node_id = 'inv1'              # Optional, MQTT replacement for inverters serial number  
 suggested_area = 'roof'       # Optional, suggested installation area for home-assistant
+pv1 = {type = 'RSM40-8-395M', manufacturer = 'Risen'}   # Optional, PV module descr
+pv2 = {type = 'RSM40-8-395M', manufacturer = 'Risen'}   # Optional, PV module descr
 
 [inverters."R17xxxxxxxxxxxx2"]
 node_id = 'inv2'              # Optional, MQTT replacement for inverters serial number  
 suggested_area = 'balcony'    # Optional, suggested installation area for home-assistant
+pv1 = {type = 'RSM40-8-405M', manufacturer = 'Risen'}   # Optional, PV module descr
+pv2 = {type = 'RSM40-8-405M', manufacturer = 'Risen'}   # Optional, PV module descr
 
 [inverters."Y17xxxxxxxxxxxx1"]
 monitor_sn = 2000000000       # The "Monitoring SN:" can be found on a sticker enclosed with the inverter
 node_id = 'inv_3'             # MQTT replacement for inverters serial number  
 suggested_area = 'garage'     # suggested installation place for home-assistant
+pv1 = {type = 'RSM40-8-410M', manufacturer = 'Risen'}   # Optional, PV module descr
+pv2 = {type = 'RSM40-8-410M', manufacturer = 'Risen'}   # Optional, PV module descr
+pv3 = {type = 'RSM40-8-410M', manufacturer = 'Risen'}   # Optional, PV module descr
+pv4 = {type = 'RSM40-8-410M', manufacturer = 'Risen'}   # Optional, PV module descr
 
 
 ```
