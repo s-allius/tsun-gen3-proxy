@@ -13,6 +13,7 @@ class Config():
     Get named parts of the config with get()'''
 
     config = {}
+    def_config = {}
     conf_schema = Schema({
         'tsun': {
             'enabled': Use(bool),
@@ -93,8 +94,16 @@ class Config():
 
             # overwrite the default values, with values from
             # the config.toml file
-            with open("config/config.toml", "rb") as f:
-                usr_config = tomllib.load(f)
+            try:
+                with open("config/config.toml", "rb") as f:
+                    usr_config = tomllib.load(f)
+            except Exception as error:
+                logging.error(f'Config.read: {error}')
+                logging.info(
+                    '\n  To create the missing config.toml file, '
+                    'you can rename the template config.example.toml\n'
+                    '  and customize it for your scenario.\n')
+                usr_config = def_config
 
             config['tsun'] = def_config['tsun'] | usr_config['tsun']
             config['solarman'] = def_config['solarman'] | \
@@ -105,6 +114,7 @@ class Config():
                 usr_config['inverters']
 
             cls.config = cls.conf_schema.validate(config)
+            cls.def_config = cls.conf_schema.validate(def_config)
             # logging.debug(f'Readed config: "{cls.config}" ')
 
         except Exception as error:
@@ -120,3 +130,9 @@ class Config():
             return cls.config.get(member, {})
         else:
             return cls.config
+
+    @classmethod
+    def is_default(cls, member: str) -> bool:
+        '''Check if the member is the default value'''
+
+        return cls.config.get(member) == cls.def_config.get(member)
