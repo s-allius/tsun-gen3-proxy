@@ -24,7 +24,7 @@ class Mqtt(metaclass=Singleton):
     def __init__(self, cb_MqttIsUp):
         logger_mqtt.debug('MQTT: __init__')
         if cb_MqttIsUp:
-            self.cb_MqttIsUp = cb_MqttIsUp
+            self.__cb_MqttIsUp = cb_MqttIsUp
         loop = asyncio.get_event_loop()
         self.task = loop.create_task(self.__loop())
         self.ha_restarts = 0
@@ -70,8 +70,8 @@ class Mqtt(metaclass=Singleton):
                 async with self.__client:
                     logger_mqtt.info('MQTT broker connection established')
 
-                    if self.cb_MqttIsUp:
-                        await self.cb_MqttIsUp()
+                    if self.__cb_MqttIsUp:
+                        await self.__cb_MqttIsUp()
 
                     # async with self.__client.messages() as messages:
                     await self.__client.subscribe(
@@ -83,11 +83,19 @@ class Mqtt(metaclass=Singleton):
                                          f' {status}')
                         if status == 'online':
                             self.ha_restarts += 1
-                            await self.cb_MqttIsUp()
+                            await self.__cb_MqttIsUp()
 
             except aiomqtt.MqttError:
-                logger_mqtt.info(f"Connection lost; Reconnecting in {interval}"
-                                 " seconds ...")
+                if Config.is_default('mqtt'):
+                    logger_mqtt.info(
+                        "MQTT is unconfigured; Check your config.toml!")
+                    interval = 30
+                else:
+                    interval = 5  # Seconds
+                    logger_mqtt.info(
+                        f"Connection lost; Reconnecting in {interval}"
+                        " seconds ...")
+                
                 await asyncio.sleep(interval)
             except asyncio.CancelledError:
                 logger_mqtt.debug("MQTT task cancelled")
