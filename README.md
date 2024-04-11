@@ -170,10 +170,9 @@ A combination with a red question mark should work, but I have not checked it in
 
 <table align="center">
   <tr><th align="center">Micro Inverter Model</th><th align="center">Fw. 1.00.06</th><th align="center">Fw. 1.00.17</th><th align="center">Fw. 1.00.20</th><th align="center">Fw. 1.1.00.0B</th></tr>
-  <tr><td>GEN3 micro inverters (single MPPT):<br>MS300, MS350, MS400</td><td align="center">❓</td><td align="center">❓</td><td align="center">❓</td><td align="center">➖</td></tr>
-  <tr><td>GEN3 micro inverters (dual MPPT):<br>MS600, MS700, MS800</td><td align="center">✔️</td><td align="center">✔️</td><td align="center">✔️</td><td align="center">➖</td></tr>
-  <tr><td>GEN3 PLUS micro inverters:<br>MS1600, MS1800, MS2000</td><td align="center">➖</td><td align="center">➖</td><td align="center">➖</td><td align="center">✔️</td></tr>
-  <tr><td>Balcony micro inverters:<br>MS400-D, MS800-D, MS2000-D</td><td align="center">❓</td><td align="center">❓</td><td align="center">❓</td><td align="center">❓</td></tr>
+  <tr><td>GEN3 micro inverters (single MPPT):<br>MS300, MS350, MS400<br>MS400-D</td><td align="center">❓</td><td align="center">❓</td><td align="center">❓</td><td align="center">➖</td></tr>
+  <tr><td>GEN3 micro inverters (dual MPPT):<br>MS600, MS700, MS800<br>MS600-D, MS800-D</td><td align="center">✔️</td><td align="center">✔️</td><td align="center">✔️</td><td align="center">➖</td></tr>
+  <tr><td>GEN3 PLUS micro inverters:<br>MS1600, MS1800, MS2000<br>MS2000-D</td><td align="center">➖</td><td align="center">➖</td><td align="center">➖</td><td align="center">✔️</td></tr>
   <tr><td>TITAN micro inverters:<br>TSOL-MP3000, MP2250, MS3000</td><td align="center">❓</td><td align="center">❓</td><td align="center">❓</td><td align="center">❓</td></tr>
 </table>
 
