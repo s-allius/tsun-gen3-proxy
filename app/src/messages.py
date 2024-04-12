@@ -74,6 +74,9 @@ class Message(metaclass=IterRegistry):
         # to our _recv_buffer
         return  # pragma: no cover
 
+    def _update_header(self, _forward_buffer):
+        return
+
     '''
     Our puplic methods
     '''

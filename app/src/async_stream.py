@@ -117,6 +117,7 @@ class AsyncStream():
                         await self.remoteStream.__async_write()
 
             if self.remoteStream:
+                self.remoteStream._update_header(self._forward_buffer)
                 hex_dump_memory(logging.INFO,
                                 f'Forward to {self.remoteStream.addr}:',
                                 self._forward_buffer,
