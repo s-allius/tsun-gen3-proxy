@@ -351,6 +351,15 @@ def AtCommandIndMsg():  # 0x4510
     return msg
 
 @pytest.fixture
+def AtCommandRspMsg():  # 0x1510
+    msg  = b'\xa5\x0a\x00\x10\x15\x11\x84' +get_sn()  +b'\x00\x01'
+    msg += total()  
+    msg += hb()
+    msg += correct_checksum(msg)
+    msg += b'\x15'
+    return msg
+
+@pytest.fixture
 def ConfigTsunAllowAll():
     Config.config = {'solarman':{'enabled': True}, 'inverters':{'allow_all':True}}
 
@@ -723,7 +732,7 @@ def test_heartbeat_rsp(ConfigTsunInv1, HeartbeatRspMsg):
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
     m.close()
 
-def test_at_command_ind(ConfigTsunInv1, AtCommandIndMsg):
+def test_at_command_ind(ConfigTsunInv1, AtCommandIndMsg, AtCommandRspMsg):
     ConfigTsunInv1
     m = MemoryStream(AtCommandIndMsg, (0,))
     m.read()         # read complete msg, and dispatch msg
@@ -733,10 +742,10 @@ def test_at_command_ind(ConfigTsunInv1, AtCommandIndMsg):
     assert m.snr == 2070233889
     # assert m.unique_id == '2070233889'
     assert m.control == 0x4510
-    assert str(m.seq) == '84:10'
+    assert str(m.seq) == '84:11'
     assert m.data_len == 0x01
     assert m._recv_buffer==b''
-    assert m._send_buffer==b''
+    assert m._send_buffer==AtCommandRspMsg
     assert m._forward_buffer==AtCommandIndMsg
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
     assert m.db.stat['proxy']['AT_Command'] == 1
