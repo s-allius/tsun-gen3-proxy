@@ -44,7 +44,7 @@ If you use a Pi-hole, you can also store the host entry in the Pi-hole.
 - supports TSUN GEN3 inverters: TSOL-MS800, MS700, MS600, MS400, MS350 and MS300
 - `MQTT` support
 - `Home-Assistant` auto-discovery support
-- Self-sufficient island operation without internet (for TSUN GEN3 PLUS inverters in preparation)
+- Self-sufficient island operation without internet
 - runs in a non-root Docker Container
 
 ## Home Assistant Screenshots

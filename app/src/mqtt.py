@@ -95,7 +95,7 @@ class Mqtt(metaclass=Singleton):
                     logger_mqtt.info(
                         f"Connection lost; Reconnecting in {interval}"
                         " seconds ...")
-                
+
                 await asyncio.sleep(interval)
             except asyncio.CancelledError:
                 logger_mqtt.debug("MQTT task cancelled")
