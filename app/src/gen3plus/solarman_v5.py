@@ -257,7 +257,7 @@ class SolarmanV5(Message):
         self._send_buffer += struct.pack('<BB', check, 0x15)    # crc & stop
 
     def _update_header(self, _forward_buffer):
-        '''update header for message before forwarding, 
+        '''update header for message before forwarding,
         set sequence and checksum'''
         _len = len(_forward_buffer)
         struct.pack_into('<H', _forward_buffer, 1,
