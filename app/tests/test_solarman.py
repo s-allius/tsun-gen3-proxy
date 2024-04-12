@@ -1,10 +1,16 @@
-import pytest, json
+import pytest
+import struct
+import time
+from datetime import datetime
 from app.src.gen3plus.solarman_v5 import SolarmanV5
 from app.src.config import Config
 from app.src.infos import Infos, Register
 
 # initialize the proxy statistics
 Infos.static_init()
+
+timestamp = int(time.time())  # 1712861197
+heartbeat = 60         
 
 class MemoryStream(SolarmanV5):
     def __init__(self, msg, chunks = (0,), server_side: bool = True):
@@ -19,6 +25,12 @@ class MemoryStream(SolarmanV5):
         self.db.stat['proxy']['Invalid_Msg_Format'] = 0
         self.db.stat['proxy']['AT_Command'] = 0
 
+    def _timestamp(self):
+        return timestamp
+    
+    def _heartbeat(self) -> int:
+        return heartbeat
+    
 
     def append_msg(self, msg):
         self.__msg += msg
@@ -42,9 +54,6 @@ class MemoryStream(SolarmanV5):
             pass     
         return copied_bytes
     
-    def _timestamp(self):
-        return 1700260990000
-    
     def _SolarmanV5__flush_recv_msg(self) -> None:
         super()._SolarmanV5__flush_recv_msg()
         self.msg_count += 1
@@ -59,6 +68,16 @@ def get_inv_no() -> bytes:
 
 def get_invalid_sn():
     return b'R170000000000002'
+
+def total():
+    ts = timestamp
+    # convert int to little-endian bytes
+    return struct.pack('<L',ts)
+
+def hb():
+    hb = heartbeat
+    # convert int to little-endian bytes
+    return struct.pack('<L',hb)
 
 def correct_checksum(buf):
     checksum = sum(buf[1:]) & 0xff
@@ -90,8 +109,9 @@ def DeviceIndMsg(): # 0x4110
 
 @pytest.fixture
 def DeviceRspMsg():  # 0x1110
-    msg  = b'\xa5\x0a\x00\x10\x11\x10\x84' +get_sn()  +b'\x01\x01\x69\x6f\x09'
-    msg += b'\x66\x78\x00\x00\x00'               
+    msg  = b'\xa5\x0a\x00\x10\x11\x01\x01' +get_sn()  +b'\x02\x01'
+    msg += total()  
+    msg += hb()
     msg += correct_checksum(msg)
     msg += b'\x15'
     return msg
@@ -158,7 +178,7 @@ def InvalidChecksum(): # 0x4110
 
 @pytest.fixture
 def InverterIndMsg():  # 0x4210
-    msg  = b'\xa5\x99\x01\x10\x42\xe6\x9e' +get_sn()  +b'\x01\xb0\x02\xbc\xc8'
+    msg  = b'\xa5\x99\x01\x10\x42\x01\x02' +get_sn()  +b'\x01\xb0\x02\xbc\xc8'
     msg += b'\x24\x32\x6c\x1f\x00\x00\xa0\x47\xe4\x33\x01\x00\x03\x08\x00\x00'
     msg += b'\x59\x31\x37\x45\x37\x41\x30\x46\x30\x31\x30\x42\x30\x31\x33\x45'
     msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
@@ -290,8 +310,9 @@ def InverterIndMsg2000():  # 0x4210 rated Power 2000W
 
 @pytest.fixture
 def InverterRspMsg():  # 0x1210
-    msg  = b'\xa5\x0a\x00\x10\x12\x10\x84' +get_sn()  +b'\x01\x01\x69\x6f\x09'
-    msg += b'\x66\x78\x00\x00\x00'               
+    msg  = b'\xa5\x0a\x00\x10\x12\x02\02' +get_sn()  +b'\x01\x01'
+    msg += total()  
+    msg += hb()
     msg += correct_checksum(msg)
     msg += b'\x15'
     return msg
@@ -314,8 +335,9 @@ def HeartbeatIndMsg():  # 0x4710
 
 @pytest.fixture
 def HeartbeatRspMsg():  # 0x1710
-    msg  = b'\xa5\x0a\x00\x10\x17\x10\x84' +get_sn()  +b'\x00\x01\x22\x71\x09'
-    msg += b'\x66\x78\x00\x00\x00'               
+    msg  = b'\xa5\x0a\x00\x10\x17\x11\x84' +get_sn()  +b'\x00\x01'
+    msg += total()  
+    msg += hb()
     msg += correct_checksum(msg)
     msg += b'\x15'
     return msg
@@ -349,7 +371,7 @@ def test_read_message(DeviceIndMsg):
     assert m.snr == 2070233889
     assert m.unique_id == None
     assert m.control == 0x4110
-    assert m.serial == 0x0100
+    assert str(m.seq) == '01:00'
     assert m.data_len == 0xd4
     assert m._recv_buffer==b''
     assert m._send_buffer==b''
@@ -370,7 +392,7 @@ def test_invalid_start_byte(InvalidStartByte, DeviceIndMsg):
     assert m.snr == 2070233889
     assert m.unique_id == 0
     assert m.control == 0x4110
-    assert m.serial == 0x0100
+    assert str(m.seq) == '01:00'
     assert m.data_len == 0xd4
     assert m._recv_buffer==b''
     assert m._send_buffer==b''
@@ -390,7 +412,7 @@ def test_invalid_stop_byte(InvalidStopByte):
     assert m.snr == 2070233889
     assert m.unique_id == 0
     assert m.control == 0x4110
-    assert m.serial == 0x0100
+    assert str(m.seq) == '01:00'
     assert m.data_len == 0xd4
     assert m._recv_buffer==b''
     assert m._send_buffer==b''
@@ -410,7 +432,7 @@ def test_invalid_stop_byte2(InvalidStopByte, DeviceIndMsg):
     assert m.snr == 2070233889
     assert m.unique_id == 0
     assert m.control == 0x4110
-    assert m.serial == 0x0100
+    assert str(m.seq) == '01:00'
     assert m.data_len == 0xd4
     assert m._recv_buffer==DeviceIndMsg
     assert m._send_buffer==b''
@@ -424,7 +446,7 @@ def test_invalid_stop_byte2(InvalidStopByte, DeviceIndMsg):
     assert m.snr == 2070233889
     assert m.unique_id == None
     assert m.control == 0x4110
-    assert m.serial == 0x0100
+    assert str(m.seq) == '01:00'
     assert m.data_len == 0xd4
     assert m._recv_buffer==b''
     assert m._send_buffer==b''
@@ -446,7 +468,7 @@ def test_invalid_stop_start_byte(InvalidStopByte, InvalidStartByte):
     assert m.snr == 2070233889
     assert m.unique_id == 0
     assert m.control == 0x4110
-    assert m.serial == 0x0100
+    assert str(m.seq) == '01:00'
     assert m.data_len == 0xd4
     assert m._recv_buffer==b''
     assert m._send_buffer==b''
@@ -466,7 +488,7 @@ def test_invalid_checksum(InvalidChecksum, DeviceIndMsg):
     assert m.snr == 2070233889
     assert m.unique_id == 0
     assert m.control == 0x4110
-    assert m.serial == 0x0100
+    assert str(m.seq) == '01:00'
     assert m.data_len == 0xd4
     assert m._recv_buffer==DeviceIndMsg
     assert m._send_buffer==b''
@@ -480,7 +502,7 @@ def test_invalid_checksum(InvalidChecksum, DeviceIndMsg):
     assert m.snr == 2070233889
     assert m.unique_id == None
     assert m.control == 0x4110
-    assert m.serial == 0x0100
+    assert str(m.seq) == '01:00'
     assert m.data_len == 0xd4
     assert m._recv_buffer==b''
     assert m._send_buffer==b''
@@ -488,7 +510,7 @@ def test_invalid_checksum(InvalidChecksum, DeviceIndMsg):
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 1
     m.close()
 
-def test_read_message_twice(ConfigNoTsunInv1, DeviceIndMsg):
+def test_read_message_twice(ConfigNoTsunInv1, DeviceIndMsg, DeviceRspMsg):
     ConfigNoTsunInv1
     m = MemoryStream(DeviceIndMsg, (0,))
     m.append_msg(DeviceIndMsg)
@@ -499,10 +521,13 @@ def test_read_message_twice(ConfigNoTsunInv1, DeviceIndMsg):
     assert m.snr == 2070233889
     assert m.unique_id == '2070233889'
     assert m.control == 0x4110
-    assert m.serial == 0x0100
+    assert str(m.seq) == '01:01'
     assert m.data_len == 0xd4
+    assert m._send_buffer==DeviceRspMsg
     assert m._forward_buffer==b''
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
+    
+    m._send_buffer = bytearray(0) # clear send buffer for next test    
     m.read()         # read complete msg, and dispatch msg
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
     assert m.msg_count == 2
@@ -510,8 +535,9 @@ def test_read_message_twice(ConfigNoTsunInv1, DeviceIndMsg):
     assert m.snr == 2070233889
     assert m.unique_id == '2070233889'
     assert m.control == 0x4110
-    assert m.serial == 0x0100
+    assert str(m.seq) == '01:01'
     assert m.data_len == 0xd4
+    assert m._send_buffer==DeviceRspMsg
     assert m._forward_buffer==b''
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
     m.close()
@@ -528,7 +554,7 @@ def test_read_message_in_chunks(DeviceIndMsg):
     assert m.snr == 2070233889
     assert m.unique_id == 0 # should be None ?
     assert m.control == 0x4110
-    assert m.serial == 0x0100
+    assert str(m.seq) == '01:00'
     assert m.data_len == 0xd4
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
     m.read()    # read rest of message
@@ -552,7 +578,7 @@ def test_read_message_in_chunks2(ConfigTsunInv1, DeviceIndMsg):
     assert m.snr == 2070233889
     assert m.unique_id == '2070233889'
     assert m.control == 0x4110
-    assert m.serial == 0x0100
+    assert str(m.seq) == '01:01'
     assert m.data_len == 0xd4
     assert m.msg_count == 1
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
@@ -563,7 +589,7 @@ def test_read_message_in_chunks2(ConfigTsunInv1, DeviceIndMsg):
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
     m.close()
 
-def test_read_two_messages(ConfigTsunAllowAll, DeviceIndMsg, InverterIndMsg):
+def test_read_two_messages(ConfigTsunAllowAll, DeviceIndMsg, DeviceRspMsg, InverterIndMsg, InverterRspMsg):
     ConfigTsunAllowAll
     m = MemoryStream(DeviceIndMsg, (0,))
     m.append_msg(InverterIndMsg)
@@ -574,14 +600,13 @@ def test_read_two_messages(ConfigTsunAllowAll, DeviceIndMsg, InverterIndMsg):
     assert m.snr == 2070233889
     assert m.unique_id == '2070233889'
     assert m.control == 0x4110
-    assert m.serial == 0x0100
+    assert str(m.seq) == '01:01'
     assert m.data_len == 0xd4
     assert m.msg_count == 1
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
     assert m._forward_buffer==DeviceIndMsg
-    assert m._send_buffer==b''
-    # assert m._send_buffer==MsgContactResp
-
+    assert m._send_buffer==DeviceRspMsg
+ 
     m._send_buffer = bytearray(0) # clear send buffer for next test  
     m._init_new_client_conn()
     assert m._send_buffer==b''
@@ -597,11 +622,11 @@ def test_read_two_messages(ConfigTsunAllowAll, DeviceIndMsg, InverterIndMsg):
     assert m.snr == 2070233889
     assert m.unique_id == '2070233889'
     assert m.control == 0x4210
-    assert m.serial == 0x9ee6
+    assert str(m.seq) == '02:02'
     assert m.data_len == 0x199
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
     assert m._forward_buffer==InverterIndMsg
-    assert m._send_buffer==b''
+    assert m._send_buffer==InverterRspMsg
 
     m._send_buffer = bytearray(0) # clear send buffer for next test    
     m._init_new_client_conn()
@@ -618,7 +643,7 @@ def test_unkown_message(ConfigTsunInv1, UnknownMsg):
     assert m.snr == 2070233889
     assert m.unique_id == '2070233889'
     assert m.control == 0x5110
-    assert m.serial == 0x8410
+    assert str(m.seq) == '84:10'
     assert m.data_len == 0x0a
     assert m._recv_buffer==b''
     assert m._send_buffer==b''
@@ -636,11 +661,11 @@ def test_device_rsp(ConfigTsunInv1, DeviceRspMsg):
     assert m.snr == 2070233889
     assert m.unique_id == '2070233889'
     assert m.control == 0x1110
-    assert m.serial == 0x8410
+    assert str(m.seq) == '01:01'
     assert m.data_len == 0x0a
     assert m._recv_buffer==b''
     assert m._send_buffer==b''
-    assert m._forward_buffer==DeviceRspMsg
+    assert m._forward_buffer==b''  # DeviceRspMsg
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
     m.close()
 
@@ -654,15 +679,15 @@ def test_inverter_rsp(ConfigTsunInv1, InverterRspMsg):
     assert m.snr == 2070233889
     assert m.unique_id == '2070233889'
     assert m.control == 0x1210
-    assert m.serial == 0x8410
+    assert str(m.seq) == '02:02'
     assert m.data_len == 0x0a
     assert m._recv_buffer==b''
     assert m._send_buffer==b''
-    assert m._forward_buffer==InverterRspMsg
+    assert m._forward_buffer==b''  # InverterRspMsg
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
     m.close()
 
-def test_heartbeat_ind(ConfigTsunInv1, HeartbeatIndMsg):
+def test_heartbeat_ind(ConfigTsunInv1, HeartbeatIndMsg, HeartbeatRspMsg):
     ConfigTsunInv1
     m = MemoryStream(HeartbeatIndMsg, (0,))
     m.read()         # read complete msg, and dispatch msg
@@ -672,10 +697,10 @@ def test_heartbeat_ind(ConfigTsunInv1, HeartbeatIndMsg):
     assert m.snr == 2070233889
     # assert m.unique_id == '2070233889'
     assert m.control == 0x4710
-    assert m.serial == 0x8410
+    assert str(m.seq) == '84:11'  # value after sending response
     assert m.data_len == 0x01
     assert m._recv_buffer==b''
-    assert m._send_buffer==b''
+    assert m._send_buffer==HeartbeatRspMsg
     assert m._forward_buffer==HeartbeatIndMsg
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
     m.close()
@@ -690,11 +715,11 @@ def test_heartbeat_rsp(ConfigTsunInv1, HeartbeatRspMsg):
     assert m.snr == 2070233889
     assert m.unique_id == '2070233889'
     assert m.control == 0x1710
-    assert m.serial == 0x8410
+    assert str(m.seq) == '11:84'  # value after sending response
     assert m.data_len == 0x0a
     assert m._recv_buffer==b''
     assert m._send_buffer==b''
-    assert m._forward_buffer==HeartbeatRspMsg
+    assert m._forward_buffer==b''  # HeartbeatRspMsg
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
     m.close()
 
@@ -708,7 +733,7 @@ def test_at_command_ind(ConfigTsunInv1, AtCommandIndMsg):
     assert m.snr == 2070233889
     # assert m.unique_id == '2070233889'
     assert m.control == 0x4510
-    assert m.serial == 0x8410
+    assert str(m.seq) == '84:10'
     assert m.data_len == 0x01
     assert m._recv_buffer==b''
     assert m._send_buffer==b''
