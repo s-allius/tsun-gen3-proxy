@@ -75,6 +75,7 @@ class Message(metaclass=IterRegistry):
         return  # pragma: no cover
 
     def _update_header(self, _forward_buffer):
+        '''callback for updating the header of the forward buffer'''
         return
 
     '''
