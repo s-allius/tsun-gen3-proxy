@@ -116,6 +116,8 @@ class InverterG3P(Inverter, ConnectionG3P):
             await self.mqtt.publish(f"{self.discovery_prfx}{component}"
                                     f"/{node_id}{id}/config", data_json)
 
+        self.db.reg_clr_at_midnight(f'{self.entity_prfx}{node_id}')
+
     def close(self) -> None:
         logging.debug(f'InverterG3P.close() l{self.l_addr} | r{self.r_addr}')
         super().close()         # call close handler in the parent class

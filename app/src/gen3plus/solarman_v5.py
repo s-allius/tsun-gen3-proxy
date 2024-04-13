@@ -1,7 +1,7 @@
 import struct
 # import json
 import logging
-# import time
+import time
 from datetime import datetime
 
 if __name__ == "app.src.gen3plus.solarman_v5":
@@ -19,6 +19,32 @@ else:  # pragma: no cover
 logger = logging.getLogger('msg')
 
 
+class Sequence():
+    def __init__(self, server_side: bool):
+        self.rcv_idx = 0
+        self.snd_idx = 0
+        self.server_side = server_side
+
+    def set_recv(self, val: int):
+        if self.server_side:
+            self.rcv_idx = val >> 8
+            self.snd_idx = val & 0xff
+        else:
+            self.rcv_idx = val & 0xff
+            self.snd_idx = val >> 8
+
+    def get_send(self):
+        self.snd_idx += 1
+        self.snd_idx &= 0xff
+        if self.server_side:
+            return (self.rcv_idx << 8) | self.snd_idx
+        else:
+            return (self.snd_idx << 8) | self.rcv_idx
+
+    def __str__(self):
+        return f'{self.rcv_idx:02x}:{self.snd_idx:02x}'
+
+
 class SolarmanV5(Message):
 
     def __init__(self, server_side: bool):
@@ -26,16 +52,16 @@ class SolarmanV5(Message):
 
         self.header_len = 11  # overwrite construcor in class Message
         self.control = 0
-        self.serial = 0
+        self.seq = Sequence(server_side)
         self.snr = 0
         self.db = InfosG3P()
         self.switch = {
 
             0x4210: self.msg_data_ind,   # real time data
-            0x1210: self.msg_data_rsp,   # at least every 5 minutes
+            0x1210: self.msg_response,   # at least every 5 minutes
 
             0x4710: self.msg_hbeat_ind,  # heatbeat
-            0x1710: self.msg_hbeat_rsp,  # every 2 minutes
+            0x1710: self.msg_response,   # every 2 minutes
 
             # every 3 hours comes a sync seuqence:
             # 00:00:00  0x4110   device data     ftype: 0x02
@@ -46,18 +72,18 @@ class SolarmanV5(Message):
             # 00:00:07  0x4310   wifi data       ftype: 0x01    sub-id 0x0018: 0c   # noqa: E501
             # 00:00:08  0x4810   options?        ftype: 0x01
 
-            0x4110: self.msg_dev_ind,    # device data, sync start
-            0x1110: self.msg_dev_rsp,    # every 3 hours
+            0x4110: self.msg_dev_ind,     # device data, sync start
+            0x1110: self.msg_response,    # every 3 hours
 
-            0x4310: self.msg_forward,    # regulary after 3-6 hours
-            0x1310: self.msg_forward,
-            0x4810: self.msg_forward,    # sync end
-            0x1810: self.msg_forward,
+            0x4310: self.msg_sync_start,  # regulary after 3-6 hours
+            0x1310: self.msg_response,
+            0x4810: self.msg_sync_end,    # sync end
+            0x1810: self.msg_response,
 
             #
-            # AT cmd
-            0x4510: self.at_command_ind,  # from server
-            0x1510: self.msg_forward,     # from inverter
+            # MODbus or AT cmd
+            0x4510: self.msg_command_req,  # from server
+            0x1510: self.msg_response,     # from inverter
         }
 
     '''
@@ -70,7 +96,7 @@ class SolarmanV5(Message):
         # deallocated by the garbage collector ==> we get a memory leak
         self.switch.clear()
 
-    def set_serial_no(self, snr: int):
+    def __set_serial_no(self, snr: int):
         serial_no = str(snr)
         if self.unique_id == serial_no:
             logger.debug(f'SerialNo: {serial_no}')
@@ -87,6 +113,7 @@ class SolarmanV5(Message):
                     self.node_id = inv['node_id']
                     self.sug_area = inv['suggested_area']
                     logger.debug(f'SerialNo {serial_no} allowed! area:{self.sug_area}')  # noqa: E501
+                    self.db.set_pv_module_details(inv)
 
             if not found:
                 self.node_id = ''
@@ -112,7 +139,7 @@ class SolarmanV5(Message):
                             self._recv_buffer, self.header_len+self.data_len+2)
             if self.__trailer_is_ok(self._recv_buffer, self.header_len
                                     + self.data_len + 2):
-                self.set_serial_no(self.snr)
+                self.__set_serial_no(self.snr)
                 self.__dispatch_msg()
             self.__flush_recv_msg()
         return
@@ -159,6 +186,13 @@ class SolarmanV5(Message):
             type += 'S'
         return switch.get(type, '???')
 
+    def _timestamp(self):   # pragma: no cover
+        # utc as epoche
+        return int(time.time())
+
+    def _heartbeat(self) -> int:
+        return 60
+
     def __parse_header(self, buf: bytes, buf_len: int) -> None:
 
         if (buf_len < self.header_len):  # enough bytes for complete header?
@@ -167,10 +201,10 @@ class SolarmanV5(Message):
         result = struct.unpack_from('<BHHHL', buf, 0)
 
         # store parsed header values in the class
-        start = result[0]    # len of complete message
+        start = result[0]            # start byte
         self.data_len = result[1]    # len of variable id string
         self.control = result[2]
-        self.serial = result[3]
+        self.seq.set_recv(result[3])
         self.snr = result[4]
 
         if start != 0xA5:
@@ -193,6 +227,7 @@ class SolarmanV5(Message):
                     self._recv_buffer = bytearray()
 
             return False
+
         check = sum(buf[1:buf_len-2]) & 0xff
         if check != crc:
             self.inc_counter('Invalid_Msg_Format')
@@ -202,6 +237,36 @@ class SolarmanV5(Message):
             return False
 
         return True
+
+    def __build_header(self, ctrl) -> None:
+        '''build header for new transmit message'''
+        self.send_msg_ofs = len(self._send_buffer)
+
+        self._send_buffer += struct.pack(
+            '<BHHHL', 0xA5, 0, ctrl, self.seq.get_send(), self.snr)
+        fnc = self.switch.get(ctrl, self.msg_unknown)
+        logger.info(self.__flow_str(self.server_side, 'tx') +
+                    f' Ctl: {int(ctrl):#04x} Msg: {fnc.__name__!r}')
+
+    def __finish_send_msg(self) -> None:
+        '''finish the transmit message, set lenght and checksum'''
+        _len = len(self._send_buffer) - self.send_msg_ofs
+        struct.pack_into('<H', self._send_buffer, self.send_msg_ofs+1, _len-11)
+        check = sum(self._send_buffer[self.send_msg_ofs+1:self.send_msg_ofs +
+                                      _len]) & 0xff
+        self._send_buffer += struct.pack('<BB', check, 0x15)    # crc & stop
+
+    def _update_header(self, _forward_buffer):
+        '''update header for message before forwarding,
+        set sequence and checksum'''
+        _len = len(_forward_buffer)
+        struct.pack_into('<H', _forward_buffer, 1,
+                         _len-13)
+        struct.pack_into('<H', _forward_buffer, 5,
+                         self.seq.get_send())
+
+        check = sum(_forward_buffer[1:_len-2]) & 0xff
+        struct.pack_into('<B', _forward_buffer, _len-2, check)
 
     def __dispatch_msg(self) -> None:
         fnc = self.switch.get(self.control, self.msg_unknown)
@@ -219,87 +284,22 @@ class SolarmanV5(Message):
         self._recv_buffer = self._recv_buffer[(self.header_len +
                                                self.data_len+2):]
         self.header_valid = False
-    '''
-    def modbus(self, data):
-        POLY = 0xA001
 
-        crc = 0xFFFF
-        for byte in data:
-            crc ^= byte
-            for _ in range(8):
-                crc = ((crc >> 1) ^ POLY
-                if (crc & 0x0001)
-                else crc >> 1)
-        return crc
+    def __send_ack_rsp(self, msgtype, ftype, ack=1):
+        self.__build_header(msgtype)
+        self._send_buffer += struct.pack('<BBLL', ftype, ack,
+                                         self._timestamp(),
+                                         self._heartbeat())
+        self.__finish_send_msg()
 
-    def validate_modbus_crc(self, frame):
-        # Calculate crc with all but the last 2 bytes of
-        # the frame (they contain the crc)
-        calc_crc = 0xFFFF
-        for pos in frame[:-2]:
-            calc_crc ^= pos
-            for i in range(8):
-                if (calc_crc & 1) != 0:
-                    calc_crc >>= 1
-                    calc_crc ^= 0xA001  # bitwise 'or' with modbus magic
-                                        # number (0xa001 == bitwise
-                                        # reverse of 0x8005)
-                else:
-                    calc_crc >>= 1
+    def send_at_cmd(self, AT_cmd: str) -> None:
+        self.__build_header(0x4510)
+        self._send_buffer += struct.pack(f'<BHLLL{len(AT_cmd)}sc', 1, 2,
+                                         0, 0, 0, AT_cmd.encode('utf-8'),
+                                         b'\r')
+        self.__finish_send_msg()
 
-        # Compare calculated crc with the one supplied in the frame....
-        frame_crc, = struct.unpack('<H', frame[-2:])
-        if calc_crc == frame_crc:
-            return 1
-        else:
-            return 0
-    '''
-    '''
-    Message handler methods
-    '''
-    def msg_unknown(self):
-        logger.warning(f"Unknow Msg: ID:{int(self.control):#04x}")
-        self.inc_counter('Unknown_Msg')
-        self.msg_forward()
-
-    def msg_forward(self):
-        self.forward(self._recv_buffer, self.header_len+self.data_len+2)
-
-    def msg_dev_ind(self):
-        data = self._recv_buffer[self.header_len:]
-        result = struct.unpack_from('<BLLL', data, 0)
-        ftype = result[0]  # always 2
-        total = result[1]
-        tim = result[2]
-        res = result[3]  # always zero
-        logger.info(f'frame type:{ftype:02x} total:{total}s'
-                    f' timer:{tim:08x}s  null:{res}')
-        dt = datetime.fromtimestamp(total)
-        logger.info(f'ts: {dt.strftime("%Y-%m-%d %H:%M:%S")}')
-
-        self.__process_data(ftype)
-        self.forward(self._recv_buffer, self.header_len+self.data_len+2)
-
-    def msg_dev_rsp(self):
-        self.msg_response()
-
-    def msg_data_ind(self):
-        data = self._recv_buffer
-        result = struct.unpack_from('<BLLLLL', data, self.header_len)
-        ftype = result[0]  # 1 or 0x81
-        total = result[1]
-        tim = result[2]
-        offset = result[3]
-        unkn = result[4]
-        cnt = result[5]
-        logger.info(f'ftype:{ftype:02x} total:{total}s'
-                    f' timer:{tim:08x}s  ofs:{offset}'
-                    f' ??: {unkn:08x} cnt:{cnt}')
-        dt = datetime.fromtimestamp(total)
-        logger.info(f'ts: {dt.strftime("%Y-%m-%d %H:%M:%S")}')
-
-        ftype &= 0x7f  # mask bit 7  (0x80)
-        self.__process_data(ftype)
+    def __forward_msg(self):
         self.forward(self._recv_buffer, self.header_len+self.data_len+2)
 
     def __process_data(self, ftype):
@@ -337,14 +337,81 @@ class SolarmanV5(Message):
                 Model = Version.split('_')[0]
                 self.db.set_db_def_value(Register.CHIP_MODEL, Model)
 
-    def msg_data_rsp(self):
-        self.msg_response()
+    '''
+    Message handler methods
+    '''
+    def msg_unknown(self):
+        logger.warning(f"Unknow Msg: ID:{int(self.control):#04x}")
+        self.inc_counter('Unknown_Msg')
+        self.__forward_msg()
+
+    def msg_dev_ind(self):
+        data = self._recv_buffer[self.header_len:]
+        result = struct.unpack_from('<BLLL', data, 0)
+        ftype = result[0]  # always 2
+        total = result[1]
+        tim = result[2]
+        res = result[3]  # always zero
+        logger.info(f'frame type:{ftype:02x} total:{total}s'
+                    f' timer:{tim:08x}s  null:{res}')
+        dt = datetime.fromtimestamp(total)
+        logger.info(f'ts: {dt.strftime("%Y-%m-%d %H:%M:%S")}')
+
+        self.__process_data(ftype)
+        self.__forward_msg()
+        self.__send_ack_rsp(0x1110, ftype)
+
+    def msg_data_ind(self):
+        data = self._recv_buffer
+        result = struct.unpack_from('<BLLLLL', data, self.header_len)
+        ftype = result[0]  # 1 or 0x81
+        total = result[1]
+        tim = result[2]
+        offset = result[3]
+        unkn = result[4]
+        cnt = result[5]
+        logger.info(f'ftype:{ftype:02x} total:{total}s'
+                    f' timer:{tim:08x}s  ofs:{offset}'
+                    f' ??: {unkn:08x} cnt:{cnt}')
+        dt = datetime.fromtimestamp(total)
+        logger.info(f'ts: {dt.strftime("%Y-%m-%d %H:%M:%S")}')
+
+        self.__process_data(ftype & 0x7f)  # mask bit 7  (0x80)
+        self.__forward_msg()
+        self.__send_ack_rsp(0x1210, ftype)
+
+    def msg_sync_start(self):
+        data = self._recv_buffer[self.header_len:]
+        result = struct.unpack_from('<B', data, 0)
+        ftype = result[0]
+
+        self.__forward_msg()
+        self.__send_ack_rsp(0x1310, ftype)
+
+    def msg_command_req(self):
+        data = self._recv_buffer[self.header_len:]
+        result = struct.unpack_from('<B', data, 0)
+        ftype = result[0]
+
+        self.inc_counter('AT_Command')
+        self.__forward_msg()
+        self.__send_ack_rsp(0x1510, ftype)
 
     def msg_hbeat_ind(self):
-        self.forward(self._recv_buffer, self.header_len+self.data_len+2)
+        data = self._recv_buffer[self.header_len:]
+        result = struct.unpack_from('<B', data, 0)
+        ftype = result[0]
 
-    def msg_hbeat_rsp(self):
-        self.msg_response()
+        self.__forward_msg()
+        self.__send_ack_rsp(0x1710, ftype)
+
+    def msg_sync_end(self):
+        data = self._recv_buffer[self.header_len:]
+        result = struct.unpack_from('<B', data, 0)
+        ftype = result[0]
+
+        self.__forward_msg()
+        self.__send_ack_rsp(0x1810, ftype)
 
     def msg_response(self):
         data = self._recv_buffer[self.header_len:]
@@ -352,14 +419,9 @@ class SolarmanV5(Message):
         ftype = result[0]  # always 2
         valid = result[1] == 1  # status
         ts = result[2]
-        repeat = result[3]  # always 60
+        set_hb = result[3]  # always 60 or 120
         logger.info(f'ftype:{ftype} accepted:{valid}'
-                    f' ts:{ts:08x}  repeat:{repeat}s')
+                    f' ts:{ts:08x}  nextHeartbeat: {set_hb}s')
 
         dt = datetime.fromtimestamp(ts)
         logger.info(f'ts: {dt.strftime("%Y-%m-%d %H:%M:%S")}')
-        self.forward(self._recv_buffer, self.header_len+self.data_len+2)
-
-    def at_command_ind(self):
-        self.inc_counter('AT_Command')
-        self.msg_forward()

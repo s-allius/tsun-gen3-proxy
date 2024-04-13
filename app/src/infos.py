@@ -34,21 +34,33 @@ class Register(Enum):
     PV1_VOLTAGE = 100
     PV1_CURRENT = 101
     PV1_POWER = 102
+    PV1_MANUFACTURER = 103
+    PV1_MODEL = 104
     PV2_VOLTAGE = 110
     PV2_CURRENT = 111
     PV2_POWER = 112
+    PV2_MANUFACTURER = 113
+    PV2_MODEL = 114
     PV3_VOLTAGE = 120
     PV3_CURRENT = 121
     PV3_POWER = 122
+    PV3_MANUFACTURER = 123
+    PV3_MODEL = 124
     PV4_VOLTAGE = 130
     PV4_CURRENT = 131
     PV4_POWER = 132
+    PV4_MANUFACTURER = 133
+    PV4_MODEL = 134
     PV5_VOLTAGE = 140
     PV5_CURRENT = 141
     PV5_POWER = 142
+    PV5_MANUFACTURER = 143
+    PV5_MODEL = 144
     PV6_VOLTAGE = 150
     PV6_CURRENT = 151
     PV6_POWER = 152
+    PV6_MANUFACTURER = 153
+    PV6_MODEL = 154
     PV1_DAILY_GENERATION = 200
     PV1_TOTAL_GENERATION = 201
     PV2_DAILY_GENERATION = 210
@@ -95,6 +107,34 @@ class Register(Enum):
     TEST_REG2 = 10001
 
 
+class ClrAtMidnight:
+    __clr_at_midnight = [Register.PV1_DAILY_GENERATION, Register.PV2_DAILY_GENERATION, Register.PV3_DAILY_GENERATION, Register.PV4_DAILY_GENERATION, Register.PV5_DAILY_GENERATION, Register.PV6_DAILY_GENERATION, Register.DAILY_GENERATION]   # noqa: E501
+    db = {}
+
+    @classmethod
+    def add(cls, keys: list, prfx: str, reg: Register) -> None:
+        if reg not in cls.__clr_at_midnight:
+            return
+
+        prfx += f'{keys[0]}'
+        dict = cls.db
+        if prfx not in dict:
+            dict[prfx] = {}
+        dict = dict[prfx]
+
+        for key in keys[1:-1]:
+            if key not in dict:
+                dict[key] = {}
+            dict = dict[key]
+        dict[keys[-1]] = 0
+
+    @classmethod
+    def elm(cls) -> Generator[tuple[str, dict], None, None]:
+        for reg, name in cls.db.items():
+            yield reg, name
+        cls.db = {}
+
+
 class Infos:
     stat = {}
     app_name = os.getenv('SERVICE_NAME', 'proxy')
@@ -125,10 +165,12 @@ class Infos:
         'proxy':      {'singleton': True,   'name': 'Proxy', 'mf': 'Stefan Allius'},  # noqa: E501
         'controller': {'via': 'proxy',      'name': 'Controller',     'mdl': Register.CHIP_MODEL, 'mf': Register.CHIP_TYPE, 'sw': Register.COLLECTOR_FW_VERSION},  # noqa: E501
         'inverter':   {'via': 'controller', 'name': 'Micro Inverter', 'mdl': Register.EQUIPMENT_MODEL, 'mf': Register.MANUFACTURER, 'sw': Register.VERSION},  # noqa: E501
-        'input_pv1':  {'via': 'inverter',   'name': 'Module PV1'},
-        'input_pv2':  {'via': 'inverter',   'name': 'Module PV2', 'dep': {'reg': Register.NO_INPUTS, 'gte': 2}},  # noqa: E501
-        'input_pv3':  {'via': 'inverter',   'name': 'Module PV3', 'dep': {'reg': Register.NO_INPUTS, 'gte': 3}},  # noqa: E501
-        'input_pv4':  {'via': 'inverter',   'name': 'Module PV4', 'dep': {'reg': Register.NO_INPUTS, 'gte': 4}},  # noqa: E501
+        'input_pv1':  {'via': 'inverter',   'name': 'Module PV1', 'mdl': Register.PV1_MODEL, 'mf': Register.PV1_MANUFACTURER},  # noqa: E501
+        'input_pv2':  {'via': 'inverter',   'name': 'Module PV2', 'mdl': Register.PV2_MODEL, 'mf': Register.PV2_MANUFACTURER, 'dep': {'reg': Register.NO_INPUTS, 'gte': 2}},  # noqa: E501
+        'input_pv3':  {'via': 'inverter',   'name': 'Module PV3', 'mdl': Register.PV3_MODEL, 'mf': Register.PV3_MANUFACTURER, 'dep': {'reg': Register.NO_INPUTS, 'gte': 3}},  # noqa: E501
+        'input_pv4':  {'via': 'inverter',   'name': 'Module PV4', 'mdl': Register.PV4_MODEL, 'mf': Register.PV4_MANUFACTURER, 'dep': {'reg': Register.NO_INPUTS, 'gte': 4}},  # noqa: E501
+        'input_pv5':  {'via': 'inverter',   'name': 'Module PV5', 'mdl': Register.PV5_MODEL, 'mf': Register.PV5_MANUFACTURER, 'dep': {'reg': Register.NO_INPUTS, 'gte': 5}},  # noqa: E501
+        'input_pv6':  {'via': 'inverter',   'name': 'Module PV6', 'mdl': Register.PV6_MODEL, 'mf': Register.PV6_MANUFACTURER, 'dep': {'reg': Register.NO_INPUTS, 'gte': 6}},  # noqa: E501
     }
 
     __comm_type_val_tpl = "{%set com_types = ['n/a','Wi-Fi', 'G4', 'G5', 'GPRS'] %}{{com_types[value_json['Communication_Type']|int(0)]|default(value_json['Communication_Type'])}}"    # noqa: E501
@@ -150,6 +192,19 @@ class Infos:
         Register.NO_INPUTS:       {'name': ['inverter', 'No_Inputs'],              'level': logging.DEBUG, 'unit': ''},  # noqa: E501
         Register.MAX_DESIGNED_POWER: {'name': ['inverter',  'Max_Designed_Power'], 'level': logging.DEBUG, 'unit': 'W',    'ha': {'dev': 'inverter', 'dev_cla': None,          'stat_cla': None,          'id': 'designed_power_', 'fmt': '| string + " W"', 'name': 'Max Designed Power', 'icon': 'mdi:lightning-bolt', 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.RATED_POWER:     {'name': ['inverter',  'Rated_Power'],           'level': logging.DEBUG, 'unit': 'W',    'ha': {'dev': 'inverter', 'dev_cla': None,          'stat_cla': None,          'id': 'rated_power_', 'fmt': '| string + " W"', 'name': 'Rated Power', 'icon': 'mdi:lightning-bolt', 'ent_cat': 'diagnostic'}},  # noqa: E501
+
+        Register.PV1_MANUFACTURER: {'name': ['inverter', 'PV1_Manufacturer'],      'level': logging.DEBUG, 'unit': ''},  # noqa: E501
+        Register.PV1_MODEL:        {'name': ['inverter', 'PV1_Model'],             'level': logging.DEBUG, 'unit': ''},  # noqa: E501
+        Register.PV2_MANUFACTURER: {'name': ['inverter', 'PV2_Manufacturer'],      'level': logging.DEBUG, 'unit': ''},  # noqa: E501
+        Register.PV2_MODEL:        {'name': ['inverter', 'PV2_Model'],             'level': logging.DEBUG, 'unit': ''},  # noqa: E501
+        Register.PV3_MANUFACTURER: {'name': ['inverter', 'PV3_Manufacturer'],      'level': logging.DEBUG, 'unit': ''},  # noqa: E501
+        Register.PV3_MODEL:        {'name': ['inverter', 'PV3_Model'],             'level': logging.DEBUG, 'unit': ''},  # noqa: E501
+        Register.PV4_MANUFACTURER: {'name': ['inverter', 'PV4_Manufacturer'],      'level': logging.DEBUG, 'unit': ''},  # noqa: E501
+        Register.PV4_MODEL:        {'name': ['inverter', 'PV4_Model'],             'level': logging.DEBUG, 'unit': ''},  # noqa: E501
+        Register.PV5_MANUFACTURER: {'name': ['inverter', 'PV5_Manufacturer'],      'level': logging.DEBUG, 'unit': ''},  # noqa: E501
+        Register.PV5_MODEL:        {'name': ['inverter', 'PV5_Model'],             'level': logging.DEBUG, 'unit': ''},  # noqa: E501
+        Register.PV6_MANUFACTURER: {'name': ['inverter', 'PV6_Manufacturer'],      'level': logging.DEBUG, 'unit': ''},  # noqa: E501
+        Register.PV6_MODEL:        {'name': ['inverter', 'PV6_Model'],             'level': logging.DEBUG, 'unit': ''},  # noqa: E501
 
         # proxy:
         Register.INVERTER_CNT:      {'name': ['proxy', 'Inverter_Cnt'],       'singleton': True,   'ha': {'dev': 'proxy', 'comp': 'sensor', 'dev_cla': None, 'stat_cla': None, 'id': 'inv_count_',     'fmt': '| int', 'name': 'Active Inverter Connections',    'icon': 'mdi:counter'}},  # noqa: E501
@@ -193,16 +248,22 @@ class Infos:
         # input measures:
         Register.PV1_VOLTAGE:  {'name': ['input', 'pv1', 'Voltage'],               'level': logging.DEBUG, 'unit': 'V',    'ha': {'dev': 'input_pv1', 'dev_cla': 'voltage', 'stat_cla': 'measurement', 'id': 'volt_pv1_',  'val_tpl': "{{ (value_json['pv1']['Voltage'] | float)}}", 'icon': 'mdi:gauge', 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.PV1_CURRENT:  {'name': ['input', 'pv1', 'Current'],               'level': logging.DEBUG, 'unit': 'A',    'ha': {'dev': 'input_pv1', 'dev_cla': 'current', 'stat_cla': 'measurement', 'id': 'cur_pv1_',   'val_tpl': "{{ (value_json['pv1']['Current'] | float)}}", 'icon': 'mdi:gauge', 'ent_cat': 'diagnostic'}},  # noqa: E501
-        Register.PV1_POWER:  {'name': ['input', 'pv1', 'Power'],                   'level': logging.INFO,  'unit': 'W',    'ha': {'dev': 'input_pv1', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'power_pv1_', 'val_tpl': "{{ (value_json['pv1']['Power'] | float)}}"}},  # noqa: E501
+        Register.PV1_POWER:    {'name': ['input', 'pv1', 'Power'],                 'level': logging.INFO,  'unit': 'W',    'ha': {'dev': 'input_pv1', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'power_pv1_', 'val_tpl': "{{ (value_json['pv1']['Power'] | float)}}"}},  # noqa: E501
         Register.PV2_VOLTAGE:  {'name': ['input', 'pv2', 'Voltage'],               'level': logging.DEBUG, 'unit': 'V',    'ha': {'dev': 'input_pv2', 'dev_cla': 'voltage', 'stat_cla': 'measurement', 'id': 'volt_pv2_',  'val_tpl': "{{ (value_json['pv2']['Voltage'] | float)}}", 'icon': 'mdi:gauge', 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.PV2_CURRENT:  {'name': ['input', 'pv2', 'Current'],               'level': logging.DEBUG, 'unit': 'A',    'ha': {'dev': 'input_pv2', 'dev_cla': 'current', 'stat_cla': 'measurement', 'id': 'cur_pv2_',   'val_tpl': "{{ (value_json['pv2']['Current'] | float)}}", 'icon': 'mdi:gauge', 'ent_cat': 'diagnostic'}},  # noqa: E501
-        Register.PV2_POWER:  {'name': ['input', 'pv2', 'Power'],                   'level': logging.INFO,  'unit': 'W',    'ha': {'dev': 'input_pv2', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'power_pv2_', 'val_tpl': "{{ (value_json['pv2']['Power'] | float)}}"}},  # noqa: E501
+        Register.PV2_POWER:    {'name': ['input', 'pv2', 'Power'],                 'level': logging.INFO,  'unit': 'W',    'ha': {'dev': 'input_pv2', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'power_pv2_', 'val_tpl': "{{ (value_json['pv2']['Power'] | float)}}"}},  # noqa: E501
         Register.PV3_VOLTAGE:  {'name': ['input', 'pv3', 'Voltage'],               'level': logging.DEBUG, 'unit': 'V',    'ha': {'dev': 'input_pv3', 'dev_cla': 'voltage', 'stat_cla': 'measurement', 'id': 'volt_pv3_',  'val_tpl': "{{ (value_json['pv3']['Voltage'] | float)}}", 'icon': 'mdi:gauge', 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.PV3_CURRENT:  {'name': ['input', 'pv3', 'Current'],               'level': logging.DEBUG, 'unit': 'A',    'ha': {'dev': 'input_pv3', 'dev_cla': 'current', 'stat_cla': 'measurement', 'id': 'cur_pv3_',   'val_tpl': "{{ (value_json['pv3']['Current'] | float)}}", 'icon': 'mdi:gauge', 'ent_cat': 'diagnostic'}},  # noqa: E501
-        Register.PV3_POWER:  {'name': ['input', 'pv3', 'Power'],                   'level': logging.DEBUG, 'unit': 'W',    'ha': {'dev': 'input_pv3', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'power_pv3_', 'val_tpl': "{{ (value_json['pv3']['Power'] | float)}}"}},  # noqa: E501
+        Register.PV3_POWER:    {'name': ['input', 'pv3', 'Power'],                 'level': logging.INFO,  'unit': 'W',    'ha': {'dev': 'input_pv3', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'power_pv3_', 'val_tpl': "{{ (value_json['pv3']['Power'] | float)}}"}},  # noqa: E501
         Register.PV4_VOLTAGE:  {'name': ['input', 'pv4', 'Voltage'],               'level': logging.DEBUG, 'unit': 'V',    'ha': {'dev': 'input_pv4', 'dev_cla': 'voltage', 'stat_cla': 'measurement', 'id': 'volt_pv4_',  'val_tpl': "{{ (value_json['pv4']['Voltage'] | float)}}", 'icon': 'mdi:gauge', 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.PV4_CURRENT:  {'name': ['input', 'pv4', 'Current'],               'level': logging.DEBUG, 'unit': 'A',    'ha': {'dev': 'input_pv4', 'dev_cla': 'current', 'stat_cla': 'measurement', 'id': 'cur_pv4_',   'val_tpl': "{{ (value_json['pv4']['Current'] | float)}}", 'icon': 'mdi:gauge', 'ent_cat': 'diagnostic'}},  # noqa: E501
-        Register.PV4_POWER:  {'name': ['input', 'pv4', 'Power'],                   'level': logging.DEBUG, 'unit': 'W',    'ha': {'dev': 'input_pv4', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'power_pv4_', 'val_tpl': "{{ (value_json['pv4']['Power'] | float)}}"}},  # noqa: E501
+        Register.PV4_POWER:    {'name': ['input', 'pv4', 'Power'],                 'level': logging.INFO,  'unit': 'W',    'ha': {'dev': 'input_pv4', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'power_pv4_', 'val_tpl': "{{ (value_json['pv4']['Power'] | float)}}"}},  # noqa: E501
+        Register.PV5_VOLTAGE:  {'name': ['input', 'pv5', 'Voltage'],               'level': logging.DEBUG, 'unit': 'V',    'ha': {'dev': 'input_pv5', 'dev_cla': 'voltage', 'stat_cla': 'measurement', 'id': 'volt_pv5_',  'val_tpl': "{{ (value_json['pv5']['Voltage'] | float)}}", 'icon': 'mdi:gauge', 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.PV5_CURRENT:  {'name': ['input', 'pv5', 'Current'],               'level': logging.DEBUG, 'unit': 'A',    'ha': {'dev': 'input_pv5', 'dev_cla': 'current', 'stat_cla': 'measurement', 'id': 'cur_pv5_',   'val_tpl': "{{ (value_json['pv5']['Current'] | float)}}", 'icon': 'mdi:gauge', 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.PV5_POWER:    {'name': ['input', 'pv5', 'Power'],                 'level': logging.INFO,  'unit': 'W',    'ha': {'dev': 'input_pv5', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'power_pv5_', 'val_tpl': "{{ (value_json['pv5']['Power'] | float)}}"}},  # noqa: E501
+        Register.PV6_VOLTAGE:  {'name': ['input', 'pv6', 'Voltage'],               'level': logging.DEBUG, 'unit': 'V',    'ha': {'dev': 'input_pv6', 'dev_cla': 'voltage', 'stat_cla': 'measurement', 'id': 'volt_pv6_',  'val_tpl': "{{ (value_json['pv6']['Voltage'] | float)}}", 'icon': 'mdi:gauge', 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.PV6_CURRENT:  {'name': ['input', 'pv6', 'Current'],               'level': logging.DEBUG, 'unit': 'A',    'ha': {'dev': 'input_pv6', 'dev_cla': 'current', 'stat_cla': 'measurement', 'id': 'cur_pv6_',   'val_tpl': "{{ (value_json['pv6']['Current'] | float)}}", 'icon': 'mdi:gauge', 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.PV6_POWER:    {'name': ['input', 'pv6', 'Power'],                 'level': logging.INFO,  'unit': 'W',    'ha': {'dev': 'input_pv6', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'power_pv6_', 'val_tpl': "{{ (value_json['pv6']['Power'] | float)}}"}},  # noqa: E501
         Register.PV1_DAILY_GENERATION:  {'name': ['input', 'pv1', 'Daily_Generation'],        'level': logging.DEBUG, 'unit': 'kWh',  'ha': {'dev': 'input_pv1', 'dev_cla': 'energy', 'stat_cla': 'total_increasing', 'id': 'daily_gen_pv1_', 'name': 'Daily Generation', 'val_tpl': "{{ (value_json['pv1']['Daily_Generation'] | float)}}", 'icon': 'mdi:solar-power-variant', 'must_incr': True}},  # noqa: E501
         Register.PV1_TOTAL_GENERATION:  {'name': ['input', 'pv1', 'Total_Generation'],        'level': logging.DEBUG, 'unit': 'kWh',  'ha': {'dev': 'input_pv1', 'dev_cla': 'energy', 'stat_cla': 'total',            'id': 'total_gen_pv1_', 'name': 'Total Generation', 'val_tpl': "{{ (value_json['pv1']['Total_Generation'] | float)}}", 'icon': 'mdi:solar-power', 'must_incr': True}},  # noqa: E501
         Register.PV2_DAILY_GENERATION:  {'name': ['input', 'pv2', 'Daily_Generation'],        'level': logging.DEBUG, 'unit': 'kWh',  'ha': {'dev': 'input_pv2', 'dev_cla': 'energy', 'stat_cla': 'total_increasing', 'id': 'daily_gen_pv2_', 'name': 'Daily Generation', 'val_tpl': "{{ (value_json['pv2']['Daily_Generation'] | float)}}", 'icon': 'mdi:solar-power-variant', 'must_incr': True}},  # noqa: E501
@@ -211,6 +272,10 @@ class Infos:
         Register.PV3_TOTAL_GENERATION:  {'name': ['input', 'pv3', 'Total_Generation'],        'level': logging.DEBUG, 'unit': 'kWh',  'ha': {'dev': 'input_pv3', 'dev_cla': 'energy', 'stat_cla': 'total',            'id': 'total_gen_pv3_', 'name': 'Total Generation', 'val_tpl': "{{ (value_json['pv3']['Total_Generation'] | float)}}", 'icon': 'mdi:solar-power', 'must_incr': True}},  # noqa: E501
         Register.PV4_DAILY_GENERATION:  {'name': ['input', 'pv4', 'Daily_Generation'],        'level': logging.DEBUG, 'unit': 'kWh',  'ha': {'dev': 'input_pv4', 'dev_cla': 'energy', 'stat_cla': 'total_increasing', 'id': 'daily_gen_pv4_', 'name': 'Daily Generation', 'val_tpl': "{{ (value_json['pv4']['Daily_Generation'] | float)}}", 'icon': 'mdi:solar-power-variant', 'must_incr': True}},  # noqa: E501
         Register.PV4_TOTAL_GENERATION:  {'name': ['input', 'pv4', 'Total_Generation'],        'level': logging.DEBUG, 'unit': 'kWh',  'ha': {'dev': 'input_pv4', 'dev_cla': 'energy', 'stat_cla': 'total',            'id': 'total_gen_pv4_', 'name': 'Total Generation', 'val_tpl': "{{ (value_json['pv4']['Total_Generation'] | float)}}", 'icon': 'mdi:solar-power', 'must_incr': True}},  # noqa: E501
+        Register.PV5_DAILY_GENERATION:  {'name': ['input', 'pv5', 'Daily_Generation'],        'level': logging.DEBUG, 'unit': 'kWh',  'ha': {'dev': 'input_pv5', 'dev_cla': 'energy', 'stat_cla': 'total_increasing', 'id': 'daily_gen_pv5_', 'name': 'Daily Generation', 'val_tpl': "{{ (value_json['pv5']['Daily_Generation'] | float)}}", 'icon': 'mdi:solar-power-variant', 'must_incr': True}},  # noqa: E501
+        Register.PV5_TOTAL_GENERATION:  {'name': ['input', 'pv5', 'Total_Generation'],        'level': logging.DEBUG, 'unit': 'kWh',  'ha': {'dev': 'input_pv5', 'dev_cla': 'energy', 'stat_cla': 'total',            'id': 'total_gen_pv5_', 'name': 'Total Generation', 'val_tpl': "{{ (value_json['pv5']['Total_Generation'] | float)}}", 'icon': 'mdi:solar-power', 'must_incr': True}},  # noqa: E501
+        Register.PV6_DAILY_GENERATION:  {'name': ['input', 'pv6', 'Daily_Generation'],        'level': logging.DEBUG, 'unit': 'kWh',  'ha': {'dev': 'input_pv6', 'dev_cla': 'energy', 'stat_cla': 'total_increasing', 'id': 'daily_gen_pv6_', 'name': 'Daily Generation', 'val_tpl': "{{ (value_json['pv6']['Daily_Generation'] | float)}}", 'icon': 'mdi:solar-power-variant', 'must_incr': True}},  # noqa: E501
+        Register.PV6_TOTAL_GENERATION:  {'name': ['input', 'pv6', 'Total_Generation'],        'level': logging.DEBUG, 'unit': 'kWh',  'ha': {'dev': 'input_pv6', 'dev_cla': 'energy', 'stat_cla': 'total',            'id': 'total_gen_pv6_', 'name': 'Total Generation', 'val_tpl': "{{ (value_json['pv6']['Total_Generation'] | float)}}", 'icon': 'mdi:solar-power', 'must_incr': True}},  # noqa: E501
         # total:
         Register.DAILY_GENERATION:  {'name': ['total', 'Daily_Generation'],        'level': logging.INFO,  'unit': 'kWh',  'ha': {'dev': 'inverter', 'dev_cla': 'energy', 'stat_cla': 'total_increasing', 'id': 'daily_gen_', 'fmt': '| float', 'name': 'Daily Generation', 'icon': 'mdi:solar-power-variant', 'must_incr': True}},  # noqa: E501
         Register.TOTAL_GENERATION:  {'name': ['total', 'Total_Generation'],        'level': logging.INFO,  'unit': 'kWh',  'ha': {'dev': 'inverter', 'dev_cla': 'energy', 'stat_cla': 'total',            'id': 'total_gen_', 'fmt': '| float', 'name': 'Total Generation', 'icon': 'mdi:solar-power', 'must_incr': True}},  # noqa: E501
@@ -233,24 +298,14 @@ class Infos:
     @property
     def info_defs(self) -> dict:
         return self.__info_defs
-    '''
-    if __name__ == "app.src.messages":
-        @info_defs.setter
-        def info_defs(self, value: dict) -> None:
-            self.__info_defs = value
-
-        @info_devs.setter
-        def info_devs(self, value: dict) -> None:
-            self.__info_devs = value
-    '''
 
     def dev_value(self, idx: str | int) -> str | int | float | None:
         '''returns the stored device value from our database
 
         idx:int ==> lookup the value in the database and return it as str,
-                    int or flout. If the value is not available return 'None'
+                    int or float. If the value is not available return 'None'
         idx:str ==> returns the string as a fixed value without a
-                    database loopup
+                    database lookup
         '''
         if type(idx) is str:
             return idx               # return idx as a fixed value
@@ -300,7 +355,8 @@ class Infos:
             if res:
                 yield res
 
-    def ha_conf(self, key, ha_prfx, node_id, snr,  singleton: bool, sug_area: str = '') -> tuple[str, str, str, str]:  # noqa: E501
+    def ha_conf(self, key, ha_prfx, node_id, snr,  singleton: bool,
+                sug_area: str = '') -> tuple[str, str, str, str] | None:
         if key not in self.info_defs:
             return None
         row = self.info_defs[key]
@@ -404,7 +460,7 @@ class Infos:
             return json.dumps(attr), component, node_id, attr['uniq_id']
         return None
 
-    def _key_obj(self, id) -> list:
+    def _key_obj(self, id: Register) -> list:
         d = self.info_defs.get(id, {'name': None, 'level': logging.DEBUG,
                                     'unit': ''})
         if 'ha' in d and 'must_incr' in d['ha']:
@@ -414,7 +470,7 @@ class Infos:
 
         return d['name'], d['level'], d['unit'], must_incr
 
-    def update_db(self, keys, must_incr, result):
+    def update_db(self, keys: list, must_incr: bool, result):
         name = ''
         dict = self.db
         for key in keys[:-1]:
@@ -434,30 +490,46 @@ class Infos:
         name += keys[-1]
         return name, update
 
-    def set_db_def_value(self, id, value):
+    def set_db_def_value(self, id: Register, value) -> None:
         '''set default value'''
         row = self.info_defs[id]
-        if isinstance(row, dict):  # pragma: no cover
+        if isinstance(row, dict):
             keys = row['name']
             self.update_db(keys, False, value)
 
-    def get_db_value(self, id, not_found_result=None):
+    def reg_clr_at_midnight(self, prfx: str) -> None:
+        '''register all registers for the 'ClrAtMidnight' class and
+        check if device of every register is available otherwise ignore
+        the register.
+
+        prfx:str ==> prefix for the home assistant 'stat_t string''
+        '''
+        for id, row in self.info_defs.items():
+            if 'ha' in row:
+                ha = row['ha']
+                if 'dev' in ha:
+                    device = self.info_devs[ha['dev']]
+                    if 'dep' in device and self.ignore_this_device(device['dep']):  # noqa: E501
+                        continue
+
+            keys = row['name']
+            ClrAtMidnight.add(keys, prfx, id)
+
+    def get_db_value(self, id: Register, not_found_result: any = None):
         '''get database value'''
         row = self.info_defs[id]
-        if isinstance(row, dict):  # pragma: no cover
+        if isinstance(row, dict):
             keys = row['name']
             elm = self.db
-            for key in keys[:-1]:
+            for key in keys:
                 if key not in elm:
                     return not_found_result
                 elm = elm[key]
-
-            if keys[-1] in elm:
-                return elm[keys[-1]]
+            return elm
         return not_found_result
 
     def ignore_this_device(self, dep: dict) -> bool:
-        '''Checks the equation in the dep dict
+        '''Checks the equation in the dep(endency) dict
 
             returns 'False' only if the equation is valid;
                     'True'  in any other case'''
@@ -471,3 +543,20 @@ class Infos:
             elif 'less_eq' in dep:
                 return not value <= dep['less_eq']
         return True
+
+    def set_pv_module_details(self, inv: dict) -> None:
+        map = {'pv1': {'manufacturer': Register.PV1_MANUFACTURER, 'model': Register.PV1_MODEL},  # noqa: E501
+               'pv2': {'manufacturer': Register.PV2_MANUFACTURER, 'model': Register.PV2_MODEL},  # noqa: E501
+               'pv3': {'manufacturer': Register.PV3_MANUFACTURER, 'model': Register.PV3_MODEL},  # noqa: E501
+               'pv4': {'manufacturer': Register.PV4_MANUFACTURER, 'model': Register.PV4_MODEL},  # noqa: E501
+               'pv5': {'manufacturer': Register.PV5_MANUFACTURER, 'model': Register.PV5_MODEL},  # noqa: E501
+               'pv6': {'manufacturer': Register.PV6_MANUFACTURER, 'model': Register.PV6_MODEL}  # noqa: E501
+               }
+
+        for key, reg in map.items():
+            if key in inv:
+                if 'manufacturer' in inv[key]:
+                    self.set_db_def_value(reg['manufacturer'],
+                                          inv[key]['manufacturer'])
+                if 'type' in inv[key]:
+                    self.set_db_def_value(reg['model'], inv[key]['type'])

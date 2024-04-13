@@ -11,6 +11,7 @@
 set -e
 
 BUILD_DATE=$(date -Iminutes)
+BRANCH=$(git rev-parse --abbrev-ref HEAD)
 VERSION=$(git describe --tags --abbrev=0)
 VERSION="${VERSION:1}"
 arr=(${VERSION//./ })
@@ -19,7 +20,7 @@ IMAGE=tsun-gen3-proxy
 
 if [[ $1 == dev ]] || [[ $1 == rc ]] ;then
 IMAGE=docker.io/sallius/${IMAGE}
-VERSION=${VERSION}-$1
+VERSION=${VERSION}-$1-${BRANCH}
 elif [[ $1 == rel ]];then
 IMAGE=ghcr.io/s-allius/${IMAGE}
 else
