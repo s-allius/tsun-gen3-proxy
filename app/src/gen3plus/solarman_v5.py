@@ -81,9 +81,9 @@ class SolarmanV5(Message):
             0x1810: self.msg_response,
 
             #
-            # AT cmd
-            0x4510: self.at_command_ind,  # from server
-            0x1510: self.msg_response,    # from inverter
+            # MODbus or AT cmd
+            0x4510: self.msg_command_req,  # from server
+            0x1510: self.msg_response,     # from inverter
         }
 
     '''
@@ -292,6 +292,13 @@ class SolarmanV5(Message):
                                          self._heartbeat())
         self.__finish_send_msg()
 
+    def send_at_cmd(self, AT_cmd: str) -> None:
+        self.__build_header(0x4510)
+        self._send_buffer += struct.pack(f'<BHLLL{len(AT_cmd)}sc', 1, 2,
+                                         0, 0, 0, AT_cmd.encode('utf-8'),
+                                         b'\r')
+        self.__finish_send_msg()
+
     def __forward_msg(self):
         self.forward(self._recv_buffer, self.header_len+self.data_len+2)
 
@@ -381,7 +388,7 @@ class SolarmanV5(Message):
         self.__forward_msg()
         self.__send_ack_rsp(0x1310, ftype)
 
-    def at_command_ind(self):
+    def msg_command_req(self):
         data = self._recv_buffer[self.header_len:]
         result = struct.unpack_from('<B', data, 0)
         ftype = result[0]

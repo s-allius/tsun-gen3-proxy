@@ -344,15 +344,16 @@ def HeartbeatRspMsg():  # 0x1710
 
 @pytest.fixture
 def AtCommandIndMsg():  # 0x4510
-    msg  = b'\xa5\x01\x00\x10\x45\x10\x84' +get_sn()
-    msg += b'\x00'               
+    msg  = b'\xa5\x27\x00\x10\x45\x02\x01' +get_sn() +b'\x01\x02\x00'
+    msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'           
+    msg += b'AT+TIME=214028,1,60,120\r'
     msg += correct_checksum(msg)
     msg += b'\x15'
     return msg
 
 @pytest.fixture
 def AtCommandRspMsg():  # 0x1510
-    msg  = b'\xa5\x0a\x00\x10\x15\x11\x84' +get_sn()  +b'\x00\x01'
+    msg  = b'\xa5\x0a\x00\x10\x15\x03\x01' +get_sn()  +b'\x01\x01'
     msg += total()  
     msg += hb()
     msg += correct_checksum(msg)
@@ -742,8 +743,8 @@ def test_at_command_ind(ConfigTsunInv1, AtCommandIndMsg, AtCommandRspMsg):
     assert m.snr == 2070233889
     # assert m.unique_id == '2070233889'
     assert m.control == 0x4510
-    assert str(m.seq) == '84:11'
-    assert m.data_len == 0x01
+    assert str(m.seq) == '01:03'
+    assert m.data_len == 39
     assert m._recv_buffer==b''
     assert m._send_buffer==AtCommandRspMsg
     assert m._forward_buffer==AtCommandIndMsg
@@ -812,4 +813,19 @@ def test_build_logger_modell(ConfigTsunAllowAll, DeviceIndMsg):
     m.read()         # read complete msg, and dispatch msg
     assert 'LSW5BLE_17_02B0_1.05' == m.db.get_db_value(Register.COLLECTOR_FW_VERSION, 0).rstrip('\00')
     assert 'LSW5BLE' == m.db.get_db_value(Register.CHIP_MODEL, 0)
+    m.close()
+
+def test_AT_cmd(ConfigTsunAllowAll, DeviceIndMsg, DeviceRspMsg, AtCommandIndMsg):
+    ConfigTsunAllowAll
+    m = MemoryStream(DeviceIndMsg)
+    m.read()
+    assert m._recv_buffer==b''
+    assert m._send_buffer==DeviceRspMsg
+    assert m._forward_buffer==DeviceIndMsg
+    m._send_buffer = bytearray(0) # clear send buffer for next test    
+    m._forward_buffer = bytearray(0) # clear send buffer for next test    
+    m.send_at_cmd('AT+TIME=214028,1,60,120')
+    assert m._recv_buffer==b''
+    assert m._send_buffer==AtCommandIndMsg
+    assert m._forward_buffer==b''
     m.close()
