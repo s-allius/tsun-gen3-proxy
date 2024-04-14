@@ -1,9 +1,9 @@
 
 # test_with_pytest.py
-from typing import Literal
 import pytest, json
-from app.src.infos import Register, ClrAtMidnight
+from app.src.infos import Register
 from app.src.gen3plus.infos_g3p import InfosG3P
+from app.src.gen3plus.infos_g3p import RegisterMap
 
 @pytest.fixture
 def DeviceData(): # 0x4110 ftype: 0x02
@@ -149,3 +149,29 @@ def test_build_ha_conf1():
             tests +=1
 
     assert tests==5
+
+def test_exception_and_eval(InverterData: bytes):
+
+    # add eval to convert temperature from °F to °C
+    RegisterMap.map[0x420100d8]['eval'] =  '(result-32)/1.8'
+    # map PV1_VOLTAGE to invalid register  
+    RegisterMap.map[0x420100e0]['reg'] = Register.TEST_REG2
+    # set invalid maping entry for OUTPUT_POWER (string instead of dict type) 
+    Backup = RegisterMap.map[0x420100de]
+    RegisterMap.map[0x420100de] = 'invalid_entry'
+
+    i = InfosG3P()
+    # i.db.clear()
+    
+    for key, update in i.parse (InverterData, 0x42, 1):
+        pass
+    assert 12.2222 == round (i.get_db_value(Register.INVERTER_TEMP, 0),4)
+    
+    del RegisterMap.map[0x420100d8]['eval'] # remove eval
+    RegisterMap.map[0x420100e0]['reg'] = Register.PV1_VOLTAGE # reset mapping
+    RegisterMap.map[0x420100de] = Backup # reset mapping
+    
+    for key, update in i.parse (InverterData, 0x42, 1):
+        pass
+    assert 54 == i.get_db_value(Register.INVERTER_TEMP, 0)
+ 
