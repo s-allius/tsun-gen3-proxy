@@ -679,7 +679,7 @@ def test_msg_ota_invalid(ConfigTsunInv1, MsgOtaInvalid):
 def test_msg_unknown(ConfigTsunInv1, MsgUnknown):
     ConfigTsunInv1
     m = MemoryStream(MsgUnknown, (0,), False)
-    m.db.stat['proxy']['Unknown_Ctrl'] = 0
+    m.db.stat['proxy']['Unknown_Msg'] = 0
     m.read()         # read complete msg, and dispatch msg
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
     assert m.msg_count == 1
@@ -716,6 +716,8 @@ def test_msg_iterator():
             test1+=1
         elif key == m2:
             test2+=1
+        elif type(key) != Talent:
+            continue
         else:
             assert False
     assert test1 == 1
