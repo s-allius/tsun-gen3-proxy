@@ -497,7 +497,8 @@ class Infos:
             keys = row['name']
             self.update_db(keys, False, value)
 
-    def reg_clr_at_midnight(self, prfx: str) -> None:
+    def reg_clr_at_midnight(self, prfx: str,
+                            check_dependencies: bool = True) -> None:
         '''register all registers for the 'ClrAtMidnight' class and
         check if device of every register is available otherwise ignore
         the register.
@@ -505,7 +506,7 @@ class Infos:
         prfx:str ==> prefix for the home assistant 'stat_t string''
         '''
         for id, row in self.info_defs.items():
-            if 'ha' in row:
+            if check_dependencies and 'ha' in row:
                 ha = row['ha']
                 if 'dev' in ha:
                     device = self.info_devs[ha['dev']]
