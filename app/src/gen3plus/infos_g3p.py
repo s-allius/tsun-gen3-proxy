@@ -96,17 +96,18 @@ class InfosG3P(Infos):
             mtype = (idx >> 24) & 0xff
             if ftype != rcv_ftype or mtype != msg_type:
                 continue
-            if isinstance(row, dict):
-                info_id = row['reg']
-                fmt = row['fmt']
-                res = struct.unpack_from(fmt, buf, addr)
-                result = res[0]
-                if isinstance(result, (bytearray, bytes)):
-                    result = result.decode('utf-8')
-                if 'eval' in row:
-                    result = eval(row['eval'])
-                if 'ratio' in row:
-                    result = round(result * row['ratio'], 2)
+            if not isinstance(row, dict):
+                continue
+            info_id = row['reg']
+            fmt = row['fmt']
+            res = struct.unpack_from(fmt, buf, addr)
+            result = res[0]
+            if isinstance(result, (bytearray, bytes)):
+                result = result.decode('utf-8')
+            if 'eval' in row:
+                result = eval(row['eval'])
+            if 'ratio' in row:
+                result = round(result * row['ratio'], 2)
 
             keys, level, unit, must_incr = self._key_obj(info_id)
 
