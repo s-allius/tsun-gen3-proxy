@@ -103,7 +103,7 @@ class InfosG3P(Infos):
             res = struct.unpack_from(fmt, buf, addr)
             result = res[0]
             if isinstance(result, (bytearray, bytes)):
-                result = result.decode('utf-8')
+                result = result.decode().split('\x00')[0]
             if 'eval' in row:
                 result = eval(row['eval'])
             if 'ratio' in row:
