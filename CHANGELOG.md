@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- switch to aiomqtt version 2.0.1
+- refactor unittest and increase testcoverage
 - add experimental handler for `ÀT` commands
 - implement self-sufficient island support for GEN3PLUS inverters
   see: [#42](https://github.com/s-allius/tsun-gen3-proxy/issues/42)
