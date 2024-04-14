@@ -1,5 +1,7 @@
 # test_with_pytest.py
-import pytest, json
+import pytest
+import json
+import logging
 from app.src.infos import Register, ClrAtMidnight
 from app.src.infos import Infos
 
@@ -184,3 +186,49 @@ def test_broken_info_defs():
     assert val == 666
     i.set_db_def_value(Register.TEST_REG1, 2)
     del i.info_defs[Register.TEST_REG1]       # delete the broken entry 
+
+def test_get_value():
+    i = Infos()
+    assert None == i.get_db_value(Register.PV1_VOLTAGE, None)
+    assert None == i.get_db_value(Register.PV2_VOLTAGE, None)
+
+    i.set_db_def_value(Register.PV1_VOLTAGE, 30) 
+    assert 30 == i.get_db_value(Register.PV1_VOLTAGE, None)
+    assert None == i.get_db_value(Register.PV2_VOLTAGE, None)
+
+    i.set_db_def_value(Register.PV2_VOLTAGE, 30.3) 
+    assert 30 == i.get_db_value(Register.PV1_VOLTAGE, None)
+    assert 30.3 == i.get_db_value(Register.PV2_VOLTAGE, None)
+
+def test_update_value():
+    i = Infos()
+    assert None == i.get_db_value(Register.PV1_VOLTAGE, None)
+
+    keys = i.info_defs[Register.PV1_VOLTAGE]['name']
+    name, update = i.update_db(keys, True, 30) 
+    assert update == True
+    assert 30 == i.get_db_value(Register.PV1_VOLTAGE, None)
+
+    keys = i.info_defs[Register.PV1_VOLTAGE]['name']
+    name, update = i.update_db(keys, True, 30) 
+    assert update == False
+    assert 30 == i.get_db_value(Register.PV1_VOLTAGE, None)
+
+    keys = i.info_defs[Register.PV1_VOLTAGE]['name']
+    name, update = i.update_db(keys, False, 29) 
+    assert update == True
+    assert 29 == i.get_db_value(Register.PV1_VOLTAGE, None)
+
+def test_key_obj():
+    i = Infos()
+    keys, level, unit, must_incr = i._key_obj(Register.PV1_VOLTAGE)
+    assert keys == ['input', 'pv1', 'Voltage']
+    assert level == logging.DEBUG
+    assert unit == 'V'
+    assert must_incr == False
+
+    keys, level, unit, must_incr = i._key_obj(Register.PV1_DAILY_GENERATION)
+    assert keys == ['input', 'pv1', 'Daily_Generation'] 
+    assert level == logging.DEBUG
+    assert unit == 'kWh'
+    assert must_incr == True
