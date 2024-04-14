@@ -31,7 +31,7 @@ class Inverter():
         # and the inverters are offline, cause the normal refgistering
         # needs an update on the counters.
         # Without this registration here the counters would not be
-        # reset at midnight when you restart the proxy just before 
+        # reset at midnight when you restart the proxy just before
         # midnight!
         inverters = Config.get('inverters')
         # logger.debug(f'Inverters: {inverters}')
