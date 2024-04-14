@@ -27,7 +27,7 @@ def DeviceData(): # 0x4110 ftype: 0x02
 def InverterData():  # 0x4210 ftype: 0x01
     msg  = b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\xb0\x02\xbc\xc8'
     msg += b'\x24\x32\x6c\x1f\x00\x00\xa0\x47\xe4\x33\x01\x00\x03\x08\x00\x00'
-    msg += b'\x59\x31\x37\x45\x37\x41\x30\x46\x30\x31\x30\x42\x30\x31\x33\x45'
+    msg += b'\x59\x31\x37\x45\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x45'
     msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
     msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
     msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
@@ -84,7 +84,7 @@ def test_parse_4210(InverterData: bytes):
 
     assert json.dumps(i.db) == json.dumps({
          "controller": {"Power_On_Time": 776}, 
-         "inverter": {"Serial_Number": "Y17E7A0F010B013E", "Rated_Power": 600, "Max_Designed_Power": 2000, "No_Inputs": 4}, 
+         "inverter": {"Serial_Number": "Y17E00000000000E", "Rated_Power": 600, "Max_Designed_Power": 2000, "No_Inputs": 4}, 
          "grid": {"Voltage": 224.8, "Current": 0.73, "Frequency": 50.05, "Output_Power": 165.8}, 
          "env": {"Inverter_Temp": 54}, 
          "input": {"pv1": {"Voltage": 35.3, "Current": 1.68, "Power": 59.6, "Daily_Generation": 0.04, "Total_Generation": 30.76}, 
