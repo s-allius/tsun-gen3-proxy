@@ -22,11 +22,9 @@ Through this, the inverter then establishes a connection to the proxy and the pr
 
 By means of `docker` a simple installation and operation is possible. By using `docker-composer`, a complete stack of proxy, `MQTT-brocker` and `home-assistant` can be started easily.
 
-##
-
+<br>
 ℹ️ This project is not related to the company TSUN. It is a private initiative that aims to connect TSUN inverters with an MQTT broker. There is no support and no warranty from TSUN.
-
-##
+<br><br>
 
 ```txt
 ❗An essential requirement is that the proxy can be looped into the connection
