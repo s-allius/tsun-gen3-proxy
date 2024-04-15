@@ -86,12 +86,27 @@ docker run  --dns '8.8.8.8' --env 'UID=1050' -p '5005:5005' -p '10000:10000' -v 
 
 # Configuration
 
-The Docker container does not require any special configuration.
+The configuration consists of several parts. First, the container and the proxy itself must be configured, and then the connection of the inverter to the proxy must be set up, which is done differently depending on the inverter generation
+
+For GEN3PLUS inverters, this can be done easily via the web interface of the inverter. The GEN3 inverters do not have a web interface, so the proxy is integrated via a modified DNS resolution.
+
+  1. [Container Setup](#container-setup)
+  2. [Proxy Configuration](#proxy-configuration)
+  3. [Inverter Configuration](#inverter-configuration) (only GEN3PLUS)
+  4. [DNS Settings](#dns-settings) (Mandatory for GEN3)
+
+## Container Setup
+
+No special configuration is required for the Docker container if it is built and started as described above. It is recommended to start the container with docker-compose. The configuration is then specified in a docker-compose.yaml file. An example of a stack consisting of the proxy, MQTT broker and home assistant can be found [here](https://github.com/s-allius/tsun-gen3-proxy/blob/main/docker-compose.yaml). 
+
 On the host, two directories (for log files and for config files) must be mapped. If necessary, the UID of the proxy process can be adjusted, which is also the owner of the log and configuration files.
 
-The proxy can be configured via the file 'config.toml'. When the proxy is started, a file 'config.example.toml' is copied into the config directory. This file shows all possible parameters and their default values. Changes in the example file itself are not evaluated. To configure the proxy, the config.example.toml file should be renamed to config.toml. After that the corresponding values can be adjusted. To load the new configuration, the proxy must be restarted.
+A description of the configuration parameters can be found [here](https://github.com/s-allius/tsun-gen3-proxy/wiki/Configuration-details#docker-compose-environment-variables).
+
 
 ## Proxy Configuration
+
+The proxy can be configured via the file 'config.toml'. When the proxy is started, a file 'config.example.toml' is copied into the config directory. This file shows all possible parameters and their default values. Changes in the example file itself are not evaluated. To configure the proxy, the config.example.toml file should be renamed to config.toml. After that the corresponding values can be adjusted. To load the new configuration, the proxy must be restarted.
 
 The configration uses the TOML format, which aims to be easy to read due to obvious semantics.
 You find more details here: <https://toml.io/en/v1.0.0>
@@ -154,6 +169,8 @@ pv4 = {type = 'RSM40-8-410M', manufacturer = 'Risen'}   # Optional, PV module de
 
 ```
 
+## Inverter Configuration
+
 ## DNS Settings
 
 ### Loop the proxy into the connection
@@ -181,6 +198,8 @@ As described above, set a DNS sever in the Docker command or Docker compose file
 Even if the proxy is connected between the inverter and the TSUN Cloud, an OTA update is supported. To do this, the inverter must be able to reach the website <http://www.talent-monitoring.com:9002/> in order to download images from there.
 
 It must be ensured that this address is not mapped to the proxy!
+
+# General Information
 
 ## Compatibility
 
