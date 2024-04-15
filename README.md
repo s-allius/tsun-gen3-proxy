@@ -97,12 +97,11 @@ For GEN3PLUS inverters, this can be done easily via the web interface of the inv
 
 ## Container Setup
 
-No special configuration is required for the Docker container if it is built and started as described above. It is recommended to start the container with docker-compose. The configuration is then specified in a docker-compose.yaml file. An example of a stack consisting of the proxy, MQTT broker and home assistant can be found [here](https://github.com/s-allius/tsun-gen3-proxy/blob/main/docker-compose.yaml). 
+No special configuration is required for the Docker container if it is built and started as described above. It is recommended to start the container with docker-compose. The configuration is then specified in a docker-compose.yaml file. An example of a stack consisting of the proxy, MQTT broker and home assistant can be found [here](https://github.com/s-allius/tsun-gen3-proxy/blob/main/docker-compose.yaml).
 
 On the host, two directories (for log files and for config files) must be mapped. If necessary, the UID of the proxy process can be adjusted, which is also the owner of the log and configuration files.
 
 A description of the configuration parameters can be found [here](https://github.com/s-allius/tsun-gen3-proxy/wiki/Configuration-details#docker-compose-environment-variables).
-
 
 ## Proxy Configuration
 

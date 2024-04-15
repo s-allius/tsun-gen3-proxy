@@ -7,6 +7,7 @@ The project aims to bring TSUN third generation inverters (with WiFi support) in
 The code base of the proxy was created in a few weeks after work and offers many possibilities for collaboration.
 
 Especially in the area of
+
 - docker compose
 - packaging
 - test automation
