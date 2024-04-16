@@ -7,12 +7,10 @@
 <p align="center">
     <a href="https://opensource.org/licenses/BSD-3-Clause"><img alt="License: BSD-3-Clause" src="https://img.shields.io/badge/License-BSD_3--Clause-green.svg"></a>
     <a href="https://www.python.org/downloads/release/python-3120/"><img alt="Supported Python versions" src="https://img.shields.io/badge/python-3.12-blue.svg"></a>
-    <a href="https://sbtinstruments.github.io/aiomqtt/introduction.html"><img alt="Supported aiomqtt versions" src="https://img.shields.io/badge/aiomqtt-2.0.0-lightblue.svg"></a>
+    <a href="https://sbtinstruments.github.io/aiomqtt/introduction.html"><img alt="Supported aiomqtt versions" src="https://img.shields.io/badge/aiomqtt-2.0.1-lightblue.svg"></a>
     <a href="https://libraries.io/pypi/aiocron"><img alt="Supported aiocron versions" src="https://img.shields.io/badge/aiocron-1.8-lightblue.svg"></a>
     <a href="https://toml.io/en/v1.0.0"><img alt="Supported toml versions" src="https://img.shields.io/badge/toml-1.0.0-lightblue.svg"></a>
-
 </p>
-
 
 # Overview
 
@@ -23,11 +21,12 @@ In detail, the inverter establishes a TCP connection to the TSUN cloud to transm
 Through this, the inverter then establishes a connection to the proxy and the proxy establishes another connection to the TSUN Cloud. The transmitted data is interpreted by the proxy and then passed on to both the TSUN Cloud and the MQTT broker. The connection to the TSUN Cloud is optional and can be switched off in the configuration (default is on). Then no more data is sent to the Internet, but no more remote updates of firmware and operating parameters (e.g. rated power, grid parameters) are possible.
 
 By means of `docker` a simple installation and operation is possible. By using `docker-composer`, a complete stack of proxy, `MQTT-brocker` and `home-assistant` can be started easily.
-###
-ℹ️ This project is not related to the company TSUN. It is a private initiative that aims to connect TSUN inverters with an MQTT broker. There is no support and no warranty from TSUN.
-###
 
-```
+<br>
+ℹ️ This project is not related to the company TSUN. It is a private initiative that aims to connect TSUN inverters with an MQTT broker. There is no support and no warranty from TSUN.
+<br><br>
+
+```txt
 ❗An essential requirement is that the proxy can be looped into the connection
 between the inverter and TSUN Cloud.
 
@@ -51,45 +50,65 @@ If you use a Pi-hole, you can also store the host entry in the Pi-hole.
 
 Here are some screenshots of how the inverter is displayed in the Home Assistant:
 
-https://github.com/s-allius/tsun-gen3-proxy/wiki/home-assistant#home-assistant-screenshots
+<https://github.com/s-allius/tsun-gen3-proxy/wiki/home-assistant#home-assistant-screenshots>
+
 ## Requirements
 
 - A running Docker engine to host the container
 - Ability to loop the proxy into the connection between the inverter and the TSUN cloud
 
-
 # Getting Started
 
 To run the proxy, you first need to create the image. You can do this quite simply as follows:
+
 ```sh
 docker build https://github.com/s-allius/tsun-gen3-proxy.git#main:app -t tsun-proxy
 ```
+
 after that you can run the image:
+
 ```sh
 docker run  --dns '8.8.8.8' --env 'UID=1000' -p '5005:5005' -p '10000:10000' -v ./config:/home/tsun-proxy/config -v ./log:/home/tsun-proxy/log tsun-proxy
 ```
-You will surely see a message that the configuration file was not found. So that we can create this without admin rights, the `uid` must still be adapted. To do this, simply stop the proxy with ctrl-c and use the `id` command to determine your own UserId: 
+
+You will surely see a message that the configuration file was not found. So that we can create this without admin rights, the `uid` must still be adapted. To do this, simply stop the proxy with ctrl-c and use the `id` command to determine your own UserId:
+
 ```sh
 % id 
 uid=1050(sallius) gid=20(staff) ...
 ```
+
 With this information we can customize the `docker run`` statement:
+
 ```sh
 docker run  --dns '8.8.8.8' --env 'UID=1050' -p '5005:5005' -p '10000:10000' -v ./config:/home/tsun-proxy/config -v ./log:/home/tsun-proxy/log tsun-proxy
 ```
 
 # Configuration
-The Docker container does not require any special configuration. 
+
+The configuration consists of several parts. First, the container and the proxy itself must be configured, and then the connection of the inverter to the proxy must be set up, which is done differently depending on the inverter generation
+
+For GEN3PLUS inverters, this can be done easily via the web interface of the inverter. The GEN3 inverters do not have a web interface, so the proxy is integrated via a modified DNS resolution.
+
+  1. [Container Setup](#container-setup)
+  2. [Proxy Configuration](#proxy-configuration)
+  3. [Inverter Configuration](#inverter-configuration) (only GEN3PLUS)
+  4. [DNS Settings](#dns-settings) (Mandatory for GEN3)
+
+## Container Setup
+
+No special configuration is required for the Docker container if it is built and started as described above. It is recommended to start the container with docker-compose. The configuration is then specified in a docker-compose.yaml file. An example of a stack consisting of the proxy, MQTT broker and home assistant can be found [here](https://github.com/s-allius/tsun-gen3-proxy/blob/main/docker-compose.yaml).
+
 On the host, two directories (for log files and for config files) must be mapped. If necessary, the UID of the proxy process can be adjusted, which is also the owner of the log and configuration files.
+
+A description of the configuration parameters can be found [here](https://github.com/s-allius/tsun-gen3-proxy/wiki/Configuration-details#docker-compose-environment-variables).
+
+## Proxy Configuration
 
 The proxy can be configured via the file 'config.toml'. When the proxy is started, a file 'config.example.toml' is copied into the config directory. This file shows all possible parameters and their default values. Changes in the example file itself are not evaluated. To configure the proxy, the config.example.toml file should be renamed to config.toml. After that the corresponding values can be adjusted. To load the new configuration, the proxy must be restarted.
 
-
-## Proxy Configuration
 The configration uses the TOML format, which aims to be easy to read due to obvious semantics.
-You find more details here: https://toml.io/en/v1.0.0
-
-
+You find more details here: <https://toml.io/en/v1.0.0>
 
 ```toml
 # configuration for tsun cloud for 'GEN3' inverters
@@ -146,12 +165,24 @@ pv2 = {type = 'RSM40-8-410M', manufacturer = 'Risen'}   # Optional, PV module de
 pv3 = {type = 'RSM40-8-410M', manufacturer = 'Risen'}   # Optional, PV module descr
 pv4 = {type = 'RSM40-8-410M', manufacturer = 'Risen'}   # Optional, PV module descr
 
-
 ```
+
+## Inverter Configuration
+
+GEN3PLUS inverters offer a web interface that can be used to configure the inverter. This is very practical for sending the data directly to the proxy. On the one hand, the inverter broadcasts its own SSID on 2.4GHz. This can be recognized because it is broadcast with `AP_<Montoring SN>`. You will find the `Monitor SN` and the password for the WLAN connection on a small sticker enclosed with the inverter.
+
+If you have already connected the inverter to the cloud via the TSUN app, you can also address the inverter directly via WiFi. In the first case, the inverter uses the fixed IP address `10.10.100.254`, in the second case you have to look up the IP address in your router.
+
+The standard web interface of the inverter can be accessed at `http://<ip-adress>/index_cn.html`. Here you can set up the WLAN connection or change the password. The default user and password is `admin`/`admin`.
+
+For our purpose, the hidden URL `http://<ip-adress>/config_hide.html` should be called. There you can see and modify the parameters for accessing the cloud. Here we enter the IP address of our proxy and the IP port `10000` for the `Server A Setting` and for `Optional Server Setting`. The second entry is used as a backup in the event of connection problems.
+
+If access to the web interface does not work, it can also be redirected via DNS redirection, as is necessary for the GEN3 inverters.
 
 ## DNS Settings
 
 ### Loop the proxy into the connection
+
 To include the proxy in the connection between the inverter and the TSUN Cloud, you must adapt the DNS record of *logger.talent-monitoring.com* within the network that your inverter uses. You need a mapping from logger.talent-monitoring.com to the IP address of the host running the Docker engine.
 
 The new GEN3 PLUS inverters use a different URL. Here, *iot.talent-monitoring.com* must be redirected.
@@ -159,21 +190,27 @@ The new GEN3 PLUS inverters use a different URL. Here, *iot.talent-monitoring.co
 This can be done, for example, by adding a local DNS record to the Pi-hole if you are using it.
 
 ### DNS Rebind Protection
+
 If you are using a router as local DNS server, the router may have DNS rebind protection that needs to be adjusted. For security reasons, DNS rebind protection blocks DNS queries that refer to an IP address on the local network.
 
 If you are using a FRITZ!Box, you can do this in the Network Settings tab under Home Network / Network. Add logger.talent-monitoring.com as a hostname exception in DNS rebind protection.
 
 ### DNS server of proxy
+
 The proxy itself must use a different DNS server to connect to the TSUN Cloud. If you use the DNS server with the adapted record, you will end up in an endless loop as soon as the proxy tries to send data to the TSUN Cloud.
 
 As described above, set a DNS sever in the Docker command or Docker compose file.
 
 ### Over The Air (OTA) firmware update
-Even if the proxy is connected between the inverter and the TSUN Cloud, an OTA update is supported. To do this, the inverter must be able to reach the website http://www.talent-monitoring.com:9002/ in order to download images from there.
+
+Even if the proxy is connected between the inverter and the TSUN Cloud, an OTA update is supported. To do this, the inverter must be able to reach the website <http://www.talent-monitoring.com:9002/> in order to download images from there.
 
 It must be ensured that this address is not mapped to the proxy!
 
+# General Information
+
 ## Compatibility
+
 In the following table you will find an overview of which inverter model has been tested for compatibility with which firmware version.
 A combination with a red question mark should work, but I have not checked it in detail.
 
@@ -185,13 +222,14 @@ A combination with a red question mark should work, but I have not checked it in
   <tr><td>TITAN micro inverters:<br>TSOL-MP3000, MP2250, MS3000</td><td align="center">❓</td><td align="center">❓</td><td align="center">❓</td><td align="center">❓</td></tr>
 </table>
 
-```
+```txt
 Legend
 ➖: Firmware not available for this devices
 ✔️: proxy support testet
 ❓: proxy support possible but not testet
 🚧: Proxy support in preparation
 ```
+
 ❗The new inverters of the GEN3 Plus generation (e.g. MS-2000) use a completely different protocol for data transmission to the TSUN server. These inverters are supported from proxy version 0.6. The serial numbers of these inverters start with `Y17E` instead of `R17E`
 
 If you have one of these combinations with a red question mark, it would be very nice if you could send me a proxy trace so that I can carry out the detailed checks and adjust the device and system tests. [Ask here how to send a trace](https://github.com/s-allius/tsun-gen3-proxy/discussions/categories/traces-for-compatibility-check)
@@ -216,4 +254,3 @@ We're very happy to receive contributions to this project! You can get started b
 ## Changelog
 
 The changelog lives in [CHANGELOG.md](https://github.com/s-allius/tsun-gen3-proxy/blob/main/CHANGELOG.md). It follows the principles of [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
-
