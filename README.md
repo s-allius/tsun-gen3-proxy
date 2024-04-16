@@ -165,10 +165,19 @@ pv2 = {type = 'RSM40-8-410M', manufacturer = 'Risen'}   # Optional, PV module de
 pv3 = {type = 'RSM40-8-410M', manufacturer = 'Risen'}   # Optional, PV module descr
 pv4 = {type = 'RSM40-8-410M', manufacturer = 'Risen'}   # Optional, PV module descr
 
-
 ```
 
 ## Inverter Configuration
+
+GEN3PLUS inverters offer a web interface that can be used to configure the inverter. This is very practical for sending the data directly to the proxy. On the one hand, the inverter broadcasts its own SSID on 2.4GHz. This can be recognized because it is broadcast with `AP_<Montoring SN>`. You will find the `Monitor SN` and the password for the WLAN connection on a small sticker enclosed with the inverter.
+
+If you have already connected the inverter to the cloud via the TSUN app, you can also address the inverter directly via WiFi. In the first case, the inverter uses the fixed IP address `10.10.100.254`, in the second case you have to look up the IP address in your router.
+
+The standard web interface of the inverter can be accessed at `http://<ip-adress>/index_cn.html`. Here you can set up the WLAN connection or change the password. The default user and password is `admin`/`admin`.
+
+For our purpose, the hidden URL `http://<ip-adress>/config_hide.html` should be called. There you can see and modify the parameters for accessing the cloud. Here we enter the IP address of our proxy and the IP port 10000 for the `Server A Setting` and for `Optional Server Setting`. The second entry is used as a backup in the event of connection problems.
+
+If access to the web interface does not work, it can also be redirected via DNS redirection, as is necessary for the GEN3 inverters.
 
 ## DNS Settings
 
