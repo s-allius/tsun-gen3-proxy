@@ -186,12 +186,12 @@ class SolarmanV5(Message):
             type += 'S'
         return switch.get(type, '???')
 
-    def _timestamp(self):   # pragma: no cover
+    def _timestamp(self):
         # utc as epoche
-        return int(time.time())
+        return int(time.time())    # pragma: no cover
 
     def _heartbeat(self) -> int:
-        return 60
+        return 60                  # pragma: no cover
 
     def __parse_header(self, buf: bytes, buf_len: int) -> None:
 

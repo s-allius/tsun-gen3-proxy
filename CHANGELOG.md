@@ -7,11 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- switch to aiomqtt version 2.0.1
+- refactor unittest and increase testcoverage
+- add experimental handler for `ÀT` commands
+- implement self-sufficient island support for GEN3PLUS inverters
+  see: [#42](https://github.com/s-allius/tsun-gen3-proxy/issues/42)
+- Improve error messages on config errors
+  see: [#46](https://github.com/s-allius/tsun-gen3-proxy/issues/46)
 - Prepare support of inverters with 6 MTPPs
 - Clear `Daily Generation` values at midnigth
+  see: [#32](https://github.com/s-allius/tsun-gen3-proxy/issues/32)
 - Read pv module details from config file and use it for the Home Assistant registration
   see: [#43](https://github.com/s-allius/tsun-gen3-proxy/issues/43)
-- migrate to aiomqtt version 2.0.0  
+- migrate to aiomqtt version 2.0.0
+  see: [#44](https://github.com/s-allius/tsun-gen3-proxy/issues/44)
 
 ## [0.6.0] - 2024-04-02
 

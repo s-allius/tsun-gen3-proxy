@@ -26,6 +26,21 @@ class Inverter():
         # call Mqtt singleton to establisch the connection to the mqtt broker
         cls.mqtt = Mqtt(cls._cb_mqtt_is_up)
 
+        # register all counters which should be reset at midnight.
+        # This is needed if the proxy is restated before midnight
+        # and the inverters are offline, cause the normal refgistering
+        # needs an update on the counters.
+        # Without this registration here the counters would not be
+        # reset at midnight when you restart the proxy just before
+        # midnight!
+        inverters = Config.get('inverters')
+        # logger.debug(f'Inverters: {inverters}')
+        for inv in inverters.values():
+            if (type(inv) is dict):
+                node_id = inv['node_id']
+                cls.db_stat.reg_clr_at_midnight(f'{cls.entity_prfx}{node_id}',
+                                                check_dependencies=False)
+
     @classmethod
     async def _cb_mqtt_is_up(cls) -> None:
         logging.info('Initialize proxy device on home assistant')

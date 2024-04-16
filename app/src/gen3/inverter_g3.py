@@ -116,7 +116,7 @@ class InverterG3(Inverter, ConnectionG3):
             await self.mqtt.publish(f"{self.discovery_prfx}{component}"
                                     f"/{node_id}{id}/config", data_json)
 
-        self.db.reg_clr_at_midnight(f'{self.entity_prfx}{node_id}')
+        self.db.reg_clr_at_midnight(f'{self.entity_prfx}{self.node_id}')
 
     def close(self) -> None:
         logging.debug(f'InverterG3.close() l{self.l_addr} | r{self.r_addr}')

@@ -27,8 +27,8 @@ class RegisterMap:
         0x420100d2: {'reg': Register.GRID_VOLTAGE,         'fmt': '!H', 'ratio':  0.1},  # noqa: E501
         0x420100d4: {'reg': Register.GRID_CURRENT,         'fmt': '!H', 'ratio': 0.01},  # noqa: E501
         0x420100d6: {'reg': Register.GRID_FREQUENCY,       'fmt': '!H', 'ratio': 0.01},  # noqa: E501
-        # 0x420100d8: {'reg': Register.INVERTER_TEMP,        'fmt': '!H', 'eval': '(result-32)/1.8'},  # noqa: E501
-        0x420100d8: {'reg': Register.INVERTER_TEMP,        'fmt': '!H'},                 # noqa: E501
+        0x420100d8: {'reg': Register.INVERTER_TEMP,        'fmt': '!H', 'eval': 'round((result-32)/1.8, 1)'},  # noqa: E501
+        # 0x420100d8: {'reg': Register.INVERTER_TEMP,        'fmt': '!H'},                 # noqa: E501
         0x420100dc: {'reg': Register.RATED_POWER,          'fmt': '!H', 'ratio':    1},  # noqa: E501
         0x420100de: {'reg': Register.OUTPUT_POWER,         'fmt': '!H', 'ratio':  0.1},  # noqa: E501
         0x420100e0: {'reg': Register.PV1_VOLTAGE,          'fmt': '!H', 'ratio':  0.1},  # noqa: E501
@@ -96,17 +96,18 @@ class InfosG3P(Infos):
             mtype = (idx >> 24) & 0xff
             if ftype != rcv_ftype or mtype != msg_type:
                 continue
-            if isinstance(row, dict):
-                info_id = row['reg']
-                fmt = row['fmt']
-                res = struct.unpack_from(fmt, buf, addr)
-                result = res[0]
-                if isinstance(result, (bytearray, bytes)):
-                    result = result.decode('utf-8')
-                if 'eval' in row:
-                    result = eval(row['eval'])
-                if 'ratio' in row:
-                    result = round(result * row['ratio'], 2)
+            if not isinstance(row, dict):
+                continue
+            info_id = row['reg']
+            fmt = row['fmt']
+            res = struct.unpack_from(fmt, buf, addr)
+            result = res[0]
+            if isinstance(result, (bytearray, bytes)):
+                result = result.decode().split('\x00')[0]
+            if 'eval' in row:
+                result = eval(row['eval'])
+            if 'ratio' in row:
+                result = round(result * row['ratio'], 2)
 
             keys, level, unit, must_incr = self._key_obj(info_id)
 
