@@ -175,7 +175,7 @@ If you have already connected the inverter to the cloud via the TSUN app, you ca
 
 The standard web interface of the inverter can be accessed at `http://<ip-adress>/index_cn.html`. Here you can set up the WLAN connection or change the password. The default user and password is `admin`/`admin`.
 
-For our purpose, the hidden URL `http://<ip-adress>/config_hide.html` should be called. There you can see and modify the parameters for accessing the cloud. Here we enter the IP address of our proxy and the IP port 10000 for the `Server A Setting` and for `Optional Server Setting`. The second entry is used as a backup in the event of connection problems.
+For our purpose, the hidden URL `http://<ip-adress>/config_hide.html` should be called. There you can see and modify the parameters for accessing the cloud. Here we enter the IP address of our proxy and the IP port `10000` for the `Server A Setting` and for `Optional Server Setting`. The second entry is used as a backup in the event of connection problems.
 
 If access to the web interface does not work, it can also be redirected via DNS redirection, as is necessary for the GEN3 inverters.
 
