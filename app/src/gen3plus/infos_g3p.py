@@ -27,8 +27,8 @@ class RegisterMap:
         0x420100d2: {'reg': Register.GRID_VOLTAGE,         'fmt': '!H', 'ratio':  0.1},  # noqa: E501
         0x420100d4: {'reg': Register.GRID_CURRENT,         'fmt': '!H', 'ratio': 0.01},  # noqa: E501
         0x420100d6: {'reg': Register.GRID_FREQUENCY,       'fmt': '!H', 'ratio': 0.01},  # noqa: E501
-        # 0x420100d8: {'reg': Register.INVERTER_TEMP,        'fmt': '!H', 'eval': '(result-32)/1.8'},  # noqa: E501
-        0x420100d8: {'reg': Register.INVERTER_TEMP,        'fmt': '!H'},                 # noqa: E501
+        0x420100d8: {'reg': Register.INVERTER_TEMP,        'fmt': '!H', 'eval': 'round((result-32)/1.8, 1)'},  # noqa: E501
+        # 0x420100d8: {'reg': Register.INVERTER_TEMP,        'fmt': '!H'},                 # noqa: E501
         0x420100dc: {'reg': Register.RATED_POWER,          'fmt': '!H', 'ratio':    1},  # noqa: E501
         0x420100de: {'reg': Register.OUTPUT_POWER,         'fmt': '!H', 'ratio':  0.1},  # noqa: E501
         0x420100e0: {'reg': Register.PV1_VOLTAGE,          'fmt': '!H', 'ratio':  0.1},  # noqa: E501

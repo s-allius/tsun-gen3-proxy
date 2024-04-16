@@ -86,7 +86,7 @@ def test_parse_4210(InverterData: bytes):
          "controller": {"Power_On_Time": 776}, 
          "inverter": {"Serial_Number": "Y17E00000000000E", "Rated_Power": 600, "Max_Designed_Power": 2000, "No_Inputs": 4}, 
          "grid": {"Voltage": 224.8, "Current": 0.73, "Frequency": 50.05, "Output_Power": 165.8}, 
-         "env": {"Inverter_Temp": 54}, 
+         "env": {"Inverter_Temp": 12.2}, 
          "input": {"pv1": {"Voltage": 35.3, "Current": 1.68, "Power": 59.6, "Daily_Generation": 0.04, "Total_Generation": 30.76}, 
                    "pv2": {"Voltage": 34.6, "Current": 1.38, "Power": 48.4, "Daily_Generation": 0.03, "Total_Generation": 27.91}, 
                    "pv3": {"Voltage": 34.6, "Current": 1.89, "Power": 65.5, "Daily_Generation": 0.05, "Total_Generation": 31.89}, 
