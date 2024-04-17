@@ -56,6 +56,8 @@ class RegisterMap:
         0x42010126: {'reg': Register.MAX_DESIGNED_POWER,   'fmt': '!H', 'ratio':    1},  # noqa: E501
         0x42010170: {'reg': Register.NO_INPUTS,            'fmt': '!B'},                 # noqa: E501
 
+        0x4281001c: {'reg': Register.POWER_ON_TIME,        'fmt': '!H', 'ratio':    1},  # noqa: E501
+
     }
 
 
