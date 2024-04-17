@@ -71,8 +71,9 @@ ENTRYPOINT ["/root/entrypoint.sh"]
 CMD [ "python3", "./server.py" ]
 
 
+LABEL org.opencontainers.image.title="TSUN Gen3 Proxy"
 LABEL org.opencontainers.image.authors="Stefan Allius"
 LABEL org.opencontainers.image.source https://github.com/s-allius/tsun-gen3-proxy
-LABEL org.opencontainers.image.description 'The "TSUN Gen3 Micro-Inverter" proxy enables a reliable connection between TSUN third generation inverters and an MQTT broker to integrate the inverter into typical home automations'
+LABEL org.opencontainers.image.description 'This proxy enables a reliable connection between TSUN third generation inverters (eg. TSOL MS600, MS800, MS2000) and an MQTT broker to integrate the inverter into typical home automations.'
 LABEL org.opencontainers.image.licenses="BSD-3-Clause"
 LABEL org.opencontainers.image.vendor="Stefan Allius"
