@@ -415,7 +415,7 @@ class SolarmanV5(Message):
 
     def msg_sync_end(self):
         data = self._recv_buffer[self.header_len:]
-        result = struct.unpack_from('<BLL', data, 0)
+        result = struct.unpack_from('<BLLL', data, 0)
         ftype = result[0]
         total = result[1]
         self.time_ofs = result[3]
