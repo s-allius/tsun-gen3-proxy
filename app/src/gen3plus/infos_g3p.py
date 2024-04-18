@@ -14,15 +14,15 @@ class RegisterMap:
     __slots__ = ()
     map = {
         # 0x41020007: {'reg': Register.DEVICE_SNR,           'fmt': '<L'},                 # noqa: E501
-        0x41020018: {'reg': Register.DATA_UP_INTERVAL,     'fmt': '!B', 'ratio':   60},  # noqa: E501
-        0x41020019: {'reg': Register.COLLECT_INTERVAL,     'fmt': '!B', 'ratio':    1},  # noqa: E501
-        0x4102001a: {'reg': Register.HEARTBEAT_INTERVAL,   'fmt': '!B', 'ratio':    1},  # noqa: E501
-        0x4102001c: {'reg': Register.SIGNAL_STRENGTH,      'fmt': '!B', 'ratio':    1},  # noqa: E501
+        0x41020018: {'reg': Register.DATA_UP_INTERVAL,     'fmt': '<B', 'ratio':   60},  # noqa: E501
+        0x41020019: {'reg': Register.COLLECT_INTERVAL,     'fmt': '<B', 'ratio':    1},  # noqa: E501
+        0x4102001a: {'reg': Register.HEARTBEAT_INTERVAL,   'fmt': '<B', 'ratio':    1},  # noqa: E501
+        0x4102001c: {'reg': Register.SIGNAL_STRENGTH,      'fmt': '<B', 'ratio':    1},  # noqa: E501
         0x4102001e: {'reg': Register.COLLECTOR_FW_VERSION, 'fmt': '!40s'},               # noqa: E501
         0x4102004c: {'reg': Register.IP_ADRESS,            'fmt': '!16s'},               # noqa: E501
         0x41020064: {'reg': Register.VERSION,              'fmt': '!40s'},               # noqa: E501
 
-        0x4201001c: {'reg': Register.POWER_ON_TIME,        'fmt': '!H', 'ratio':    1},  # noqa: E501
+        0x4201001c: {'reg': Register.POWER_ON_TIME,        'fmt': '<H', 'ratio':    1},  # noqa: E501
         0x42010020: {'reg': Register.SERIAL_NUMBER,        'fmt': '!16s'},               # noqa: E501
         0x420100d2: {'reg': Register.GRID_VOLTAGE,         'fmt': '!H', 'ratio':  0.1},  # noqa: E501
         0x420100d4: {'reg': Register.GRID_CURRENT,         'fmt': '!H', 'ratio': 0.01},  # noqa: E501
@@ -55,6 +55,8 @@ class RegisterMap:
         0x42010112: {'reg': Register.PV4_TOTAL_GENERATION, 'fmt': '!L', 'ratio': 0.01},  # noqa: E501
         0x42010126: {'reg': Register.MAX_DESIGNED_POWER,   'fmt': '!H', 'ratio':    1},  # noqa: E501
         0x42010170: {'reg': Register.NO_INPUTS,            'fmt': '!B'},                 # noqa: E501
+
+        0x4281001c: {'reg': Register.POWER_ON_TIME,        'fmt': '<H', 'ratio':    1},  # noqa: E501
 
     }
 
