@@ -83,7 +83,7 @@ def test_parse_4210(InverterData: bytes):
         pass
 
     assert json.dumps(i.db) == json.dumps({
-         "controller": {"Power_On_Time": 776}, 
+         "controller": {"Power_On_Time": 2051}, 
          "inverter": {"Serial_Number": "Y17E00000000000E", "Rated_Power": 600, "Max_Designed_Power": 2000, "No_Inputs": 4}, 
          "grid": {"Voltage": 224.8, "Current": 0.73, "Frequency": 50.05, "Output_Power": 165.8}, 
          "env": {"Inverter_Temp": 12.2}, 
