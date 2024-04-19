@@ -305,14 +305,11 @@ class SolarmanV5(Message):
 
     def __process_data(self, ftype):
         inv_update = False
-        ctrl_update = False
         msg_type = self.control >> 8
         for key, update in self.db.parse(self._recv_buffer, msg_type, ftype):
             if update:
                 if key == 'inverter':
                     inv_update = True
-                if key == 'controller':
-                    ctrl_update = True
                 self.new_data[key] = True
 
         if inv_update:
@@ -330,13 +327,6 @@ class SolarmanV5(Message):
             if Model:
                 logger.info(f'Model: {Model}')
                 self.db.set_db_def_value(Register.EQUIPMENT_MODEL, Model)
-
-        if ctrl_update:
-            db = self.db
-            Version = db.get_db_value(Register.COLLECTOR_FW_VERSION, 0)
-            if isinstance(Version, str):
-                Model = Version.split('_')[0]
-                self.db.set_db_def_value(Register.CHIP_MODEL, Model)
 
     '''
     Message handler methods
