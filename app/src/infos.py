@@ -31,6 +31,7 @@ class Register(Enum):
     OUTPUT_POWER = 83
     RATED_POWER = 84
     INVERTER_TEMP = 85
+    INVERTER_STATUS = 86
     PV1_VOLTAGE = 100
     PV1_CURRENT = 101
     PV1_POWER = 102
@@ -174,6 +175,7 @@ class Infos:
     }
 
     __comm_type_val_tpl = "{%set com_types = ['n/a','Wi-Fi', 'G4', 'G5', 'GPRS'] %}{{com_types[value_json['Communication_Type']|int(0)]|default(value_json['Communication_Type'])}}"    # noqa: E501
+    __status_type_val_tpl = "{%set inv_status = ['n/a', 'Online', 'Offline'] %}{{inv_status[value_json['Inverter_Status']|int(0)]|default(value_json['Inverter_Status'])}}"    # noqa: E501
 
     __info_defs = {
         # collector values used for device registration:
@@ -244,6 +246,7 @@ class Infos:
         Register.OUTPUT_POWER:    {'name': ['grid', 'Output_Power'],               'level': logging.INFO,  'unit': 'W',    'ha': {'dev': 'inverter', 'dev_cla': 'power',       'stat_cla': 'measurement', 'id': 'out_power_', 'fmt': '| float', 'name': 'Power'}},  # noqa: E501
         Register.INVERTER_TEMP:   {'name': ['env',  'Inverter_Temp'],              'level': logging.DEBUG, 'unit': '°C',   'ha': {'dev': 'inverter', 'dev_cla': 'temperature', 'stat_cla': 'measurement', 'id': 'temp_',       'fmt': '| int', 'name': 'Temperature'}},  # noqa: E501
         Register.VALUE_1:         {'name': ['env',  'Value_1'],                    'level': logging.INFO,  'unit': '',     'ha': {'dev': 'inverter', 'dev_cla': None,          'stat_cla': 'measurement', 'id': 'value_1_',   'fmt': '| int', 'name': 'Value 1',  'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.INVERTER_STATUS: {'name': ['env',  'Inverter_Status'],            'level': logging.INFO,  'unit': '',     'ha': {'dev': 'inverter', 'comp': 'sensor', 'dev_cla': None, 'stat_cla': None, 'id': 'inv_status_', 'name': 'Inverter Status', 'val_tpl': __status_type_val_tpl,          'icon': 'mdi:counter'}},  # noqa: E501
 
         # input measures:
         Register.PV1_VOLTAGE:  {'name': ['input', 'pv1', 'Voltage'],               'level': logging.DEBUG, 'unit': 'V',    'ha': {'dev': 'input_pv1', 'dev_cla': 'voltage', 'stat_cla': 'measurement', 'id': 'volt_pv1_',  'val_tpl': "{{ (value_json['pv1']['Voltage'] | float)}}", 'icon': 'mdi:gauge', 'ent_cat': 'diagnostic'}},  # noqa: E501
