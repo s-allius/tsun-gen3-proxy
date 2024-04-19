@@ -7,10 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- GEN3PLUS: fix temperature values
+- GEN3PLUS: read corect firmware and logger version
+- GEN3PLUS: add inverter status
+- GEN3PLUS: fix encoding of `power on time` value
+- GEN3PLUS: fix glitches in inverter data after connection establishment
+  see: [#53](https://github.com/s-allius/tsun-gen3-proxy/issues/53)
+- improve docker container labels
+- GEN3PLUS: add timestamp of inverter data into log
+- config linter for *.md files 
 - switch to aiomqtt version 2.0.1
 - refactor unittest and increase testcoverage
-- add experimental handler for `ÀT` commands
-- implement self-sufficient island support for GEN3PLUS inverters
+- GEN3PLUS: add experimental handler for `ÀT` commands
+- GEN3PLUS: implement self-sufficient island support
   see: [#42](https://github.com/s-allius/tsun-gen3-proxy/issues/42)
 - Improve error messages on config errors
   see: [#46](https://github.com/s-allius/tsun-gen3-proxy/issues/46)
