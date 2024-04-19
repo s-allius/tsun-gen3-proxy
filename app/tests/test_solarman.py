@@ -938,8 +938,8 @@ def test_build_logger_modell(ConfigTsunAllowAll, DeviceIndMsg):
     assert 'IGEN TECH' == m.db.get_db_value(Register.CHIP_TYPE, None)
     assert None == m.db.get_db_value(Register.CHIP_MODEL, None)
     m.read()         # read complete msg, and dispatch msg
-    assert 'LSW5BLE_17_02B0_1.05' == m.db.get_db_value(Register.COLLECTOR_FW_VERSION, 0).rstrip('\00')
-    assert 'LSW5BLE' == m.db.get_db_value(Register.CHIP_MODEL, 0)
+    assert 'LSW5BLE_17_02B0_1.05' == m.db.get_db_value(Register.CHIP_MODEL, 0)
+    assert 'V1.1.00.0B' == m.db.get_db_value(Register.COLLECTOR_FW_VERSION, 0).rstrip('\00')
     m.close()
 
 def test_AT_cmd(ConfigTsunAllowAll, DeviceIndMsg, DeviceRspMsg, AtCommandIndMsg):
