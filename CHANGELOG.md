@@ -7,11 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- GEN3PLUS: fix temperature values
+- GEN3PLUS: read corect firmware and logger version
+- GEN3PLUS: add inverter status
+- GEN3PLUS: fix encoding of `power on time` value
+- GEN3PLUS: fix glitches in inverter data after connection establishment
+  see: [#53](https://github.com/s-allius/tsun-gen3-proxy/issues/53)
+- improve docker container labels
+- GEN3PLUS: add timestamp of inverter data into log
+- config linter for *.md files
+- switch to aiomqtt version 2.0.1
+- refactor unittest and increase testcoverage
+- GEN3PLUS: add experimental handler for `ÀT` commands
+- GEN3PLUS: implement self-sufficient island support
+  see: [#42](https://github.com/s-allius/tsun-gen3-proxy/issues/42)
+- Improve error messages on config errors
+  see: [#46](https://github.com/s-allius/tsun-gen3-proxy/issues/46)
 - Prepare support of inverters with 6 MTPPs
 - Clear `Daily Generation` values at midnigth
+  see: [#32](https://github.com/s-allius/tsun-gen3-proxy/issues/32)
 - Read pv module details from config file and use it for the Home Assistant registration
   see: [#43](https://github.com/s-allius/tsun-gen3-proxy/issues/43)
-- migrate to aiomqtt version 2.0.0  
+- migrate to aiomqtt version 2.0.0
+  see: [#44](https://github.com/s-allius/tsun-gen3-proxy/issues/44)
 
 ## [0.6.0] - 2024-04-02
 

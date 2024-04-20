@@ -20,7 +20,7 @@ IMAGE=tsun-gen3-proxy
 
 if [[ $1 == dev ]] || [[ $1 == rc ]] ;then
 IMAGE=docker.io/sallius/${IMAGE}
-VERSION=${VERSION}-$1-${BRANCH}
+VERSION=${VERSION}
 elif [[ $1 == rel ]];then
 IMAGE=ghcr.io/s-allius/${IMAGE}
 else
@@ -31,11 +31,11 @@ fi
 
 echo version: $VERSION  build-date: $BUILD_DATE   image: $IMAGE
 if [[ $1 == dev ]];then
-docker build --build-arg "VERSION=${VERSION}" --build-arg environment=dev --build-arg "LOG_LVL=DEBUG" --label "org.label-schema.build-date=${BUILD_DATE}" --label "org.opencontainers.image.version=${VERSION}" -t ${IMAGE}:latest app
+docker build --build-arg "VERSION=${VERSION}" --build-arg environment=dev --build-arg "LOG_LVL=DEBUG" --label "org.opencontainers.image.created=${BUILD_DATE}" --label "org.opencontainers.image.version=${VERSION}" --label "org.opencontainers.image.revision=${BRANCH}" -t ${IMAGE}:latest app
 elif [[ $1 == rc ]];then
-docker build --build-arg "VERSION=${VERSION}" --build-arg environment=production --label "org.label-schema.build-date=${BUILD_DATE}" --label "org.opencontainers.image.version=${VERSION}" -t ${IMAGE}:latest app
+docker build --build-arg "VERSION=${VERSION}" --build-arg environment=production --label "org.opencontainers.image.created=${BUILD_DATE}" --label "org.opencontainers.image.version=${VERSION}" --label "org.opencontainers.image.revision=${BRANCH}" -t ${IMAGE}:latest app
 elif [[ $1 == rel ]];then
-docker build --no-cache --build-arg "VERSION=${VERSION}" --build-arg environment=production --label "org.label-schema.build-date=${BUILD_DATE}" --label "org.opencontainers.image.version=${VERSION}" -t ${IMAGE}:latest -t ${IMAGE}:${MAJOR} -t ${IMAGE}:${VERSION} app
+docker build --no-cache --build-arg "VERSION=${VERSION}" --build-arg environment=production --label "org.opencontainers.image.created=${BUILD_DATE}" --label "org.opencontainers.image.version=${VERSION}" --label "org.opencontainers.image.revision=${BRANCH}" -t ${IMAGE}:latest -t ${IMAGE}:${MAJOR} -t ${IMAGE}:${VERSION} app
 echo 'login to ghcr.io'    
 echo $GHCR_TOKEN | docker login ghcr.io -u s-allius --password-stdin
 docker push ghcr.io/s-allius/tsun-gen3-proxy:latest

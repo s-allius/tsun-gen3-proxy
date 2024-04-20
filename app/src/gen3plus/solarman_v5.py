@@ -55,6 +55,7 @@ class SolarmanV5(Message):
         self.seq = Sequence(server_side)
         self.snr = 0
         self.db = InfosG3P()
+        self.time_ofs = 0
         self.switch = {
 
             0x4210: self.msg_data_ind,   # real time data
@@ -186,12 +187,12 @@ class SolarmanV5(Message):
             type += 'S'
         return switch.get(type, '???')
 
-    def _timestamp(self):   # pragma: no cover
+    def _timestamp(self):
         # utc as epoche
-        return int(time.time())
+        return int(time.time())    # pragma: no cover
 
     def _heartbeat(self) -> int:
-        return 60
+        return 60                  # pragma: no cover
 
     def __parse_header(self, buf: bytes, buf_len: int) -> None:
 
@@ -304,14 +305,11 @@ class SolarmanV5(Message):
 
     def __process_data(self, ftype):
         inv_update = False
-        ctrl_update = False
         msg_type = self.control >> 8
         for key, update in self.db.parse(self._recv_buffer, msg_type, ftype):
             if update:
                 if key == 'inverter':
                     inv_update = True
-                if key == 'controller':
-                    ctrl_update = True
                 self.new_data[key] = True
 
         if inv_update:
@@ -330,13 +328,6 @@ class SolarmanV5(Message):
                 logger.info(f'Model: {Model}')
                 self.db.set_db_def_value(Register.EQUIPMENT_MODEL, Model)
 
-        if ctrl_update:
-            db = self.db
-            Version = db.get_db_value(Register.COLLECTOR_FW_VERSION, 0)
-            if isinstance(Version, str):
-                Model = Version.split('_')[0]
-                self.db.set_db_def_value(Register.CHIP_MODEL, Model)
-
     '''
     Message handler methods
     '''
@@ -352,10 +343,11 @@ class SolarmanV5(Message):
         total = result[1]
         tim = result[2]
         res = result[3]  # always zero
-        logger.info(f'frame type:{ftype:02x} total:{total}s'
+        logger.info(f'frame type:{ftype:02x}'
                     f' timer:{tim:08x}s  null:{res}')
-        dt = datetime.fromtimestamp(total)
-        logger.info(f'ts: {dt.strftime("%Y-%m-%d %H:%M:%S")}')
+        if self.time_ofs:
+            dt = datetime.fromtimestamp(total + self.time_ofs)
+            logger.info(f'ts: {dt.strftime("%Y-%m-%d %H:%M:%S")}')
 
         self.__process_data(ftype)
         self.__forward_msg()
@@ -363,27 +355,33 @@ class SolarmanV5(Message):
 
     def msg_data_ind(self):
         data = self._recv_buffer
-        result = struct.unpack_from('<BLLLLL', data, self.header_len)
+        result = struct.unpack_from('<BHLLLHL', data, self.header_len)
         ftype = result[0]  # 1 or 0x81
-        total = result[1]
-        tim = result[2]
-        offset = result[3]
-        unkn = result[4]
-        cnt = result[5]
-        logger.info(f'ftype:{ftype:02x} total:{total}s'
-                    f' timer:{tim:08x}s  ofs:{offset}'
-                    f' ??: {unkn:08x} cnt:{cnt}')
-        dt = datetime.fromtimestamp(total)
-        logger.info(f'ts: {dt.strftime("%Y-%m-%d %H:%M:%S")}')
+        total = result[2]
+        tim = result[3]
+        if 1 == ftype:
+            self.time_ofs = result[4]
+        unkn = result[5]
+        cnt = result[6]
+        logger.info(f'ftype:{ftype:02x} timer:{tim:08x}s'
+                    f' ??: {unkn:04x} cnt:{cnt}')
+        if self.time_ofs:
+            dt = datetime.fromtimestamp(total + self.time_ofs)
+            logger.info(f'ts: {dt.strftime("%Y-%m-%d %H:%M:%S")}')
 
-        self.__process_data(ftype & 0x7f)  # mask bit 7  (0x80)
+        self.__process_data(ftype)
         self.__forward_msg()
         self.__send_ack_rsp(0x1210, ftype)
 
     def msg_sync_start(self):
         data = self._recv_buffer[self.header_len:]
-        result = struct.unpack_from('<B', data, 0)
+        result = struct.unpack_from('<BLLL', data, 0)
         ftype = result[0]
+        total = result[1]
+        self.time_ofs = result[3]
+
+        dt = datetime.fromtimestamp(total + self.time_ofs)
+        logger.info(f'ts: {dt.strftime("%Y-%m-%d %H:%M:%S")}')
 
         self.__forward_msg()
         self.__send_ack_rsp(0x1310, ftype)
@@ -407,8 +405,13 @@ class SolarmanV5(Message):
 
     def msg_sync_end(self):
         data = self._recv_buffer[self.header_len:]
-        result = struct.unpack_from('<B', data, 0)
+        result = struct.unpack_from('<BLLL', data, 0)
         ftype = result[0]
+        total = result[1]
+        self.time_ofs = result[3]
+
+        dt = datetime.fromtimestamp(total + self.time_ofs)
+        logger.info(f'ts: {dt.strftime("%Y-%m-%d %H:%M:%S")}')
 
         self.__forward_msg()
         self.__send_ack_rsp(0x1810, ftype)
