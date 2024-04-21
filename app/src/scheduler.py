@@ -13,7 +13,7 @@ class Schedule:
     @classmethod
     def start(cls) -> None:
         '''Start the scheduler and schedule the tasks (cron jobs)'''
-        logging.info("Scheduler init")
+        logging.debug("Scheduler init")
         cls.mqtt = Mqtt(None)
 
         crontab('0 0 * * *', func=cls.atmidnight, start=True)
