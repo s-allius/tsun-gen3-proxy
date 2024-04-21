@@ -4,7 +4,7 @@
 # rc: release candidate build
 # rel: release build and push to ghcr.io
 # Note: for release build, you need to set GHCR_TOKEN
-# export GHCR_TOKEN=<YOUR_GITHUB_TOKEN>
+# export GHCR_TOKEN=<YOUR_GITHUB_TOKEN> in your .profile
 # see also: https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry
 
 
@@ -20,7 +20,7 @@ IMAGE=tsun-gen3-proxy
 
 if [[ $1 == dev ]] || [[ $1 == rc ]] ;then
 IMAGE=docker.io/sallius/${IMAGE}
-VERSION=${VERSION}
+VERSION=${VERSION}-$1
 elif [[ $1 == rel ]];then
 IMAGE=ghcr.io/s-allius/${IMAGE}
 else
