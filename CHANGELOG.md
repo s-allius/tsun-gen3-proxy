@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.0] - 2024-04-20
+
 - GEN3PLUS: fix temperature values
 - GEN3PLUS: read corect firmware and logger version
 - GEN3PLUS: add inverter status
