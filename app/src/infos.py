@@ -145,7 +145,7 @@ class Infos:
 
     @classmethod
     def static_init(cls):
-        logging.info('Initialize proxy statistics')
+        logging.debug('Initialize proxy statistics')
         # init proxy counter in the class.stat dictionary
         cls.stat['proxy'] = {}
         for key in cls.__info_defs:
@@ -245,7 +245,6 @@ class Infos:
         Register.GRID_FREQUENCY:  {'name': ['grid', 'Frequency'],                  'level': logging.DEBUG, 'unit': 'Hz',   'ha': {'dev': 'inverter', 'dev_cla': 'frequency',   'stat_cla': 'measurement', 'id': 'out_freq_',  'fmt': '| float', 'name': 'Grid Frequency', 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.OUTPUT_POWER:    {'name': ['grid', 'Output_Power'],               'level': logging.INFO,  'unit': 'W',    'ha': {'dev': 'inverter', 'dev_cla': 'power',       'stat_cla': 'measurement', 'id': 'out_power_', 'fmt': '| float', 'name': 'Power'}},  # noqa: E501
         Register.INVERTER_TEMP:   {'name': ['env',  'Inverter_Temp'],              'level': logging.DEBUG, 'unit': '°C',   'ha': {'dev': 'inverter', 'dev_cla': 'temperature', 'stat_cla': 'measurement', 'id': 'temp_',       'fmt': '| int', 'name': 'Temperature'}},  # noqa: E501
-        Register.VALUE_1:         {'name': ['env',  'Value_1'],                    'level': logging.INFO,  'unit': '',     'ha': {'dev': 'inverter', 'dev_cla': None,          'stat_cla': 'measurement', 'id': 'value_1_',   'fmt': '| int', 'name': 'Value 1',  'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.INVERTER_STATUS: {'name': ['env',  'Inverter_Status'],            'level': logging.INFO,  'unit': '',     'ha': {'dev': 'inverter', 'comp': 'sensor', 'dev_cla': None, 'stat_cla': None, 'id': 'inv_status_', 'name': 'Inverter Status', 'val_tpl': __status_type_val_tpl,          'icon': 'mdi:counter'}},  # noqa: E501
 
         # input measures:
@@ -285,7 +284,7 @@ class Infos:
 
         # controller:
         Register.SIGNAL_STRENGTH:    {'name': ['controller', 'Signal_Strength'],    'level': logging.DEBUG, 'unit': '%',    'ha': {'dev': 'controller', 'dev_cla': None,       'stat_cla': 'measurement', 'id': 'signal_',              'fmt': '| int',           'name': 'Signal Strength', 'icon': 'mdi:wifi'}},  # noqa: E501
-        Register.POWER_ON_TIME:      {'name': ['controller', 'Power_On_Time'],      'level': logging.DEBUG, 'unit': 's',    'ha': {'dev': 'controller', 'dev_cla': 'duration', 'stat_cla': 'measurement', 'id': 'power_on_time_',       'fmt': '| float',         'name': 'Power on Time', 'nat_prc': '3', 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.POWER_ON_TIME:      {'name': ['controller', 'Power_On_Time'],      'level': logging.DEBUG, 'unit': 's',    'ha': {'dev': 'controller', 'dev_cla': 'duration', 'stat_cla': 'measurement', 'id': 'power_on_time_',       'fmt': '| int',           'name': 'Power on Time', 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.COLLECT_INTERVAL:   {'name': ['controller', 'Collect_Interval'],   'level': logging.DEBUG, 'unit': 's',    'ha': {'dev': 'controller', 'dev_cla': None,       'stat_cla': None,          'id': 'data_collect_intval_', 'fmt': '| string + " s"', 'name': 'Data Collect Interval', 'icon': 'mdi:update', 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.CONNECT_COUNT:      {'name': ['controller', 'Connect_Count'],      'level': logging.DEBUG, 'unit': '',     'ha': {'dev': 'controller', 'dev_cla': None,       'stat_cla': None,          'id': 'connect_count_',       'fmt': '| int',           'name': 'Connect Count',    'icon': 'mdi:counter', 'comp': 'sensor', 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.COMMUNICATION_TYPE: {'name': ['controller', 'Communication_Type'], 'level': logging.DEBUG, 'unit': '',     'ha': {'dev': 'controller', 'dev_cla': None,       'stat_cla': None,          'id': 'comm_type_',           'name': 'Communication Type', 'val_tpl': __comm_type_val_tpl, 'comp': 'sensor', 'icon': 'mdi:wifi'}},  # noqa: E501
