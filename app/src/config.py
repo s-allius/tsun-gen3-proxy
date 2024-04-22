@@ -105,15 +105,24 @@ class Config():
                     '  and customize it for your scenario.\n')
                 usr_config = def_config
 
-            config['tsun'] = def_config['tsun'] | usr_config['tsun']
-            config['solarman'] = def_config['solarman'] | \
-                usr_config['solarman']
-            config['mqtt'] = def_config['mqtt'] | usr_config['mqtt']
-            config['ha'] = def_config['ha'] | usr_config['ha']
-            config['inverters'] = def_config['inverters'] | \
-                usr_config['inverters']
+            # merge the default and the user config
+            config = def_config
+            if 'tsun' in usr_config:
+                config['tsun'] |= usr_config['tsun']
+            if 'solarman' in usr_config:
+                config['solarman'] |= usr_config['solarman']
+            if 'mqtt' in usr_config:
+                config['mqtt'] |= usr_config['mqtt']
+            if 'ha' in usr_config:
+                config['ha'] |= usr_config['ha']
+            if 'inverters' in usr_config:
+                config['inverters'] |= usr_config['inverters']
 
-            cls.config = cls.conf_schema.validate(config)
+            try:
+                cls.config = cls.conf_schema.validate(config)
+            except Exception as error:
+                logging.error(f'config/config.toml: {error}')
+
             cls.def_config = cls.conf_schema.validate(def_config)
             # logging.debug(f'Readed config: "{cls.config}" ')
 
