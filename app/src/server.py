@@ -77,7 +77,7 @@ if __name__ == "__main__":
     # logging.getLogger('mqtt').setLevel(log_level)
 
     # read config file
-    Config.read()
+    Config.class_init()
 
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)

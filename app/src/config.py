@@ -76,50 +76,73 @@ class Config():
         )
 
     @classmethod
-    def read(cls) -> None:
+    def class_init(cls):  # pragma: no cover
+        try:
+            # make the default config transparaent by copying it
+            # in the config.example file
+            logging.debug('Copy Defaul Config to config.example.toml')
+
+            shutil.copy2("default_config.toml",
+                         "config/config.example.toml")
+        except Exception:
+            pass
+        cls.read()
+
+    @classmethod
+    def _read_config_file(cls) -> dict:  # pragma: no cover
+        usr_config = {}
+
+        try:
+            with open("config/config.toml", "rb") as f:
+                usr_config = tomllib.load(f)
+        except Exception as error:
+            err = f'Config.read: {error}'
+            logging.error(err)
+            logging.info(
+                '\n  To create the missing config.toml file, '
+                'you can rename the template config.example.toml\n'
+                '  and customize it for your scenario.\n')
+        return usr_config
+
+    @classmethod
+    def read(cls, path='') -> None | str:
         '''Read config file, merge it with the default config
         and sanitize the result'''
-
+        err = None
         config = {}
         logger = logging.getLogger('data')
 
         try:
-            # make the default config transparaent by copying it
-            # in the config.example file
-            shutil.copy2("default_config.toml", "config/config.example.toml")
-
             # read example config file as default configuration
-            with open("default_config.toml", "rb") as f:
+            cls.def_config = {}
+            with open(f"{path}default_config.toml", "rb") as f:
                 def_config = tomllib.load(f)
+                cls.def_config = cls.conf_schema.validate(def_config)
 
             # overwrite the default values, with values from
             # the config.toml file
+            usr_config = cls._read_config_file()
+
+            # merge the default and the user config
+            config = def_config.copy()
+            for key in ['tsun', 'solarman', 'mqtt', 'ha', 'inverters']:
+                if key in usr_config:
+                    config[key] |= usr_config[key]
+
             try:
-                with open("config/config.toml", "rb") as f:
-                    usr_config = tomllib.load(f)
+                cls.config = cls.conf_schema.validate(config)
             except Exception as error:
-                logging.error(f'Config.read: {error}')
-                logging.info(
-                    '\n  To create the missing config.toml file, '
-                    'you can rename the template config.example.toml\n'
-                    '  and customize it for your scenario.\n')
-                usr_config = def_config
+                err = f'Config.read: {error}'
+                logging.error(err)
 
-            config['tsun'] = def_config['tsun'] | usr_config['tsun']
-            config['solarman'] = def_config['solarman'] | \
-                usr_config['solarman']
-            config['mqtt'] = def_config['mqtt'] | usr_config['mqtt']
-            config['ha'] = def_config['ha'] | usr_config['ha']
-            config['inverters'] = def_config['inverters'] | \
-                usr_config['inverters']
-
-            cls.config = cls.conf_schema.validate(config)
-            cls.def_config = cls.conf_schema.validate(def_config)
             # logging.debug(f'Readed config: "{cls.config}" ')
 
         except Exception as error:
-            logger.error(f'Config.read: {error}')
+            err = f'Config.read: {error}'
+            logger.error(err)
             cls.config = {}
+
+        return err
 
     @classmethod
     def get(cls, member: str = None):
