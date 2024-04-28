@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- convert data collect interval to minutes
+- add postfix for rc and dev versions to the version number
+- change logging level to DEBUG for some logs
+- remove experimental value Register.VALUE_1
+- format Register.POWER_ON_TIME as integer
+- ignore non realtime values for now
+
 ## [0.7.0] - 2024-04-20
 
 - GEN3PLUS: fix temperature values
