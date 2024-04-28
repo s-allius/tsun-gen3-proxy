@@ -70,7 +70,7 @@ def test_parse_4110(DeviceData: bytes):
         pass
 
     assert json.dumps(i.db) == json.dumps({
-        'controller': {"Data_Up_Interval": 300, "Collect_Interval": 60, "Heartbeat_Interval": 120, "Signal_Strength": 100, "IP_Adress": "192.168.80.49"},
+        'controller': {"Data_Up_Interval": 300, "Collect_Interval": 1, "Heartbeat_Interval": 120, "Signal_Strength": 100, "IP_Adress": "192.168.80.49"},
         'collector': {"Chip_Model": "LSW5BLE_17_02B0_1.05", "Collector_Fw_Version": "V1.1.00.0B"},
         })
 

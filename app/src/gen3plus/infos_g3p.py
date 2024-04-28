@@ -15,7 +15,7 @@ class RegisterMap:
     map = {
         # 0x41020007: {'reg': Register.DEVICE_SNR,           'fmt': '<L'},                 # noqa: E501
         0x41020018: {'reg': Register.DATA_UP_INTERVAL,     'fmt': '<B', 'ratio':   60},  # noqa: E501
-        0x41020019: {'reg': Register.COLLECT_INTERVAL,     'fmt': '<B', 'ratio':    1},  # noqa: E501
+        0x41020019: {'reg': Register.COLLECT_INTERVAL,     'fmt': '<B', 'eval': 'round(result/60)'},  # noqa: E501
         0x4102001a: {'reg': Register.HEARTBEAT_INTERVAL,   'fmt': '<B', 'ratio':    1},  # noqa: E501
         0x4102001c: {'reg': Register.SIGNAL_STRENGTH,      'fmt': '<B', 'ratio':    1},  # noqa: E501
         0x4102001e: {'reg': Register.CHIP_MODEL,           'fmt': '!40s'},               # noqa: E501
