@@ -40,6 +40,7 @@ class Talent(Message):
         self.id_str = id_str
         self.contact_name = b''
         self.contact_mail = b''
+        self.ts_offset = 0
         self.db = InfosG3()
         self.switch = {
             0x00: self.msg_contact_info,
@@ -156,6 +157,24 @@ class Talent(Message):
             ts = (datetime.now() - datetime(1970, 1, 1)).total_seconds()
         return round(ts*1000)
 
+    def _update_header(self, _forward_buffer):
+        '''update header for message before forwarding,
+        add time offset to timestamp'''
+        _len = len(_forward_buffer)
+        result = struct.unpack_from('!lB', _forward_buffer, 0)
+        id_len = result[1]    # len of variable id string
+        if _len < 2*id_len + 21:
+            return
+
+        result = struct.unpack_from('!B', _forward_buffer, id_len+6)
+        msg_code = result[0]
+        if msg_code == 0x71 or msg_code == 0x04:
+            result = struct.unpack_from('!q', _forward_buffer, 13+2*id_len)
+            ts = result[0] + self.ts_offset
+            logger.debug(f'offset: {self.ts_offset:08x}'
+                         f'  proxy-time: {ts:08x}')
+            struct.pack_into('!q', _forward_buffer, 13+2*id_len, ts)
+
     # check if there is a complete header in the buffer, parse it
     # and set
     #   self.header_len
@@ -256,38 +275,35 @@ class Talent(Message):
 
     def msg_get_time(self):
         tsun = Config.get('tsun')
-        if tsun['enabled']:
-            if self.ctrl.is_ind():
+        if self.ctrl.is_ind():
+            if self.data_len == 0:
+                ts = self._timestamp()
+                logger.debug(f'time: {ts:08x}')
+                self.__build_header(0x91)
+                self._send_buffer += struct.pack('!q', ts)
+                self.__finish_send_msg()
+            if tsun['enabled']:
+                if self.data_len == 0:
+                    self.forward(self._recv_buffer, self.header_len +
+                                 self.data_len)
                 if self.data_len >= 8:
                     ts = self._timestamp()
                     result = struct.unpack_from('!q', self._recv_buffer,
                                                 self.header_len)
+                    self.ts_offset = result[0]-ts
                     logger.debug(f'tsun-time: {result[0]:08x}'
-                                 f'  proxy-time: {ts:08x}')
-            else:
-                logger.warning('Unknown Ctrl')
-                self.inc_counter('Unknown_Ctrl')
-            self.forward(self._recv_buffer, self.header_len+self.data_len)
+                                 f'  proxy-time: {ts:08x}',
+                                 f'  offset: {self.ts_offset}')
         else:
-            if self.ctrl.is_ind():
-                if self.data_len == 0:
-                    ts = self._timestamp()
-                    logger.debug(f'time: {ts:08x}')
-
-                    self.__build_header(0x91)
-                    self._send_buffer += struct.pack('!q', ts)
-                    self.__finish_send_msg()
-
-            else:
-                logger.warning('Unknown Ctrl')
-                self.inc_counter('Unknown_Ctrl')
+            logger.warning('Unknown Ctrl')
+            self.inc_counter('Unknown_Ctrl')
 
     def parse_msg_header(self):
         result = struct.unpack_from('!lB', self._recv_buffer, self.header_len)
 
         data_id = result[0]    # len of complete message
         id_len = result[1]     # len of variable id string
-        logger.debug(f'Data_ID: {data_id}   id_len:  {id_len}')
+        logger.debug(f'Data_ID: 0x{data_id:08x}   id_len:  {id_len}')
 
         msg_hdr_len = 5+id_len+9
 
