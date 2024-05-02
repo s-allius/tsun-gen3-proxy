@@ -1,20 +1,13 @@
 import asyncio
 import logging
 import aiomqtt
+import traceback
+from modbus import Modbus
+from messages import Message
 from config import Config
+from singleton import Singleton
 
 logger_mqtt = logging.getLogger('mqtt')
-
-
-class Singleton(type):
-    _instances = {}
-
-    def __call__(cls, *args, **kwargs):
-        logger_mqtt.debug('singleton: __call__')
-        if cls not in cls._instances:
-            cls._instances[cls] = super(Singleton,
-                                        cls).__call__(*args, **kwargs)
-        return cls._instances[cls]
 
 
 class Mqtt(metaclass=Singleton):
@@ -65,6 +58,9 @@ class Mqtt(metaclass=Singleton):
                                        password=mqtt['passwd'])
 
         interval = 5  # Seconds
+        ha_status_topic = f"{ha['auto_conf_prefix']}/status"
+        inv_cnf_topic = "tsun/+/test"
+
         while True:
             try:
                 async with self.__client:
@@ -74,16 +70,32 @@ class Mqtt(metaclass=Singleton):
                         await self.__cb_MqttIsUp()
 
                     # async with self.__client.messages() as messages:
-                    await self.__client.subscribe(
-                        f"{ha['auto_conf_prefix']}"
-                        "/status")
+                    await self.__client.subscribe(ha_status_topic)
+                    await self.__client.subscribe(inv_cnf_topic)
+
                     async for message in self.__client.messages:
-                        status = message.payload.decode("UTF-8")
-                        logger_mqtt.info('Home-Assistant Status:'
-                                         f' {status}')
-                        if status == 'online':
-                            self.ha_restarts += 1
-                            await self.__cb_MqttIsUp()
+                        if message.topic.matches(ha_status_topic):
+                            status = message.payload.decode("UTF-8")
+                            logger_mqtt.info('Home-Assistant Status:'
+                                             f' {status}')
+                            if status == 'online':
+                                self.ha_restarts += 1
+                                await self.__cb_MqttIsUp()
+
+                        if message.topic.matches(inv_cnf_topic):
+                            topic = str(message.topic)
+                            node_id = topic.split('/')[1] + '/'
+                            payload = message.payload.decode("UTF-8")
+                            logger_mqtt.info(f'InvCnf: {node_id}:{payload}')
+                            for m in Message:
+                                if m.server_side and m.node_id == node_id:
+                                    logger_mqtt.info(f'Found: {node_id}')
+                                    fnc = getattr(m, "send_modbus_cmd", None)
+                                    if callable(fnc):
+                                        # await fnc(Modbus.MB_WRITE_SINGLE_REG,
+                                        #           0x2008, 2)
+                                        await fnc(Modbus.MB_READ_SINGLE_REG,
+                                                  0x2008, 1)
 
             except aiomqtt.MqttError:
                 if Config.is_default('mqtt'):
@@ -101,3 +113,8 @@ class Mqtt(metaclass=Singleton):
                 logger_mqtt.debug("MQTT task cancelled")
                 self.__client = None
                 return
+            except Exception:
+                # self.inc_counter('SW_Exception')
+                logger_mqtt.error(
+                    f"Exception:\n"
+                    f"{traceback.format_exc()}")
