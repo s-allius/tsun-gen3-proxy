@@ -29,6 +29,11 @@ class ConnectionG3(AsyncStream, Talent):
     async def async_publ_mqtt(self) -> None:
         pass
 
+    async def flush_send_msg(self) -> None:
+        self.writer.write(self._send_buffer)
+        await self.writer.drain()
+        self._send_buffer = bytearray(0)
+
     '''
     Our private methods
     '''
