@@ -3,7 +3,6 @@ import logging
 import time
 from datetime import datetime
 
-
 if __name__ == "app.src.gen3.talent":
     from app.src.messages import hex_dump_memory, Message
     from app.src.modbus import Modbus
@@ -44,6 +43,7 @@ class Talent(Message):
         self.contact_name = b''
         self.contact_mail = b''
         self.db = InfosG3()
+        self.mb = Modbus()
         self.forward_modbus_rep = False
         self.switch = {
             0x00: self.msg_contact_info,
@@ -55,7 +55,6 @@ class Talent(Message):
             # 0x78:
             0x04: self.msg_inverter_data,
         }
-        self.mb = Modbus()
 
     '''
     Our puplic methods
@@ -126,14 +125,12 @@ class Talent(Message):
     async def send_modbus_cmd(self, func, addr, val) -> None:
         self.forward_modbus_rep = False
         self.__build_header(0x70, 0x77)
-        self._send_buffer += b'\x00\x01\xa3\x28'
+        self._send_buffer += b'\x00\x01\xa3\x28'  # fixme
         modbus_msg = self.mb.build_msg(1, func, addr, val)
         self._send_buffer += struct.pack('!B', len(modbus_msg))
         self._send_buffer += modbus_msg
-        _len = self.__finish_send_msg()
-        hex_dump_memory(logging.INFO, 'Send Modbus Command:',
-                        self._send_buffer[self.send_msg_ofs:], _len)
-        await self.flush_send_msg()
+        self.__finish_send_msg()
+        await self.async_write('Send Modbus Command:')
 
     def _init_new_client_conn(self) -> bool:
         contact_name = self.contact_name
@@ -220,10 +217,9 @@ class Talent(Message):
         logger.info(self.__flow_str(self.server_side, 'tx') +
                     f' Ctl: {int(ctrl):#02x} Msg: {fnc.__name__!r}')
 
-    def __finish_send_msg(self) -> int:
+    def __finish_send_msg(self) -> None:
         _len = len(self._send_buffer) - self.send_msg_ofs
         struct.pack_into('!l', self._send_buffer, self.send_msg_ofs, _len-4)
-        return _len
 
     def __dispatch_msg(self) -> None:
         fnc = self.switch.get(self.msg_id, self.msg_unknown)
@@ -375,11 +371,11 @@ class Talent(Message):
 
         msg_hdr_len = 5
 
-        result = struct.unpack_from('!lB', self._recv_buffer,
-                                    self.header_len + 4)
+        result = struct.unpack_from('!lBB', self._recv_buffer,
+                                    self.header_len)
         modbus_len = result[1]
         logger.debug(f'Ref: {result[0]}')
-        logger.debug(f'Modbus Len: {modbus_len}')
+        logger.debug(f'Modbus MsgLen: {modbus_len} Func:{result[2]}')
         # logger.info(f'time: {datetime.utcfromtimestamp(result[2]).strftime(
         # "%Y-%m-%d %H:%M:%S")}')
         return msg_hdr_len, modbus_len
