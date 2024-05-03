@@ -6,12 +6,14 @@ from datetime import datetime
 
 if __name__ == "app.src.gen3plus.solarman_v5":
     from app.src.messages import hex_dump_memory, Message
+    from app.src.modbus import Modbus
     from app.src.config import Config
     from app.src.gen3plus.infos_g3p import InfosG3P
     from app.src.infos import Register
 else:  # pragma: no cover
     from messages import hex_dump_memory, Message
     from config import Config
+    from modbus import Modbus
     from gen3plus.infos_g3p import InfosG3P
     from infos import Register
 # import traceback
@@ -56,6 +58,8 @@ class SolarmanV5(Message):
         self.snr = 0
         self.db = InfosG3P()
         self.time_ofs = 0
+        self.mb = Modbus()
+        self.forward_modbus_rep = False
         self.switch = {
 
             0x4210: self.msg_data_ind,   # real time data
@@ -292,6 +296,14 @@ class SolarmanV5(Message):
                                          self._timestamp(),
                                          self._heartbeat())
         self.__finish_send_msg()
+
+    async def send_modbus_cmd(self, func, addr, val) -> None:
+        self.forward_modbus_rep = False
+        self.__build_header(0x4510)
+        self._send_buffer += struct.pack('<BHLLL', 2, 0x2b0, 0, 0, 0)
+        self._send_buffer += self.mb.build_msg(1, func, addr, val)
+        self.__finish_send_msg()
+        await self.async_write('Send Modbus Command:')
 
     def send_at_cmd(self, AT_cmd: str) -> None:
         self.__build_header(0x4510)
