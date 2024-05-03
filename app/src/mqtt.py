@@ -59,7 +59,9 @@ class Mqtt(metaclass=Singleton):
 
         interval = 5  # Seconds
         ha_status_topic = f"{ha['auto_conf_prefix']}/status"
-        inv_cnf_topic = "tsun/+/test"
+        mb_rated_topic = "tsun/+/rated_load"  # fixme
+        mb_reads_topic = "tsun/+/modbus_read_regs"  # fixme
+        mb_inputs_topic = "tsun/+/modbus_read_inputs"  # fixme
 
         while True:
             try:
@@ -71,7 +73,9 @@ class Mqtt(metaclass=Singleton):
 
                     # async with self.__client.messages() as messages:
                     await self.__client.subscribe(ha_status_topic)
-                    await self.__client.subscribe(inv_cnf_topic)
+                    await self.__client.subscribe(mb_rated_topic)
+                    await self.__client.subscribe(mb_reads_topic)
+                    await self.__client.subscribe(mb_inputs_topic)
 
                     async for message in self.__client.messages:
                         if message.topic.matches(ha_status_topic):
@@ -82,20 +86,18 @@ class Mqtt(metaclass=Singleton):
                                 self.ha_restarts += 1
                                 await self.__cb_MqttIsUp()
 
-                        if message.topic.matches(inv_cnf_topic):
-                            topic = str(message.topic)
-                            node_id = topic.split('/')[1] + '/'
-                            payload = message.payload.decode("UTF-8")
-                            logger_mqtt.info(f'InvCnf: {node_id}:{payload}')
-                            for m in Message:
-                                if m.server_side and m.node_id == node_id:
-                                    logger_mqtt.info(f'Found: {node_id}')
-                                    fnc = getattr(m, "send_modbus_cmd", None)
-                                    if callable(fnc):
-                                        # await fnc(Modbus.MB_WRITE_SINGLE_REG,
-                                        #           0x2008, 2)
-                                        await fnc(Modbus.MB_READ_SINGLE_REG,
-                                                  0x2008, 1)
+                        if message.topic.matches(mb_rated_topic):
+                            await self.modbus_cmd(message,
+                                                  Modbus.WRITE_SINGLE_REG,
+                                                  1, 0x2008)
+
+                        if message.topic.matches(mb_reads_topic):
+                            await self.modbus_cmd(message,
+                                                  Modbus.READ_REGS, 2)
+
+                        if message.topic.matches(mb_inputs_topic):
+                            await self.modbus_cmd(message,
+                                                  Modbus.READ_INPUTS, 2)
 
             except aiomqtt.MqttError:
                 if Config.is_default('mqtt'):
@@ -114,7 +116,31 @@ class Mqtt(metaclass=Singleton):
                 self.__client = None
                 return
             except Exception:
-                # self.inc_counter('SW_Exception')
+                # self.inc_counter('SW_Exception') # fixme
                 logger_mqtt.error(
                     f"Exception:\n"
                     f"{traceback.format_exc()}")
+
+    async def modbus_cmd(self, message, func, params=0, addr=0, val=0):
+        topic = str(message.topic)
+        node_id = topic.split('/')[1] + '/'
+        # refactor into a loop over a table
+        payload = message.payload.decode("UTF-8")
+        logger_mqtt.info(f'InvCnf: {node_id}:{payload}')
+        for m in Message:
+            if m.server_side and m.node_id == node_id:
+                logger_mqtt.info(f'Found: {node_id}')
+                fnc = getattr(m, "send_modbus_cmd", None)
+                res = payload.split(',')
+                if params != len(res):
+                    logger_mqtt.error(f'Parameter expected: {params}, '
+                                      f'got: {len(res)}')
+                    return
+
+                if callable(fnc):
+                    if params == 1:
+                        val = int(payload)
+                    elif params == 2:
+                        addr = int(res[0], base=16)
+                        val = int(res[1])  # lenght
+                    await fnc(func, addr, val)
