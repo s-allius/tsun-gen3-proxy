@@ -21,8 +21,12 @@ CRC_INIT = 0xFFFF
 
 
 class Modbus(metaclass=Singleton):
-    MB_WRITE_SINGLE_REG = 6
-    MB_READ_SINGLE_REG = 3
+
+    READ_REGS = 3
+    READ_INPUTS = 4
+    WRITE_SINGLE_REG = 6
+    '''Modbus function codes'''
+
     __crc_tab = []
 
     def __init__(self):
