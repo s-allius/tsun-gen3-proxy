@@ -55,7 +55,7 @@ class MemoryStream(Talent):
         self.msg_count += 1
         return
     
-    async def flush_send_msg(self):
+    async def async_write(self, headline=''):
         pass
 
     
@@ -857,7 +857,7 @@ async def test_msg_build_modbus_req(ConfigTsunInv1, MsgModbusCmd):
     ConfigTsunInv1
     m = MemoryStream(b'', (0,), False)
     m.id_str = b"R170000000000001" 
-    await m.send_modbus_cmd(Modbus.MB_WRITE_SINGLE_REG, 0x2008, 0)
+    await m.send_modbus_cmd(Modbus.WRITE_SINGLE_REG, 0x2008, 0)
     assert 0==m.send_msg_ofs
     assert m._forward_buffer==b''
     assert m._send_buffer==MsgModbusCmd
