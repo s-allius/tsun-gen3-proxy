@@ -44,7 +44,7 @@ class Talent(Message):
         self.contact_mail = b''
         self.db = InfosG3()
         self.mb = Modbus()
-        self.forward_modbus_rep = False
+        self.forward_modbus_resp = False
         self.switch = {
             0x00: self.msg_contact_info,
             0x13: self.msg_ota_update,
@@ -123,14 +123,17 @@ class Talent(Message):
         return
 
     async def send_modbus_cmd(self, func, addr, val) -> None:
-        self.forward_modbus_rep = False
+        self.forward_modbus_resp = False
         self.__build_header(0x70, 0x77)
-        self._send_buffer += b'\x00\x01\xa3\x28'  # fixme
-        modbus_msg = self.mb.build_msg(1, func, addr, val)
+        self._send_buffer += b'\x00\x01\xa3\x28'   # fixme
+        modbus_msg = self.mb.build_msg(Modbus.INV_ADDR, func, addr, val)
         self._send_buffer += struct.pack('!B', len(modbus_msg))
         self._send_buffer += modbus_msg
         self.__finish_send_msg()
-        await self.async_write('Send Modbus Command:')
+        try:
+            await self.async_write('Send Modbus Command:')
+        except Exception:
+            self._send_buffer = bytearray(0)
 
     def _init_new_client_conn(self) -> bool:
         contact_name = self.contact_name
@@ -384,10 +387,16 @@ class Talent(Message):
         hdr_len, modbus_len = self.parse_modbus_header()
 
         if self.ctrl.is_req():
-            self.forward_modbus_rep = True
+            self.forward_modbus_resp = True
             self.inc_counter('Modbus_Command')
         elif self.ctrl.is_ind():
-            if not self.forward_modbus_rep:
+            logger.debug(f'Modbus Ind  MsgLen: {modbus_len}')
+            for key, update in self.mb.recv_resp(self.db, self._recv_buffer[
+                    self.header_len + hdr_len:]):
+                if update:
+                    self.new_data[key] = True
+
+            if not self.forward_modbus_resp:
                 return
         else:
             logger.warning('Unknown Ctrl')
