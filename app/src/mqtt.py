@@ -62,6 +62,7 @@ class Mqtt(metaclass=Singleton):
         mb_rated_topic = "tsun/+/rated_load"  # fixme
         mb_reads_topic = "tsun/+/modbus_read_regs"  # fixme
         mb_inputs_topic = "tsun/+/modbus_read_inputs"  # fixme
+        mb_at_cmd_topic = "tsun/+/at_cmd"  # fixme
 
         while True:
             try:
@@ -76,6 +77,7 @@ class Mqtt(metaclass=Singleton):
                     await self.__client.subscribe(mb_rated_topic)
                     await self.__client.subscribe(mb_reads_topic)
                     await self.__client.subscribe(mb_inputs_topic)
+                    await self.__client.subscribe(mb_at_cmd_topic)
 
                     async for message in self.__client.messages:
                         if message.topic.matches(ha_status_topic):
@@ -99,6 +101,9 @@ class Mqtt(metaclass=Singleton):
                             await self.modbus_cmd(message,
                                                   Modbus.READ_INPUTS, 2)
 
+                        if message.topic.matches(mb_at_cmd_topic):
+                            await self.at_cmd(message)
+
             except aiomqtt.MqttError:
                 if Config.is_default('mqtt'):
                     logger_mqtt.info(
@@ -116,10 +121,25 @@ class Mqtt(metaclass=Singleton):
                 self.__client = None
                 return
             except Exception:
-                # self.inc_counter('SW_Exception') # fixme
+                # self.inc_counter('SW_Exception')   # fixme
                 logger_mqtt.error(
                     f"Exception:\n"
                     f"{traceback.format_exc()}")
+
+    def each_inverter(self, message, func_name: str):
+        topic = str(message.topic)
+        node_id = topic.split('/')[1] + '/'
+        for m in Message:
+            if m.server_side and m.node_id == node_id:
+                logger_mqtt.debug(f'Found: {node_id}')
+                fnc = getattr(m, func_name, None)
+                if callable(fnc):
+                    yield fnc
+                else:
+                    logger_mqtt.warning(f'Cmd not supported by: {node_id}')
+
+        else:
+            logger_mqtt.warning(f'Node_id: {node_id} not found')
 
     async def modbus_cmd(self, message, func, params=0, addr=0, val=0):
         topic = str(message.topic)
@@ -144,3 +164,8 @@ class Mqtt(metaclass=Singleton):
                         addr = int(res[0], base=16)
                         val = int(res[1])  # lenght
                     await fnc(func, addr, val)
+
+    async def at_cmd(self, message):
+        payload = message.payload.decode("UTF-8")
+        for fnc in self.each_inverter(message, "send_at_cmd"):
+            await fnc(payload)
