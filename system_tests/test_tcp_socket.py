@@ -224,7 +224,7 @@ def test_send_inv_data(ClientConnection, MsgTimeStampReq, MsgTimeStampResp, MsgI
         data = s.recv(1024)
     except TimeoutError:
         pass
-   # time.sleep(32.5)
+    time.sleep(32.5)
   #  assert data == MsgTimeStampResp
     try:
         s.sendall(MsgInvData)

@@ -795,7 +795,7 @@ def test_msg_modbus_rsp1(ConfigTsunInv1, MsgModbusRsp):
     m = MemoryStream(MsgModbusRsp, (0,), False)
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
     m.db.stat['proxy']['Modbus_Command'] = 0
-    m.forward_modbus_rep = False
+    m.forward_modbus_resp = False
     m.read()         # read complete msg, and dispatch msg
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
     assert m.msg_count == 1
@@ -816,7 +816,7 @@ def test_msg_modbus_rsp2(ConfigTsunInv1, MsgModbusRsp):
     m = MemoryStream(MsgModbusRsp, (0,), False)
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
     m.db.stat['proxy']['Modbus_Command'] = 0
-    m.forward_modbus_rep = True
+    m.forward_modbus_resp = True
     m.read()         # read complete msg, and dispatch msg
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
     assert m.msg_count == 1
