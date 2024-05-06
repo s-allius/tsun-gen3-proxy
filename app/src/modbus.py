@@ -93,8 +93,8 @@ class Modbus():
         self.last_len = res[2]
         return True
 
-    def recv_resp(self, info_db, buf: bytearray) -> Generator[tuple[str, bool],
-                                                              None, None]:
+    def recv_resp(self, info_db, buf: bytearray, node_id: str) -> \
+            Generator[tuple[str, bool], None, None]:
         logging.info(f'recv_resp: first byte modbus:{buf[0]} len:{len(buf)}')
         if not self.check_crc(buf):
             logging.error('Modbus: CRC error')
@@ -136,8 +136,9 @@ class Modbus():
                     name = str(f'info-id.0x{addr:x}')
                     update = False
 
-                info_db.tracer.log(level, f'GEN3PLUS: {name} : {result}{unit}'
-                                          f'  update: {update}')
+                info_db.tracer.log(level,
+                                   f'MODBUS({node_id}): {name} : {result}'
+                                   f'{unit}  update: {update}')
 
     def check_crc(self, msg) -> bool:
         return 0 == self.__calc_crc(msg)

@@ -434,11 +434,12 @@ class SolarmanV5(Message):
         elif ftype == self.MB_RTU_CMD:
             valid = data[1]
             modbus_msg_len = self.data_len - 14
-            logger.info(f'modbus_len:{modbus_msg_len} accepted:{valid}')
+            logger.debug(f'modbus_len:{modbus_msg_len} accepted:{valid}')
             if valid == 1 and modbus_msg_len > 4:
                 logger.info(f'first byte modbus:{data[14]}')
                 inv_update = False
-                for key, update in self.mb.recv_resp(self.db, data[14:-2]):
+                for key, update in self.mb.recv_resp(self.db, data[14:-2],
+                                                     self.node_id):
                     if update:
                         if key == 'inverter':
                             inv_update = True

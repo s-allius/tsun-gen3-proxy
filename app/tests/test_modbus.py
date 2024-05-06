@@ -30,7 +30,7 @@ def test_build_recv():
     assert pdu == b'\x01\x03\x30\x0e\x00\x02\xaa\xc8'
     assert mb.check_crc(pdu)
     call = 0
-    for key, update in mb.recv_resp(mb.db, b'\x01\x03\x04\x01\x2c\x00\x46\xbb\xf4'):
+    for key, update in mb.recv_resp(mb.db, b'\x01\x03\x04\x01\x2c\x00\x46\xbb\xf4', 'test'):
         if key == 'grid':
             assert update == True
         elif key == 'inverter':
