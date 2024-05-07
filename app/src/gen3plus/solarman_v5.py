@@ -62,6 +62,7 @@ class SolarmanV5(Message):
         self.time_ofs = 0
         self.mb = Modbus()
         self.forward_modbus_resp = False
+        self.closed = False
         self.switch = {
 
             0x4210: self.msg_data_ind,   # real time data
@@ -102,6 +103,7 @@ class SolarmanV5(Message):
         # so we have to erase self.switch, otherwise this instance can't be
         # deallocated by the garbage collector ==> we get a memory leak
         self.switch.clear()
+        self.closed = True
 
     def __set_serial_no(self, snr: int):
         serial_no = str(snr)
@@ -434,9 +436,9 @@ class SolarmanV5(Message):
         elif ftype == self.MB_RTU_CMD:
             valid = data[1]
             modbus_msg_len = self.data_len - 14
-            logger.debug(f'modbus_len:{modbus_msg_len} accepted:{valid}')
+            # logger.debug(f'modbus_len:{modbus_msg_len} accepted:{valid}')
             if valid == 1 and modbus_msg_len > 4:
-                logger.info(f'first byte modbus:{data[14]}')
+                # logger.info(f'first byte modbus:{data[14]}')
                 inv_update = False
                 for key, update in self.mb.recv_resp(self.db, data[14:-2],
                                                      self.node_id):

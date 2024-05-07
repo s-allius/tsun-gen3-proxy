@@ -130,7 +130,7 @@ class Mqtt(metaclass=Singleton):
         topic = str(message.topic)
         node_id = topic.split('/')[1] + '/'
         for m in Message:
-            if m.server_side and m.node_id == node_id:
+            if m.server_side and not m.closed and (m.node_id == node_id):
                 logger_mqtt.debug(f'Found: {node_id}')
                 fnc = getattr(m, func_name, None)
                 if callable(fnc):
@@ -148,7 +148,7 @@ class Mqtt(metaclass=Singleton):
         payload = message.payload.decode("UTF-8")
         logger_mqtt.info(f'InvCnf: {node_id}:{payload}')
         for m in Message:
-            if m.server_side and m.node_id == node_id:
+            if m.server_side and not m.closed and (m.node_id == node_id):
                 logger_mqtt.info(f'Found: {node_id}')
                 fnc = getattr(m, "send_modbus_cmd", None)
                 res = payload.split(',')

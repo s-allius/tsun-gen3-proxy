@@ -45,6 +45,7 @@ class Talent(Message):
         self.db = InfosG3()
         self.mb = Modbus()
         self.forward_modbus_resp = False
+        self.closed = False
         self.switch = {
             0x00: self.msg_contact_info,
             0x13: self.msg_ota_update,
@@ -66,6 +67,7 @@ class Talent(Message):
         # so we have to erase self.switch, otherwise this instance can't be
         # deallocated by the garbage collector ==> we get a memory leak
         self.switch.clear()
+        self.closed = True
 
     def __set_serial_no(self, serial_no: str):
 
