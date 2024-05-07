@@ -395,7 +395,7 @@ class Talent(Message):
             self.modbus_elms = 0
             for key, update in self.mb.recv_resp(self.db, self._recv_buffer[
                     self.header_len + hdr_len:self.header_len+self.data_len],
-                    self.new_data):
+                    self.node_id):
                 if update:
                     self.new_data[key] = True
                 self.modbus_elms += 1
