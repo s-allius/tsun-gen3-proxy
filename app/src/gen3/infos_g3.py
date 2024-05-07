@@ -161,7 +161,7 @@ class InfosG3(Infos):
                 update = False
                 name = str(f'info-id.0x{addr:x}')
 
-            self.tracer.log(level, f'GEN3: {name} : {result}{unit}'
-                            f'  update: {update}')
+            if update:
+                self.tracer.log(level, f'GEN3: {name} : {result}{unit}')
 
             i += 1

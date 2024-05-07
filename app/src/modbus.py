@@ -146,10 +146,10 @@ class Modbus():
                 else:
                     name = str(f'info-id.0x{addr:x}')
                     update = False
-
-                info_db.tracer.log(level,
-                                   f'MODBUS({node_id}): {name} : {result}'
-                                   f'{unit}  update: {update}')
+                if update:
+                    info_db.tracer.log(level,
+                                       f'MODBUS[{node_id}]: {name} : {result}'
+                                       f'{unit}')
 
     def check_crc(self, msg) -> bool:
         return 0 == self.__calc_crc(msg)

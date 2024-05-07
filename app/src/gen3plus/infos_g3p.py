@@ -122,5 +122,5 @@ class InfosG3P(Infos):
                 name = str(f'info-id.0x{addr:x}')
                 update = False
 
-            self.tracer.log(level, f'GEN3PLUS: {name} : {result}{unit}'
-                            f'  update: {update}')
+            if update:
+                self.tracer.log(level, f'GEN3PLUS: {name} : {result}{unit}')

@@ -40,4 +40,4 @@ class Schedule:
             if m.server_side:
                 fnc = getattr(m, "send_modbus_cmd", None)
                 if callable(fnc):
-                    await fnc(Modbus.READ_REGS, 0x300e, 2)
+                    await fnc(Modbus.READ_REGS, 0x3008, 20)
