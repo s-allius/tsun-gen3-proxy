@@ -55,6 +55,7 @@ class Talent(Message):
             # 0x78:
             0x04: self.msg_inverter_data,
         }
+        self.modbus_elms = 0    # for unit tests
 
     '''
     Our puplic methods
@@ -377,10 +378,8 @@ class Talent(Message):
         result = struct.unpack_from('!lBB', self._recv_buffer,
                                     self.header_len)
         modbus_len = result[1]
-        logger.debug(f'Ref: {result[0]}')
-        logger.debug(f'Modbus MsgLen: {modbus_len} Func:{result[2]}')
-        # logger.info(f'time: {datetime.utcfromtimestamp(result[2]).strftime(
-        # "%Y-%m-%d %H:%M:%S")}')
+        # logger.debug(f'Ref: {result[0]}')
+        # logger.debug(f'Modbus MsgLen: {modbus_len} Func:{result[2]}')
         return msg_hdr_len, modbus_len
 
     def msg_modbus(self):
@@ -390,11 +389,14 @@ class Talent(Message):
             self.forward_modbus_resp = True
             self.inc_counter('Modbus_Command')
         elif self.ctrl.is_ind():
-            logger.debug(f'Modbus Ind  MsgLen: {modbus_len}')
+            # logger.debug(f'Modbus Ind  MsgLen: {modbus_len}')
+            self.modbus_elms = 0
             for key, update in self.mb.recv_resp(self.db, self._recv_buffer[
-                    self.header_len + hdr_len:], self.new_data):
+                    self.header_len + hdr_len:self.header_len+self.data_len],
+                    self.new_data):
                 if update:
                     self.new_data[key] = True
+                self.modbus_elms += 1
 
             if not self.forward_modbus_resp:
                 return
