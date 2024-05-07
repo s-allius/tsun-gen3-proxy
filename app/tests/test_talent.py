@@ -200,6 +200,15 @@ def MsgModbusInv():
     msg += b'\x00\x00\x03\xc8'
     return msg
 
+@pytest.fixture
+def MsgModbusResp20():
+    msg  = b'\x00\x00\x00\x45\x10R170000000000001'
+    msg += b'\x91\x77\x17\x18\x19\x1a\x2d\x01\x03\x28\x51'
+    msg += b'\x09\x08\xd3\x00\x29\x13\x87\x00\x3e\x00\x00\x01\x2c\x03\xb4\x00'
+    msg += b'\x08\x00\x00\x00\x00\x01\x59\x01\x21\x03\xe6\x00\x00\x00\x00\x00'
+    msg += b'\x00\x00\x00\x00\x00\x00\x00\xdb\x6b'
+    return msg
+
 def test_read_message(MsgContactInfo):
     m = MemoryStream(MsgContactInfo, (0,))
     m.read()         # read complete msg, and dispatch msg
@@ -849,6 +858,33 @@ def test_msg_modbus_invalid(ConfigTsunInv1, MsgModbusInv):
     assert m._forward_buffer==MsgModbusInv
     assert m._send_buffer==b''
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 1
+    assert m.db.stat['proxy']['Modbus_Command'] == 0
+    m.close()
+
+def test_msg_modbus_fragment(ConfigTsunInv1, MsgModbusResp20):
+    ConfigTsunInv1
+    # receive more bytes than expected (7 bytes from the next msg)
+    m = MemoryStream(MsgModbusResp20+b'\x00\x00\x00\x45\x10\x52\x31', (0,))
+    m.db.stat['proxy']['Unknown_Ctrl'] = 0
+    m.db.stat['proxy']['Modbus_Command'] = 0
+    m.forward_modbus_resp = True
+    m.mb.last_fcode = 3
+    m.mb.last_len = 20
+    m.mb.last_reg = 0x3008
+    m.read()         # read complete msg, and dispatch msg
+    assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
+    assert m.msg_count == 1
+    assert m.id_str == b"R170000000000001" 
+    assert m.unique_id == 'R170000000000001'
+    assert int(m.ctrl)==0x91
+    assert m.msg_id==119
+    assert m.header_len==23
+    assert m.data_len==50
+    assert m._forward_buffer==MsgModbusResp20
+    assert m._send_buffer==b''
+    assert m.mb.err == 0
+    assert m.modbus_elms == 20-1  # register 0x300d is unknown, so one value can't be mapped
+    assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
     assert m.db.stat['proxy']['Modbus_Command'] == 0
     m.close()
 
