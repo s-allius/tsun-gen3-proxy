@@ -61,7 +61,7 @@ class AsyncStream():
                 await self.__async_read()
 
                 if self.unique_id:
-                    await self.__async_write()
+                    await self.async_write()
                     await self.__async_forward()
                     await self.async_publ_mqtt()
 
@@ -100,9 +100,9 @@ class AsyncStream():
         else:
             raise RuntimeError("Peer closed.")
 
-    async def __async_write(self) -> None:
+    async def async_write(self, headline='Transmit to ') -> None:
         if self._send_buffer:
-            hex_dump_memory(logging.INFO, f'Transmit to {self.addr}:',
+            hex_dump_memory(logging.INFO, f'{headline}{self.addr}:',
                             self._send_buffer, len(self._send_buffer))
             self.writer.write(self._send_buffer)
             await self.writer.drain()
@@ -114,7 +114,7 @@ class AsyncStream():
                 await self.async_create_remote()
                 if self.remoteStream:
                     if self.remoteStream._init_new_client_conn():
-                        await self.remoteStream.__async_write()
+                        await self.remoteStream.async_write()
 
             if self.remoteStream:
                 self.remoteStream._update_header(self._forward_buffer)

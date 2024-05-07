@@ -39,12 +39,15 @@ If you use a Pi-hole, you can also store the host entry in the Pi-hole.
 
 ## Features
 
-- supports TSUN GEN3 PLUS inverters: TSOL-MS2000, MS1800 and MS1600
-- supports TSUN GEN3 inverters: TSOL-MS800, MS700, MS600, MS400, MS350 and MS300
+- Supports TSUN GEN3 PLUS inverters: TSOL-MS2000, MS1800 and MS1600
+- Supports TSUN GEN3 inverters: TSOL-MS800, MS700, MS600, MS400, MS350 and MS300
 - `MQTT` support
 - `Home-Assistant` auto-discovery support
+- `MODBUS` support via MQTT topics
+- `AT Command` support via MQTT topics (GEN3PLUS only)
+- Faster DataUp interval sends measurement data to the MQTT broker every minute
 - Self-sufficient island operation without internet
-- runs in a non-root Docker Container
+- Runs in a non-root Docker Container
 
 ## Home Assistant Screenshots
 

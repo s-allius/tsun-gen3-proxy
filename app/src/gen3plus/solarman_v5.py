@@ -6,12 +6,14 @@ from datetime import datetime
 
 if __name__ == "app.src.gen3plus.solarman_v5":
     from app.src.messages import hex_dump_memory, Message
+    from app.src.modbus import Modbus
     from app.src.config import Config
     from app.src.gen3plus.infos_g3p import InfosG3P
     from app.src.infos import Register
 else:  # pragma: no cover
     from messages import hex_dump_memory, Message
     from config import Config
+    from modbus import Modbus
     from gen3plus.infos_g3p import InfosG3P
     from infos import Register
 # import traceback
@@ -46,6 +48,8 @@ class Sequence():
 
 
 class SolarmanV5(Message):
+    AT_CMD = 1
+    MB_RTU_CMD = 2
 
     def __init__(self, server_side: bool):
         super().__init__(server_side)
@@ -56,6 +60,9 @@ class SolarmanV5(Message):
         self.snr = 0
         self.db = InfosG3P()
         self.time_ofs = 0
+        self.mb = Modbus()
+        self.forward_modbus_resp = False
+        self.closed = False
         self.switch = {
 
             0x4210: self.msg_data_ind,   # real time data
@@ -84,7 +91,7 @@ class SolarmanV5(Message):
             #
             # MODbus or AT cmd
             0x4510: self.msg_command_req,  # from server
-            0x1510: self.msg_response,     # from inverter
+            0x1510: self.msg_command_rsp,     # from inverter
         }
 
     '''
@@ -96,6 +103,7 @@ class SolarmanV5(Message):
         # so we have to erase self.switch, otherwise this instance can't be
         # deallocated by the garbage collector ==> we get a memory leak
         self.switch.clear()
+        self.closed = True
 
     def __set_serial_no(self, snr: int):
         serial_no = str(snr)
@@ -293,15 +301,48 @@ class SolarmanV5(Message):
                                          self._heartbeat())
         self.__finish_send_msg()
 
-    def send_at_cmd(self, AT_cmd: str) -> None:
+    async def send_modbus_cmd(self, func, addr, val) -> None:
+        self.forward_modbus_resp = False
         self.__build_header(0x4510)
-        self._send_buffer += struct.pack(f'<BHLLL{len(AT_cmd)}sc', 1, 2,
-                                         0, 0, 0, AT_cmd.encode('utf-8'),
+        self._send_buffer += struct.pack('<BHLLL', self.MB_RTU_CMD,
+                                         0x2b0, 0, 0, 0)
+        self._send_buffer += self.mb.build_msg(Modbus.INV_ADDR,
+                                               func, addr, val)
+        self.__finish_send_msg()
+        try:
+            await self.async_write('Send Modbus Command:')
+        except Exception:
+            self._send_buffer = bytearray(0)
+
+    async def send_at_cmd(self, AT_cmd: str) -> None:
+        self.__build_header(0x4510)
+        self._send_buffer += struct.pack(f'<BHLLL{len(AT_cmd)}sc', self.AT_CMD,
+                                         2, 0, 0, 0, AT_cmd.encode('utf-8'),
                                          b'\r')
         self.__finish_send_msg()
+        try:
+            await self.async_write('Send AT Command:')
+        except Exception:
+            self._send_buffer = bytearray(0)
 
     def __forward_msg(self):
         self.forward(self._recv_buffer, self.header_len+self.data_len+2)
+
+    def __build_model_name(self):
+        db = self.db
+        MaxPow = db.get_db_value(Register.MAX_DESIGNED_POWER, 0)
+        Rated = db.get_db_value(Register.RATED_POWER, 0)
+        Model = None
+        if MaxPow == 2000:
+            if Rated == 800 or Rated == 600:
+                Model = f'TSOL-MS{MaxPow}({Rated})'
+            else:
+                Model = f'TSOL-MS{MaxPow}'
+        elif MaxPow == 1800 or MaxPow == 1600:
+            Model = f'TSOL-MS{MaxPow}'
+        if Model:
+            logger.info(f'Model: {Model}')
+            self.db.set_db_def_value(Register.EQUIPMENT_MODEL, Model)
 
     def __process_data(self, ftype):
         inv_update = False
@@ -313,21 +354,7 @@ class SolarmanV5(Message):
                 self.new_data[key] = True
 
         if inv_update:
-            db = self.db
-            MaxPow = db.get_db_value(Register.MAX_DESIGNED_POWER, 0)
-            Rated = db.get_db_value(Register.RATED_POWER, 0)
-            Model = None
-            if MaxPow == 2000:
-                if Rated == 800 or Rated == 600:
-                    Model = f'TSOL-MS{MaxPow}({Rated})'
-                else:
-                    Model = f'TSOL-MS{MaxPow}'
-            elif MaxPow == 1800 or MaxPow == 1600:
-                Model = f'TSOL-MS{MaxPow}'
-            if Model:
-                logger.info(f'Model: {Model}')
-                self.db.set_db_def_value(Register.EQUIPMENT_MODEL, Model)
-
+            self.__build_model_name()
     '''
     Message handler methods
     '''
@@ -390,10 +417,42 @@ class SolarmanV5(Message):
         data = self._recv_buffer[self.header_len:]
         result = struct.unpack_from('<B', data, 0)
         ftype = result[0]
+        if ftype == self.AT_CMD:
+            self.inc_counter('AT_Command')
+        elif ftype == self.MB_RTU_CMD:
+            if not self.mb.recv_req(data[15:-2]):
+                return
+            self.forward_modbus_resp = True
+            self.inc_counter('Modbus_Command')
 
-        self.inc_counter('AT_Command')
         self.__forward_msg()
         self.__send_ack_rsp(0x1510, ftype)
+
+    def msg_command_rsp(self):
+        data = self._recv_buffer[self.header_len:]
+        ftype = data[0]
+        if ftype == self.AT_CMD:
+            pass
+        elif ftype == self.MB_RTU_CMD:
+            valid = data[1]
+            modbus_msg_len = self.data_len - 14
+            # logger.debug(f'modbus_len:{modbus_msg_len} accepted:{valid}')
+            if valid == 1 and modbus_msg_len > 4:
+                # logger.info(f'first byte modbus:{data[14]}')
+                inv_update = False
+                for key, update in self.mb.recv_resp(self.db, data[14:-2],
+                                                     self.node_id):
+                    if update:
+                        if key == 'inverter':
+                            inv_update = True
+                        self.new_data[key] = True
+
+                if inv_update:
+                    self.__build_model_name()
+
+                if not self.forward_modbus_resp:
+                    return
+        self.__forward_msg()
 
     def msg_hbeat_ind(self):
         data = self._recv_buffer[self.header_len:]
@@ -423,8 +482,9 @@ class SolarmanV5(Message):
         valid = result[1] == 1  # status
         ts = result[2]
         set_hb = result[3]  # always 60 or 120
-        logger.info(f'ftype:{ftype} accepted:{valid}'
-                    f' ts:{ts:08x}  nextHeartbeat: {set_hb}s')
+        logger.debug(f'ftype:{ftype} accepted:{valid}'
+                     f' ts:{ts:08x}  nextHeartbeat: {set_hb}s')
 
         dt = datetime.fromtimestamp(ts)
-        logger.info(f'ts: {dt.strftime("%Y-%m-%d %H:%M:%S")}')
+        logger.debug(f'ts: {dt.strftime("%Y-%m-%d %H:%M:%S")}')
+        self.__forward_msg()

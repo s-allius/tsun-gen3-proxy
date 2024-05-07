@@ -28,6 +28,7 @@ class Register(Enum):
     SW_EXCEPTION = 57
     INVALID_MSG_FMT = 58
     AT_COMMAND = 59
+    MODBUS_COMMAND = 60
     OUTPUT_POWER = 83
     RATED_POWER = 84
     INVERTER_TEMP = 85
@@ -86,7 +87,7 @@ class Register(Enum):
     DATA_UP_INTERVAL = 404
     CONNECT_COUNT = 405
     HEARTBEAT_INTERVAL = 406
-    IP_ADRESS = 407
+    IP_ADDRESS = 407
     EVENT_401 = 500
     EVENT_402 = 501
     EVENT_403 = 502
@@ -192,7 +193,7 @@ class Infos:
         Register.SERIAL_NUMBER:   {'name': ['inverter', 'Serial_Number'],          'level': logging.DEBUG, 'unit': ''},  # noqa: E501
         Register.EQUIPMENT_MODEL: {'name': ['inverter', 'Equipment_Model'],        'level': logging.DEBUG, 'unit': ''},  # noqa: E501
         Register.NO_INPUTS:       {'name': ['inverter', 'No_Inputs'],              'level': logging.DEBUG, 'unit': ''},  # noqa: E501
-        Register.MAX_DESIGNED_POWER: {'name': ['inverter',  'Max_Designed_Power'], 'level': logging.DEBUG, 'unit': 'W',    'ha': {'dev': 'inverter', 'dev_cla': None,          'stat_cla': None,          'id': 'designed_power_', 'fmt': '| string + " W"', 'name': 'Max Designed Power', 'icon': 'mdi:lightning-bolt', 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.MAX_DESIGNED_POWER: {'name': ['inverter',  'Max_Designed_Power'], 'level': logging.INFO, 'unit': 'W',    'ha': {'dev': 'inverter', 'dev_cla': None,          'stat_cla': None,          'id': 'designed_power_', 'fmt': '| string + " W"', 'name': 'Max Designed Power', 'icon': 'mdi:lightning-bolt', 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.RATED_POWER:     {'name': ['inverter',  'Rated_Power'],           'level': logging.DEBUG, 'unit': 'W',    'ha': {'dev': 'inverter', 'dev_cla': None,          'stat_cla': None,          'id': 'rated_power_', 'fmt': '| string + " W"', 'name': 'Rated Power', 'icon': 'mdi:lightning-bolt', 'ent_cat': 'diagnostic'}},  # noqa: E501
 
         Register.PV1_MANUFACTURER: {'name': ['inverter', 'PV1_Manufacturer'],      'level': logging.DEBUG, 'unit': ''},  # noqa: E501
@@ -219,6 +220,7 @@ class Infos:
         Register.SW_EXCEPTION:      {'name': ['proxy', 'SW_Exception'],       'singleton': True,   'ha': {'dev': 'proxy', 'comp': 'sensor', 'dev_cla': None, 'stat_cla': None, 'id': 'sw_exception_',  'fmt': '| int', 'name': 'Internal SW Exception', 'icon': 'mdi:counter', 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.INVALID_MSG_FMT:   {'name': ['proxy', 'Invalid_Msg_Format'], 'singleton': True,   'ha': {'dev': 'proxy', 'comp': 'sensor', 'dev_cla': None, 'stat_cla': None, 'id': 'inv_msg_fmt_',   'fmt': '| int', 'name': 'Invalid Message Format', 'icon': 'mdi:counter', 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.AT_COMMAND:        {'name': ['proxy', 'AT_Command'],         'singleton': True,   'ha': {'dev': 'proxy', 'comp': 'sensor', 'dev_cla': None, 'stat_cla': None, 'id': 'at_cmd_',        'fmt': '| int', 'name': 'AT Command',           'icon': 'mdi:counter', 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.MODBUS_COMMAND:    {'name': ['proxy', 'Modbus_Command'],     'singleton': True,   'ha': {'dev': 'proxy', 'comp': 'sensor', 'dev_cla': None, 'stat_cla': None, 'id': 'modbus_cmd_',    'fmt': '| int', 'name': 'Modbus Command',       'icon': 'mdi:counter', 'ent_cat': 'diagnostic'}},  # noqa: E501
         # 0xffffff03:  {'name':['proxy', 'Voltage'],                        'level': logging.DEBUG, 'unit': 'V',    'ha':{'dev':'proxy', 'dev_cla': 'voltage',     'stat_cla': 'measurement', 'id':'proxy_volt_',  'fmt':'| float','name': 'Grid Voltage'}},  # noqa: E501
 
         # events
@@ -290,7 +292,7 @@ class Infos:
         Register.COMMUNICATION_TYPE: {'name': ['controller', 'Communication_Type'], 'level': logging.DEBUG, 'unit': '',     'ha': {'dev': 'controller', 'dev_cla': None,       'stat_cla': None,          'id': 'comm_type_',           'name': 'Communication Type', 'val_tpl': __comm_type_val_tpl, 'comp': 'sensor', 'icon': 'mdi:wifi'}},  # noqa: E501
         Register.DATA_UP_INTERVAL:   {'name': ['controller', 'Data_Up_Interval'],   'level': logging.DEBUG, 'unit': 's',    'ha': {'dev': 'controller', 'dev_cla': None,       'stat_cla': None,          'id': 'data_up_intval_', 'fmt': '| string + " s"', 'name': 'Data Up Interval', 'icon': 'mdi:update', 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.HEARTBEAT_INTERVAL: {'name': ['controller', 'Heartbeat_Interval'], 'level': logging.DEBUG, 'unit': 's',    'ha': {'dev': 'controller', 'dev_cla': None,       'stat_cla': None,          'id': 'heartbeat_intval_',    'fmt': '| string + " s"', 'name': 'Heartbeat Interval', 'icon': 'mdi:update', 'ent_cat': 'diagnostic'}},  # noqa: E501
-        Register.IP_ADRESS:          {'name': ['controller', 'IP_Adress'],          'level': logging.DEBUG, 'unit': '',     'ha': {'dev': 'controller', 'dev_cla': None,       'stat_cla': None,          'id': 'ip_adress_',           'fmt': '| string',        'name': 'IP Adress', 'icon': 'mdi:wifi', 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.IP_ADDRESS:         {'name': ['controller', 'IP_Address'],         'level': logging.DEBUG, 'unit': '',     'ha': {'dev': 'controller', 'dev_cla': None,       'stat_cla': None,          'id': 'ip_address_',           'fmt': '| string',        'name': 'IP Address', 'icon': 'mdi:wifi', 'ent_cat': 'diagnostic'}},  # noqa: E501
     }
 
     @property

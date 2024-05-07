@@ -1,20 +1,13 @@
 import asyncio
 import logging
 import aiomqtt
+import traceback
+from modbus import Modbus
+from messages import Message
 from config import Config
+from singleton import Singleton
 
 logger_mqtt = logging.getLogger('mqtt')
-
-
-class Singleton(type):
-    _instances = {}
-
-    def __call__(cls, *args, **kwargs):
-        logger_mqtt.debug('singleton: __call__')
-        if cls not in cls._instances:
-            cls._instances[cls] = super(Singleton,
-                                        cls).__call__(*args, **kwargs)
-        return cls._instances[cls]
 
 
 class Mqtt(metaclass=Singleton):
@@ -65,6 +58,12 @@ class Mqtt(metaclass=Singleton):
                                        password=mqtt['passwd'])
 
         interval = 5  # Seconds
+        ha_status_topic = f"{ha['auto_conf_prefix']}/status"
+        mb_rated_topic = "tsun/+/rated_load"  # fixme
+        mb_reads_topic = "tsun/+/modbus_read_regs"  # fixme
+        mb_inputs_topic = "tsun/+/modbus_read_inputs"  # fixme
+        mb_at_cmd_topic = "tsun/+/at_cmd"  # fixme
+
         while True:
             try:
                 async with self.__client:
@@ -74,16 +73,36 @@ class Mqtt(metaclass=Singleton):
                         await self.__cb_MqttIsUp()
 
                     # async with self.__client.messages() as messages:
-                    await self.__client.subscribe(
-                        f"{ha['auto_conf_prefix']}"
-                        "/status")
+                    await self.__client.subscribe(ha_status_topic)
+                    await self.__client.subscribe(mb_rated_topic)
+                    await self.__client.subscribe(mb_reads_topic)
+                    await self.__client.subscribe(mb_inputs_topic)
+                    await self.__client.subscribe(mb_at_cmd_topic)
+
                     async for message in self.__client.messages:
-                        status = message.payload.decode("UTF-8")
-                        logger_mqtt.info('Home-Assistant Status:'
-                                         f' {status}')
-                        if status == 'online':
-                            self.ha_restarts += 1
-                            await self.__cb_MqttIsUp()
+                        if message.topic.matches(ha_status_topic):
+                            status = message.payload.decode("UTF-8")
+                            logger_mqtt.info('Home-Assistant Status:'
+                                             f' {status}')
+                            if status == 'online':
+                                self.ha_restarts += 1
+                                await self.__cb_MqttIsUp()
+
+                        if message.topic.matches(mb_rated_topic):
+                            await self.modbus_cmd(message,
+                                                  Modbus.WRITE_SINGLE_REG,
+                                                  1, 0x2008)
+
+                        if message.topic.matches(mb_reads_topic):
+                            await self.modbus_cmd(message,
+                                                  Modbus.READ_REGS, 2)
+
+                        if message.topic.matches(mb_inputs_topic):
+                            await self.modbus_cmd(message,
+                                                  Modbus.READ_INPUTS, 2)
+
+                        if message.topic.matches(mb_at_cmd_topic):
+                            await self.at_cmd(message)
 
             except aiomqtt.MqttError:
                 if Config.is_default('mqtt'):
@@ -101,3 +120,52 @@ class Mqtt(metaclass=Singleton):
                 logger_mqtt.debug("MQTT task cancelled")
                 self.__client = None
                 return
+            except Exception:
+                # self.inc_counter('SW_Exception')   # fixme
+                logger_mqtt.error(
+                    f"Exception:\n"
+                    f"{traceback.format_exc()}")
+
+    def each_inverter(self, message, func_name: str):
+        topic = str(message.topic)
+        node_id = topic.split('/')[1] + '/'
+        for m in Message:
+            if m.server_side and not m.closed and (m.node_id == node_id):
+                logger_mqtt.debug(f'Found: {node_id}')
+                fnc = getattr(m, func_name, None)
+                if callable(fnc):
+                    yield fnc
+                else:
+                    logger_mqtt.warning(f'Cmd not supported by: {node_id}')
+
+        else:
+            logger_mqtt.warning(f'Node_id: {node_id} not found')
+
+    async def modbus_cmd(self, message, func, params=0, addr=0, val=0):
+        topic = str(message.topic)
+        node_id = topic.split('/')[1] + '/'
+        # refactor into a loop over a table
+        payload = message.payload.decode("UTF-8")
+        logger_mqtt.info(f'InvCnf: {node_id}:{payload}')
+        for m in Message:
+            if m.server_side and not m.closed and (m.node_id == node_id):
+                logger_mqtt.info(f'Found: {node_id}')
+                fnc = getattr(m, "send_modbus_cmd", None)
+                res = payload.split(',')
+                if params != len(res):
+                    logger_mqtt.error(f'Parameter expected: {params}, '
+                                      f'got: {len(res)}')
+                    return
+
+                if callable(fnc):
+                    if params == 1:
+                        val = int(payload)
+                    elif params == 2:
+                        addr = int(res[0], base=16)
+                        val = int(res[1])  # lenght
+                    await fnc(func, addr, val)
+
+    async def at_cmd(self, message):
+        payload = message.payload.decode("UTF-8")
+        for fnc in self.each_inverter(message, "send_at_cmd"):
+            await fnc(payload)

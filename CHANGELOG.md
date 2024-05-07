@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- add timeout monitoring for received packets
+- parse Modbus values and store them in the database
+- add cron task to request the output power every minute
+- GEN3PLUS: add MQTT topics to send AT commands to the inverter
+- add MQTT topics to send Modbus commands to the inverter
 - convert data collect interval to minutes
 - add postfix for rc and dev versions to the version number
 - change logging level to DEBUG for some logs
