@@ -54,15 +54,15 @@ class Modbus():
         0x301a: {'reg': Register.PV4_CURRENT,          'fmt': '!H', 'ratio': 0.01},  # noqa: E501
         0x301b: {'reg': Register.PV4_POWER,            'fmt': '!H', 'ratio':  0.1},  # noqa: E501
         0x301c: {'reg': Register.DAILY_GENERATION,     'fmt': '!H', 'ratio': 0.01},  # noqa: E501
-        # 0x301d: {'reg': Register.TOTAL_GENERATION,     'fmt': '!L', 'ratio': 0.01},  # noqa: E501
+        0x301d: {'reg': Register.TOTAL_GENERATION,     'fmt': '!L', 'ratio': 0.01},  # noqa: E501
         0x301f: {'reg': Register.PV1_DAILY_GENERATION, 'fmt': '!H', 'ratio': 0.01},  # noqa: E501
-        # 0x3020: {'reg': Register.PV1_TOTAL_GENERATION, 'fmt': '!L', 'ratio': 0.01},  # noqa: E501
+        0x3020: {'reg': Register.PV1_TOTAL_GENERATION, 'fmt': '!L', 'ratio': 0.01},  # noqa: E501
         0x3022: {'reg': Register.PV2_DAILY_GENERATION, 'fmt': '!H', 'ratio': 0.01},  # noqa: E501
-        # 0x3023: {'reg': Register.PV2_TOTAL_GENERATION, 'fmt': '!L', 'ratio': 0.01},  # noqa: E501
+        0x3023: {'reg': Register.PV2_TOTAL_GENERATION, 'fmt': '!L', 'ratio': 0.01},  # noqa: E501
         0x3025: {'reg': Register.PV3_DAILY_GENERATION, 'fmt': '!H', 'ratio': 0.01},  # noqa: E501
-        # 0x3026: {'reg': Register.PV3_TOTAL_GENERATION, 'fmt': '!L', 'ratio': 0.01},  # noqa: E501
+        0x3026: {'reg': Register.PV3_TOTAL_GENERATION, 'fmt': '!L', 'ratio': 0.01},  # noqa: E501
         0x3028: {'reg': Register.PV4_DAILY_GENERATION, 'fmt': '!H', 'ratio': 0.01},  # noqa: E501
-        # 0x3029: {'reg': Register.PV4_TOTAL_GENERATION, 'fmt': '!L', 'ratio': 0.01},  # noqa: E501
+        0x3029: {'reg': Register.PV4_TOTAL_GENERATION, 'fmt': '!L', 'ratio': 0.01},  # noqa: E501
     }
 
     def __init__(self):
@@ -122,16 +122,13 @@ class Modbus():
         self.err = 0
 
         for i in range(0, elmlen):
-            val = struct.unpack_from('>H', buf, 3+2*i)
             addr = self.last_reg+i
-            # logging.info(f'Modbus: 0x{addr:04x}: {val[0]}')
             if addr in self.map:
                 row = self.map[addr]
                 info_id = row['reg']
+                fmt = row['fmt']
+                val = struct.unpack_from(fmt, buf, 3+2*i)
                 result = val[0]
-                # fmt = row['fmt']
-                # res = struct.unpack_from(fmt, buf, addr)
-                # result = res[0]
 
                 if 'eval' in row:
                     result = eval(row['eval'])
@@ -142,14 +139,11 @@ class Modbus():
 
                 if keys:
                     name, update = info_db.update_db(keys, must_incr, result)
-                    yield keys[0], update
-                else:
-                    name = str(f'info-id.0x{addr:x}')
-                    update = False
-                if update:
-                    info_db.tracer.log(level,
-                                       f'MODBUS[{node_id}]: {name} : {result}'
-                                       f'{unit}')
+                    yield keys[0], update, result
+                    if update:
+                        info_db.tracer.log(level,
+                                           f'MODBUS[{node_id}]: {name}'
+                                           f' : {result}{unit}')
 
     def check_crc(self, msg) -> bool:
         return 0 == self.__calc_crc(msg)

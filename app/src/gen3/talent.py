@@ -393,7 +393,7 @@ class Talent(Message):
         elif self.ctrl.is_ind():
             # logger.debug(f'Modbus Ind  MsgLen: {modbus_len}')
             self.modbus_elms = 0
-            for key, update in self.mb.recv_resp(self.db, self._recv_buffer[
+            for key, update, _ in self.mb.recv_resp(self.db, self._recv_buffer[
                     self.header_len + hdr_len:self.header_len+self.data_len],
                     self.node_id):
                 if update:
