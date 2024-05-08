@@ -876,12 +876,12 @@ def test_msg_modbus_fragment(ConfigTsunInv1, MsgModbusResp20):
     assert m.msg_count == 1
     assert m.id_str == b"R170000000000001" 
     assert m.unique_id == 'R170000000000001'
-    assert int(m.ctrl)==0x91
-    assert m.msg_id==119
-    assert m.header_len==23
-    assert m.data_len==50
+    assert int(m.ctrl) == 0x91
+    assert m.msg_id == 119
+    assert m.header_len == 23
+    assert m.data_len == 50
     assert m._forward_buffer==MsgModbusResp20
-    assert m._send_buffer==b''
+    assert m._send_buffer == b''
     assert m.mb.err == 0
     assert m.modbus_elms == 20-1  # register 0x300d is unknown, so one value can't be mapped
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
@@ -894,7 +894,7 @@ async def test_msg_build_modbus_req(ConfigTsunInv1, MsgModbusCmd):
     m = MemoryStream(b'', (0,), False)
     m.id_str = b"R170000000000001" 
     await m.send_modbus_cmd(Modbus.WRITE_SINGLE_REG, 0x2008, 0)
-    assert 0==m.send_msg_ofs
-    assert m._forward_buffer==b''
-    assert m._send_buffer==MsgModbusCmd
+    assert 0 == m.send_msg_ofs
+    assert m._forward_buffer == b''
+    assert m._send_buffer == MsgModbusCmd
     m.close()

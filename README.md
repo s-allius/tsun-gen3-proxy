@@ -44,7 +44,7 @@ If you use a Pi-hole, you can also store the host entry in the Pi-hole.
 - `MQTT` support
 - `Home-Assistant` auto-discovery support
 - `MODBUS` support via MQTT topics
-- `AT Command` support via MQTT topics (GEN3PLUS only)
+- `AT-Command` support via MQTT topics (GEN3PLUS only)
 - Faster DataUp interval sends measurement data to the MQTT broker every minute
 - Self-sufficient island operation without internet
 - Runs in a non-root Docker Container
