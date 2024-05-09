@@ -80,7 +80,7 @@ class Config():
         try:
             # make the default config transparaent by copying it
             # in the config.example file
-            logging.debug('Copy Defaul Config to config.example.toml')
+            logging.debug('Copy Default Config to config.example.toml')
 
             shutil.copy2("default_config.toml",
                          "config/config.example.toml")
