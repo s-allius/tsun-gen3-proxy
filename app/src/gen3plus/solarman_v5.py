@@ -62,7 +62,6 @@ class SolarmanV5(Message):
         self.time_ofs = 0
         self.mb = Modbus()
         self.forward_modbus_resp = False
-        self.closed = False
         self.switch = {
 
             0x4210: self.msg_data_ind,   # real time data
@@ -103,7 +102,7 @@ class SolarmanV5(Message):
         # so we have to erase self.switch, otherwise this instance can't be
         # deallocated by the garbage collector ==> we get a memory leak
         self.switch.clear()
-        self.closed = True
+        self.state = self.STATE_CLOSED
 
     def __set_serial_no(self, snr: int):
         serial_no = str(snr)
@@ -302,7 +301,7 @@ class SolarmanV5(Message):
         self.__finish_send_msg()
 
     async def send_modbus_cmd(self, func, addr, val) -> None:
-        if self.closed:
+        if self.state != self.STATE_UP:
             return
         self.forward_modbus_resp = False
         self.__build_header(0x4510)
@@ -317,7 +316,7 @@ class SolarmanV5(Message):
             self._send_buffer = bytearray(0)
 
     async def send_at_cmd(self, AT_cmd: str) -> None:
-        if self.closed:
+        if self.state != self.STATE_UP:
             return
         self.__build_header(0x4510)
         self._send_buffer += struct.pack(f'<BHLLL{len(AT_cmd)}sc', self.AT_CMD,
@@ -404,6 +403,7 @@ class SolarmanV5(Message):
         self.__process_data(ftype)
         self.__forward_msg()
         self.__send_ack_rsp(0x1210, ftype)
+        self.state = self.STATE_UP
 
     def msg_sync_start(self):
         data = self._recv_buffer[self.header_len:]
@@ -466,6 +466,7 @@ class SolarmanV5(Message):
 
         self.__forward_msg()
         self.__send_ack_rsp(0x1710, ftype)
+        self.state = self.STATE_UP
 
     def msg_sync_end(self):
         data = self._recv_buffer[self.header_len:]
