@@ -30,6 +30,7 @@ class RegisterMap:
         0xffffff05: Register.UNKNOWN_CTRL,
         0xffffff06: Register.OTA_START_MSG,
         0xffffff07: Register.SW_EXCEPTION,
+        0xffffff08: Register.MAX_DESIGNED_POWER,
         0xfffffffe: Register.TEST_REG1,
         0xffffffff: Register.TEST_REG2,
         0x00000640: Register.OUTPUT_POWER,
@@ -104,7 +105,8 @@ class InfosG3(Infos):
             if res:
                 yield res
 
-    def parse(self, buf, ind=0) -> Generator[tuple[str, bool], None, None]:
+    def parse(self, buf, ind=0, node_id: str = '') -> \
+            Generator[tuple[str, bool], None, None]:
         '''parse a data sequence received from the inverter and
         stores the values in Infos.db
 
@@ -162,6 +164,7 @@ class InfosG3(Infos):
                 name = str(f'info-id.0x{addr:x}')
 
             if update:
-                self.tracer.log(level, f'GEN3: {name} : {result}{unit}')
+                self.tracer.log(level, f'[\'{node_id}\']GEN3: {name} :'
+                                       f' {result}{unit}')
 
             i += 1
