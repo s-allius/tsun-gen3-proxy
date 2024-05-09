@@ -302,6 +302,8 @@ class SolarmanV5(Message):
         self.__finish_send_msg()
 
     async def send_modbus_cmd(self, func, addr, val) -> None:
+        if self.closed:
+            return
         self.forward_modbus_resp = False
         self.__build_header(0x4510)
         self._send_buffer += struct.pack('<BHLLL', self.MB_RTU_CMD,
@@ -315,6 +317,8 @@ class SolarmanV5(Message):
             self._send_buffer = bytearray(0)
 
     async def send_at_cmd(self, AT_cmd: str) -> None:
+        if self.closed:
+            return
         self.__build_header(0x4510)
         self._send_buffer += struct.pack(f'<BHLLL{len(AT_cmd)}sc', self.AT_CMD,
                                          2, 0, 0, 0, AT_cmd.encode('utf-8'),
@@ -347,7 +351,8 @@ class SolarmanV5(Message):
     def __process_data(self, ftype):
         inv_update = False
         msg_type = self.control >> 8
-        for key, update in self.db.parse(self._recv_buffer, msg_type, ftype):
+        for key, update in self.db.parse(self._recv_buffer, msg_type, ftype,
+                                         self.node_id):
             if update:
                 if key == 'inverter':
                     inv_update = True

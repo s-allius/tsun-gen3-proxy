@@ -733,10 +733,16 @@ def test_msg_unknown(ConfigTsunInv1, MsgUnknown):
     m.close()
 
 def test_ctrl_byte():
+    c = Control(0x70)
+    assert not c.is_ind()
+    assert not c.is_resp()    
+    assert c.is_req()
     c = Control(0x91)
+    assert not c.is_req()
     assert c.is_ind()
     assert not c.is_resp()    
     c = Control(0x99)
+    assert not c.is_req()
     assert not c.is_ind()
     assert c.is_resp()    
 
@@ -891,8 +897,9 @@ def test_msg_modbus_fragment(ConfigTsunInv1, MsgModbusResp20):
 @pytest.mark.asyncio
 async def test_msg_build_modbus_req(ConfigTsunInv1, MsgModbusCmd):
     ConfigTsunInv1
-    m = MemoryStream(b'', (0,), False)
+    m = MemoryStream(b'', (0,), True)
     m.id_str = b"R170000000000001" 
+    m.state = m.STATE_UP
     await m.send_modbus_cmd(Modbus.WRITE_SINGLE_REG, 0x2008, 0)
     assert 0 == m.send_msg_ofs
     assert m._forward_buffer == b''

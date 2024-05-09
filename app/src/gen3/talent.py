@@ -35,6 +35,9 @@ class Control:
 
 
 class Talent(Message):
+    STATE_INIT = 0
+    STATE_UP = 2
+    STATE_CLOSED = 3
 
     def __init__(self, server_side: bool, id_str=b''):
         super().__init__(server_side)
@@ -45,7 +48,7 @@ class Talent(Message):
         self.db = InfosG3()
         self.mb = Modbus()
         self.forward_modbus_resp = False
-        self.closed = False
+        self.state = self.STATE_INIT
         self.switch = {
             0x00: self.msg_contact_info,
             0x13: self.msg_ota_update,
@@ -67,7 +70,7 @@ class Talent(Message):
         # so we have to erase self.switch, otherwise this instance can't be
         # deallocated by the garbage collector ==> we get a memory leak
         self.switch.clear()
-        self.closed = True
+        self.state = self.STATE_CLOSED
 
     def __set_serial_no(self, serial_no: str):
 
@@ -126,6 +129,8 @@ class Talent(Message):
         return
 
     async def send_modbus_cmd(self, func, addr, val) -> None:
+        if self.state != self.STATE_UP:
+            return
         self.forward_modbus_resp = False
         self.__build_header(0x70, 0x77)
         self._send_buffer += b'\x00\x01\xa3\x28'   # fixme
@@ -331,6 +336,7 @@ class Talent(Message):
             self._send_buffer += b'\x01'
             self.__finish_send_msg()
             self.__process_data()
+            self.state = self.STATE_UP
 
         elif self.ctrl.is_resp():
             return  # ignore received response
@@ -359,7 +365,7 @@ class Talent(Message):
         msg_hdr_len = self.parse_msg_header()
 
         for key, update in self.db.parse(self._recv_buffer, self.header_len
-                                         + msg_hdr_len):
+                                         + msg_hdr_len, self.node_id):
             if update:
                 self.new_data[key] = True
 
