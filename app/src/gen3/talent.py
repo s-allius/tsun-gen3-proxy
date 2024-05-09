@@ -399,7 +399,7 @@ class Talent(Message):
                     self.node_id):
                 if update:
                     self.new_data[key] = True
-                self.modbus_elms += 1
+                self.modbus_elms += 1          # count for unit tests
 
             if not self.forward_modbus_resp:
                 return
