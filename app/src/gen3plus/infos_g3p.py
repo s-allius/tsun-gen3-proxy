@@ -88,7 +88,7 @@ class InfosG3P(Infos):
             if res:
                 yield res
 
-    def parse(self, buf, msg_type: int, rcv_ftype: int) \
+    def parse(self, buf, msg_type: int, rcv_ftype: int, node_id: str = '') \
             -> Generator[tuple[str, bool], None, None]:
         '''parse a data sequence received from the inverter and
         stores the values in Infos.db
@@ -123,4 +123,5 @@ class InfosG3P(Infos):
                 update = False
 
             if update:
-                self.tracer.log(level, f'GEN3PLUS: {name} : {result}{unit}')
+                self.tracer.log(level, f'[\'{node_id}\']GEN3PLUS: {name}'
+                                       f' : {result}{unit}')

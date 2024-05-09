@@ -142,7 +142,7 @@ class Modbus():
                     yield keys[0], update, result
                     if update:
                         info_db.tracer.log(level,
-                                           f'MODBUS[{node_id}]: {name}'
+                                           f'[\'{node_id}\']MODBUS: {name}'
                                            f' : {result}{unit}')
 
     def check_crc(self, msg) -> bool:
