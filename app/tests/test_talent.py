@@ -24,6 +24,7 @@ class MemoryStream(Talent):
         self.msg_count = 0
         self.addr = 'Test: SrvSide'
         self.send_msg_ofs = 0
+        self.test_exception_async_write = False
 
     def append_msg(self, msg):
         self.__msg += msg
@@ -56,7 +57,8 @@ class MemoryStream(Talent):
         return
     
     async def async_write(self, headline=''):
-        pass
+        if self.test_exception_async_write:
+            raise RuntimeError("Peer closed.")
 
     
 
@@ -899,9 +901,21 @@ async def test_msg_build_modbus_req(ConfigTsunInv1, MsgModbusCmd):
     ConfigTsunInv1
     m = MemoryStream(b'', (0,), True)
     m.id_str = b"R170000000000001" 
+    await m.send_modbus_cmd(Modbus.WRITE_SINGLE_REG, 0x2008, 0)
+    assert 0 == m.send_msg_ofs
+    assert m._forward_buffer == b''
+    assert m._send_buffer == b''
+
     m.state = m.STATE_UP
     await m.send_modbus_cmd(Modbus.WRITE_SINGLE_REG, 0x2008, 0)
     assert 0 == m.send_msg_ofs
     assert m._forward_buffer == b''
     assert m._send_buffer == MsgModbusCmd
+
+    m._send_buffer = bytearray(0) # clear send buffer for next test    
+    m.test_exception_async_write = True
+    await m.send_modbus_cmd(Modbus.WRITE_SINGLE_REG, 0x2008, 0)
+    assert 0 == m.send_msg_ofs
+    assert m._forward_buffer == b''
+    assert m._send_buffer == b''
     m.close()
