@@ -1,7 +1,6 @@
 import logging
 import asyncio
 import signal
-import functools
 import os
 from logging import config  # noqa F401
 from messages import Message
@@ -26,13 +25,23 @@ async def handle_client_v2(reader, writer):
     await InverterG3P(reader, writer, addr).server_loop(addr)
 
 
-def handle_SIGTERM(loop):
+async def handle_shutdown(loop):
     '''Close all TCP connections and stop the event loop'''
 
     logging.info('Shutdown due to SIGTERM')
 
     #
-    # first, close all open TCP connections
+    # first, disc all open TCP connections gracefully
+    #
+    for stream in Message:
+        try:
+            await asyncio.wait_for(stream.disc(), 2)
+        except Exception:
+            pass
+    logging.info('Disconnecting done')
+
+    #
+    # second, close all open TCP connections
     #
     for stream in Message:
         stream.close()
@@ -91,7 +100,8 @@ if __name__ == "__main__":
     #
     for signame in ('SIGINT', 'SIGTERM'):
         loop.add_signal_handler(getattr(signal, signame),
-                                functools.partial(handle_SIGTERM, loop))
+                                lambda loop=loop: asyncio.create_task(
+                                    handle_shutdown(loop)))
 
     #
     # Create taska for our listening servera. These must be tasks! If we call

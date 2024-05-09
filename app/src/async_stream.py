@@ -90,11 +90,15 @@ class AsyncStream():
                     f"{traceback.format_exc()}")
 
     async def disc(self) -> None:
+        if self.writer.is_closing():
+            return
         logger.debug(f'AsyncStream.disc() l{self.l_addr} | r{self.r_addr}')
         self.writer.close()
         await self.writer.wait_closed()
 
     def close(self):
+        if self.writer.is_closing():
+            return
         logger.debug(f'AsyncStream.close() l{self.l_addr} | r{self.r_addr}')
         self.writer.close()
 

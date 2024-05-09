@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- add graceful shutdown
 - add timeout monitoring for received packets
 - parse Modbus values and store them in the database
 - add cron task to request the output power every minute
