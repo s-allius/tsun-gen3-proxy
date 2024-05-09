@@ -11,6 +11,7 @@ logger_mqtt = logging.getLogger('mqtt')
 
 class Schedule:
     mqtt = None
+    count = 0
 
     @classmethod
     def start(cls) -> None:
@@ -36,8 +37,15 @@ class Schedule:
     @classmethod
     async def regular_modbus_cmds(cls):
         # logging.info("Regular Modbus requests")
+        if 0 == (cls.count % 30):
+            # logging.info("Regular Modbus Status request")
+            addr, len = 0x2007, 2
+        else:
+            addr, len = 0x3008, 20
+        cls.count += 1
+
         for m in Message:
             if m.server_side:
                 fnc = getattr(m, "send_modbus_cmd", None)
                 if callable(fnc):
-                    await fnc(Modbus.READ_REGS, 0x3008, 20)
+                    await fnc(Modbus.READ_REGS, addr, len)
