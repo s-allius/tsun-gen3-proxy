@@ -35,10 +35,6 @@ class Control:
 
 
 class Talent(Message):
-    STATE_INIT = 0
-    STATE_UP = 2
-    STATE_CLOSED = 3
-
     def __init__(self, server_side: bool, id_str=b''):
         super().__init__(server_side)
         self.await_conn_resp_cnt = 0
@@ -48,7 +44,6 @@ class Talent(Message):
         self.db = InfosG3()
         self.mb = Modbus()
         self.forward_modbus_resp = False
-        self.state = self.STATE_INIT
         self.switch = {
             0x00: self.msg_contact_info,
             0x13: self.msg_ota_update,

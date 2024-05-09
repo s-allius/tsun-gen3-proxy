@@ -50,6 +50,9 @@ class IterRegistry(type):
 
 class Message(metaclass=IterRegistry):
     _registry = []
+    STATE_INIT = 0
+    STATE_UP = 2
+    STATE_CLOSED = 3
 
     def __init__(self, server_side: bool):
         self._registry.append(weakref.ref(self))
@@ -65,6 +68,7 @@ class Message(metaclass=IterRegistry):
         self._send_buffer = bytearray(0)
         self._forward_buffer = bytearray(0)
         self.new_data = {}
+        self.state = self.STATE_INIT
 
     '''
     Empty methods, that have to be implemented in any child class which
