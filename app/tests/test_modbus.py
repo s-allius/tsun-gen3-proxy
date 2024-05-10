@@ -106,7 +106,7 @@ def test_build_recv():
     assert mb.check_crc(pdu)
     assert mb.err == 0
     call = 0
-    exp_result = ['v0.0.212', 4.4, 0.7, 0.7, 30]
+    exp_result = ['V0.0.212', 4.4, 0.7, 0.7, 30]
     for key, update, val in mb.recv_resp(mb.db, b'\x01\x03\x0c\x01\x2c\x00\x2c\x00\x2c\x00\x46\x00\x46\x00\x46\x32\xc8', 'test'):
         if key == 'grid':
             assert update == True
