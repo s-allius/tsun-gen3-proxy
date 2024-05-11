@@ -59,16 +59,15 @@ class AsyncStream():
 
         while True:
             try:
-                # await asyncio.wait_for(self.__async_read(), 0.3)
-                await self.__async_read()
+                if self.state == self.STATE_UP and self.server_side:
+                    await asyncio.wait_for(self.__async_read(), 150)
+                else:
+                    await self.__async_read()
 
                 if self.unique_id:
                     await self.async_write()
                     await self.__async_forward()
                     await self.async_publ_mqtt()
-
-            except asyncio.TimeoutError:
-                pass
 
             except (ConnectionResetError,
                     ConnectionAbortedError,
@@ -76,11 +75,19 @@ class AsyncStream():
                 logger.error(f'{error} for l{self.l_addr} | '
                              f'r{self.r_addr}')
                 await self.disc()
+                self.close()
                 return self
 
             except RuntimeError as error:
                 logger.warning(f"{error} for {self.l_addr}")
                 await self.disc()
+                self.close()
+                return self
+
+            except asyncio.TimeoutError:
+                logger.warning(f"Timeout for {self.l_addr}")
+                await self.disc()
+                self.close()
                 return self
 
             except Exception:
