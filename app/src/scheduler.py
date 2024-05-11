@@ -41,7 +41,7 @@ class Schedule:
             # logging.info("Regular Modbus Status request")
             addr, len = 0x2007, 2
         else:
-            addr, len = 0x3008, 20
+            addr, len = 0x3008, 21
         cls.count += 1
 
         for m in Message:
