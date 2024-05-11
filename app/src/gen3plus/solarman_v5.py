@@ -419,22 +419,24 @@ class SolarmanV5(Message):
         self.__send_ack_rsp(0x1310, ftype)
 
     def msg_command_req(self):
-        data = self._recv_buffer[self.header_len:]
+        data = self._recv_buffer[self.header_len:
+                                 self.header_len+self.data_len]
         result = struct.unpack_from('<B', data, 0)
         ftype = result[0]
         if ftype == self.AT_CMD:
             self.inc_counter('AT_Command')
         elif ftype == self.MB_RTU_CMD:
-            if not self.mb.recv_req(data[15:-2]):
+            if not self.mb.recv_req(data[15:]):
                 return
             self.forward_modbus_resp = True
             self.inc_counter('Modbus_Command')
 
         self.__forward_msg()
-        self.__send_ack_rsp(0x1510, ftype)
+        # self.__send_ack_rsp(0x1510, ftype)
 
     def msg_command_rsp(self):
-        data = self._recv_buffer[self.header_len:]
+        data = self._recv_buffer[self.header_len:
+                                 self.header_len+self.data_len]
         ftype = data[0]
         if ftype == self.AT_CMD:
             pass
@@ -445,7 +447,7 @@ class SolarmanV5(Message):
             if valid == 1 and modbus_msg_len > 4:
                 # logger.info(f'first byte modbus:{data[14]}')
                 inv_update = False
-                for key, update, _ in self.mb.recv_resp(self.db, data[14:-2],
+                for key, update, _ in self.mb.recv_resp(self.db, data[14:],
                                                         self.node_id):
                     if update:
                         if key == 'inverter':
