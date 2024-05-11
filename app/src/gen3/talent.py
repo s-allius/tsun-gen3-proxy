@@ -347,6 +347,7 @@ class Talent(Message):
             self._send_buffer += b'\x01'
             self.__finish_send_msg()
             self.__process_data()
+            self.state = self.STATE_UP
 
         elif self.ctrl.is_resp():
             return  # ignore received response
@@ -387,15 +388,20 @@ class Talent(Message):
 
     def msg_modbus(self):
         hdr_len, modbus_len = self.parse_modbus_header()
+        data = self._recv_buffer[self.header_len:
+                                 self.header_len+self.data_len]
 
         if self.ctrl.is_req():
+            if not self.mb.recv_req(data[hdr_len:]):
+                return
+
             self.forward_modbus_resp = True
             self.inc_counter('Modbus_Command')
         elif self.ctrl.is_ind():
             # logger.debug(f'Modbus Ind  MsgLen: {modbus_len}')
             self.modbus_elms = 0
-            for key, update, _ in self.mb.recv_resp(self.db, self._recv_buffer[
-                    self.header_len + hdr_len:self.header_len+self.data_len],
+            for key, update, _ in self.mb.recv_resp(self.db, data[
+                    hdr_len:],
                     self.node_id):
                 if update:
                     self.new_data[key] = True
