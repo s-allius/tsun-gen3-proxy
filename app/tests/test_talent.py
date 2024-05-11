@@ -2,7 +2,7 @@
 import pytest, logging
 from app.src.gen3.talent import Talent, Control
 from app.src.config import Config
-from app.src.infos import Infos
+from app.src.infos import Infos, Register
 from app.src.modbus import Modbus
 
  
@@ -849,6 +849,41 @@ def test_msg_modbus_rsp2(ConfigTsunInv1, MsgModbusRsp):
     assert m.db.stat['proxy']['Modbus_Command'] == 0
     m.close()
 
+def test_msg_modbus_rsp3(ConfigTsunInv1, MsgModbusResp20):
+    ConfigTsunInv1
+    m = MemoryStream(MsgModbusResp20, (0,), False)
+    m.append_msg(MsgModbusResp20)
+
+    m.forward_modbus_resp = True
+    m.mb.last_fcode = 3
+    m.mb.last_len = 20
+    m.mb.last_reg = 0x3008
+    assert m.db.db == {}
+    m.new_data['inverter'] = False
+
+    m.read()         # read complete msg, and dispatch msg
+    assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
+    assert m.mb.err == 0
+    assert m.msg_count == 1
+    assert m._forward_buffer==MsgModbusResp20
+    assert m._send_buffer==b''
+    assert m.db.db == {'inverter': {'Version': 'V5.1.09', 'Rated_Power': 300}, 'grid': {'Voltage': 225.9, 'Current': 0.41, 'Frequency': 49.99, 'Output_Power': 94.8}, 'env': {'Inverter_Temp': 22}, 'input': {'pv1': {'Voltage': 0.8, 'Current': 0.0, 'Power': 0.0}, 'pv2': {'Voltage': 34.5, 'Current': 2.89, 'Power': 99.8}, 'pv3': {'Voltage': 0.0, 'Current': 0.0, 'Power': 0.0}, 'pv4': {'Voltage': 0.0, 'Current': 0.0, 'Power': 0.0}}}
+    assert m.db.get_db_value(Register.VERSION) == 'V5.1.09'
+    assert m.new_data['inverter'] == True
+    m.new_data['inverter'] = False
+
+    m.read()         # read complete msg, and dispatch msg
+    assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
+    assert m.mb.err == 0
+    assert m.msg_count == 2
+    assert m._forward_buffer==MsgModbusResp20
+    assert m._send_buffer==b''
+    assert m.db.db == {'inverter': {'Version': 'V5.1.09', 'Rated_Power': 300}, 'grid': {'Voltage': 225.9, 'Current': 0.41, 'Frequency': 49.99, 'Output_Power': 94.8}, 'env': {'Inverter_Temp': 22}, 'input': {'pv1': {'Voltage': 0.8, 'Current': 0.0, 'Power': 0.0}, 'pv2': {'Voltage': 34.5, 'Current': 2.89, 'Power': 99.8}, 'pv3': {'Voltage': 0.0, 'Current': 0.0, 'Power': 0.0}, 'pv4': {'Voltage': 0.0, 'Current': 0.0, 'Power': 0.0}}}
+    assert m.db.get_db_value(Register.VERSION) == 'V5.1.09'
+    assert m.new_data['inverter'] == False
+
+    m.close()
+
 def test_msg_modbus_invalid(ConfigTsunInv1, MsgModbusInv):
     ConfigTsunInv1
     m = MemoryStream(MsgModbusInv, (0,), False)
@@ -919,3 +954,37 @@ async def test_msg_build_modbus_req(ConfigTsunInv1, MsgModbusCmd):
     assert m._forward_buffer == b''
     assert m._send_buffer == b''
     m.close()
+'''
+def test_zombie_conn(ConfigTsunInv1, MsgInverterInd):
+    ConfigTsunInv1
+    tracer.setLevel(logging.DEBUG)
+    start_val = MemoryStream._RefNo
+
+    m1 = MemoryStream(MsgInverterInd, (0,))
+    assert MemoryStream._RefNo == 1 + start_val
+    assert m1.RefNo == 1 + start_val
+    m2 = MemoryStream(MsgInverterInd, (0,))
+    assert MemoryStream._RefNo == 2 + start_val
+    assert m2.RefNo == 2 + start_val
+    m3 = MemoryStream(MsgInverterInd, (0,))
+    assert MemoryStream._RefNo == 3 + start_val
+    assert m3.RefNo == 3 + start_val
+    assert m1.state == m1.STATE_INIT
+    assert m2.state == m2.STATE_INIT
+    assert m3.state == m3.STATE_INIT
+    m1.read()         # read complete msg, and set unique_id
+    assert m1.state == m1.STATE_UP
+    assert m2.state == m2.STATE_INIT
+    assert m3.state == m3.STATE_INIT
+    m2.read()         # read complete msg, and set unique_id
+    assert m1.state == m1.STATE_CLOSED
+    assert m2.state == m2.STATE_UP
+    assert m3.state == m3.STATE_INIT
+    m3.read()         # read complete msg, and set unique_id
+    assert m1.state == m1.STATE_CLOSED
+    assert m2.state == m2.STATE_CLOSED
+    assert m3.state == m3.STATE_UP
+    m1.close()
+    m2.close()
+    m3.close()
+'''
