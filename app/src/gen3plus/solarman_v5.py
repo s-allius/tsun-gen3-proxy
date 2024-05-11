@@ -92,6 +92,7 @@ class SolarmanV5(Message):
             0x4510: self.msg_command_req,  # from server
             0x1510: self.msg_command_rsp,     # from inverter
         }
+        self.modbus_elms = 0    # for unit tests
 
     '''
     Our puplic methods
@@ -447,8 +448,11 @@ class SolarmanV5(Message):
             if valid == 1 and modbus_msg_len > 4:
                 # logger.info(f'first byte modbus:{data[14]}')
                 inv_update = False
+                self.modbus_elms = 0
+
                 for key, update, _ in self.mb.recv_resp(self.db, data[14:],
                                                         self.node_id):
+                    self.modbus_elms += 1
                     if update:
                         if key == 'inverter':
                             inv_update = True
