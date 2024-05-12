@@ -51,6 +51,12 @@ class MemoryStream(Talent):
     def _timestamp(self):
         return 1700260990000
     
+    def createClientStream(self, msg, chunks = (0,)):
+        c = MemoryStream(msg, chunks, False)
+        self.remoteStream = c
+        c. remoteStream = self
+        return c
+
     def _Talent__flush_recv_msg(self) -> None:
         super()._Talent__flush_recv_msg()
         self.msg_count += 1
@@ -789,20 +795,22 @@ def test_proxy_counter():
 
 def test_msg_modbus_req(ConfigTsunInv1, MsgModbusCmd):
     ConfigTsunInv1
-    m = MemoryStream(MsgModbusCmd, (0,), False)
+    m = MemoryStream(b'')
+    c = m.createClientStream(MsgModbusCmd)
+    
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
     m.db.stat['proxy']['Modbus_Command'] = 0
-    m.read()         # read complete msg, and dispatch msg
-    assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
-    assert m.msg_count == 1
-    assert m.id_str == b"R170000000000001" 
-    assert m.unique_id == 'R170000000000001'
-    assert int(m.ctrl)==112
-    assert m.msg_id==119
-    assert m.header_len==23
-    assert m.data_len==13
-    assert m._forward_buffer==MsgModbusCmd
-    assert m._send_buffer==b''
+    c.read()         # read complete msg, and dispatch msg
+    assert not c.header_valid  # must be invalid, since msg was handled and buffer flushed
+    assert c.msg_count == 1
+    assert c.id_str == b"R170000000000001" 
+    assert c.unique_id == 'R170000000000001'
+    assert int(c.ctrl)==112
+    assert c.msg_id==119
+    assert c.header_len==23
+    assert c.data_len==13
+    assert c._forward_buffer==MsgModbusCmd
+    assert c._send_buffer==b''
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
     assert m.db.stat['proxy']['Modbus_Command'] == 1
     m.close()

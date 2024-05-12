@@ -63,6 +63,12 @@ class MemoryStream(SolarmanV5):
         if self.test_exception_async_write:
             raise RuntimeError("Peer closed.")
 
+    def createClientStream(self, msg, chunks = (0,)):
+        c = MemoryStream(msg, chunks, False)
+        self.remoteStream = c
+        c. remoteStream = self
+        return c
+
     def _SolarmanV5__flush_recv_msg(self) -> None:
         super()._SolarmanV5__flush_recv_msg()
         self.msg_count += 1
@@ -1174,20 +1180,22 @@ def test_at_command_ind(ConfigTsunInv1, AtCommandIndMsg):
 
 def test_msg_modbus_req(ConfigTsunInv1, MsgModbusCmd):
     ConfigTsunInv1
-    m = MemoryStream(MsgModbusCmd, (0,), False)
+    m = MemoryStream(b'')
+    c = m.createClientStream(MsgModbusCmd)
+
     m.forward_modbus_resp = False
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
     m.db.stat['proxy']['AT_Command'] = 0
     m.db.stat['proxy']['Modbus_Command'] = 0
-    m.read()         # read complete msg, and dispatch msg
-    assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
-    assert m.msg_count == 1
-    assert m.control == 0x4510
-    assert str(m.seq) == '03:02'
-    assert m.header_len==11
-    assert m.data_len==23
-    assert m._forward_buffer==MsgModbusCmd
-    assert m._send_buffer==b''
+    c.read()         # read complete msg, and dispatch msg
+    assert not c.header_valid  # must be invalid, since msg was handled and buffer flushed
+    assert c.msg_count == 1
+    assert c.control == 0x4510
+    assert str(c.seq) == '03:02'
+    assert c.header_len==11
+    assert c.data_len==23
+    assert c._forward_buffer==MsgModbusCmd
+    assert c._send_buffer==b''
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
     assert m.db.stat['proxy']['AT_Command'] == 0
     assert m.db.stat['proxy']['Modbus_Command'] == 1
