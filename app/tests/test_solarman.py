@@ -357,8 +357,50 @@ def InverterIndMsg800():  # 0x4210 rated Power 800W
     return msg
 
 @pytest.fixture
+def InverterIndMsg_81():  # 0x4210 fcode 0x81
+    msg  = b'\xa5\x99\x01\x10\x42\x02\x03' +get_sn()  +b'\x81\xb0\x02\xbc\xc8'
+    msg += b'\x24\x32\x6c\x1f\x00\x00\xa0\x07\x04\x03\x01\x00\x03\x08\x00\x00'
+    msg += b'\x59\x31\x37\x45\x37\x41\x30\x46\x30\x31\x30\x42\x30\x31\x33\x45'
+    msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+    msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+    msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+    msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+    msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+    msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+    msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+    msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+    msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+    msg += b'\x00\x01\x00\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+    msg += b'\x40\x10\x08\xc8\x00\x49\x13\x8d\x00\x36\x00\x00\x02\x58\x06\x7a'
+    msg += b'\x01\x61\x00\xa8\x02\x54\x01\x5a\x00\x8a\x01\xe4\x01\x5a\x00\xbd'
+    msg += b'\x02\x8f\x00\x11\x00\x01\x00\x00\x00\x0b\x00\x00\x27\x98\x00\x04'
+    msg += b'\x00\x00\x0c\x04\x00\x03\x00\x00\x0a\xe7\x00\x05\x00\x00\x0c\x75'
+    msg += b'\x00\x00\x00\x00\x06\x16\x02\x00\x00\x00\x55\xaa\x00\x01\x00\x00'
+    msg += b'\x00\x00\x00\x00\xff\xff\x07\xd0\x00\x03\x04\x00\x04\x00\x04\x00'
+    msg += b'\x04\x00\x00\x01\xff\xff\x00\x01\x00\x06\x00\x68\x00\x68\x05\x00'
+    msg += b'\x09\xcd\x07\xb6\x13\x9c\x13\x24\x00\x01\x07\xae\x04\x0f\x00\x41'
+    msg += b'\x00\x0f\x0a\x64\x0a\x64\x00\x06\x00\x06\x09\xf6\x12\x8c\x12\x8c'
+    msg += b'\x00\x10\x00\x10\x14\x52\x14\x52\x00\x10\x00\x10\x01\x51\x00\x05'
+    msg += b'\x04\x00\x00\x01\x13\x9c\x0f\xa0\x00\x4e\x00\x66\x03\xe8\x04\x00'
+    msg += b'\x09\xce\x07\xa8\x13\x9c\x13\x26\x00\x00\x00\x00\x00\x00\x00\x00'
+    msg += b'\x00\x00\x00\x00\x04\x00\x04\x00\x00\x00\x00\x00\xff\xff\x00\x00'
+    msg += b'\x00\x00\x00\x00'
+    msg += correct_checksum(msg)
+    msg += b'\x15'
+    return msg
+
+@pytest.fixture
 def InverterRspMsg():  # 0x1210
     msg  = b'\xa5\x0a\x00\x10\x12\x02\02' +get_sn()  +b'\x01\x01'
+    msg += total()  
+    msg += hb()
+    msg += correct_checksum(msg)
+    msg += b'\x15'
+    return msg
+
+@pytest.fixture
+def InverterRspMsg_81():  # 0x1210 fcode 0x81
+    msg  = b'\xa5\x0a\x00\x10\x12\x03\03' +get_sn()  +b'\x81\x01'
     msg += total()  
     msg += hb()
     msg += correct_checksum(msg)
@@ -468,6 +510,15 @@ def MsgModbusCmd():
     return msg
 
 @pytest.fixture
+def MsgModbusCmdCrcErr():
+    msg  = b'\xa5\x17\x00\x10\x45\x03\x02' +get_sn()  +b'\x02\xb0\x02'
+    msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x06\x20\x08'
+    msg += b'\x00\x00\x04\xc8'
+    msg += correct_checksum(msg)
+    msg += b'\x15'
+    return msg
+
+@pytest.fixture
 def MsgModbusRsp():  # 0x1510
     msg  = b'\xa5\x3b\x00\x10\x15\x03\x03' +get_sn()  +b'\x02\x01'
     msg += total()  
@@ -498,6 +549,19 @@ def MsgUnknownCmd():
     msg  = b'\xa5\x17\x00\x10\x45\x03\x02' +get_sn()  +b'\x03\xb0\x02'
     msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x06\x20\x08'
     msg += b'\x00\x00\x03\xc8'
+    msg += correct_checksum(msg)
+    msg += b'\x15'
+    return msg
+
+@pytest.fixture
+def MsgUnknownCmdRsp():  # 0x1510
+    msg  = b'\xa5\x3b\x00\x10\x15\x03\x03' +get_sn()  +b'\x03\x01'
+    msg += total()  
+    msg += hb()
+    msg += b'\x0a\xe2\xfa\x33\x01\x03\x28\x40\x10\x08\xd8'
+    msg += b'\x00\x00\x13\x87\x00\x31\x00\x68\x02\x58\x00\x00\x01\x53\x00\x02'
+    msg += b'\x00\x00\x01\x52\x00\x02\x00\x00\x01\x53\x00\x03\x00\x00\x00\x04'
+    msg += b'\x00\x01\x00\x00\x6c\x68'
     msg += correct_checksum(msg)
     msg += b'\x15'
     return msg
@@ -779,6 +843,52 @@ def test_read_two_messages(ConfigTsunAllowAll, DeviceIndMsg, DeviceRspMsg, Inver
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
     assert m._forward_buffer==InverterIndMsg
     assert m._send_buffer==InverterRspMsg
+
+    m._send_buffer = bytearray(0) # clear send buffer for next test    
+    m._init_new_client_conn()
+    assert m._send_buffer==b''
+    m.close()
+
+def test_read_two_messages2(ConfigTsunAllowAll, InverterIndMsg, InverterIndMsg_81, InverterRspMsg, InverterRspMsg_81):
+    ConfigTsunAllowAll
+    m = MemoryStream(InverterIndMsg, (0,))
+    m.append_msg(InverterIndMsg_81)
+    m.read()         # read complete msg, and dispatch msg
+    assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
+    assert m.msg_count == 1
+    assert m.header_len==11
+    assert m.snr == 2070233889
+    assert m.unique_id == '2070233889'
+    assert m.control == 0x4210
+    assert m.time_ofs == 0x33e447a0
+    assert str(m.seq) == '02:02'
+    assert m.data_len == 0x199
+    assert m.msg_count == 1
+    assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
+    assert m._forward_buffer==InverterIndMsg
+    assert m._send_buffer==InverterRspMsg
+ 
+    m._send_buffer = bytearray(0) # clear send buffer for next test  
+    m._init_new_client_conn()
+    assert m._send_buffer==b''
+    assert m._recv_buffer==InverterIndMsg_81
+    
+    m._send_buffer = bytearray(0) # clear send buffer for next test
+    m._forward_buffer = bytearray(0) # clear forward buffer for next test
+    m.read()         # read complete msg, and dispatch msg
+    assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
+    assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
+    assert m.msg_count == 2
+    assert m.header_len==11
+    assert m.snr == 2070233889
+    assert m.unique_id == '2070233889'
+    assert m.control == 0x4210
+    assert m.time_ofs == 0x33e447a0
+    assert str(m.seq) == '03:03'
+    assert m.data_len == 0x199
+    assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
+    assert m._forward_buffer==InverterIndMsg_81
+    assert m._send_buffer==InverterRspMsg_81
 
     m._send_buffer = bytearray(0) # clear send buffer for next test    
     m._init_new_client_conn()
@@ -1150,7 +1260,7 @@ async def test_AT_cmd(ConfigTsunAllowAll, DeviceIndMsg, DeviceRspMsg, InverterIn
     assert m._send_buffer==b''
     assert m._forward_buffer==b''
     assert str(m.seq) == '02:04'
-
+    assert m.forward_at_cmd_resp == False
     m.close()
 
 def test_at_command_ind(ConfigTsunInv1, AtCommandIndMsg):
@@ -1178,6 +1288,44 @@ def test_at_command_ind(ConfigTsunInv1, AtCommandIndMsg):
     assert m.forward_modbus_resp == False
     m.close()
 
+def test_msg_at_command_rsp1(ConfigTsunInv1, AtCommandRspMsg):
+    ConfigTsunInv1
+    m = MemoryStream(AtCommandRspMsg)
+    m.db.stat['proxy']['Unknown_Ctrl'] = 0
+    m.db.stat['proxy']['Modbus_Command'] = 0
+    m.forward_at_cmd_resp = True
+    m.read()         # read complete msg, and dispatch msg
+    assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
+    assert m.msg_count == 1
+    assert m.control == 0x1510
+    assert str(m.seq) == '03:03'
+    assert m.header_len==11
+    assert m.data_len==10
+    assert m._forward_buffer==AtCommandRspMsg
+    assert m._send_buffer==b''
+    assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
+    assert m.db.stat['proxy']['Modbus_Command'] == 0
+    m.close()
+
+def test_msg_at_command_rsp2(ConfigTsunInv1, AtCommandRspMsg):
+    ConfigTsunInv1
+    m = MemoryStream(AtCommandRspMsg)
+    m.db.stat['proxy']['Unknown_Ctrl'] = 0
+    m.db.stat['proxy']['Modbus_Command'] = 0
+    m.forward_at_cmd_resp = False
+    m.read()         # read complete msg, and dispatch msg
+    assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
+    assert m.msg_count == 1
+    assert m.control == 0x1510
+    assert str(m.seq) == '03:03'
+    assert m.header_len==11
+    assert m.data_len==10
+    assert m._forward_buffer==b''
+    assert m._send_buffer==b''
+    assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
+    assert m.db.stat['proxy']['Modbus_Command'] == 0
+    m.close()
+
 def test_msg_modbus_req(ConfigTsunInv1, MsgModbusCmd):
     ConfigTsunInv1
     m = MemoryStream(b'')
@@ -1187,6 +1335,7 @@ def test_msg_modbus_req(ConfigTsunInv1, MsgModbusCmd):
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
     m.db.stat['proxy']['AT_Command'] = 0
     m.db.stat['proxy']['Modbus_Command'] = 0
+    m.db.stat['proxy']['Invalid_Msg_Format'] = 0
     c.read()         # read complete msg, and dispatch msg
     assert not c.header_valid  # must be invalid, since msg was handled and buffer flushed
     assert c.msg_count == 1
@@ -1199,6 +1348,33 @@ def test_msg_modbus_req(ConfigTsunInv1, MsgModbusCmd):
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
     assert m.db.stat['proxy']['AT_Command'] == 0
     assert m.db.stat['proxy']['Modbus_Command'] == 1
+    assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
+    assert m.forward_modbus_resp == True
+    m.close()
+
+def test_msg_modbus_req2(ConfigTsunInv1, MsgModbusCmdCrcErr):
+    ConfigTsunInv1
+    m = MemoryStream(b'')
+    c = m.createClientStream(MsgModbusCmdCrcErr)
+
+    m.forward_modbus_resp = False
+    m.db.stat['proxy']['Unknown_Ctrl'] = 0
+    m.db.stat['proxy']['AT_Command'] = 0
+    m.db.stat['proxy']['Modbus_Command'] = 0
+    m.db.stat['proxy']['Invalid_Msg_Format'] = 0
+    c.read()         # read complete msg, and dispatch msg
+    assert not c.header_valid  # must be invalid, since msg was handled and buffer flushed
+    assert c.msg_count == 1
+    assert c.control == 0x4510
+    assert str(c.seq) == '03:02'
+    assert c.header_len==11
+    assert c.data_len==23
+    assert c._forward_buffer==MsgModbusCmdCrcErr
+    assert c._send_buffer==b''
+    assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
+    assert m.db.stat['proxy']['AT_Command'] == 0
+    assert m.db.stat['proxy']['Modbus_Command'] == 0
+    assert m.db.stat['proxy']['Invalid_Msg_Format'] == 1
     assert m.forward_modbus_resp == True
     m.close()
 
@@ -1209,6 +1385,7 @@ def test_msg_unknown_cmd_req(ConfigTsunInv1, MsgUnknownCmd):
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
     m.db.stat['proxy']['AT_Command'] = 0
     m.db.stat['proxy']['Modbus_Command'] = 0
+    m.db.stat['proxy']['Invalid_Msg_Format'] = 0
     m.read()         # read complete msg, and dispatch msg
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
     assert m.msg_count == 1
@@ -1221,12 +1398,13 @@ def test_msg_unknown_cmd_req(ConfigTsunInv1, MsgUnknownCmd):
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
     assert m.db.stat['proxy']['AT_Command'] == 0
     assert m.db.stat['proxy']['Modbus_Command'] == 0
+    assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
     assert m.forward_modbus_resp == False
     m.close()
 
 def test_msg_modbus_rsp1(ConfigTsunInv1, MsgModbusRsp):
     ConfigTsunInv1
-    m = MemoryStream(MsgModbusRsp, (0,), False)
+    m = MemoryStream(MsgModbusRsp)
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
     m.db.stat['proxy']['Modbus_Command'] = 0
     m.forward_modbus_resp = False
@@ -1245,7 +1423,7 @@ def test_msg_modbus_rsp1(ConfigTsunInv1, MsgModbusRsp):
 
 def test_msg_modbus_rsp2(ConfigTsunInv1, MsgModbusRsp):
     ConfigTsunInv1
-    m = MemoryStream(MsgModbusRsp, (0,), False)
+    m = MemoryStream(MsgModbusRsp)
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
     m.db.stat['proxy']['Modbus_Command'] = 0
     m.forward_modbus_resp = True
@@ -1264,7 +1442,7 @@ def test_msg_modbus_rsp2(ConfigTsunInv1, MsgModbusRsp):
 
 def test_msg_modbus_rsp3(ConfigTsunInv1, MsgModbusRsp):
     ConfigTsunInv1
-    m = MemoryStream(MsgModbusRsp, (0,), False)
+    m = MemoryStream(MsgModbusRsp)
     m.append_msg(MsgModbusRsp)
 
     m.forward_modbus_resp = True
@@ -1295,6 +1473,25 @@ def test_msg_modbus_rsp3(ConfigTsunInv1, MsgModbusRsp):
     assert m.db.get_db_value(Register.VERSION) == 'V4.0.10'
     assert m.new_data['inverter'] == False
 
+    m.close()
+
+def test_msg_unknown_rsp(ConfigTsunInv1, MsgUnknownCmdRsp):
+    ConfigTsunInv1
+    m = MemoryStream(MsgUnknownCmdRsp)
+    m.db.stat['proxy']['Unknown_Ctrl'] = 0
+    m.db.stat['proxy']['Modbus_Command'] = 0
+    m.forward_modbus_resp = True
+    m.read()         # read complete msg, and dispatch msg
+    assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
+    assert m.msg_count == 1
+    assert m.control == 0x1510
+    assert str(m.seq) == '03:03'
+    assert m.header_len==11
+    assert m.data_len==59
+    assert m._forward_buffer==MsgUnknownCmdRsp
+    assert m._send_buffer==b''
+    assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
+    assert m.db.stat['proxy']['Modbus_Command'] == 0
     m.close()
 
 def test_msg_modbus_invalid(ConfigTsunInv1, MsgModbusInvalid):
