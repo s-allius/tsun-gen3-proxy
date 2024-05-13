@@ -61,6 +61,7 @@ class SolarmanV5(Message):
         self.db = InfosG3P()
         self.time_ofs = 0
         self.forward_modbus_resp = False
+        self.forward_at_cmd_resp = False
         self.switch = {
 
             0x4210: self.msg_data_ind,   # real time data
@@ -318,6 +319,7 @@ class SolarmanV5(Message):
     async def send_at_cmd(self, AT_cmd: str) -> None:
         if self.state != self.STATE_UP:
             return
+        self.forward_at_cmd_resp = False
         self.__build_header(0x4510)
         self._send_buffer += struct.pack(f'<BHLLL{len(AT_cmd)}sc', self.AT_CMD,
                                          2, 0, 0, 0, AT_cmd.encode('utf-8'),
@@ -371,14 +373,14 @@ class SolarmanV5(Message):
         data = self._recv_buffer[self.header_len:]
         result = struct.unpack_from('<BLLL', data, 0)
         ftype = result[0]  # always 2
-        total = result[1]
+        # total = result[1]
         tim = result[2]
         res = result[3]  # always zero
         logger.info(f'frame type:{ftype:02x}'
                     f' timer:{tim:08x}s  null:{res}')
-        if self.time_ofs:
-            dt = datetime.fromtimestamp(total + self.time_ofs)
-            logger.info(f'ts: {dt.strftime("%Y-%m-%d %H:%M:%S")}')
+        # if self.time_ofs:
+        #     dt = datetime.fromtimestamp(total + self.time_ofs)
+        #     logger.info(f'ts: {dt.strftime("%Y-%m-%d %H:%M:%S")}')
 
         self.__process_data(ftype)
         self.__forward_msg()
@@ -388,7 +390,7 @@ class SolarmanV5(Message):
         data = self._recv_buffer
         result = struct.unpack_from('<BHLLLHL', data, self.header_len)
         ftype = result[0]  # 1 or 0x81
-        total = result[2]
+        # total = result[2]
         tim = result[3]
         if 1 == ftype:
             self.time_ofs = result[4]
@@ -396,9 +398,9 @@ class SolarmanV5(Message):
         cnt = result[6]
         logger.info(f'ftype:{ftype:02x} timer:{tim:08x}s'
                     f' ??: {unkn:04x} cnt:{cnt}')
-        if self.time_ofs:
-            dt = datetime.fromtimestamp(total + self.time_ofs)
-            logger.info(f'ts: {dt.strftime("%Y-%m-%d %H:%M:%S")}')
+        # if self.time_ofs:
+        #     dt = datetime.fromtimestamp(total + self.time_ofs)
+        #     logger.info(f'ts: {dt.strftime("%Y-%m-%d %H:%M:%S")}')
 
         self.__process_data(ftype)
         self.__forward_msg()
@@ -425,6 +427,7 @@ class SolarmanV5(Message):
         ftype = result[0]
         if ftype == self.AT_CMD:
             self.inc_counter('AT_Command')
+            self.forward_at_cmd_resp = True
         elif ftype == self.MB_RTU_CMD:
             if not self.remoteStream.mb.recv_req(data[15:]):
                 self.inc_counter('Invalid_Msg_Format')
@@ -440,7 +443,8 @@ class SolarmanV5(Message):
                                  self.header_len+self.data_len]
         ftype = data[0]
         if ftype == self.AT_CMD:
-            pass
+            if not self.forward_at_cmd_resp:
+                return
         elif ftype == self.MB_RTU_CMD:
             valid = data[1]
             modbus_msg_len = self.data_len - 14
