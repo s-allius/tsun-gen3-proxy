@@ -86,11 +86,11 @@ class Modbus():
         # logging.info(f'recv_req: first byte modbus:{buf[0]} len:{len(buf)}')
         if not self.check_crc(buf):
             self.err = 1
-            logging.error('Modbus: CRC error')
+            logging.error('Modbus recv: CRC error')
             return False
         if buf[0] != self.INV_ADDR:
             self.err = 2
-            logging.info(f'Modbus: Wrong addr{buf[0]}')
+            logging.info(f'Modbus recv: Wrong addr{buf[0]}')
             return False
         res = struct.unpack_from('>BHH', buf, 1)
         self.last_fcode = res[0]
@@ -103,11 +103,11 @@ class Modbus():
             Generator[tuple[str, bool], None, None]:
         # logging.info(f'recv_resp: first byte modbus:{buf[0]} len:{len(buf)}')
         if not self.check_crc(buf):
-            logging.error('Modbus: CRC error')
+            logging.error('Modbus resp: CRC error')
             self.err = 1
             return
         if buf[0] != self.INV_ADDR:
-            logging.info(f'Modbus: Wrong addr {buf[0]}')
+            logging.info(f'Modbus resp: Wrong addr {buf[0]}')
             self.err = 2
             return
         if buf[1] != self.last_fcode:

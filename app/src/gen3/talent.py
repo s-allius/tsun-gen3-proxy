@@ -42,7 +42,6 @@ class Talent(Message):
         self.contact_name = b''
         self.contact_mail = b''
         self.db = InfosG3()
-        self.mb = Modbus()
         self.forward_modbus_resp = False
         self.switch = {
             0x00: self.msg_contact_info,
@@ -392,11 +391,11 @@ class Talent(Message):
                                  self.header_len+self.data_len]
 
         if self.ctrl.is_req():
-            if not self.mb.recv_req(data[hdr_len:]):
-                return
-
-            self.forward_modbus_resp = True
-            self.inc_counter('Modbus_Command')
+            if not self.remoteStream.mb.recv_req(data[hdr_len:]):
+                self.inc_counter('Invalid_Msg_Format')
+            else:
+                self.inc_counter('Modbus_Command')
+            self.remoteStream.forward_modbus_resp = True
         elif self.ctrl.is_ind():
             # logger.debug(f'Modbus Ind  MsgLen: {modbus_len}')
             self.modbus_elms = 0
