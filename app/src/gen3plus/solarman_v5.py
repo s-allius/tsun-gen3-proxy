@@ -60,7 +60,6 @@ class SolarmanV5(Message):
         self.snr = 0
         self.db = InfosG3P()
         self.time_ofs = 0
-        self.mb = Modbus()
         self.forward_modbus_resp = False
         self.switch = {
 

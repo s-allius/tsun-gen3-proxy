@@ -3,8 +3,10 @@ import weakref
 
 if __name__ == "app.src.messages":
     from app.src.infos import Infos
+    from app.src.modbus import Modbus
 else:  # pragma: no cover
     from infos import Infos
+    from modbus import Modbus
 
 logger = logging.getLogger('msg')
 
@@ -58,6 +60,9 @@ class Message(metaclass=IterRegistry):
         self._registry.append(weakref.ref(self))
 
         self.server_side = server_side
+        if server_side:
+            self.mb = Modbus()
+
         self.header_valid = False
         self.header_len = 0
         self.data_len = 0

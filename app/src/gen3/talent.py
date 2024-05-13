@@ -42,7 +42,6 @@ class Talent(Message):
         self.contact_name = b''
         self.contact_mail = b''
         self.db = InfosG3()
-        self.mb = Modbus()
         self.forward_modbus_resp = False
         self.switch = {
             0x00: self.msg_contact_info,
