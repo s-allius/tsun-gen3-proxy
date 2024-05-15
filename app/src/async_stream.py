@@ -1,6 +1,5 @@
 import logging
 import traceback
-import asyncio
 from messages import hex_dump_memory
 
 logger = logging.getLogger('conn')
@@ -59,10 +58,7 @@ class AsyncStream():
 
         while True:
             try:
-                if self.state == self.STATE_UP and self.server_side:
-                    await asyncio.wait_for(self.__async_read(), 150)
-                else:
-                    await self.__async_read()
+                await self.__async_read()
 
                 if self.unique_id:
                     await self.async_write()
@@ -80,12 +76,6 @@ class AsyncStream():
 
             except RuntimeError as error:
                 logger.warning(f"{error} for {self.l_addr}")
-                await self.disc()
-                self.close()
-                return self
-
-            except asyncio.TimeoutError:
-                logger.warning(f"Timeout for {self.l_addr}")
                 await self.disc()
                 self.close()
                 return self
