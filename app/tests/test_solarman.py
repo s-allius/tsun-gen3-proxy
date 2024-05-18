@@ -17,8 +17,11 @@ timestamp = int(time.time())  # 1712861197
 heartbeat = 60         
 
 class Writer():
+    def __init__(self):
+        self.sent_pdu = b''
+
     def write(self, pdu: bytearray):
-        pass 
+        self.sent_pdu = pdu
 
 class MemoryStream(SolarmanV5):
     def __init__(self, msg, chunks = (0,), server_side: bool = True):
@@ -1200,7 +1203,8 @@ async def test_msg_build_modbus_req(ConfigTsunInv1, DeviceIndMsg, DeviceRspMsg, 
     assert m._recv_buffer==InverterIndMsg   # unhandled next message
     assert 0 == m.send_msg_ofs
     assert m._forward_buffer == b''
-    assert m._send_buffer == b''   # modbus command must be ignore, cause connection is still not up
+    assert m.writer.sent_pdu == b'' # modbus command must be ignore, cause connection is still not up
+    assert m._send_buffer == b''    # modbus command must be ignore, cause connection is still not up
 
     m.read()
     assert m.control == 0x4210
@@ -1214,7 +1218,8 @@ async def test_msg_build_modbus_req(ConfigTsunInv1, DeviceIndMsg, DeviceRspMsg, 
     await m.send_modbus_cmd(Modbus.WRITE_SINGLE_REG, 0x2008, 0)
     assert 0 == m.send_msg_ofs
     assert m._forward_buffer == b''
-    assert m._send_buffer == MsgModbusCmd
+    assert m.writer.sent_pdu == MsgModbusCmd
+    assert m._send_buffer == b''
 
     m._send_buffer = bytearray(0) # clear send buffer for next test    
     m.test_exception_async_write = True
