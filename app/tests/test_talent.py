@@ -12,10 +12,18 @@ pytest_plugins = ('pytest_asyncio',)
 Infos.static_init()
 
 tracer = logging.getLogger('tracer')
-    
+
+
+class Writer():
+    def write(self, pdu: bytearray):
+        pass 
+
 class MemoryStream(Talent):
     def __init__(self, msg, chunks = (0,), server_side: bool = True):
         super().__init__(server_side)
+        if server_side:
+            self.mb.timeout = 1   # overwrite for faster testing
+        self.writer = Writer()
         self.__msg = msg
         self.__msg_len = len(msg)
         self.__chunks = chunks
@@ -896,9 +904,13 @@ def test_msg_modbus_rsp3(ConfigTsunInv1, MsgModbusResp20):
     m.append_msg(MsgModbusResp20)
 
     m.forward_modbus_resp = True
+    m.mb.last_addr = 1
     m.mb.last_fcode = 3
     m.mb.last_len = 20
     m.mb.last_reg = 0x3008
+    m.mb.req_pend = True
+    m.mb.err = 0
+
     assert m.db.db == {}
     m.new_data['inverter'] = False
 
@@ -915,7 +927,7 @@ def test_msg_modbus_rsp3(ConfigTsunInv1, MsgModbusResp20):
 
     m.read()         # read complete msg, and dispatch msg
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
-    assert m.mb.err == 0
+    assert m.mb.err == 5
     assert m.msg_count == 2
     assert m._forward_buffer==MsgModbusResp20
     assert m._send_buffer==b''
@@ -952,9 +964,13 @@ def test_msg_modbus_fragment(ConfigTsunInv1, MsgModbusResp20):
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
     m.db.stat['proxy']['Modbus_Command'] = 0
     m.forward_modbus_resp = True
+    m.mb.last_addr = 1
     m.mb.last_fcode = 3
     m.mb.last_len = 20
     m.mb.last_reg = 0x3008
+    m.mb.req_pend = True
+    m.mb.err = 0
+
     m.read()         # read complete msg, and dispatch msg
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
     assert m.msg_count == 1
