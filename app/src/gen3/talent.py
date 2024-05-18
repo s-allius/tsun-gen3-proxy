@@ -36,7 +36,7 @@ class Control:
 
 class Talent(Message):
     def __init__(self, server_side: bool, id_str=b''):
-        super().__init__(server_side)
+        super().__init__(server_side, self.send_modbus_cb, 15)
         self.await_conn_resp_cnt = 0
         self.id_str = id_str
         self.contact_name = b''
@@ -65,6 +65,7 @@ class Talent(Message):
         # deallocated by the garbage collector ==> we get a memory leak
         self.switch.clear()
         self.state = self.STATE_CLOSED
+        super().close()
 
     def __set_serial_no(self, serial_no: str):
 
@@ -122,20 +123,22 @@ class Talent(Message):
                         f' Ctl: {int(self.ctrl):#02x} Msg: {fnc.__name__!r}')
         return
 
-    async def send_modbus_cmd(self, func, addr, val) -> None:
-        if self.state != self.STATE_UP:
-            return
+    def send_modbus_cb(self, modbus_pdu: bytearray):
         self.forward_modbus_resp = False
         self.__build_header(0x70, 0x77)
         self._send_buffer += b'\x00\x01\xa3\x28'   # fixme
-        modbus_msg = self.mb.build_msg(Modbus.INV_ADDR, func, addr, val)
-        self._send_buffer += struct.pack('!B', len(modbus_msg))
-        self._send_buffer += modbus_msg
+        self._send_buffer += struct.pack('!B', len(modbus_pdu))
+        self._send_buffer += modbus_pdu
         self.__finish_send_msg()
-        try:
-            await self.async_write('Send Modbus Command:')
-        except Exception:
-            self._send_buffer = bytearray(0)
+        hex_dump_memory(logging.INFO, f'Send Modbus Command:{self.addr}:',
+                        self._send_buffer, len(self._send_buffer))
+        self.writer.write(self._send_buffer)
+        self._send_buffer = bytearray(0)  # self._send_buffer[sent:]
+
+    async def send_modbus_cmd(self, func, addr, val) -> None:
+        if self.state != self.STATE_UP:
+            return
+        self.mb.build_msg(Modbus.INV_ADDR, func, addr, val)
 
     def _init_new_client_conn(self) -> bool:
         contact_name = self.contact_name

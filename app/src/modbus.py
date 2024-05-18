@@ -1,5 +1,6 @@
 import struct
 import logging
+import asyncio
 from typing import Generator
 
 if __name__ == "app.src.modbus":
@@ -65,85 +66,133 @@ class Modbus():
         0x3029: {'reg': Register.PV4_TOTAL_GENERATION, 'fmt': '!L', 'ratio': 0.01},  # noqa: E501
     }
 
-    def __init__(self):
+    def __init__(self, snd_handler, timeout: int = 1):
         if not len(self.__crc_tab):
             self.__build_crc_tab(CRC_POLY)
+        self.que = asyncio.Queue(100)
+        self.snd_handler = snd_handler
+        self.timeout = timeout
+        self.last_addr = 0
         self.last_fcode = 0
         self.last_len = 0
         self.last_reg = 0
         self.err = 0
+        self.loop = asyncio.get_event_loop()
+        self.req_pend = False
+        self.tim = None
 
-    def build_msg(self, addr, func, reg, val):
+    def start_timer(self):
+        if self.req_pend:
+            return
+        self.req_pend = True
+        self.tim = self.loop.call_later(self.timeout, self.timeout_cb)
+        # logging.debug(f'Modbus start timer {self}')
+
+    def stop_timer(self):
+        self.req_pend = False
+        # logging.debug(f'Modbus stop timer {self}')
+        if self.tim:
+            self.tim.cancel()
+        self.get_next_req()
+
+    def timeout_cb(self):
+        self.req_pend = False
+        logging.info(f'Modbus timeout {self}')
+        self.get_next_req()
+
+    def get_next_req(self) -> None:
+        if self.req_pend:
+            return
+        try:
+            item = self.que.get_nowait()
+            req = item['req']
+            self.rsp_handler = item['rsp_hdl']
+            self.last_addr = req[0]
+            self.last_fcode = req[1]
+
+            res = struct.unpack_from('>HH', req, 2)
+            self.last_reg = res[0]
+            self.last_len = res[1]
+            self.start_timer()
+            self.snd_handler(req)
+        except asyncio.QueueEmpty:
+            pass
+
+    def build_msg(self, addr, func, reg, val) -> None:
         msg = struct.pack('>BBHH', addr, func, reg, val)
         msg += struct.pack('<H', self.__calc_crc(msg))
-        self.last_fcode = func
-        self.last_reg = reg
-        self.last_len = val
-        self.err = 0
-        return msg
+        self.que.put_nowait({'req': msg,
+                             'rsp_hdl': None})
+        if self.que.qsize() == 1:
+            self.get_next_req()
 
-    def recv_req(self, buf: bytearray) -> bool:
+    def recv_req(self, buf: bytearray, rsp_handler=None) -> bool:
         # logging.info(f'recv_req: first byte modbus:{buf[0]} len:{len(buf)}')
         if not self.check_crc(buf):
             self.err = 1
             logging.error('Modbus recv: CRC error')
             return False
-        if buf[0] != self.INV_ADDR:
-            self.err = 2
-            logging.info(f'Modbus recv: Wrong addr{buf[0]}')
-            return False
-        res = struct.unpack_from('>BHH', buf, 1)
-        self.last_fcode = res[0]
-        self.last_reg = res[1]
-        self.last_len = res[2]
-        self.err = 0
+        self.que.put_nowait({'req': buf,
+                             'rsp_hdl': rsp_handler})
+        if self.que.qsize() == 1:
+            self.get_next_req()
+
         return True
 
     def recv_resp(self, info_db, buf: bytearray, node_id: str) -> \
             Generator[tuple[str, bool], None, None]:
         # logging.info(f'recv_resp: first byte modbus:{buf[0]} len:{len(buf)}')
+        if not self.req_pend:
+            self.err = 5
+            return
         if not self.check_crc(buf):
             logging.error('Modbus resp: CRC error')
             self.err = 1
             return
-        if buf[0] != self.INV_ADDR:
+        if buf[0] != self.last_addr:
             logging.info(f'Modbus resp: Wrong addr {buf[0]}')
             self.err = 2
             return
-        if buf[1] != self.last_fcode:
-            logging.info(f'Modbus: Wrong fcode {buf[1]} != {self.last_fcode}')
+        fcode = buf[1]
+        if fcode != self.last_fcode:
+            logging.info(f'Modbus: Wrong fcode {fcode} != {self.last_fcode}')
             self.err = 3
             return
-        elmlen = buf[2] >> 1
-        if elmlen != self.last_len:
-            logging.info(f'Modbus: len error {elmlen} != {self.last_len}')
-            self.err = 4
-            return
-        self.err = 0
+        if self.last_addr == self.INV_ADDR and \
+                (fcode == 3 or fcode == 4):
+            elmlen = buf[2] >> 1
+            if elmlen != self.last_len:
+                logging.info(f'Modbus: len error {elmlen} != {self.last_len}')
+                self.err = 4
+                return
+            self.stop_timer()
 
-        for i in range(0, elmlen):
-            addr = self.last_reg+i
-            if addr in self.map:
-                row = self.map[addr]
-                info_id = row['reg']
-                fmt = row['fmt']
-                val = struct.unpack_from(fmt, buf, 3+2*i)
-                result = val[0]
+            for i in range(0, elmlen):
+                addr = self.last_reg+i
+                if addr in self.map:
+                    row = self.map[addr]
+                    info_id = row['reg']
+                    fmt = row['fmt']
+                    val = struct.unpack_from(fmt, buf, 3+2*i)
+                    result = val[0]
 
-                if 'eval' in row:
-                    result = eval(row['eval'])
-                if 'ratio' in row:
-                    result = round(result * row['ratio'], 2)
+                    if 'eval' in row:
+                        result = eval(row['eval'])
+                    if 'ratio' in row:
+                        result = round(result * row['ratio'], 2)
 
-                keys, level, unit, must_incr = info_db._key_obj(info_id)
+                    keys, level, unit, must_incr = info_db._key_obj(info_id)
 
-                if keys:
-                    name, update = info_db.update_db(keys, must_incr, result)
-                    yield keys[0], update, result
-                    if update:
-                        info_db.tracer.log(level,
-                                           f'[\'{node_id}\']MODBUS: {name}'
-                                           f' : {result}{unit}')
+                    if keys:
+                        name, update = info_db.update_db(keys, must_incr,
+                                                         result)
+                        yield keys[0], update, result
+                        if update:
+                            info_db.tracer.log(level,
+                                               f'[\'{node_id}\']MODBUS: {name}'
+                                               f' : {result}{unit}')
+        else:
+            self.stop_timer()
 
     def check_crc(self, msg) -> bool:
         return 0 == self.__calc_crc(msg)
