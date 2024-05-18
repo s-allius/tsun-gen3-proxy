@@ -165,10 +165,10 @@ class Modbus():
                 logging.info(f'Modbus: len error {elmlen} != {self.last_len}')
                 self.err = 4
                 return
-            self.stop_timer()
-
+            first_reg = self.last_reg  # save last_reg before sending next pdu
+            self.stop_timer()          # stop timer and send next pdu
             for i in range(0, elmlen):
-                addr = self.last_reg+i
+                addr = first_reg+i
                 if addr in self.map:
                     row = self.map[addr]
                     info_id = row['reg']
