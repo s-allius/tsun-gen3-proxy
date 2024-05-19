@@ -73,6 +73,14 @@ class Modbus():
         self.snd_handler = snd_handler
         self.rsp_handler = None
         self.timeout = timeout
+        self.max_retries = 3
+        self.retry_cnt = 0
+        self.last_req = b''
+        self.counter = {}
+        self.counter['timeouts'] = 0
+        self.counter['retries'] = {}
+        for i in range(0, self.max_retries):
+            self.counter['retries'][i] = 0
         self.last_addr = 0
         self.last_fcode = 0
         self.last_len = 0
@@ -81,6 +89,10 @@ class Modbus():
         self.loop = asyncio.get_event_loop()
         self.req_pend = False
         self.tim = None
+
+    def __del__(self):
+        if type(self.counter) is not None:
+            logging.info(f'Modbus __del__:\n {self.counter}')
 
     def start_timer(self):
         if self.req_pend:
@@ -97,8 +109,16 @@ class Modbus():
 
     def timeout_cb(self):
         self.req_pend = False
-        logging.info(f'Modbus timeout {self}')
-        self.get_next_req()
+
+        if self.retry_cnt < self.max_retries:
+            logging.debug(f'Modbus retrans {self}')
+            self.retry_cnt += 1
+            self.start_timer()
+            self.snd_handler(self.last_req, retrans=True)
+        else:
+            logging.info(f'Modbus timeout {self}')
+            self.counter['timeouts'] += 1
+            self.get_next_req()
 
     def get_next_req(self) -> None:
         if self.req_pend:
@@ -106,6 +126,7 @@ class Modbus():
         try:
             item = self.que.get_nowait()
             req = item['req']
+            self.last_req = req
             self.rsp_handler = item['rsp_hdl']
             self.last_addr = req[0]
             self.last_fcode = req[1]
@@ -113,8 +134,9 @@ class Modbus():
             res = struct.unpack_from('>HH', req, 2)
             self.last_reg = res[0]
             self.last_len = res[1]
+            self.retry_cnt = 0
             self.start_timer()
-            self.snd_handler(req)
+            self.snd_handler(self.last_req, retrans=False)
         except asyncio.QueueEmpty:
             pass
 
@@ -140,7 +162,7 @@ class Modbus():
         return True
 
     def recv_resp(self, info_db, buf: bytearray, node_id: str) -> \
-            Generator[tuple[str, bool], None, None]:
+            Generator[tuple[str, bool, any], None, None]:
         # logging.info(f'recv_resp: first byte modbus:{buf[0]} len:{len(buf)}')
         if not self.req_pend:
             self.err = 5
@@ -194,7 +216,7 @@ class Modbus():
                                                f' : {result}{unit}')
         else:
             self.stop_timer()
-
+        self.counter['retries'][self.retry_cnt] += 1
         if self.rsp_handler:
             self.rsp_handler()
         self.get_next_req()

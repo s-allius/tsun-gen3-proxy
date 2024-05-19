@@ -36,7 +36,7 @@ class Control:
 
 class Talent(Message):
     def __init__(self, server_side: bool, id_str=b''):
-        super().__init__(server_side, self.send_modbus_cb, 15)
+        super().__init__(server_side, self.send_modbus_cb, 11)
         self.await_conn_resp_cnt = 0
         self.id_str = id_str
         self.contact_name = b''
@@ -122,13 +122,21 @@ class Talent(Message):
                         f' Ctl: {int(self.ctrl):#02x} Msg: {fnc.__name__!r}')
         return
 
-    def send_modbus_cb(self, modbus_pdu: bytearray):
+    def send_modbus_cb(self, modbus_pdu: bytearray, retrans: bool):
+        if self.state != self.STATE_UP:
+            return
+
         self.__build_header(0x70, 0x77)
         self._send_buffer += b'\x00\x01\xa3\x28'   # fixme
         self._send_buffer += struct.pack('!B', len(modbus_pdu))
         self._send_buffer += modbus_pdu
         self.__finish_send_msg()
-        hex_dump_memory(logging.INFO, f'Send Modbus Command:{self.addr}:',
+        if retrans:
+            cmd = 'Retrans'
+        else:
+            cmd = 'Command'
+
+        hex_dump_memory(logging.INFO, f'Send Modbus {cmd}:{self.addr}:',
                         self._send_buffer, len(self._send_buffer))
         self.writer.write(self._send_buffer)
         self._send_buffer = bytearray(0)  # self._send_buffer[sent:]
@@ -392,11 +400,14 @@ class Talent(Message):
                                  self.header_len+self.data_len]
 
         if self.ctrl.is_req():
+            # if (self.remoteStream.state != self.STATE_UP):
+            #     logger.info('ignore Modbus Request in wrong state')
+            #     return
             if self.remoteStream.mb.recv_req(data[hdr_len:],
                                              self.msg_forward):
-                self.remoteStream.inc_counter('Modbus_Command')
+                self.inc_counter('Modbus_Command')
             else:
-                self.remoteStream.inc_counter('Invalid_Msg_Format')
+                self.inc_counter('Invalid_Msg_Format')
         elif self.ctrl.is_ind():
             # logger.debug(f'Modbus Ind  MsgLen: {modbus_len}')
             self.modbus_elms = 0

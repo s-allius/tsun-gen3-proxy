@@ -301,13 +301,19 @@ class SolarmanV5(Message):
                                          self._heartbeat())
         self.__finish_send_msg()
 
-    def send_modbus_cb(self, pdu: bytearray):
+    def send_modbus_cb(self, pdu: bytearray, retrans: bool):
+        if self.state != self.STATE_UP:
+            return
         self.__build_header(0x4510)
         self._send_buffer += struct.pack('<BHLLL', self.MB_RTU_CMD,
                                          0x2b0, 0, 0, 0)
         self._send_buffer += pdu
         self.__finish_send_msg()
-        hex_dump_memory(logging.INFO, f'Send Modbus Command:{self.addr}:',
+        if retrans:
+            cmd = 'Retrans'
+        else:
+            cmd = 'Command'
+        hex_dump_memory(logging.INFO, f'Send Modbus {cmd}:{self.addr}:',
                         self._send_buffer, len(self._send_buffer))
         self.writer.write(self._send_buffer)
         self._send_buffer = bytearray(0)  # self._send_buffer[sent:]
