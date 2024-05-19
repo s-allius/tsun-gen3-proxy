@@ -430,11 +430,11 @@ class SolarmanV5(Message):
             self.inc_counter('AT_Command')
             self.forward_at_cmd_resp = True
         elif ftype == self.MB_RTU_CMD:
-            if not self.remoteStream.mb.recv_req(data[15:],
-                                                 self.__forward_msg()):
-                self.inc_counter('Invalid_Msg_Format')
-            else:
+            if self.remoteStream.mb.recv_req(data[15:],
+                                             self.__forward_msg()):
                 self.inc_counter('Modbus_Command')
+            else:
+                self.inc_counter('Invalid_Msg_Format')
             return
 
         self.__forward_msg()
