@@ -860,11 +860,11 @@ def test_msg_modbus_req2(ConfigTsunInv1, MsgModbusCmdCrcErr):
     m.close()
 
 def test_msg_modbus_rsp1(ConfigTsunInv1, MsgModbusRsp):
+    '''Modbus response without a valid Modbus request must be dropped'''
     ConfigTsunInv1
     m = MemoryStream(MsgModbusRsp)
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
     m.db.stat['proxy']['Modbus_Command'] = 0
-    m.forward_modbus_resp = False
     m.read()         # read complete msg, and dispatch msg
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
     assert m.msg_count == 1
@@ -880,33 +880,13 @@ def test_msg_modbus_rsp1(ConfigTsunInv1, MsgModbusRsp):
     assert m.db.stat['proxy']['Modbus_Command'] == 0
     m.close()
 
-def test_msg_modbus_rsp2(ConfigTsunInv1, MsgModbusRsp):
-    ConfigTsunInv1
-    m = MemoryStream(MsgModbusRsp)
-    m.db.stat['proxy']['Unknown_Ctrl'] = 0
-    m.db.stat['proxy']['Modbus_Command'] = 0
-    m.forward_modbus_resp = True
-    m.read()         # read complete msg, and dispatch msg
-    assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
-    assert m.msg_count == 1
-    assert m.id_str == b"R170000000000001" 
-    assert m.unique_id == 'R170000000000001'
-    assert int(m.ctrl)==145
-    assert m.msg_id==119
-    assert m.header_len==23
-    assert m.data_len==13
-    assert m._forward_buffer==MsgModbusRsp
-    assert m._send_buffer==b''
-    assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
-    assert m.db.stat['proxy']['Modbus_Command'] == 0
-    m.close()
-
-def test_msg_modbus_rsp3(ConfigTsunInv1, MsgModbusResp20):
+def test_msg_modbus_rsp2(ConfigTsunInv1, MsgModbusResp20):
+    '''Modbus response with a valid Modbus request must be forwarded'''
     ConfigTsunInv1
     m = MemoryStream(MsgModbusResp20)
     m.append_msg(MsgModbusResp20)
 
-    m.forward_modbus_resp = True
+    m.mb.rsp_handler = m.msg_forward
     m.mb.last_addr = 1
     m.mb.last_fcode = 3
     m.mb.last_len = 20
@@ -966,7 +946,7 @@ def test_msg_modbus_fragment(ConfigTsunInv1, MsgModbusResp20):
     m = MemoryStream(MsgModbusResp20+b'\x00\x00\x00\x45\x10\x52\x31', (0,))
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
     m.db.stat['proxy']['Modbus_Command'] = 0
-    m.forward_modbus_resp = True
+    m.mb.rsp_handler = m.msg_forward
     m.mb.last_addr = 1
     m.mb.last_fcode = 3
     m.mb.last_len = 20
