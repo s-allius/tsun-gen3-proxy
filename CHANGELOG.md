@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- add Modbus fifo and timeout handler
 - build version string in the same format as TSUN for GEN3 invterts
 - add graceful shutdown
 - parse Modbus values and store them in the database
