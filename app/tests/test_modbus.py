@@ -21,24 +21,25 @@ def test_modbus_crc():
     mb = Modbus(None)
     assert 0x0b02 == mb._Modbus__calc_crc(b'\x01\x06\x20\x08\x00\x04')
     assert 0 == mb._Modbus__calc_crc(b'\x01\x06\x20\x08\x00\x04\x02\x0b')
-    assert mb.check_crc(b'\x01\x06\x20\x08\x00\x04\x02\x0b')
+    assert mb._Modbus__check_crc(b'\x01\x06\x20\x08\x00\x04\x02\x0b')
 
     assert 0xc803 == mb._Modbus__calc_crc(b'\x01\x06\x20\x08\x00\x00')
     assert 0 == mb._Modbus__calc_crc(b'\x01\x06\x20\x08\x00\x00\x03\xc8')
-    assert mb.check_crc(b'\x01\x06\x20\x08\x00\x00\x03\xc8')
+    assert mb._Modbus__check_crc(b'\x01\x06\x20\x08\x00\x00\x03\xc8')
 
     assert 0x5c75 == mb._Modbus__calc_crc(b'\x01\x03\x08\x01\x2c\x00\x2c\x02\x2c\x2c\x46')
+    
 def test_build_modbus_pdu():
     mb = TestHelper()
     mb.build_msg(1,6,0x2000,0x12)
-    mb.get_next_req()
+    mb._Modbus__send_next_from_que()
     assert mb.pdu == b'\x01\x06\x20\x00\x00\x12\x02\x07'
-    assert mb.check_crc(mb.pdu)
+    assert mb._Modbus__check_crc(mb.pdu)
 
 def test_recv_req_crc():
     mb = TestHelper()
     mb.recv_req(b'\x01\x06\x20\x00\x00\x12\x02\x08')
-    mb.get_next_req()
+    mb._Modbus__send_next_from_que()
     assert mb.last_fcode == 0   
     assert mb.last_reg == 0
     assert mb.last_len == 0
@@ -47,7 +48,7 @@ def test_recv_req_crc():
 def test_recv_req_addr():
     mb = TestHelper()
     mb.recv_req(b'\x02\x06\x20\x00\x00\x12\x02\x34')
-    mb.get_next_req()
+    mb._Modbus__send_next_from_que()
     assert mb.last_addr == 2
     assert mb.last_fcode == 6
     assert mb.last_reg == 0x2000
@@ -56,7 +57,7 @@ def test_recv_req_addr():
 def test_recv_req():
     mb = TestHelper()
     mb.recv_req(b'\x01\x06\x20\x00\x00\x12\x02\x07')
-    mb.get_next_req()
+    mb._Modbus__send_next_from_que()
     assert mb.last_fcode == 6
     assert mb.last_reg == 0x2000
     assert mb.last_len == 0x12
@@ -88,7 +89,7 @@ def test_recv_recv_addr():
     assert mb.err == 2
     assert 0 == call
     assert mb.que.qsize() == 0
-    mb.stop_timer()
+    mb._Modbus__stop_timer()
     assert not mb.req_pend
 
 def test_recv_recv_fcode():
@@ -104,7 +105,7 @@ def test_recv_recv_fcode():
     assert mb.err == 3
     assert 0 == call
     assert mb.que.qsize() == 0
-    mb.stop_timer()
+    mb._Modbus__stop_timer()
     assert not mb.req_pend
 
 def test_recv_recv_len():
@@ -120,7 +121,7 @@ def test_recv_recv_len():
     assert mb.err == 4
     assert 0 == call
     assert mb.que.qsize() == 0
-    mb.stop_timer()
+    mb._Modbus__stop_timer()
     assert not mb.req_pend
 
 def test_build_recv():
@@ -162,7 +163,7 @@ def test_build_recv():
     assert 0 == mb.err
     assert 5 == call
     assert mb.que.qsize() == 0
-    mb.stop_timer()
+    mb._Modbus__stop_timer()
     assert not mb.req_pend
 
 def test_build_long():
@@ -186,7 +187,7 @@ def test_build_long():
     assert 0 == mb.err
     assert 3 == call
     assert mb.que.qsize() == 0
-    mb.stop_timer()
+    mb._Modbus__stop_timer()
     assert not mb.req_pend
 
 def test_queue():
@@ -198,12 +199,12 @@ def test_queue():
     assert mb.send_calls == 1
     assert mb.pdu == b'\x01\x030"\x00\x04\xeb\x03'
     mb.pdu = None
-    mb.get_next_req()
+    mb._Modbus__send_next_from_que()
     assert mb.send_calls == 1
     assert mb.pdu == None
 
     assert mb.que.qsize() == 0
-    mb.stop_timer()
+    mb._Modbus__stop_timer()
     assert not mb.req_pend
 
 def test_queue2():
@@ -215,7 +216,7 @@ def test_queue2():
 
     assert mb.send_calls == 1
     assert mb.pdu == b'\x01\x030\x07\x00\x06{\t'
-    mb.get_next_req()
+    mb._Modbus__send_next_from_que()
     assert mb.send_calls == 1
     call = 0
     exp_result = ['V0.0.212', 4.4, 0.7, 0.7, 30]
