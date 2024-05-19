@@ -392,11 +392,11 @@ class Talent(Message):
                                  self.header_len+self.data_len]
 
         if self.ctrl.is_req():
-            if not self.remoteStream.mb.recv_req(data[hdr_len:],
-                                                 self.msg_forward):
-                self.inc_counter('Invalid_Msg_Format')
+            if self.remoteStream.mb.recv_req(data[hdr_len:],
+                                             self.msg_forward):
+                self.remoteStream.inc_counter('Modbus_Command')
             else:
-                self.inc_counter('Modbus_Command')
+                self.remoteStream.inc_counter('Invalid_Msg_Format')
         elif self.ctrl.is_ind():
             # logger.debug(f'Modbus Ind  MsgLen: {modbus_len}')
             self.modbus_elms = 0
@@ -406,11 +406,10 @@ class Talent(Message):
                 if update:
                     self.new_data[key] = True
                 self.modbus_elms += 1          # count for unit tests
-            return
         else:
             logger.warning('Unknown Ctrl')
             self.inc_counter('Unknown_Ctrl')
-        self.forward(self._recv_buffer, self.header_len+self.data_len)
+            self.forward(self._recv_buffer, self.header_len+self.data_len)
 
     def msg_forward(self):
         self.forward(self._recv_buffer, self.header_len+self.data_len)
