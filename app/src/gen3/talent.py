@@ -42,7 +42,6 @@ class Talent(Message):
         self.contact_name = b''
         self.contact_mail = b''
         self.db = InfosG3()
-        self.forward_modbus_resp = False
         self.switch = {
             0x00: self.msg_contact_info,
             0x13: self.msg_ota_update,
@@ -124,7 +123,6 @@ class Talent(Message):
         return
 
     def send_modbus_cb(self, modbus_pdu: bytearray):
-        self.forward_modbus_resp = False
         self.__build_header(0x70, 0x77)
         self._send_buffer += b'\x00\x01\xa3\x28'   # fixme
         self._send_buffer += struct.pack('!B', len(modbus_pdu))
@@ -394,11 +392,11 @@ class Talent(Message):
                                  self.header_len+self.data_len]
 
         if self.ctrl.is_req():
-            if not self.remoteStream.mb.recv_req(data[hdr_len:]):
+            if not self.remoteStream.mb.recv_req(data[hdr_len:],
+                                                 self.msg_forward):
                 self.inc_counter('Invalid_Msg_Format')
             else:
                 self.inc_counter('Modbus_Command')
-            self.remoteStream.forward_modbus_resp = True
         elif self.ctrl.is_ind():
             # logger.debug(f'Modbus Ind  MsgLen: {modbus_len}')
             self.modbus_elms = 0
@@ -408,12 +406,13 @@ class Talent(Message):
                 if update:
                     self.new_data[key] = True
                 self.modbus_elms += 1          # count for unit tests
-
-            if not self.forward_modbus_resp:
-                return
+            return
         else:
             logger.warning('Unknown Ctrl')
             self.inc_counter('Unknown_Ctrl')
+        self.forward(self._recv_buffer, self.header_len+self.data_len)
+
+    def msg_forward(self):
         self.forward(self._recv_buffer, self.header_len+self.data_len)
 
     def msg_unknown(self):

@@ -60,7 +60,6 @@ class SolarmanV5(Message):
         self.snr = 0
         self.db = InfosG3P()
         self.time_ofs = 0
-        self.forward_modbus_resp = False
         self.forward_at_cmd_resp = False
         self.switch = {
 
@@ -303,7 +302,6 @@ class SolarmanV5(Message):
         self.__finish_send_msg()
 
     def send_modbus_cb(self, pdu: bytearray):
-        self.forward_modbus_resp = False
         self.__build_header(0x4510)
         self._send_buffer += struct.pack('<BHLLL', self.MB_RTU_CMD,
                                          0x2b0, 0, 0, 0)
@@ -432,14 +430,14 @@ class SolarmanV5(Message):
             self.inc_counter('AT_Command')
             self.forward_at_cmd_resp = True
         elif ftype == self.MB_RTU_CMD:
-            if not self.remoteStream.mb.recv_req(data[15:]):
+            if not self.remoteStream.mb.recv_req(data[15:],
+                                                 self.__forward_msg()):
                 self.inc_counter('Invalid_Msg_Format')
             else:
                 self.inc_counter('Modbus_Command')
-            self.remoteStream.forward_modbus_resp = True
+            return
 
         self.__forward_msg()
-        # self.__send_ack_rsp(0x1510, ftype)
 
     def msg_command_rsp(self):
         data = self._recv_buffer[self.header_len:
@@ -467,9 +465,7 @@ class SolarmanV5(Message):
 
                 if inv_update:
                     self.__build_model_name()
-
-                if not self.forward_modbus_resp:
-                    return
+                return
         self.__forward_msg()
 
     def msg_hbeat_ind(self):

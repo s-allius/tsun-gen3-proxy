@@ -71,6 +71,7 @@ class Modbus():
             self.__build_crc_tab(CRC_POLY)
         self.que = asyncio.Queue(100)
         self.snd_handler = snd_handler
+        self.rsp_handler = None
         self.timeout = timeout
         self.last_addr = 0
         self.last_fcode = 0
@@ -93,7 +94,6 @@ class Modbus():
         # logging.debug(f'Modbus stop timer {self}')
         if self.tim:
             self.tim.cancel()
-        self.get_next_req()
 
     def timeout_cb(self):
         self.req_pend = False
@@ -167,6 +167,7 @@ class Modbus():
                 return
             first_reg = self.last_reg  # save last_reg before sending next pdu
             self.stop_timer()          # stop timer and send next pdu
+
             for i in range(0, elmlen):
                 addr = first_reg+i
                 if addr in self.map:
@@ -193,6 +194,10 @@ class Modbus():
                                                f' : {result}{unit}')
         else:
             self.stop_timer()
+
+        if self.rsp_handler:
+            self.rsp_handler()
+        self.get_next_req()
 
     def check_crc(self, msg) -> bool:
         return 0 == self.__calc_crc(msg)
