@@ -13,7 +13,7 @@ class TestHelper(Modbus):
         self.db = Infos()
         self.pdu = None
         self.send_calls = 0
-    def send_cb(self, pdu: bytearray):
+    def send_cb(self, pdu: bytearray, retrans: bool):
         self.pdu = pdu
         self.send_calls += 1
 
@@ -247,19 +247,46 @@ def test_queue2():
 async def test_timeout():
     assert asyncio.get_running_loop()
     mb = TestHelper()
+    mb.max_retries = 2
     assert asyncio.get_running_loop() == mb.loop
     mb.build_msg(1,3,0x3007,6)
     mb.build_msg(1,6,0x2008,4)
+
     assert mb.que.qsize() == 1
     assert mb.req_pend
-
+    assert mb.retry_cnt == 0
     assert mb.send_calls == 1
     assert mb.pdu == b'\x01\x030\x07\x00\x06{\t'
-    await asyncio.sleep(1.1)    # wait for first timeout and next pdu
-    assert mb.req_pend
-    assert mb.send_calls == 2
-    assert mb.pdu == b'\x01\x06\x20\x08\x00\x04\x02\x0b'
-    await asyncio.sleep(1.1)    # wait for second timout
 
-    assert not mb.req_pend
+    mb.pdu = None
+    await asyncio.sleep(1.1)    # wait for first timeout and retransmittion
+    assert mb.que.qsize() == 1
+    assert mb.req_pend
+    assert mb.retry_cnt == 1
+    assert mb.send_calls == 2
+    assert mb.pdu == b'\x01\x030\x07\x00\x06{\t'
+
+    mb.pdu = None
+    await asyncio.sleep(1.1)    # wait for second timeout and retransmittion
+    assert mb.que.qsize() == 1
+    assert mb.req_pend
+    assert mb.retry_cnt == 2
+    assert mb.send_calls == 3
+    assert mb.pdu == b'\x01\x030\x07\x00\x06{\t'
+
+    mb.pdu = None
+    await asyncio.sleep(1.1)    # wait for third timeout and next pdu
     assert mb.que.qsize() == 0
+    assert mb.req_pend
+    assert mb.retry_cnt == 0
+    assert mb.send_calls == 4
+    assert mb.pdu == b'\x01\x06\x20\x08\x00\x04\x02\x0b'
+
+    mb.max_retries = 0          # next pdu without retranmsission
+    await asyncio.sleep(1.1)    # wait for fourth timout
+    assert mb.que.qsize() == 0
+    assert not mb.req_pend
+    assert mb.retry_cnt == 0
+    assert mb.send_calls == 4
+
+    # assert mb.counter == {}

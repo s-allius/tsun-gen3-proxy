@@ -815,6 +815,8 @@ def test_msg_modbus_req(ConfigTsunInv1, MsgModbusCmd):
     ConfigTsunInv1
     m = MemoryStream(b'')
     m.id_str = b"R170000000000001" 
+    m.state = m.STATE_UP
+
     c = m.createClientStream(MsgModbusCmd)
     
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
