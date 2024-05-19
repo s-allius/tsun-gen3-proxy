@@ -814,6 +814,7 @@ def test_proxy_counter():
 def test_msg_modbus_req(ConfigTsunInv1, MsgModbusCmd):
     ConfigTsunInv1
     m = MemoryStream(b'')
+    m.id_str = b"R170000000000001" 
     c = m.createClientStream(MsgModbusCmd)
     
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
@@ -828,8 +829,12 @@ def test_msg_modbus_req(ConfigTsunInv1, MsgModbusCmd):
     assert c.msg_id==119
     assert c.header_len==23
     assert c.data_len==13
-    assert c._forward_buffer==MsgModbusCmd
+    assert c._forward_buffer==b''
     assert c._send_buffer==b''
+    assert m.id_str == b"R170000000000001" 
+    assert m._forward_buffer==b''
+    assert m._send_buffer==b''
+    assert m.writer.sent_pdu == MsgModbusCmd
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
     assert m.db.stat['proxy']['Modbus_Command'] == 1
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
@@ -838,6 +843,7 @@ def test_msg_modbus_req(ConfigTsunInv1, MsgModbusCmd):
 def test_msg_modbus_req2(ConfigTsunInv1, MsgModbusCmdCrcErr):
     ConfigTsunInv1
     m = MemoryStream(b'')
+    m.id_str = b"R170000000000001" 
     c = m.createClientStream(MsgModbusCmdCrcErr)
     
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
@@ -852,8 +858,11 @@ def test_msg_modbus_req2(ConfigTsunInv1, MsgModbusCmdCrcErr):
     assert c.msg_id==119
     assert c.header_len==23
     assert c.data_len==13
-    assert c._forward_buffer==MsgModbusCmdCrcErr
+    assert c._forward_buffer==b''
     assert c._send_buffer==b''
+    assert m._forward_buffer==b''
+    assert m._send_buffer==b''
+    assert m.writer.sent_pdu ==b''
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
     assert m.db.stat['proxy']['Modbus_Command'] == 0
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 1
