@@ -12,10 +12,21 @@ pytest_plugins = ('pytest_asyncio',)
 Infos.static_init()
 
 tracer = logging.getLogger('tracer')
-    
+
+
+class Writer():
+    def __init__(self):
+        self.sent_pdu = b''
+
+    def write(self, pdu: bytearray):
+        self.sent_pdu = pdu
+
 class MemoryStream(Talent):
     def __init__(self, msg, chunks = (0,), server_side: bool = True):
         super().__init__(server_side)
+        if server_side:
+            self.mb.timeout = 1   # overwrite for faster testing
+        self.writer = Writer()
         self.__msg = msg
         self.__msg_len = len(msg)
         self.__chunks = chunks
@@ -803,6 +814,9 @@ def test_proxy_counter():
 def test_msg_modbus_req(ConfigTsunInv1, MsgModbusCmd):
     ConfigTsunInv1
     m = MemoryStream(b'')
+    m.id_str = b"R170000000000001" 
+    m.state = m.STATE_UP
+
     c = m.createClientStream(MsgModbusCmd)
     
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
@@ -817,8 +831,12 @@ def test_msg_modbus_req(ConfigTsunInv1, MsgModbusCmd):
     assert c.msg_id==119
     assert c.header_len==23
     assert c.data_len==13
-    assert c._forward_buffer==MsgModbusCmd
+    assert c._forward_buffer==b''
     assert c._send_buffer==b''
+    assert m.id_str == b"R170000000000001" 
+    assert m._forward_buffer==b''
+    assert m._send_buffer==b''
+    assert m.writer.sent_pdu == MsgModbusCmd
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
     assert m.db.stat['proxy']['Modbus_Command'] == 1
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
@@ -827,6 +845,7 @@ def test_msg_modbus_req(ConfigTsunInv1, MsgModbusCmd):
 def test_msg_modbus_req2(ConfigTsunInv1, MsgModbusCmdCrcErr):
     ConfigTsunInv1
     m = MemoryStream(b'')
+    m.id_str = b"R170000000000001" 
     c = m.createClientStream(MsgModbusCmdCrcErr)
     
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
@@ -841,19 +860,22 @@ def test_msg_modbus_req2(ConfigTsunInv1, MsgModbusCmdCrcErr):
     assert c.msg_id==119
     assert c.header_len==23
     assert c.data_len==13
-    assert c._forward_buffer==MsgModbusCmdCrcErr
+    assert c._forward_buffer==b''
     assert c._send_buffer==b''
+    assert m._forward_buffer==b''
+    assert m._send_buffer==b''
+    assert m.writer.sent_pdu ==b''
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
     assert m.db.stat['proxy']['Modbus_Command'] == 0
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 1
     m.close()
 
 def test_msg_modbus_rsp1(ConfigTsunInv1, MsgModbusRsp):
+    '''Modbus response without a valid Modbus request must be dropped'''
     ConfigTsunInv1
     m = MemoryStream(MsgModbusRsp)
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
     m.db.stat['proxy']['Modbus_Command'] = 0
-    m.forward_modbus_resp = False
     m.read()         # read complete msg, and dispatch msg
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
     assert m.msg_count == 1
@@ -869,36 +891,20 @@ def test_msg_modbus_rsp1(ConfigTsunInv1, MsgModbusRsp):
     assert m.db.stat['proxy']['Modbus_Command'] == 0
     m.close()
 
-def test_msg_modbus_rsp2(ConfigTsunInv1, MsgModbusRsp):
-    ConfigTsunInv1
-    m = MemoryStream(MsgModbusRsp)
-    m.db.stat['proxy']['Unknown_Ctrl'] = 0
-    m.db.stat['proxy']['Modbus_Command'] = 0
-    m.forward_modbus_resp = True
-    m.read()         # read complete msg, and dispatch msg
-    assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
-    assert m.msg_count == 1
-    assert m.id_str == b"R170000000000001" 
-    assert m.unique_id == 'R170000000000001'
-    assert int(m.ctrl)==145
-    assert m.msg_id==119
-    assert m.header_len==23
-    assert m.data_len==13
-    assert m._forward_buffer==MsgModbusRsp
-    assert m._send_buffer==b''
-    assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
-    assert m.db.stat['proxy']['Modbus_Command'] == 0
-    m.close()
-
-def test_msg_modbus_rsp3(ConfigTsunInv1, MsgModbusResp20):
+def test_msg_modbus_rsp2(ConfigTsunInv1, MsgModbusResp20):
+    '''Modbus response with a valid Modbus request must be forwarded'''
     ConfigTsunInv1
     m = MemoryStream(MsgModbusResp20)
     m.append_msg(MsgModbusResp20)
 
-    m.forward_modbus_resp = True
+    m.mb.rsp_handler = m.msg_forward
+    m.mb.last_addr = 1
     m.mb.last_fcode = 3
     m.mb.last_len = 20
     m.mb.last_reg = 0x3008
+    m.mb.req_pend = True
+    m.mb.err = 0
+
     assert m.db.db == {}
     m.new_data['inverter'] = False
 
@@ -915,7 +921,7 @@ def test_msg_modbus_rsp3(ConfigTsunInv1, MsgModbusResp20):
 
     m.read()         # read complete msg, and dispatch msg
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
-    assert m.mb.err == 0
+    assert m.mb.err == 5
     assert m.msg_count == 2
     assert m._forward_buffer==MsgModbusResp20
     assert m._send_buffer==b''
@@ -951,10 +957,14 @@ def test_msg_modbus_fragment(ConfigTsunInv1, MsgModbusResp20):
     m = MemoryStream(MsgModbusResp20+b'\x00\x00\x00\x45\x10\x52\x31', (0,))
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
     m.db.stat['proxy']['Modbus_Command'] = 0
-    m.forward_modbus_resp = True
+    m.mb.rsp_handler = m.msg_forward
+    m.mb.last_addr = 1
     m.mb.last_fcode = 3
     m.mb.last_len = 20
     m.mb.last_reg = 0x3008
+    m.mb.req_pend = True
+    m.mb.err = 0
+
     m.read()         # read complete msg, and dispatch msg
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
     assert m.msg_count == 1
@@ -981,19 +991,22 @@ async def test_msg_build_modbus_req(ConfigTsunInv1, MsgModbusCmd):
     assert 0 == m.send_msg_ofs
     assert m._forward_buffer == b''
     assert m._send_buffer == b''
+    assert m.writer.sent_pdu == b''
 
     m.state = m.STATE_UP
     await m.send_modbus_cmd(Modbus.WRITE_SINGLE_REG, 0x2008, 0)
     assert 0 == m.send_msg_ofs
     assert m._forward_buffer == b''
-    assert m._send_buffer == MsgModbusCmd
+    assert m._send_buffer == b''
+    assert m.writer.sent_pdu == MsgModbusCmd
 
-    m._send_buffer = bytearray(0) # clear send buffer for next test    
+    m.writer.sent_pdu = bytearray(0) # clear send buffer for next test    
     m.test_exception_async_write = True
     await m.send_modbus_cmd(Modbus.WRITE_SINGLE_REG, 0x2008, 0)
     assert 0 == m.send_msg_ofs
     assert m._forward_buffer == b''
     assert m._send_buffer == b''
+    assert m.writer.sent_pdu == b''
     m.close()
 '''
 def test_zombie_conn(ConfigTsunInv1, MsgInverterInd):

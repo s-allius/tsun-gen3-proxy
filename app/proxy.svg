@@ -65,14 +65,15 @@
 <!-- A3 -->
 <g id="node4" class="node">
 <title>A3</title>
-<polygon fill="none" stroke="#000000" points="274.348,-270 274.348,-302 346.348,-302 346.348,-270 274.348,-270"/>
-<text text-anchor="start" x="292.5655" y="-283" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">Modbus</text>
-<polygon fill="none" stroke="#000000" points="274.348,-250 274.348,-270 346.348,-270 346.348,-250 274.348,-250"/>
-<polygon fill="none" stroke="#000000" points="274.348,-182 274.348,-250 346.348,-250 346.348,-182 274.348,-182"/>
-<text text-anchor="start" x="284.238" y="-231" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">build_msg()</text>
-<text text-anchor="start" x="287.572" y="-219" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">recv_req()</text>
-<text text-anchor="start" x="285.072" y="-207" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">recv_resp()</text>
-<text text-anchor="start" x="284.516" y="-195" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">check_crc()</text>
+<polygon fill="none" stroke="#000000" points="274.348,-276 274.348,-308 346.348,-308 346.348,-276 274.348,-276"/>
+<text text-anchor="start" x="292.5655" y="-289" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">Modbus</text>
+<polygon fill="none" stroke="#000000" points="274.348,-232 274.348,-276 346.348,-276 346.348,-232 274.348,-232"/>
+<text text-anchor="start" x="304.2395" y="-257" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">err</text>
+<text text-anchor="start" x="290.9015" y="-245" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">retry_cnt</text>
+<polygon fill="none" stroke="#000000" points="274.348,-176 274.348,-232 346.348,-232 346.348,-176 274.348,-176"/>
+<text text-anchor="start" x="284.238" y="-213" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">build_msg()</text>
+<text text-anchor="start" x="287.572" y="-201" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">recv_req()</text>
+<text text-anchor="start" x="285.072" y="-189" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">recv_resp()</text>
 </g>
 <!-- A4 -->
 <g id="node5" class="node">
@@ -166,9 +167,9 @@
 <!-- A6&#45;&gt;A3 -->
 <g id="edge6" class="edge">
 <title>A6&#45;&gt;A3</title>
-<path fill="none" stroke="#000000" d="M370.219,-368.906C360.883,-349.1169 351.5004,-329.2289 343.023,-311.2598"/>
-<polygon fill="#000000" stroke="#000000" points="338.6774,-302.0487 347.0141,-309.1727 340.8108,-306.5707 342.9442,-311.0928 342.9442,-311.0928 342.9442,-311.0928 340.8108,-306.5707 338.8744,-313.0128 338.6774,-302.0487 338.6774,-302.0487"/>
-<text text-anchor="middle" x="354.0558" y="-311.8357" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">1</text>
+<path fill="none" stroke="#000000" d="M370.219,-368.906C361.9756,-351.4328 353.6959,-333.8827 346.0351,-317.6444"/>
+<polygon fill="#000000" stroke="#000000" points="341.601,-308.2456 349.9376,-315.3696 343.7344,-312.7676 345.8678,-317.2897 345.8678,-317.2897 345.8678,-317.2897 343.7344,-312.7676 341.7979,-319.2097 341.601,-308.2456 341.601,-308.2456"/>
+<text text-anchor="middle" x="356.9793" y="-318.0326" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">1</text>
 <text text-anchor="middle" x="354.8406" y="-353.119" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">has</text>
 </g>
 <!-- A8 -->

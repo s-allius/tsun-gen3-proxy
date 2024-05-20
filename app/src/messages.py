@@ -56,12 +56,14 @@ class Message(metaclass=IterRegistry):
     STATE_UP = 2
     STATE_CLOSED = 3
 
-    def __init__(self, server_side: bool):
+    def __init__(self, server_side: bool, send_modbus_cb, mb_timeout):
         self._registry.append(weakref.ref(self))
 
         self.server_side = server_side
         if server_side:
-            self.mb = Modbus()
+            self.mb = Modbus(send_modbus_cb, mb_timeout)
+        else:
+            self.mb = None
 
         self.header_valid = False
         self.header_len = 0
@@ -91,6 +93,9 @@ class Message(metaclass=IterRegistry):
     Our puplic methods
     '''
     def close(self) -> None:
+        if self.mb:
+            del self.mb
+            self.mb = None
         pass  # pragma: no cover
 
     def inc_counter(self, counter: str) -> None:

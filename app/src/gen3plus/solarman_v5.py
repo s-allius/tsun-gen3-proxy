@@ -52,7 +52,7 @@ class SolarmanV5(Message):
     MB_RTU_CMD = 2
 
     def __init__(self, server_side: bool):
-        super().__init__(server_side)
+        super().__init__(server_side, self.send_modbus_cb, 5)
 
         self.header_len = 11  # overwrite construcor in class Message
         self.control = 0
@@ -60,7 +60,6 @@ class SolarmanV5(Message):
         self.snr = 0
         self.db = InfosG3P()
         self.time_ofs = 0
-        self.forward_modbus_resp = False
         self.forward_at_cmd_resp = False
         self.switch = {
 
@@ -104,6 +103,7 @@ class SolarmanV5(Message):
         # deallocated by the garbage collector ==> we get a memory leak
         self.switch.clear()
         self.state = self.STATE_CLOSED
+        super().close()
 
     def __set_serial_no(self, snr: int):
         serial_no = str(snr)
@@ -301,20 +301,23 @@ class SolarmanV5(Message):
                                          self._heartbeat())
         self.__finish_send_msg()
 
-    async def send_modbus_cmd(self, func, addr, val) -> None:
+    def send_modbus_cb(self, pdu: bytearray, state: str):
         if self.state != self.STATE_UP:
             return
-        self.forward_modbus_resp = False
         self.__build_header(0x4510)
         self._send_buffer += struct.pack('<BHLLL', self.MB_RTU_CMD,
                                          0x2b0, 0, 0, 0)
-        self._send_buffer += self.mb.build_msg(Modbus.INV_ADDR,
-                                               func, addr, val)
+        self._send_buffer += pdu
         self.__finish_send_msg()
-        try:
-            await self.async_write('Send Modbus Command:')
-        except Exception:
-            self._send_buffer = bytearray(0)
+        hex_dump_memory(logging.INFO, f'Send Modbus {state}:{self.addr}:',
+                        self._send_buffer, len(self._send_buffer))
+        self.writer.write(self._send_buffer)
+        self._send_buffer = bytearray(0)  # self._send_buffer[sent:]
+
+    async def send_modbus_cmd(self, func, addr, val) -> None:
+        if self.state != self.STATE_UP:
+            return
+        self.mb.build_msg(Modbus.INV_ADDR, func, addr, val)
 
     async def send_at_cmd(self, AT_cmd: str) -> None:
         if self.state != self.STATE_UP:
@@ -429,14 +432,14 @@ class SolarmanV5(Message):
             self.inc_counter('AT_Command')
             self.forward_at_cmd_resp = True
         elif ftype == self.MB_RTU_CMD:
-            if not self.remoteStream.mb.recv_req(data[15:]):
-                self.inc_counter('Invalid_Msg_Format')
-            else:
+            if self.remoteStream.mb.recv_req(data[15:],
+                                             self.__forward_msg()):
                 self.inc_counter('Modbus_Command')
-            self.remoteStream.forward_modbus_resp = True
+            else:
+                self.inc_counter('Invalid_Msg_Format')
+            return
 
         self.__forward_msg()
-        # self.__send_ack_rsp(0x1510, ftype)
 
     def msg_command_rsp(self):
         data = self._recv_buffer[self.header_len:
@@ -464,9 +467,7 @@ class SolarmanV5(Message):
 
                 if inv_update:
                     self.__build_model_name()
-
-                if not self.forward_modbus_resp:
-                    return
+                return
         self.__forward_msg()
 
     def msg_hbeat_ind(self):
