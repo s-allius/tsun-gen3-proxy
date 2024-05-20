@@ -122,7 +122,7 @@ class Talent(Message):
                         f' Ctl: {int(self.ctrl):#02x} Msg: {fnc.__name__!r}')
         return
 
-    def send_modbus_cb(self, modbus_pdu: bytearray, retrans: bool):
+    def send_modbus_cb(self, modbus_pdu: bytearray, state: str):
         if self.state != self.STATE_UP:
             return
 
@@ -131,12 +131,8 @@ class Talent(Message):
         self._send_buffer += struct.pack('!B', len(modbus_pdu))
         self._send_buffer += modbus_pdu
         self.__finish_send_msg()
-        if retrans:
-            cmd = 'Retrans'
-        else:
-            cmd = 'Command'
 
-        hex_dump_memory(logging.INFO, f'Send Modbus {cmd}:{self.addr}:',
+        hex_dump_memory(logging.INFO, f'Send Modbus {state}:{self.addr}:',
                         self._send_buffer, len(self._send_buffer))
         self.writer.write(self._send_buffer)
         self._send_buffer = bytearray(0)  # self._send_buffer[sent:]

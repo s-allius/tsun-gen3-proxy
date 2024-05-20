@@ -301,7 +301,7 @@ class SolarmanV5(Message):
                                          self._heartbeat())
         self.__finish_send_msg()
 
-    def send_modbus_cb(self, pdu: bytearray, retrans: bool):
+    def send_modbus_cb(self, pdu: bytearray, state: str):
         if self.state != self.STATE_UP:
             return
         self.__build_header(0x4510)
@@ -309,11 +309,7 @@ class SolarmanV5(Message):
                                          0x2b0, 0, 0, 0)
         self._send_buffer += pdu
         self.__finish_send_msg()
-        if retrans:
-            cmd = 'Retrans'
-        else:
-            cmd = 'Command'
-        hex_dump_memory(logging.INFO, f'Send Modbus {cmd}:{self.addr}:',
+        hex_dump_memory(logging.INFO, f'Send Modbus {state}:{self.addr}:',
                         self._send_buffer, len(self._send_buffer))
         self.writer.write(self._send_buffer)
         self._send_buffer = bytearray(0)  # self._send_buffer[sent:]

@@ -1,3 +1,16 @@
+'''MODBUS  module for TSUN inverter support
+
+TSUN uses the MODBUS in the RTU transmission mode over serial line.
+see: https://modbus.org/docs/Modbus_Application_Protocol_V1_1b3.pdf
+see: https://modbus.org/docs/Modbus_over_serial_line_V1_02.pdf
+
+A Modbus PDU consists of: 'Function-Code' + 'Data'
+A Modbus RTU message consists of: 'Addr' + 'Modbus-PDU' + 'CRC-16'
+The inverter is a MODBUS server and the proxy the MODBUS client.
+
+The 16-bit CRC is known as CRC-16-ANSI(reverse)
+see: https://en.wikipedia.org/wiki/Computation_of_cyclic_redundancy_checks
+'''
 import struct
 import logging
 import asyncio
@@ -8,30 +21,21 @@ if __name__ == "app.src.modbus":
 else:  # pragma: no cover
     from infos import Register
 
-#######
-# TSUN uses the Modbus in the RTU transmission mode.
-# see: https://modbus.org/docs/Modbus_over_serial_line_V1_02.pdf
-#
-# A Modbus PDU consists of: 'Function-Code' + 'Data'
-# A Modbus RTU message consists of: 'Addr' + 'Modbus-PDU' + 'CRC-16'
-#
-# The 16-bit CRC is known as CRC-16-ANSI(reverse)
-# see: https://en.wikipedia.org/wiki/Computation_of_cyclic_redundancy_checks
-#######
 
 CRC_POLY = 0xA001  # (LSBF/reverse)
 CRC_INIT = 0xFFFF
 
 
 class Modbus():
+    '''Simple MODBUS implementation with TX queue and retransmit timer'''
     INV_ADDR = 1
-    '''MODBUS slave address of the TSUN inverter'''
+    '''MODBUS server address of the TSUN inverter'''
     READ_REGS = 3
     '''MODBUS function code: Read Holding Register'''
     READ_INPUTS = 4
     '''MODBUS function code: Read Input Register'''
     WRITE_SINGLE_REG = 6
-    '''Modbus function code: Write Single  Register'''
+    '''Modbus function code: Write Single Register'''
 
     __crc_tab = []
     map = {
@@ -69,12 +73,12 @@ class Modbus():
         0x3029: {'reg': Register.PV4_TOTAL_GENERATION, 'fmt': '!L', 'ratio': 0.01},  # noqa: E501
     }
 
-    def __init__(self, snd_handler: Callable[[bool], None], timeout: int = 1):
+    def __init__(self, snd_handler: Callable[[str], None], timeout: int = 1):
         if not len(self.__crc_tab):
             self.__build_crc_tab(CRC_POLY)
         self.que = asyncio.Queue(100)
         self.snd_handler = snd_handler
-        '''Send handler to transmit a MODBUS request'''
+        '''Send handler to transmit a MODBUS RTU request'''
         self.rsp_handler = None
         '''Response handler to forward the response'''
         self.timeout = timeout
@@ -99,14 +103,13 @@ class Modbus():
         self.tim = None
 
     def __del__(self):
-        if type(self.counter) is not None:
-            logging.info(f'Modbus __del__:\n {self.counter}')
+        logging.info(f'Modbus __del__:\n {self.counter}')
 
     def build_msg(self, addr: int, func: int, reg: int, val: int) -> None:
-        """Build MODBUS RTU message frame and add it to the tx queue
+        """Build MODBUS RTU request frame and add it to the tx queue
 
         Keyword arguments:
-            addr: RTU slave address
+            addr: RTU server address (inverter)
             func: MODBUS function code
             reg:  16-bit register number
             val:  16 bit value
@@ -120,7 +123,7 @@ class Modbus():
 
     def recv_req(self, buf: bytearray,
                  rsp_handler: Callable[[None], None] = None) -> bool:
-        """Add the received Modbus request to the tx queue
+        """Add the received Modbus RTU request to the tx queue
 
         Keyword arguments:
             buf: Modbus RTU pdu incl ADDR byte and trailing CRC
@@ -241,7 +244,7 @@ class Modbus():
             logging.debug(f'Modbus retrans {self}')
             self.retry_cnt += 1
             self.__start_timer()
-            self.snd_handler(self.last_req, retrans=True)
+            self.snd_handler(self.last_req, state='Retrans')
         else:
             logging.info(f'Modbus timeout {self}')
             self.counter['timeouts'] += 1
@@ -264,7 +267,7 @@ class Modbus():
             self.last_len = res[1]
             self.retry_cnt = 0
             self.__start_timer()
-            self.snd_handler(self.last_req, retrans=False)
+            self.snd_handler(self.last_req, state='Command')
         except asyncio.QueueEmpty:
             pass
 
