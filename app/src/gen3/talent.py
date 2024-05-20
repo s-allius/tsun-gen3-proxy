@@ -396,9 +396,6 @@ class Talent(Message):
                                  self.header_len+self.data_len]
 
         if self.ctrl.is_req():
-            # if (self.remoteStream.state != self.STATE_UP):
-            #     logger.info('ignore Modbus Request in wrong state')
-            #     return
             if self.remoteStream.mb.recv_req(data[hdr_len:],
                                              self.msg_forward):
                 self.inc_counter('Modbus_Command')
