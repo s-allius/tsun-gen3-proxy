@@ -1489,7 +1489,7 @@ def test_msg_modbus_invalid(ConfigTsunInv1, MsgModbusInvalid):
     m.read()         # read complete msg, and dispatch msg
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
     assert m.msg_count == 1
-    assert m._forward_buffer==MsgModbusInvalid
+    assert m._forward_buffer==b''
     assert m._send_buffer==b''
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
     assert m.db.stat['proxy']['Modbus_Command'] == 0

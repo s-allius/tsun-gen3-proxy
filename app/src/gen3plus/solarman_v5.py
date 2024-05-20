@@ -467,7 +467,7 @@ class SolarmanV5(Message):
 
                 if inv_update:
                     self.__build_model_name()
-                return
+            return
         self.__forward_msg()
 
     def msg_hbeat_ind(self):
