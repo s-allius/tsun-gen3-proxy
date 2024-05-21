@@ -83,7 +83,7 @@ class Modbus():
         '''Response handler to forward the response'''
         self.timeout = timeout
         '''MODBUS response timeout in seconds'''
-        self.max_retries = 3
+        self.max_retries = 1
         '''Max retransmit for MODBUS requests'''
         self.retry_cnt = 0
         self.last_req = b''
@@ -103,7 +103,7 @@ class Modbus():
         self.tim = None
 
     def __del__(self):
-        logging.info(f'Modbus __del__:\n {self.counter}')
+        logging.debug(f'Modbus __del__:\n {self.counter}')
 
     def build_msg(self, addr: int, func: int, reg: int, val: int) -> None:
         """Build MODBUS RTU request frame and add it to the tx queue
