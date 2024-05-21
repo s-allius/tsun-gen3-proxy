@@ -52,7 +52,7 @@ class SolarmanV5(Message):
     MB_RTU_CMD = 2
 
     def __init__(self, server_side: bool):
-        super().__init__(server_side, self.send_modbus_cb, 5)
+        super().__init__(server_side, self.send_modbus_cb, mb_timeout=5)
 
         self.header_len = 11  # overwrite construcor in class Message
         self.control = 0

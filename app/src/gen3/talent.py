@@ -36,7 +36,7 @@ class Control:
 
 class Talent(Message):
     def __init__(self, server_side: bool, id_str=b''):
-        super().__init__(server_side, self.send_modbus_cb, 11)
+        super().__init__(server_side, self.send_modbus_cb, mb_timeout=11)
         self.await_conn_resp_cnt = 0
         self.id_str = id_str
         self.contact_name = b''
