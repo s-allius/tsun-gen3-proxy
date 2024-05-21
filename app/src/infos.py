@@ -224,22 +224,22 @@ class Infos:
         # 0xffffff03:  {'name':['proxy', 'Voltage'],                        'level': logging.DEBUG, 'unit': 'V',    'ha':{'dev':'proxy', 'dev_cla': 'voltage',     'stat_cla': 'measurement', 'id':'proxy_volt_',  'fmt':'| float','name': 'Grid Voltage'}},  # noqa: E501
 
         # events
-        Register.EVENT_401:  {'name': ['events', '401_'],                          'level': logging.WARNING, 'unit': ''},  # noqa: E501
-        Register.EVENT_402:  {'name': ['events', '402_'],                          'level': logging.WARNING, 'unit': ''},  # noqa: E501
-        Register.EVENT_403:  {'name': ['events', '403_'],                          'level': logging.WARNING, 'unit': ''},  # noqa: E501
-        Register.EVENT_404:  {'name': ['events', '404_'],                          'level': logging.WARNING, 'unit': ''},  # noqa: E501
-        Register.EVENT_405:  {'name': ['events', '405_'],                          'level': logging.WARNING, 'unit': ''},  # noqa: E501
-        Register.EVENT_406:  {'name': ['events', '406_'],                          'level': logging.WARNING, 'unit': ''},  # noqa: E501
-        Register.EVENT_407:  {'name': ['events', '407_'],                          'level': logging.WARNING, 'unit': ''},  # noqa: E501
-        Register.EVENT_408:  {'name': ['events', '408_'],                          'level': logging.WARNING, 'unit': ''},  # noqa: E501
-        Register.EVENT_409:  {'name': ['events', '409_No_Utility'],                'level': logging.WARNING, 'unit': ''},  # noqa: E501
-        Register.EVENT_410:  {'name': ['events', '410_'],                          'level': logging.WARNING, 'unit': ''},  # noqa: E501
-        Register.EVENT_411:  {'name': ['events', '411_'],                          'level': logging.WARNING, 'unit': ''},  # noqa: E501
-        Register.EVENT_412:  {'name': ['events', '412_'],                          'level': logging.WARNING, 'unit': ''},  # noqa: E501
-        Register.EVENT_413:  {'name': ['events', '413_'],                          'level': logging.WARNING, 'unit': ''},  # noqa: E501
-        Register.EVENT_414:  {'name': ['events', '414_'],                          'level': logging.WARNING, 'unit': ''},  # noqa: E501
-        Register.EVENT_415:  {'name': ['events', '415_GridFreqOverRating'],        'level': logging.WARNING, 'unit': ''},  # noqa: E501
-        Register.EVENT_416:  {'name': ['events', '416_'],                          'level': logging.WARNING, 'unit': ''},  # noqa: E501
+        Register.EVENT_401:  {'name': ['events', '401_'],                          'level': logging.DEBUG, 'unit': ''},  # noqa: E501
+        Register.EVENT_402:  {'name': ['events', '402_'],                          'level': logging.DEBUG, 'unit': ''},  # noqa: E501
+        Register.EVENT_403:  {'name': ['events', '403_'],                          'level': logging.DEBUG, 'unit': ''},  # noqa: E501
+        Register.EVENT_404:  {'name': ['events', '404_'],                          'level': logging.DEBUG, 'unit': ''},  # noqa: E501
+        Register.EVENT_405:  {'name': ['events', '405_'],                          'level': logging.DEBUG, 'unit': ''},  # noqa: E501
+        Register.EVENT_406:  {'name': ['events', '406_'],                          'level': logging.DEBUG, 'unit': ''},  # noqa: E501
+        Register.EVENT_407:  {'name': ['events', '407_'],                          'level': logging.DEBUG, 'unit': ''},  # noqa: E501
+        Register.EVENT_408:  {'name': ['events', '408_'],                          'level': logging.DEBUG, 'unit': ''},  # noqa: E501
+        Register.EVENT_409:  {'name': ['events', '409_No_Utility'],                'level': logging.DEBUG, 'unit': ''},  # noqa: E501
+        Register.EVENT_410:  {'name': ['events', '410_'],                          'level': logging.DEBUG, 'unit': ''},  # noqa: E501
+        Register.EVENT_411:  {'name': ['events', '411_'],                          'level': logging.DEBUG, 'unit': ''},  # noqa: E501
+        Register.EVENT_412:  {'name': ['events', '412_'],                          'level': logging.DEBUG, 'unit': ''},  # noqa: E501
+        Register.EVENT_413:  {'name': ['events', '413_'],                          'level': logging.DEBUG, 'unit': ''},  # noqa: E501
+        Register.EVENT_414:  {'name': ['events', '414_'],                          'level': logging.DEBUG, 'unit': ''},  # noqa: E501
+        Register.EVENT_415:  {'name': ['events', '415_GridFreqOverRating'],        'level': logging.DEBUG, 'unit': ''},  # noqa: E501
+        Register.EVENT_416:  {'name': ['events', '416_'],                          'level': logging.DEBUG, 'unit': ''},  # noqa: E501
 
         # grid measures:
         Register.GRID_VOLTAGE:    {'name': ['grid', 'Voltage'],                    'level': logging.DEBUG, 'unit': 'V',    'ha': {'dev': 'inverter', 'dev_cla': 'voltage',     'stat_cla': 'measurement', 'id': 'out_volt_',  'fmt': '| float', 'name': 'Grid Voltage', 'ent_cat': 'diagnostic'}},  # noqa: E501
