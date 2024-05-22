@@ -129,8 +129,10 @@ class Mqtt(metaclass=Singleton):
     def each_inverter(self, message, func_name: str):
         topic = str(message.topic)
         node_id = topic.split('/')[1] + '/'
+        found = False
         for m in Message:
             if m.server_side and (m.node_id == node_id):
+                found = True
                 logger_mqtt.debug(f'Found: {node_id}')
                 fnc = getattr(m, func_name, None)
                 if callable(fnc):
@@ -138,7 +140,7 @@ class Mqtt(metaclass=Singleton):
                 else:
                     logger_mqtt.warning(f'Cmd not supported by: {node_id}')
 
-        else:
+        if not found:
             logger_mqtt.warning(f'Node_id: {node_id} not found')
 
     async def modbus_cmd(self, message, func, params=0, addr=0, val=0):
