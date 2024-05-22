@@ -794,21 +794,53 @@ def test_msg_iterator():
     assert test2 == 1
 
 def test_proxy_counter():
-    m = Talent(server_side=True)
+    # m = MemoryStream(b'')
+    # m.close()
+    Infos.stat['proxy']['Modbus_Command'] = 1
+ 
+    m = MemoryStream(b'')
+    m.id_str = b"R170000000000001" 
+    c = m.createClientStream(b'')
+
     assert m.new_data == {}
     m.db.stat['proxy']['Unknown_Msg'] = 0
+    c.db.stat['proxy']['Unknown_Msg'] = 0
     Infos.new_stat_data['proxy'] =  False
 
     m.inc_counter('Unknown_Msg')
+    m.close()
+    m = MemoryStream(b'')
+   
     assert m.new_data == {}
     assert Infos.new_stat_data == {'proxy': True}
+    assert m.db.new_stat_data == {'proxy': True}
+    assert c.db.new_stat_data == {'proxy': True}
     assert 1 == m.db.stat['proxy']['Unknown_Msg']
+    assert 1 == c.db.stat['proxy']['Unknown_Msg']
+    Infos.new_stat_data['proxy'] =  False
+
+    c.inc_counter('Unknown_Msg')
+    assert m.new_data == {}
+    assert Infos.new_stat_data == {'proxy': True}
+    assert m.db.new_stat_data == {'proxy': True}
+    assert c.db.new_stat_data == {'proxy': True}
+    assert 2 == m.db.stat['proxy']['Unknown_Msg']
+    assert 2 == c.db.stat['proxy']['Unknown_Msg']
+    Infos.new_stat_data['proxy'] =  False
+
+    c.inc_counter('Modbus_Command')
+    assert m.new_data == {}
+    assert Infos.new_stat_data == {'proxy': True}
+    assert m.db.new_stat_data == {'proxy': True}
+    assert c.db.new_stat_data == {'proxy': True}
+    assert 2 == m.db.stat['proxy']['Modbus_Command']
+    assert 2 == c.db.stat['proxy']['Modbus_Command']
 
     Infos.new_stat_data['proxy'] =  False
     m.dec_counter('Unknown_Msg')
     assert m.new_data == {}
     assert Infos.new_stat_data == {'proxy': True}
-    assert 0 == m.db.stat['proxy']['Unknown_Msg']
+    assert 1 == m.db.stat['proxy']['Unknown_Msg']
     m.close()
 
 def test_msg_modbus_req(ConfigTsunInv1, MsgModbusCmd):
