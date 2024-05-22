@@ -21,6 +21,7 @@ if __name__ == "app.src.modbus":
 else:  # pragma: no cover
     from infos import Register
 
+logger = logging.getLogger('data')
 
 CRC_POLY = 0xA001  # (LSBF/reverse)
 CRC_INIT = 0xFFFF
@@ -136,7 +137,7 @@ class Modbus():
         # logging.info(f'recv_req: first byte modbus:{buf[0]} len:{len(buf)}')
         if not self.__check_crc(buf):
             self.err = 1
-            logging.error('Modbus recv: CRC error')
+            logger.error('Modbus recv: CRC error')
             return False
         self.que.put_nowait({'req': buf,
                              'rsp_hdl': rsp_handler})
@@ -166,23 +167,23 @@ class Modbus():
             self.err = 5
             return
         if not self.__check_crc(buf):
-            logging.error('Modbus resp: CRC error')
+            logger.error('Modbus resp: CRC error')
             self.err = 1
             return
         if buf[0] != self.last_addr:
-            logging.info(f'Modbus resp: Wrong addr {buf[0]}')
+            logger.info(f'Modbus resp: Wrong addr {buf[0]}')
             self.err = 2
             return
         fcode = buf[1]
         if fcode != self.last_fcode:
-            logging.info(f'Modbus: Wrong fcode {fcode} != {self.last_fcode}')
+            logger.info(f'Modbus: Wrong fcode {fcode} != {self.last_fcode}')
             self.err = 3
             return
         if self.last_addr == self.INV_ADDR and \
                 (fcode == 3 or fcode == 4):
             elmlen = buf[2] >> 1
             if elmlen != self.last_len:
-                logging.info(f'Modbus: len error {elmlen} != {self.last_len}')
+                logger.info(f'Modbus: len error {elmlen} != {self.last_len}')
                 self.err = 4
                 return
             first_reg = self.last_reg  # save last_reg before sending next pdu
@@ -241,12 +242,12 @@ class Modbus():
         self.req_pend = False
 
         if self.retry_cnt < self.max_retries:
-            logging.debug(f'Modbus retrans {self}')
+            logger.debug(f'Modbus retrans {self}')
             self.retry_cnt += 1
             self.__start_timer()
             self.snd_handler(self.last_req, state='Retrans')
         else:
-            logging.info(f'Modbus timeout {self}')
+            logger.info(f'Modbus timeout {self}')
             self.counter['timeouts'] += 1
             self.__send_next_from_que()
 
