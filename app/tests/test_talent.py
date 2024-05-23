@@ -874,7 +874,37 @@ def test_msg_modbus_req(ConfigTsunInv1, MsgModbusCmd):
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
     m.close()
 
-def test_msg_modbus_req2(ConfigTsunInv1, MsgModbusCmdCrcErr):
+def test_msg_modbus_req2(ConfigTsunInv1, MsgModbusCmd):
+    ConfigTsunInv1
+    m = MemoryStream(b'')
+    m.id_str = b"R170000000000001" 
+
+    c = m.createClientStream(MsgModbusCmd)
+    
+    m.db.stat['proxy']['Unknown_Ctrl'] = 0
+    m.db.stat['proxy']['Modbus_Command'] = 0
+    m.db.stat['proxy']['Invalid_Msg_Format'] = 0
+    c.read()         # read complete msg, and dispatch msg
+    assert not c.header_valid  # must be invalid, since msg was handled and buffer flushed
+    assert c.msg_count == 1
+    assert c.id_str == b"R170000000000001" 
+    assert c.unique_id == 'R170000000000001'
+    assert int(c.ctrl)==112
+    assert c.msg_id==119
+    assert c.header_len==23
+    assert c.data_len==13
+    assert c._forward_buffer==b''
+    assert c._send_buffer==b''
+    assert m.id_str == b"R170000000000001" 
+    assert m._forward_buffer==b''
+    assert m._send_buffer==b''
+    assert m.writer.sent_pdu == b''
+    assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
+    assert m.db.stat['proxy']['Modbus_Command'] == 1
+    assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
+    m.close()
+
+def test_msg_modbus_req3(ConfigTsunInv1, MsgModbusCmdCrcErr):
     ConfigTsunInv1
     m = MemoryStream(b'')
     m.id_str = b"R170000000000001" 
@@ -949,7 +979,49 @@ def test_msg_modbus_rsp2(ConfigTsunInv1, MsgModbusResp20):
     assert m.db.db == {'inverter': {'Version': 'V5.1.09', 'Rated_Power': 300}, 'grid': {'Voltage': 225.9, 'Current': 0.41, 'Frequency': 49.99, 'Output_Power': 94.8}, 'env': {'Inverter_Temp': 22}, 'input': {'pv1': {'Voltage': 0.8, 'Current': 0.0, 'Power': 0.0}, 'pv2': {'Voltage': 34.5, 'Current': 2.89, 'Power': 99.8}, 'pv3': {'Voltage': 0.0, 'Current': 0.0, 'Power': 0.0}, 'pv4': {'Voltage': 0.0, 'Current': 0.0, 'Power': 0.0}}}
     assert m.db.get_db_value(Register.VERSION) == 'V5.1.09'
     assert m.new_data['inverter'] == True
+
+    m.new_data['inverter'] = False    
+    m.mb.req_pend = True
+    m.read()         # read complete msg, and dispatch msg
+    assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
+    assert m.mb.err == 0
+    assert m.msg_count == 2
+    assert m._forward_buffer==MsgModbusResp20
+    assert m._send_buffer==b''
+    assert m.db.db == {'inverter': {'Version': 'V5.1.09', 'Rated_Power': 300}, 'grid': {'Voltage': 225.9, 'Current': 0.41, 'Frequency': 49.99, 'Output_Power': 94.8}, 'env': {'Inverter_Temp': 22}, 'input': {'pv1': {'Voltage': 0.8, 'Current': 0.0, 'Power': 0.0}, 'pv2': {'Voltage': 34.5, 'Current': 2.89, 'Power': 99.8}, 'pv3': {'Voltage': 0.0, 'Current': 0.0, 'Power': 0.0}, 'pv4': {'Voltage': 0.0, 'Current': 0.0, 'Power': 0.0}}}
+    assert m.db.get_db_value(Register.VERSION) == 'V5.1.09'
+    assert m.new_data['inverter'] == False
+
+    m.close()
+
+def test_msg_modbus_rsp3(ConfigTsunInv1, MsgModbusResp20):
+    '''Modbus response with a valid Modbus request must be forwarded'''
+    ConfigTsunInv1
+    m = MemoryStream(MsgModbusResp20)
+    m.append_msg(MsgModbusResp20)
+
+    m.mb.rsp_handler = m.msg_forward
+    m.mb.last_addr = 1
+    m.mb.last_fcode = 3
+    m.mb.last_len = 20
+    m.mb.last_reg = 0x3008
+    m.mb.req_pend = True
+    m.mb.err = 0
+
+    assert m.db.db == {}
     m.new_data['inverter'] = False
+
+    m.read()         # read complete msg, and dispatch msg
+    assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
+    assert m.mb.err == 0
+    assert m.msg_count == 1
+    assert m._forward_buffer==MsgModbusResp20
+    assert m._send_buffer==b''
+    assert m.db.db == {'inverter': {'Version': 'V5.1.09', 'Rated_Power': 300}, 'grid': {'Voltage': 225.9, 'Current': 0.41, 'Frequency': 49.99, 'Output_Power': 94.8}, 'env': {'Inverter_Temp': 22}, 'input': {'pv1': {'Voltage': 0.8, 'Current': 0.0, 'Power': 0.0}, 'pv2': {'Voltage': 34.5, 'Current': 2.89, 'Power': 99.8}, 'pv3': {'Voltage': 0.0, 'Current': 0.0, 'Power': 0.0}, 'pv4': {'Voltage': 0.0, 'Current': 0.0, 'Power': 0.0}}}
+    assert m.db.get_db_value(Register.VERSION) == 'V5.1.09'
+    assert m.new_data['inverter'] == True
+    m.new_data['inverter'] = False
+    assert m.mb.req_pend == False
 
     m.read()         # read complete msg, and dispatch msg
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
