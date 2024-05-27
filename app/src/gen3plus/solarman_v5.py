@@ -2,6 +2,7 @@ import struct
 # import json
 import logging
 import time
+import asyncio
 from datetime import datetime
 
 if __name__ == "app.src.gen3plus.solarman_v5":
@@ -441,12 +442,21 @@ class SolarmanV5(Message):
 
         self.__forward_msg()
 
+    async def publish_mqtt(self, key, data):
+        await self.mqtt.publish(key, data)  # pragma: no cover
+
     def msg_command_rsp(self):
         data = self._recv_buffer[self.header_len:
                                  self.header_len+self.data_len]
         ftype = data[0]
         if ftype == self.AT_CMD:
             if not self.forward_at_cmd_resp:
+                data_json = data[14:].decode("utf-8")
+                node_id = self.node_id
+                key = 'at_resp'
+                logger.info(f'{key}: {data_json}')
+                asyncio.ensure_future(
+                    self.publish_mqtt(f'{self.entity_prfx}{node_id}{key}', data_json))  # noqa: E501
                 return
         elif ftype == self.MB_RTU_CMD:
             valid = data[1]
