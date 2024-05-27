@@ -39,6 +39,7 @@ class MemoryStream(SolarmanV5):
         self.db.stat['proxy']['Invalid_Msg_Format'] = 0
         self.db.stat['proxy']['AT_Command'] = 0
         self.test_exception_async_write = False
+        self.entity_prfx = ''
 
     def _timestamp(self):
         return timestamp
