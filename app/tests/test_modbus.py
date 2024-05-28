@@ -14,7 +14,7 @@ class TestHelper(Modbus):
         self.pdu = None
         self.send_calls = 0
         self.recv_responses = 0
-    def send_cb(self, pdu: bytearray, state: str):
+    def send_cb(self, pdu: bytearray, log_lvl: int, state: str):
         self.pdu = pdu
         self.send_calls += 1
     def resp_handler(self):

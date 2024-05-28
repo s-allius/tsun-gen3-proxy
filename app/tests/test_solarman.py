@@ -1,6 +1,7 @@
 import pytest
 import struct
 import time
+import logging
 from datetime import datetime
 from app.src.gen3plus.solarman_v5 import SolarmanV5
 from app.src.config import Config
@@ -1200,7 +1201,7 @@ async def test_msg_build_modbus_req(ConfigTsunInv1, DeviceIndMsg, DeviceRspMsg, 
 
     m._send_buffer = bytearray(0) # clear send buffer for next test    
     m._forward_buffer = bytearray(0) # clear send buffer for next test    
-    await m.send_modbus_cmd(Modbus.WRITE_SINGLE_REG, 0x2008, 0)
+    await m.send_modbus_cmd(Modbus.WRITE_SINGLE_REG, 0x2008, 0, logging.DEBUG)
     assert m._recv_buffer==InverterIndMsg   # unhandled next message
     assert 0 == m.send_msg_ofs
     assert m._forward_buffer == b''
@@ -1216,7 +1217,7 @@ async def test_msg_build_modbus_req(ConfigTsunInv1, DeviceIndMsg, DeviceRspMsg, 
 
     m._send_buffer = bytearray(0) # clear send buffer for next test    
     m._forward_buffer = bytearray(0) # clear send buffer for next test    
-    await m.send_modbus_cmd(Modbus.WRITE_SINGLE_REG, 0x2008, 0)
+    await m.send_modbus_cmd(Modbus.WRITE_SINGLE_REG, 0x2008, 0, logging.DEBUG)
     assert 0 == m.send_msg_ofs
     assert m._forward_buffer == b''
     assert m.writer.sent_pdu == MsgModbusCmd
@@ -1224,7 +1225,7 @@ async def test_msg_build_modbus_req(ConfigTsunInv1, DeviceIndMsg, DeviceRspMsg, 
 
     m._send_buffer = bytearray(0) # clear send buffer for next test    
     m.test_exception_async_write = True
-    await m.send_modbus_cmd(Modbus.WRITE_SINGLE_REG, 0x2008, 0)
+    await m.send_modbus_cmd(Modbus.WRITE_SINGLE_REG, 0x2008, 0, logging.DEBUG)
     assert 0 == m.send_msg_ofs
     assert m._forward_buffer == b''
     assert m._send_buffer == b''
