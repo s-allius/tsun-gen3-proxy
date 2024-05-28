@@ -65,9 +65,7 @@ class AsyncStream():
                     await self.__async_forward()
                     await self.async_publ_mqtt()
 
-            except (ConnectionResetError,
-                    ConnectionAbortedError,
-                    BrokenPipeError) as error:
+            except OSError as error:
                 logger.error(f'{error} for l{self.l_addr} | '
                              f'r{self.r_addr}')
                 await self.disc()
