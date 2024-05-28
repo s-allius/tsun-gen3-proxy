@@ -74,7 +74,8 @@ class Modbus():
         0x3029: {'reg': Register.PV4_TOTAL_GENERATION, 'fmt': '!L', 'ratio': 0.01},  # noqa: E501
     }
 
-    def __init__(self, snd_handler: Callable[[str], None], timeout: int = 1):
+    def __init__(self, snd_handler: Callable[[bytes, int, str], None],
+                 timeout: int = 1):
         if not len(self.__crc_tab):
             self.__build_crc_tab(CRC_POLY)
         self.que = asyncio.Queue(100)
@@ -94,6 +95,7 @@ class Modbus():
         self.counter['retries'] = {}
         for i in range(0, self.max_retries+1):
             self.counter['retries'][f'{i}'] = 0
+        self.last_log_lvl = logging.DEBUG
         self.last_addr = 0
         self.last_fcode = 0
         self.last_len = 0
@@ -106,7 +108,8 @@ class Modbus():
     def __del__(self):
         logging.debug(f'Modbus __del__:\n {self.counter}')
 
-    def build_msg(self, addr: int, func: int, reg: int, val: int) -> None:
+    def build_msg(self, addr: int, func: int, reg: int, val: int,
+                  log_lvl=logging.DEBUG) -> None:
         """Build MODBUS RTU request frame and add it to the tx queue
 
         Keyword arguments:
@@ -118,7 +121,8 @@ class Modbus():
         msg = struct.pack('>BBHH', addr, func, reg, val)
         msg += struct.pack('<H', self.__calc_crc(msg))
         self.que.put_nowait({'req': msg,
-                             'rsp_hdl': None})
+                             'rsp_hdl': None,
+                             'log_lvl': log_lvl})
         if self.que.qsize() == 1:
             self.__send_next_from_que()
 
@@ -140,7 +144,8 @@ class Modbus():
             logger.error('Modbus recv: CRC error')
             return False
         self.que.put_nowait({'req': buf,
-                             'rsp_hdl': rsp_handler})
+                             'rsp_hdl': rsp_handler,
+                             'log_lvl': logging.INFO})
         if self.que.qsize() == 1:
             self.__send_next_from_que()
 
@@ -245,7 +250,7 @@ class Modbus():
             logger.debug(f'Modbus retrans {self}')
             self.retry_cnt += 1
             self.__start_timer()
-            self.snd_handler(self.last_req, state='Retrans')
+            self.snd_handler(self.last_req, self.last_log_lvl, state='Retrans')
         else:
             logger.info(f'Modbus timeout {self}')
             self.counter['timeouts'] += 1
@@ -260,6 +265,7 @@ class Modbus():
             req = item['req']
             self.last_req = req
             self.rsp_handler = item['rsp_hdl']
+            self.last_log_lvl = item['log_lvl']
             self.last_addr = req[0]
             self.last_fcode = req[1]
 
@@ -268,7 +274,7 @@ class Modbus():
             self.last_len = res[1]
             self.retry_cnt = 0
             self.__start_timer()
-            self.snd_handler(self.last_req, state='Command')
+            self.snd_handler(self.last_req, self.last_log_lvl, state='Command')
         except asyncio.QueueEmpty:
             pass
 

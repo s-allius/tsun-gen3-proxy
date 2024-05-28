@@ -40,8 +40,8 @@ class Schedule:
             if m.server_side:
                 fnc = getattr(m, "send_modbus_cmd", None)
                 if callable(fnc):
-                    await fnc(Modbus.READ_REGS, 0x3008, 21)
+                    await fnc(Modbus.READ_REGS, 0x3008, 21, logging.DEBUG)
                     if 0 == (cls.count % 30):
                         # logging.info("Regular Modbus Status request")
-                        await fnc(Modbus.READ_REGS, 0x2007, 2)
+                        await fnc(Modbus.READ_REGS, 0x2007, 2, logging.DEBUG)
         cls.count += 1

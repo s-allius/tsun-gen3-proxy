@@ -1,5 +1,7 @@
 import logging
 import weakref
+from typing import Callable
+
 
 if __name__ == "app.src.messages":
     from app.src.infos import Infos
@@ -56,7 +58,8 @@ class Message(metaclass=IterRegistry):
     STATE_UP = 2
     STATE_CLOSED = 3
 
-    def __init__(self, server_side: bool, send_modbus_cb, mb_timeout):
+    def __init__(self, server_side: bool, send_modbus_cb:
+                 Callable[[bytes, int, str], None], mb_timeout):
         self._registry.append(weakref.ref(self))
 
         self.server_side = server_side

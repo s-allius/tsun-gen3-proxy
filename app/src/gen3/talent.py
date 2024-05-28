@@ -122,25 +122,25 @@ class Talent(Message):
                         f' Ctl: {int(self.ctrl):#02x} Msg: {fnc.__name__!r}')
         return
 
-    def send_modbus_cb(self, modbus_pdu: bytearray, state: str):
+    def send_modbus_cb(self, modbus_pdu: bytearray, log_lvl: int, state: str):
         if self.state != self.STATE_UP:
             return
 
-        self.__build_header(0x70, 0x77)
+        self.__build_header(0x70, 0x77, log_lvl)
         self._send_buffer += b'\x00\x01\xa3\x28'   # fixme
         self._send_buffer += struct.pack('!B', len(modbus_pdu))
         self._send_buffer += modbus_pdu
         self.__finish_send_msg()
 
-        hex_dump_memory(logging.INFO, f'Send Modbus {state}:{self.addr}:',
+        hex_dump_memory(log_lvl, f'Send Modbus {state}:{self.addr}:',
                         self._send_buffer, len(self._send_buffer))
         self.writer.write(self._send_buffer)
         self._send_buffer = bytearray(0)  # self._send_buffer[sent:]
 
-    async def send_modbus_cmd(self, func, addr, val) -> None:
+    async def send_modbus_cmd(self, func, addr, val, log_lvl) -> None:
         if self.state != self.STATE_UP:
             return
-        self.mb.build_msg(Modbus.INV_ADDR, func, addr, val)
+        self.mb.build_msg(Modbus.INV_ADDR, func, addr, val, log_lvl)
 
     def _init_new_client_conn(self) -> bool:
         contact_name = self.contact_name
@@ -217,15 +217,16 @@ class Talent(Message):
         self.header_valid = True
         return
 
-    def __build_header(self, ctrl, msg_id=None) -> None:
+    def __build_header(self, ctrl, msg_id=None,
+                       log_lvl: int = logging.INFO) -> None:
         if not msg_id:
             msg_id = self.msg_id
         self.send_msg_ofs = len(self._send_buffer)
         self._send_buffer += struct.pack(f'!l{len(self.id_str)+1}pBB',
                                          0, self.id_str, ctrl, msg_id)
         fnc = self.switch.get(msg_id, self.msg_unknown)
-        logger.info(self.__flow_str(self.server_side, 'tx') +
-                    f' Ctl: {int(ctrl):#02x} Msg: {fnc.__name__!r}')
+        logger.log(log_lvl, self.__flow_str(self.server_side, 'tx') +
+                   f' Ctl: {int(ctrl):#02x} Msg: {fnc.__name__!r}')
 
     def __finish_send_msg(self) -> None:
         _len = len(self._send_buffer) - self.send_msg_ofs

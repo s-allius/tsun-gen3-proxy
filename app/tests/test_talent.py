@@ -1091,14 +1091,14 @@ async def test_msg_build_modbus_req(ConfigTsunInv1, MsgModbusCmd):
     ConfigTsunInv1
     m = MemoryStream(b'', (0,), True)
     m.id_str = b"R170000000000001" 
-    await m.send_modbus_cmd(Modbus.WRITE_SINGLE_REG, 0x2008, 0)
+    await m.send_modbus_cmd(Modbus.WRITE_SINGLE_REG, 0x2008, 0, logging.DEBUG)
     assert 0 == m.send_msg_ofs
     assert m._forward_buffer == b''
     assert m._send_buffer == b''
     assert m.writer.sent_pdu == b''
 
     m.state = m.STATE_UP
-    await m.send_modbus_cmd(Modbus.WRITE_SINGLE_REG, 0x2008, 0)
+    await m.send_modbus_cmd(Modbus.WRITE_SINGLE_REG, 0x2008, 0, logging.DEBUG)
     assert 0 == m.send_msg_ofs
     assert m._forward_buffer == b''
     assert m._send_buffer == b''
@@ -1106,7 +1106,7 @@ async def test_msg_build_modbus_req(ConfigTsunInv1, MsgModbusCmd):
 
     m.writer.sent_pdu = bytearray(0) # clear send buffer for next test    
     m.test_exception_async_write = True
-    await m.send_modbus_cmd(Modbus.WRITE_SINGLE_REG, 0x2008, 0)
+    await m.send_modbus_cmd(Modbus.WRITE_SINGLE_REG, 0x2008, 0, logging.DEBUG)
     assert 0 == m.send_msg_ofs
     assert m._forward_buffer == b''
     assert m._send_buffer == b''

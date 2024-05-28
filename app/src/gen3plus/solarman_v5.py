@@ -248,15 +248,15 @@ class SolarmanV5(Message):
 
         return True
 
-    def __build_header(self, ctrl) -> None:
+    def __build_header(self, ctrl, log_lvl: int = logging.INFO) -> None:
         '''build header for new transmit message'''
         self.send_msg_ofs = len(self._send_buffer)
 
         self._send_buffer += struct.pack(
             '<BHHHL', 0xA5, 0, ctrl, self.seq.get_send(), self.snr)
         fnc = self.switch.get(ctrl, self.msg_unknown)
-        logger.info(self.__flow_str(self.server_side, 'tx') +
-                    f' Ctl: {int(ctrl):#04x} Msg: {fnc.__name__!r}')
+        logger.log(log_lvl, self.__flow_str(self.server_side, 'tx') +
+                   f' Ctl: {int(ctrl):#04x} Msg: {fnc.__name__!r}')
 
     def __finish_send_msg(self) -> None:
         '''finish the transmit message, set lenght and checksum'''
@@ -302,23 +302,23 @@ class SolarmanV5(Message):
                                          self._heartbeat())
         self.__finish_send_msg()
 
-    def send_modbus_cb(self, pdu: bytearray, state: str):
+    def send_modbus_cb(self, pdu: bytearray, log_lvl: int, state: str):
         if self.state != self.STATE_UP:
             return
-        self.__build_header(0x4510)
+        self.__build_header(0x4510, log_lvl)
         self._send_buffer += struct.pack('<BHLLL', self.MB_RTU_CMD,
                                          0x2b0, 0, 0, 0)
         self._send_buffer += pdu
         self.__finish_send_msg()
-        hex_dump_memory(logging.INFO, f'Send Modbus {state}:{self.addr}:',
+        hex_dump_memory(log_lvl, f'Send Modbus {state}:{self.addr}:',
                         self._send_buffer, len(self._send_buffer))
         self.writer.write(self._send_buffer)
         self._send_buffer = bytearray(0)  # self._send_buffer[sent:]
 
-    async def send_modbus_cmd(self, func, addr, val) -> None:
+    async def send_modbus_cmd(self, func, addr, val, log_lvl) -> None:
         if self.state != self.STATE_UP:
             return
-        self.mb.build_msg(Modbus.INV_ADDR, func, addr, val)
+        self.mb.build_msg(Modbus.INV_ADDR, func, addr, val, log_lvl)
 
     async def send_at_cmd(self, AT_cmd: str) -> None:
         if self.state != self.STATE_UP:
