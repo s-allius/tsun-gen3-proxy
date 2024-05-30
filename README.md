@@ -170,6 +170,12 @@ pv2 = {type = 'RSM40-8-410M', manufacturer = 'Risen'}   # Optional, PV module de
 pv3 = {type = 'RSM40-8-410M', manufacturer = 'Risen'}   # Optional, PV module descr
 pv4 = {type = 'RSM40-8-410M', manufacturer = 'Risen'}   # Optional, PV module descr
 
+[gen3plus.at_acl]
+tsun.allow = ['AT+Z', 'AT+UPURL', 'AT+SUPDATE']   # allow this for TSUN access
+tsun.block = []                                   
+mqtt.allow = ['AT+']                              # allow all via mqtt
+mqtt.block = []
+
 ```
 
 ## Inverter Configuration
