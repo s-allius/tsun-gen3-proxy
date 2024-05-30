@@ -47,7 +47,9 @@ If you use a Pi-hole, you can also store the host entry in the Pi-hole.
 - `AT-Command` support via MQTT topics (GEN3PLUS only)
 - Faster DataUp interval sends measurement data to the MQTT broker every minute
 - Self-sufficient island operation without internet
-- Runs in a non-root Docker Container
+- Security-Features:
+  - control access via `AT commands`
+  - Runs in a non-root Docker Container
 
 ## Home Assistant Screenshots
 

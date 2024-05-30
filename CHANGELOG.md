@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- add allow and block filter for AT+ commands
 - catch all OSError errors in the read loop
 - log Modbus traces with different log levels
 - add Modbus fifo and timeout handler
