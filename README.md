@@ -47,7 +47,9 @@ If you use a Pi-hole, you can also store the host entry in the Pi-hole.
 - `AT-Command` support via MQTT topics (GEN3PLUS only)
 - Faster DataUp interval sends measurement data to the MQTT broker every minute
 - Self-sufficient island operation without internet
-- Runs in a non-root Docker Container
+- Security-Features:
+  - control access via `AT commands`
+  - Runs in a non-root Docker Container
 
 ## Home Assistant Screenshots
 
@@ -167,6 +169,12 @@ pv1 = {type = 'RSM40-8-410M', manufacturer = 'Risen'}   # Optional, PV module de
 pv2 = {type = 'RSM40-8-410M', manufacturer = 'Risen'}   # Optional, PV module descr
 pv3 = {type = 'RSM40-8-410M', manufacturer = 'Risen'}   # Optional, PV module descr
 pv4 = {type = 'RSM40-8-410M', manufacturer = 'Risen'}   # Optional, PV module descr
+
+[gen3plus.at_acl]
+tsun.allow = ['AT+Z', 'AT+UPURL', 'AT+SUPDATE']   # allow this for TSUN access
+tsun.block = []                                   
+mqtt.allow = ['AT+']                              # allow all via mqtt
+mqtt.block = []
 
 ```
 
