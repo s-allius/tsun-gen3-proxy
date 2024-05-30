@@ -96,7 +96,7 @@ class SolarmanV5(Message):
         self.modbus_elms = 0    # for unit tests
         g3p_cnf = Config.get('gen3plus')
 
-        if 'at_acl' in g3p_cnf:
+        if 'at_acl' in g3p_cnf:  # pragma: no cover
             self.at_acl = g3p_cnf['at_acl']
 
     '''
@@ -450,11 +450,12 @@ class SolarmanV5(Message):
         result = struct.unpack_from('<B', data, 0)
         ftype = result[0]
         if ftype == self.AT_CMD:
-            self.inc_counter('AT_Command')
-            self.forward_at_cmd_resp = True
             AT_cmd = data[15:].decode()
             if self.at_cmd_forbidden(cmd=AT_cmd, connection='tsun'):
+                self.inc_counter('AT_Command_Blocked')
                 return
+            self.inc_counter('AT_Command')
+            self.forward_at_cmd_resp = True
 
         elif ftype == self.MB_RTU_CMD:
             if self.remoteStream.mb.recv_req(data[15:],
