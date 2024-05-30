@@ -91,8 +91,13 @@ class SolarmanV5(Message):
             # MODbus or AT cmd
             0x4510: self.msg_command_req,  # from server
             0x1510: self.msg_command_rsp,     # from inverter
+            # 0x0510: self.msg_command_rsp,     # from inverter
         }
         self.modbus_elms = 0    # for unit tests
+        g3p_cnf = Config.get('gen3plus')
+
+        if 'at_acl' in g3p_cnf:
+            self.at_acl = g3p_cnf['at_acl']
 
     '''
     Our puplic methods
@@ -320,9 +325,24 @@ class SolarmanV5(Message):
             return
         self.mb.build_msg(Modbus.INV_ADDR, func, addr, val, log_lvl)
 
+    def at_cmd_forbidden(self, cmd: str, connection: str) -> bool:
+        return not cmd.startswith(tuple(self.at_acl[connection]['allow'])) or \
+                cmd.startswith(tuple(self.at_acl[connection]['block']))
+
     async def send_at_cmd(self, AT_cmd: str) -> None:
         if self.state != self.STATE_UP:
             return
+        AT_cmd = AT_cmd.strip()
+
+        if self.at_cmd_forbidden(cmd=AT_cmd, connection='mqtt'):
+            data_json = f'\'{AT_cmd}\' is forbidden'
+            node_id = self.node_id
+            key = 'at_resp'
+            logger.info(f'{key}: {data_json}')
+            asyncio.ensure_future(
+                self.publish_mqtt(f'{self.entity_prfx}{node_id}{key}', data_json))  # noqa: E501
+            return
+
         self.forward_at_cmd_resp = False
         self.__build_header(0x4510)
         self._send_buffer += struct.pack(f'<BHLLL{len(AT_cmd)}sc', self.AT_CMD,
@@ -432,6 +452,10 @@ class SolarmanV5(Message):
         if ftype == self.AT_CMD:
             self.inc_counter('AT_Command')
             self.forward_at_cmd_resp = True
+            AT_cmd = data[15:].decode()
+            if self.at_cmd_forbidden(cmd=AT_cmd, connection='tsun'):
+                return
+
         elif ftype == self.MB_RTU_CMD:
             if self.remoteStream.mb.recv_req(data[15:],
                                              self.__forward_msg()):

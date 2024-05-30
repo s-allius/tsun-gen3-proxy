@@ -41,6 +41,7 @@ class MemoryStream(SolarmanV5):
         self.db.stat['proxy']['AT_Command'] = 0
         self.test_exception_async_write = False
         self.entity_prfx = ''
+        self.at_acl = {'mqtt': {'allow': ['AT+'], 'block': []}, 'tsun': {'allow': ['AT+Z', 'AT+UPURL', 'AT+SUPDATE', 'AT+TIME'], 'block': []}}
 
     def _timestamp(self):
         return timestamp
