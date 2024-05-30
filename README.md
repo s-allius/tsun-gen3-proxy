@@ -48,7 +48,7 @@ If you use a Pi-hole, you can also store the host entry in the Pi-hole.
 - Faster DataUp interval sends measurement data to the MQTT broker every minute
 - Self-sufficient island operation without internet
 - Security-Features:
-  - control access via `AT commands`
+  - control access via `AT-commands`
   - Runs in a non-root Docker Container
 
 ## Home Assistant Screenshots
