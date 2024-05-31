@@ -68,6 +68,7 @@ services:
   tsun-proxy:
     container_name: tsun-proxy
     image: ghcr.io/s-allius/tsun-gen3-proxy:latest
+    # image: ghcr.io/s-allius/tsun-gen3-proxy:rc
     restart: unless-stopped
     depends_on:
       - mqtt
