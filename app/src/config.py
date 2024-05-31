@@ -3,7 +3,7 @@
 import shutil
 import tomllib
 import logging
-from schema import Schema, And, Use, Optional
+from schema import Schema, And, Or, Use, Optional
 
 
 class Config():
@@ -37,6 +37,14 @@ class Config():
             'entity_prefix':    Use(str),
             'proxy_node_id':    Use(str),
             'proxy_unique_id':  Use(str)
+            },
+        'gen3plus': {
+            'at_acl': {
+                Or('mqtt', 'tsun'): {
+                    'allow': [str],
+                    Optional('block', default=[]): [str]
+                    }
+                }
             },
         'inverters': {
             'allow_all': Use(bool), And(Use(str), lambda s: len(s) == 16): {
@@ -125,7 +133,8 @@ class Config():
 
             # merge the default and the user config
             config = def_config.copy()
-            for key in ['tsun', 'solarman', 'mqtt', 'ha', 'inverters']:
+            for key in ['tsun', 'solarman', 'mqtt', 'ha', 'inverters',
+                        'gen3plus']:
                 if key in usr_config:
                     config[key] |= usr_config[key]
 

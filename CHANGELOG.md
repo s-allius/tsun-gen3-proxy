@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - trace heartbeat and regular modbus pakets witl log level DEBUG
 - GEN3PLUS: don't forward ack paket from tsun to the inverter
+- add allow and block filter for AT+ commands
 - catch all OSError errors in the read loop
 - log Modbus traces with different log levels
 - add Modbus fifo and timeout handler

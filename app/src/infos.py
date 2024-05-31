@@ -29,6 +29,7 @@ class Register(Enum):
     INVALID_MSG_FMT = 58
     AT_COMMAND = 59
     MODBUS_COMMAND = 60
+    AT_COMMAND_BLOCKED = 61
     OUTPUT_POWER = 83
     RATED_POWER = 84
     INVERTER_TEMP = 85
@@ -210,17 +211,18 @@ class Infos:
         Register.PV6_MODEL:        {'name': ['inverter', 'PV6_Model'],             'level': logging.DEBUG, 'unit': ''},  # noqa: E501
 
         # proxy:
-        Register.INVERTER_CNT:      {'name': ['proxy', 'Inverter_Cnt'],       'singleton': True,   'ha': {'dev': 'proxy', 'comp': 'sensor', 'dev_cla': None, 'stat_cla': None, 'id': 'inv_count_',     'fmt': '| int', 'name': 'Active Inverter Connections',    'icon': 'mdi:counter'}},  # noqa: E501
-        Register.UNKNOWN_SNR:       {'name': ['proxy', 'Unknown_SNR'],        'singleton': True,   'ha': {'dev': 'proxy', 'comp': 'sensor', 'dev_cla': None, 'stat_cla': None, 'id': 'unknown_snr_',   'fmt': '| int', 'name': 'Unknown Serial No',    'icon': 'mdi:counter', 'ent_cat': 'diagnostic'}},  # noqa: E501
-        Register.UNKNOWN_MSG:       {'name': ['proxy', 'Unknown_Msg'],        'singleton': True,   'ha': {'dev': 'proxy', 'comp': 'sensor', 'dev_cla': None, 'stat_cla': None, 'id': 'unknown_msg_',   'fmt': '| int', 'name': 'Unknown Msg Type',     'icon': 'mdi:counter', 'ent_cat': 'diagnostic'}},  # noqa: E501
-        Register.INVALID_DATA_TYPE: {'name': ['proxy', 'Invalid_Data_Type'],  'singleton': True,   'ha': {'dev': 'proxy', 'comp': 'sensor', 'dev_cla': None, 'stat_cla': None, 'id': 'inv_data_type_', 'fmt': '| int', 'name': 'Invalid Data Type',    'icon': 'mdi:counter', 'ent_cat': 'diagnostic'}},  # noqa: E501
-        Register.INTERNAL_ERROR:    {'name': ['proxy', 'Internal_Error'],     'singleton': True,   'ha': {'dev': 'proxy', 'comp': 'sensor', 'dev_cla': None, 'stat_cla': None, 'id': 'intern_err_',    'fmt': '| int', 'name': 'Internal Error',       'icon': 'mdi:counter', 'ent_cat': 'diagnostic', 'en': False}},  # noqa: E501
-        Register.UNKNOWN_CTRL:      {'name': ['proxy', 'Unknown_Ctrl'],       'singleton': True,   'ha': {'dev': 'proxy', 'comp': 'sensor', 'dev_cla': None, 'stat_cla': None, 'id': 'unknown_ctrl_',  'fmt': '| int', 'name': 'Unknown Control Type', 'icon': 'mdi:counter', 'ent_cat': 'diagnostic'}},  # noqa: E501
-        Register.OTA_START_MSG:     {'name': ['proxy', 'OTA_Start_Msg'],      'singleton': True,   'ha': {'dev': 'proxy', 'comp': 'sensor', 'dev_cla': None, 'stat_cla': None, 'id': 'ota_start_cmd_', 'fmt': '| int', 'name': 'OTA Start Cmd',        'icon': 'mdi:counter', 'ent_cat': 'diagnostic'}},  # noqa: E501
-        Register.SW_EXCEPTION:      {'name': ['proxy', 'SW_Exception'],       'singleton': True,   'ha': {'dev': 'proxy', 'comp': 'sensor', 'dev_cla': None, 'stat_cla': None, 'id': 'sw_exception_',  'fmt': '| int', 'name': 'Internal SW Exception', 'icon': 'mdi:counter', 'ent_cat': 'diagnostic'}},  # noqa: E501
-        Register.INVALID_MSG_FMT:   {'name': ['proxy', 'Invalid_Msg_Format'], 'singleton': True,   'ha': {'dev': 'proxy', 'comp': 'sensor', 'dev_cla': None, 'stat_cla': None, 'id': 'inv_msg_fmt_',   'fmt': '| int', 'name': 'Invalid Message Format', 'icon': 'mdi:counter', 'ent_cat': 'diagnostic'}},  # noqa: E501
-        Register.AT_COMMAND:        {'name': ['proxy', 'AT_Command'],         'singleton': True,   'ha': {'dev': 'proxy', 'comp': 'sensor', 'dev_cla': None, 'stat_cla': None, 'id': 'at_cmd_',        'fmt': '| int', 'name': 'AT Command',           'icon': 'mdi:counter', 'ent_cat': 'diagnostic'}},  # noqa: E501
-        Register.MODBUS_COMMAND:    {'name': ['proxy', 'Modbus_Command'],     'singleton': True,   'ha': {'dev': 'proxy', 'comp': 'sensor', 'dev_cla': None, 'stat_cla': None, 'id': 'modbus_cmd_',    'fmt': '| int', 'name': 'Modbus Command',       'icon': 'mdi:counter', 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.INVERTER_CNT:       {'name': ['proxy', 'Inverter_Cnt'],       'singleton': True,   'ha': {'dev': 'proxy', 'comp': 'sensor', 'dev_cla': None, 'stat_cla': None, 'id': 'inv_count_',     'fmt': '| int', 'name': 'Active Inverter Connections',    'icon': 'mdi:counter'}},  # noqa: E501
+        Register.UNKNOWN_SNR:        {'name': ['proxy', 'Unknown_SNR'],        'singleton': True,   'ha': {'dev': 'proxy', 'comp': 'sensor', 'dev_cla': None, 'stat_cla': None, 'id': 'unknown_snr_',   'fmt': '| int', 'name': 'Unknown Serial No',    'icon': 'mdi:counter', 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.UNKNOWN_MSG:        {'name': ['proxy', 'Unknown_Msg'],        'singleton': True,   'ha': {'dev': 'proxy', 'comp': 'sensor', 'dev_cla': None, 'stat_cla': None, 'id': 'unknown_msg_',   'fmt': '| int', 'name': 'Unknown Msg Type',     'icon': 'mdi:counter', 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.INVALID_DATA_TYPE:  {'name': ['proxy', 'Invalid_Data_Type'],  'singleton': True,   'ha': {'dev': 'proxy', 'comp': 'sensor', 'dev_cla': None, 'stat_cla': None, 'id': 'inv_data_type_', 'fmt': '| int', 'name': 'Invalid Data Type',    'icon': 'mdi:counter', 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.INTERNAL_ERROR:     {'name': ['proxy', 'Internal_Error'],     'singleton': True,   'ha': {'dev': 'proxy', 'comp': 'sensor', 'dev_cla': None, 'stat_cla': None, 'id': 'intern_err_',    'fmt': '| int', 'name': 'Internal Error',       'icon': 'mdi:counter', 'ent_cat': 'diagnostic', 'en': False}},  # noqa: E501
+        Register.UNKNOWN_CTRL:       {'name': ['proxy', 'Unknown_Ctrl'],       'singleton': True,   'ha': {'dev': 'proxy', 'comp': 'sensor', 'dev_cla': None, 'stat_cla': None, 'id': 'unknown_ctrl_',  'fmt': '| int', 'name': 'Unknown Control Type', 'icon': 'mdi:counter', 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.OTA_START_MSG:      {'name': ['proxy', 'OTA_Start_Msg'],      'singleton': True,   'ha': {'dev': 'proxy', 'comp': 'sensor', 'dev_cla': None, 'stat_cla': None, 'id': 'ota_start_cmd_', 'fmt': '| int', 'name': 'OTA Start Cmd',        'icon': 'mdi:counter', 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.SW_EXCEPTION:       {'name': ['proxy', 'SW_Exception'],       'singleton': True,   'ha': {'dev': 'proxy', 'comp': 'sensor', 'dev_cla': None, 'stat_cla': None, 'id': 'sw_exception_',  'fmt': '| int', 'name': 'Internal SW Exception', 'icon': 'mdi:counter', 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.INVALID_MSG_FMT:    {'name': ['proxy', 'Invalid_Msg_Format'], 'singleton': True,   'ha': {'dev': 'proxy', 'comp': 'sensor', 'dev_cla': None, 'stat_cla': None, 'id': 'inv_msg_fmt_',   'fmt': '| int', 'name': 'Invalid Message Format', 'icon': 'mdi:counter', 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.AT_COMMAND:         {'name': ['proxy', 'AT_Command'],         'singleton': True,   'ha': {'dev': 'proxy', 'comp': 'sensor', 'dev_cla': None, 'stat_cla': None, 'id': 'at_cmd_',        'fmt': '| int', 'name': 'AT Command',           'icon': 'mdi:counter', 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.AT_COMMAND_BLOCKED: {'name': ['proxy', 'AT_Command_Blocked'], 'singleton': True,   'ha': {'dev': 'proxy', 'comp': 'sensor', 'dev_cla': None, 'stat_cla': None, 'id': 'at_cmd_blocked_', 'fmt': '| int', 'name': 'AT Command Blocked',   'icon': 'mdi:counter', 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.MODBUS_COMMAND:     {'name': ['proxy', 'Modbus_Command'],     'singleton': True,   'ha': {'dev': 'proxy', 'comp': 'sensor', 'dev_cla': None, 'stat_cla': None, 'id': 'modbus_cmd_',    'fmt': '| int', 'name': 'Modbus Command',       'icon': 'mdi:counter', 'ent_cat': 'diagnostic'}},  # noqa: E501
         # 0xffffff03:  {'name':['proxy', 'Voltage'],                        'level': logging.DEBUG, 'unit': 'V',    'ha':{'dev':'proxy', 'dev_cla': 'voltage',     'stat_cla': 'measurement', 'id':'proxy_volt_',  'fmt':'| float','name': 'Grid Voltage'}},  # noqa: E501
 
         # events
@@ -404,7 +406,7 @@ class Infos:
                 attr['unit_of_meas'] = row['unit']  # 'unit_of_meas'
             if 'icon' in ha:
                 attr['ic'] = ha['icon']             # icon for the entity
-            if 'nat_prc' in ha:
+            if 'nat_prc' in ha:  # pragma: no cover
                 attr['sug_dsp_prc'] = ha['nat_prc']  # precison of floats
             if 'ent_cat' in ha:
                 attr['ent_cat'] = ha['ent_cat']     # diagnostic, config
