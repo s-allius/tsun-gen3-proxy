@@ -938,7 +938,7 @@ def test_device_rsp(ConfigTsunInv1, DeviceRspMsg):
     assert m.data_len == 0x0a
     assert m._recv_buffer==b''
     assert m._send_buffer==b''
-    assert m._forward_buffer==DeviceRspMsg
+    assert m._forward_buffer==b''
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
     m.close()
 
@@ -956,7 +956,7 @@ def test_inverter_rsp(ConfigTsunInv1, InverterRspMsg):
     assert m.data_len == 0x0a
     assert m._recv_buffer==b''
     assert m._send_buffer==b''
-    assert m._forward_buffer==InverterRspMsg
+    assert m._forward_buffer==b''
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
     m.close()
 
@@ -992,7 +992,7 @@ def test_heartbeat_rsp(ConfigTsunInv1, HeartbeatRspMsg):
     assert m.data_len == 0x0a
     assert m._recv_buffer==b''
     assert m._send_buffer==b''
-    assert m._forward_buffer==HeartbeatRspMsg
+    assert m._forward_buffer==b''
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
     m.close()
 
@@ -1034,7 +1034,7 @@ def test_sync_start_rsp(ConfigTsunInv1, SyncStartRspMsg):
     assert m.data_len == 0x0a
     assert m._recv_buffer==b''
     assert m._send_buffer==b''
-    assert m._forward_buffer==SyncStartRspMsg
+    assert m._forward_buffer==b''
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
     m.close()
 
@@ -1070,7 +1070,7 @@ def test_sync_end_rsp(ConfigTsunInv1, SyncEndRspMsg):
     assert m.data_len == 0x0a
     assert m._recv_buffer==b''
     assert m._send_buffer==b''
-    assert m._forward_buffer==SyncEndRspMsg
+    assert m._forward_buffer==b''
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
     m.close()
 
