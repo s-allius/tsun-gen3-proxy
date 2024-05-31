@@ -93,6 +93,29 @@ class SolarmanV5(Message):
             0x1510: self.msg_command_rsp,     # from inverter
             # 0x0510: self.msg_command_rsp,     # from inverter
         }
+
+        self.log_lvl = {
+
+            0x4210: logging.INFO,   # real time data
+            0x1210: logging.INFO,   # at least every 5 minutes
+
+            0x4710: logging.DEBUG,  # heatbeat
+            0x1710: logging.DEBUG,  # every 2 minutes
+
+            0x4110: logging.INFO,   # device data, sync start
+            0x1110: logging.INFO,   # every 3 hours
+
+            0x4310: logging.INFO,   # regulary after 3-6 hours
+            0x1310: logging.INFO,
+
+            0x4810: logging.INFO,   # sync end
+            0x1810: logging.INFO,
+
+            #
+            # MODbus or AT cmd
+            0x4510: logging.INFO,  # from server
+            0x1510: self.get_cmd_rsp_log_lvl,
+        }
         self.modbus_elms = 0    # for unit tests
         g3p_cnf = Config.get('gen3plus')
 
@@ -108,6 +131,7 @@ class SolarmanV5(Message):
         # so we have to erase self.switch, otherwise this instance can't be
         # deallocated by the garbage collector ==> we get a memory leak
         self.switch.clear()
+        self.log_lvl.clear()
         self.state = self.STATE_CLOSED
         super().close()
 
@@ -150,7 +174,10 @@ class SolarmanV5(Message):
 
         if self.header_valid and len(self._recv_buffer) >= (self.header_len +
                                                             self.data_len+2):
-            hex_dump_memory(logging.INFO, f'Received from {self.addr}:',
+            log_lvl = self.log_lvl.get(self.control, logging.WARNING)
+            if callable(log_lvl):
+                log_lvl = log_lvl()
+            hex_dump_memory(log_lvl, f'Received from {self.addr}:',
                             self._recv_buffer, self.header_len+self.data_len+2)
             if self.__trailer_is_ok(self._recv_buffer, self.header_len
                                     + self.data_len + 2):
@@ -253,15 +280,15 @@ class SolarmanV5(Message):
 
         return True
 
-    def __build_header(self, ctrl, log_lvl: int = logging.INFO) -> None:
+    def __build_header(self, ctrl) -> None:
         '''build header for new transmit message'''
         self.send_msg_ofs = len(self._send_buffer)
 
         self._send_buffer += struct.pack(
             '<BHHHL', 0xA5, 0, ctrl, self.seq.get_send(), self.snr)
         fnc = self.switch.get(ctrl, self.msg_unknown)
-        logger.log(log_lvl, self.__flow_str(self.server_side, 'tx') +
-                   f' Ctl: {int(ctrl):#04x} Msg: {fnc.__name__!r}')
+        logger.info(self.__flow_str(self.server_side, 'tx') +
+                    f' Ctl: {int(ctrl):#04x} Msg: {fnc.__name__!r}')
 
     def __finish_send_msg(self) -> None:
         '''finish the transmit message, set lenght and checksum'''
@@ -310,7 +337,7 @@ class SolarmanV5(Message):
     def send_modbus_cb(self, pdu: bytearray, log_lvl: int, state: str):
         if self.state != self.STATE_UP:
             return
-        self.__build_header(0x4510, log_lvl)
+        self.__build_header(0x4510)
         self._send_buffer += struct.pack('<BHLLL', self.MB_RTU_CMD,
                                          0x2b0, 0, 0, 0)
         self._send_buffer += pdu
@@ -470,6 +497,18 @@ class SolarmanV5(Message):
     async def publish_mqtt(self, key, data):
         await self.mqtt.publish(key, data)  # pragma: no cover
 
+    def get_cmd_rsp_log_lvl(self) -> int:
+        ftype = self._recv_buffer[self.header_len]
+        if ftype == self.AT_CMD:
+            if self.forward_at_cmd_resp:
+                return logging.INFO
+            return logging.DEBUG
+        elif ftype == self.MB_RTU_CMD:
+            if self.server_side:
+                return self.mb.last_log_lvl
+
+        return logging.WARNING
+
     def msg_command_rsp(self):
         data = self._recv_buffer[self.header_len:
                                  self.header_len+self.data_len]
@@ -539,4 +578,4 @@ class SolarmanV5(Message):
 
         dt = datetime.fromtimestamp(ts)
         logger.debug(f'ts: {dt.strftime("%Y-%m-%d %H:%M:%S")}')
-        self.__forward_msg()
+        # self.__forward_msg()

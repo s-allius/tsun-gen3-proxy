@@ -52,6 +52,16 @@ class Talent(Message):
             # 0x78:
             0x04: self.msg_inverter_data,
         }
+        self.log_lvl = {
+            0x00: logging.INFO,
+            0x13: logging.INFO,
+            0x22: logging.INFO,
+            0x71: logging.INFO,
+            # 0x76:
+            0x77: self.get_modbus_log_lvl,
+            # 0x78:
+            0x04: logging.INFO,
+        }
         self.modbus_elms = 0    # for unit tests
 
     '''
@@ -63,6 +73,7 @@ class Talent(Message):
         # so we have to erase self.switch, otherwise this instance can't be
         # deallocated by the garbage collector ==> we get a memory leak
         self.switch.clear()
+        self.log_lvl.clear()
         self.state = self.STATE_CLOSED
         super().close()
 
@@ -100,7 +111,11 @@ class Talent(Message):
 
         if self.header_valid and len(self._recv_buffer) >= (self.header_len +
                                                             self.data_len):
-            hex_dump_memory(logging.INFO, f'Received from {self.addr}:',
+            log_lvl = self.log_lvl.get(self.msg_id, logging.WARNING)
+            if callable(log_lvl):
+                log_lvl = log_lvl()
+
+            hex_dump_memory(log_lvl, f'Received from {self.addr}:',
                             self._recv_buffer, self.header_len+self.data_len)
 
             self.__set_serial_no(self.id_str.decode("utf-8"))
@@ -126,7 +141,7 @@ class Talent(Message):
         if self.state != self.STATE_UP:
             return
 
-        self.__build_header(0x70, 0x77, log_lvl)
+        self.__build_header(0x70, 0x77)
         self._send_buffer += b'\x00\x01\xa3\x28'   # fixme
         self._send_buffer += struct.pack('!B', len(modbus_pdu))
         self._send_buffer += modbus_pdu
@@ -217,16 +232,15 @@ class Talent(Message):
         self.header_valid = True
         return
 
-    def __build_header(self, ctrl, msg_id=None,
-                       log_lvl: int = logging.INFO) -> None:
+    def __build_header(self, ctrl, msg_id=None) -> None:
         if not msg_id:
             msg_id = self.msg_id
         self.send_msg_ofs = len(self._send_buffer)
         self._send_buffer += struct.pack(f'!l{len(self.id_str)+1}pBB',
                                          0, self.id_str, ctrl, msg_id)
         fnc = self.switch.get(msg_id, self.msg_unknown)
-        logger.log(log_lvl, self.__flow_str(self.server_side, 'tx') +
-                   f' Ctl: {int(ctrl):#02x} Msg: {fnc.__name__!r}')
+        logger.info(self.__flow_str(self.server_side, 'tx') +
+                    f' Ctl: {int(ctrl):#02x} Msg: {fnc.__name__!r}')
 
     def __finish_send_msg(self) -> None:
         _len = len(self._send_buffer) - self.send_msg_ofs
@@ -390,6 +404,14 @@ class Talent(Message):
         # logger.debug(f'Ref: {result[0]}')
         # logger.debug(f'Modbus MsgLen: {modbus_len} Func:{result[2]}')
         return msg_hdr_len, modbus_len
+
+    def get_modbus_log_lvl(self) -> int:
+        if self.ctrl.is_req():
+            return logging.INFO
+        elif self.ctrl.is_ind():
+            if self.server_side:
+                return self.mb.last_log_lvl
+        return logging.WARNING
 
     def msg_modbus(self):
         hdr_len, modbus_len = self.parse_modbus_header()
