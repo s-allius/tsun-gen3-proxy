@@ -83,6 +83,7 @@ if __name__ == "__main__":
     logging.getLogger('msg').setLevel(log_level)
     logging.getLogger('conn').setLevel(log_level)
     logging.getLogger('data').setLevel(log_level)
+    logging.getLogger('tracer').setLevel(log_level)
     # logging.getLogger('mqtt').setLevel(log_level)
 
     # read config file
