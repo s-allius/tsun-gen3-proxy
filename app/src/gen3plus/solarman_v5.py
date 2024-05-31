@@ -578,4 +578,3 @@ class SolarmanV5(Message):
 
         dt = datetime.fromtimestamp(ts)
         logger.debug(f'ts: {dt.strftime("%Y-%m-%d %H:%M:%S")}')
-        # self.__forward_msg()
