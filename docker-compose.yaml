@@ -1,6 +1,3 @@
-
-version: '3.0'
-
 services:
 #######  H O M E  -  A S S I S T A N T  ##### 
   home-assistant:
@@ -34,7 +31,7 @@ services:
     ports:
       - 8123:8123
     volumes:
-      - ${PROJECT_DIR}./homeassistant/config:/config
+      - ${PROJECT_DIR:-./}homeassistant/config:/config
       - /etc/localtime:/etc/localtime:ro
     healthcheck:
       test: curl --fail http://0.0.0.0:8123/auth/providers || exit 1
@@ -56,8 +53,8 @@ services:
     expose:
       - 1883
     volumes:
-      - ${PROJECT_DIR}./mosquitto/config:/mosquitto/config
-      - ${PROJECT_DIR}./mosquitto/data:/mosquitto/data
+      - ${PROJECT_DIR:-./}mosquitto/config:/mosquitto/config
+      - ${PROJECT_DIR:-./}mosquitto/data:/mosquitto/data
     networks:
       outside:
          ipv4_address: 172.28.1.5 # static IP required to receive mDNS traffic     
@@ -83,8 +80,8 @@ services:
       - 5005:5005
       - 10000:10000
     volumes:
-      - ${PROJECT_DIR}./tsun-proxy/log:/home/tsun-proxy/log 
-      - ${PROJECT_DIR}./tsun-proxy/config:/home/tsun-proxy/config 
+      - ${PROJECT_DIR:-./}tsun-proxy/log:/home/tsun-proxy/log 
+      - ${PROJECT_DIR:-./}tsun-proxy/config:/home/tsun-proxy/config 
     networks:
       - outside
 
