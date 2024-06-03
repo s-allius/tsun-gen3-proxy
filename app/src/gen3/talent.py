@@ -63,6 +63,8 @@ class Talent(Message):
             0x04: logging.INFO,
         }
         self.modbus_elms = 0    # for unit tests
+        self.node_id = 'G3'     # will be overwritten in __set_serial_no
+        # self.forwarding = Config.get('tsun')['enabled']
 
     '''
     Our puplic methods
@@ -139,6 +141,8 @@ class Talent(Message):
 
     def send_modbus_cb(self, modbus_pdu: bytearray, log_lvl: int, state: str):
         if self.state != self.STATE_UP:
+            logger.warn(f'[{self.node_id}] ignore MODBUS cmd,'
+                        ' as the state is not UP')
             return
 
         self.__build_header(0x70, 0x77)
@@ -154,6 +158,8 @@ class Talent(Message):
 
     async def send_modbus_cmd(self, func, addr, val, log_lvl) -> None:
         if self.state != self.STATE_UP:
+            logger.warn(f'[{self.node_id}] ignore MODBUS cmd,'
+                        ' as the state is not UP')
             return
         self.mb.build_msg(Modbus.INV_ADDR, func, addr, val, log_lvl)
 

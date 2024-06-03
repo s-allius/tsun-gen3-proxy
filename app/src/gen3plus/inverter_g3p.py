@@ -56,7 +56,7 @@ class InverterG3P(Inverter, ConnectionG3P):
         addr = (host, port)
 
         try:
-            logging.info(f'Connected to {addr}')
+            logging.info(f'[{self.node_id}] Connected to {addr}')
             connect = asyncio.open_connection(host, port)
             reader, writer = await connect
             self.remoteStream = ConnectionG3P(reader, writer, addr, self,

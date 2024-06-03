@@ -122,6 +122,9 @@ class SolarmanV5(Message):
         if 'at_acl' in g3p_cnf:  # pragma: no cover
             self.at_acl = g3p_cnf['at_acl']
 
+        self.node_id = 'G3P'  # will be overwritten in __set_serial_no
+        # self.forwarding = Config.get('solarman')['enabled']
+
     '''
     Our puplic methods
     '''
@@ -336,6 +339,8 @@ class SolarmanV5(Message):
 
     def send_modbus_cb(self, pdu: bytearray, log_lvl: int, state: str):
         if self.state != self.STATE_UP:
+            logger.warn(f'[{self.node_id}] ignore MODBUS cmd,'
+                        ' as the state is not UP')
             return
         self.__build_header(0x4510)
         self._send_buffer += struct.pack('<BHLLL', self.MB_RTU_CMD,
@@ -349,6 +354,8 @@ class SolarmanV5(Message):
 
     async def send_modbus_cmd(self, func, addr, val, log_lvl) -> None:
         if self.state != self.STATE_UP:
+            logger.warn(f'[{self.node_id}] ignore MODBUS cmd,'
+                        ' as the state is not UP')
             return
         self.mb.build_msg(Modbus.INV_ADDR, func, addr, val, log_lvl)
 
@@ -358,6 +365,8 @@ class SolarmanV5(Message):
 
     async def send_at_cmd(self, AT_cmd: str) -> None:
         if self.state != self.STATE_UP:
+            logger.warn(f'[{self.node_id}] ignore AT+ cmd,'
+                        ' as the state is not UP')
             return
         AT_cmd = AT_cmd.strip()
 

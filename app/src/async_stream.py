@@ -17,11 +17,12 @@ class AsyncStream():
 
     async def server_loop(self, addr):
         '''Loop for receiving messages from the inverter (server-side)'''
-        logging.info(f'Accept connection from  {addr}')
+        logging.info(f'[{self.node_id}] Accept connection from {addr}')
         self.inc_counter('Inverter_Cnt')
         await self.loop()
         self.dec_counter('Inverter_Cnt')
-        logging.info(f'Server loop stopped for r{self.r_addr}')
+        logging.info(f'[{self.node_id}] Server loop stopped for'
+                     f' r{self.r_addr}')
 
         # if the server connection closes, we also have to disconnect
         # the connection to te TSUN cloud
@@ -36,7 +37,8 @@ class AsyncStream():
     async def client_loop(self, addr):
         '''Loop for receiving messages from the TSUN cloud (client-side)'''
         clientStream = await self.remoteStream.loop()
-        logging.info(f'Client loop stopped for l{clientStream.l_addr}')
+        logging.info(f'[{self.node_id}] Client loop stopped for'
+                     f' l{clientStream.l_addr}')
 
         # if the client connection closes, we don't touch the server
         # connection. Instead we erase the client connection stream,
@@ -66,14 +68,14 @@ class AsyncStream():
                     await self.async_publ_mqtt()
 
             except OSError as error:
-                logger.error(f'{error} for l{self.l_addr} | '
+                logger.error(f'[{self.node_id}] {error} for l{self.l_addr} | '
                              f'r{self.r_addr}')
                 await self.disc()
                 self.close()
                 return self
 
             except RuntimeError as error:
-                logger.warning(f"{error} for {self.l_addr}")
+                logger.info(f"[{self.node_id}] {error} for {self.l_addr}")
                 await self.disc()
                 self.close()
                 return self
