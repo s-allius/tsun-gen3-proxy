@@ -50,3 +50,6 @@ docker push ghcr.io/s-allius/tsun-gen3-proxy:latest
 docker push ghcr.io/s-allius/tsun-gen3-proxy:${MAJOR}
 docker push ghcr.io/s-allius/tsun-gen3-proxy:${VERSION}
 fi
+
+echo 'check docker-compose.yaml file'
+docker-compose config -q
