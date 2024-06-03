@@ -161,7 +161,7 @@ suggested_area = 'balcony'    # Optional, suggested installation area for home-a
 pv1 = {type = 'RSM40-8-405M', manufacturer = 'Risen'}   # Optional, PV module descr
 pv2 = {type = 'RSM40-8-405M', manufacturer = 'Risen'}   # Optional, PV module descr
 
-[inverters."Y17xxxxxxxxxxxx1"]
+[inverters."Y17xxxxxxxxxxxx1"]  # This block is also for inverters with a Y47 serial no
 monitor_sn = 2000000000       # The "Monitoring SN:" can be found on a sticker enclosed with the inverter
 node_id = 'inv_3'             # MQTT replacement for inverters serial number  
 suggested_area = 'garage'     # suggested installation place for home-assistant
@@ -241,7 +241,7 @@ Legend
 🚧: Proxy support in preparation
 ```
 
-❗The new inverters of the GEN3 Plus generation (e.g. MS-2000) use a completely different protocol for data transmission to the TSUN server. These inverters are supported from proxy version 0.6. The serial numbers of these inverters start with `Y17E` instead of `R17E`
+❗The new inverters of the GEN3 Plus generation (e.g. MS-2000) use a completely different protocol for data transmission to the TSUN server. These inverters are supported from proxy version 0.6. The serial numbers of these inverters start with `Y17E` or `Y47E` instead of `R17E`
 
 If you have one of these combinations with a red question mark, it would be very nice if you could send me a proxy trace so that I can carry out the detailed checks and adjust the device and system tests. [Ask here how to send a trace](https://github.com/s-allius/tsun-gen3-proxy/discussions/categories/traces-for-compatibility-check)
 
