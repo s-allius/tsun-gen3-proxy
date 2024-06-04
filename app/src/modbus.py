@@ -216,7 +216,7 @@ class Modbus():
                         yield keys[0], update, result
                         if update:
                             info_db.tracer.log(level,
-                                               f'[\'{node_id}\']MODBUS: {name}'
+                                               f'[{node_id}] MODBUS: {name}'
                                                f' : {result}{unit}')
         else:
             self.__stop_timer()

@@ -164,7 +164,7 @@ class InfosG3(Infos):
                 name = str(f'info-id.0x{addr:x}')
 
             if update:
-                self.tracer.log(level, f'[\'{node_id}\']GEN3: {name} :'
+                self.tracer.log(level, f'[{node_id}] GEN3: {name} :'
                                        f' {result}{unit}')
 
             i += 1

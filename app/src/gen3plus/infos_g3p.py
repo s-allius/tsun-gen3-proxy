@@ -123,5 +123,5 @@ class InfosG3P(Infos):
                 update = False
 
             if update:
-                self.tracer.log(level, f'[\'{node_id}\']GEN3PLUS: {name}'
+                self.tracer.log(level, f'[{node_id}] GEN3PLUS: {name}'
                                        f' : {result}{unit}')
