@@ -56,10 +56,9 @@ services:
       - ${PROJECT_DIR:-./}mosquitto/config:/mosquitto/config
       - ${PROJECT_DIR:-./}mosquitto/data:/mosquitto/data
     networks:
-      outside:
-         ipv4_address: 172.28.1.5 # static IP required to receive mDNS traffic     
-    
+      - outside
 
+      
 
 #######  T S U N  -  P R O X Y  ######      
   tsun-proxy:
@@ -91,11 +90,4 @@ services:
 networks:
   outside:
     name: home-assistant
-    external: true
-    ipam:
-      driver: default
-      config:
-        - subnet: 172.28.1.0/26
-          ip_range: 172.28.1.32/27
-          gateway: 172.28.1.62          
           
