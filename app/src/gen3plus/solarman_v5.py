@@ -339,8 +339,8 @@ class SolarmanV5(Message):
 
     def send_modbus_cb(self, pdu: bytearray, log_lvl: int, state: str):
         if self.state != self.STATE_UP:
-            logger.warn(f'[{self.node_id}] ignore MODBUS cmd,'
-                        ' as the state is not UP')
+            logger.debug(f'[{self.node_id}] ignore MODBUS cmd,'
+                         ' as the state is not UP')
             return
         self.__build_header(0x4510)
         self._send_buffer += struct.pack('<BHLLL', self.MB_RTU_CMD,
@@ -354,8 +354,8 @@ class SolarmanV5(Message):
 
     async def send_modbus_cmd(self, func, addr, val, log_lvl) -> None:
         if self.state != self.STATE_UP:
-            logger.warn(f'[{self.node_id}] ignore MODBUS cmd,'
-                        ' as the state is not UP')
+            logger.debug(f'[{self.node_id}] ignore MODBUS cmd,'
+                         ' as the state is not UP')
             return
         self.mb.build_msg(Modbus.INV_ADDR, func, addr, val, log_lvl)
 
