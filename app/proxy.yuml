@@ -4,8 +4,8 @@
 
 [note: You can stick notes on diagrams too!{bg:cornsilk}]
 [Singleton]^[Mqtt|<static>ha_restarts;<static>__client;<static>__cb_MqttIsUp|<async>publish();<async>close()]
-[Modbus|err;retry_cnt|build_msg();recv_req();recv_resp()]
-[IterRegistry||__iter__]^[Message|server_side:bool;header_valid:bool;header_len:unsigned;data_len:unsigned;unique_id;node_id;sug_area;_recv_buffer:bytearray;_send_buffer:bytearray;_forward_buffer:bytearray;db:Infos;new_data:list|_read():void<abstract>;close():void;inc_counter():void;dec_counter():void]
+[Modbus|que;;snd_handler;rsp_handler;timeout:max_retires;last_xxx;err;retry_cnt;req_pend;tim|build_msg();recv_req();recv_resp()]
+[IterRegistry||__iter__]^[Message|server_side:bool;header_valid:bool;header_len:unsigned;data_len:unsigned;unique_id;node_id;sug_area;_recv_buffer:bytearray;_send_buffer:bytearray;_forward_buffer:bytearray;db:Infos;new_data:list;state|_read():void<abstract>;close():void;inc_counter():void;dec_counter():void]
 [Message]^[Talent|await_conn_resp_cnt;id_str;contact_name;contact_mail;db:InfosG3;mb:Modbus;switch|msg_contact_info();msg_ota_update();msg_get_time();msg_collector_data();msg_inverter_data();msg_unknown();;close()]
 [Message]^[SolarmanV5|control;serial;snr;db:InfosG3P;mb:Modbus;switch|msg_unknown();;close()]
 [Talent]^[ConnectionG3|remoteStream:ConnectionG3|close()]

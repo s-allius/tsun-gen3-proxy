@@ -9,10 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - improve logging: add protocol or node_id to connection logs
 - improve logging: log ignored AT+ or MODBUS commands
+- improve tracelog: log level depends on message type and source
 - fix typo in docker-compose.yaml and remove the external network definition
 - trace heartbeat and regular modbus pakets witl log level DEBUG
 - GEN3PLUS: don't forward ack paket from tsun to the inverter
-- add allow and block filter for AT+ commands
+- GEN3PLUS: add allow and block filter for AT+ commands
 - catch all OSError errors in the read loop
 - log Modbus traces with different log levels
 - add Modbus fifo and timeout handler
@@ -27,7 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - change logging level to DEBUG for some logs
 - remove experimental value Register.VALUE_1
 - format Register.POWER_ON_TIME as integer
-- ignore non realtime values for now
+- ignore catch-up values from the inverters for now
 
 ## [0.7.0] - 2024-04-20
 
