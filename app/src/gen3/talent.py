@@ -5,10 +5,12 @@ from datetime import datetime
 
 if __name__ == "app.src.gen3.talent":
     from app.src.messages import hex_dump_memory, Message
+    from app.src.modbus import Modbus
     from app.src.config import Config
     from app.src.gen3.infos_g3 import InfosG3
 else:  # pragma: no cover
     from messages import hex_dump_memory, Message
+    from modbus import Modbus
     from config import Config
     from gen3.infos_g3 import InfosG3
 
@@ -33,9 +35,8 @@ class Control:
 
 
 class Talent(Message):
-
     def __init__(self, server_side: bool, id_str=b''):
-        super().__init__(server_side)
+        super().__init__(server_side, self.send_modbus_cb, mb_timeout=11)
         self.await_conn_resp_cnt = 0
         self.id_str = id_str
         self.contact_name = b''
@@ -47,8 +48,24 @@ class Talent(Message):
             0x13: self.msg_ota_update,
             0x22: self.msg_get_time,
             0x71: self.msg_collector_data,
+            # 0x76:
+            0x77: self.msg_modbus,
+            # 0x78:
             0x04: self.msg_inverter_data,
         }
+        self.log_lvl = {
+            0x00: logging.INFO,
+            0x13: logging.INFO,
+            0x22: logging.INFO,
+            0x71: logging.INFO,
+            # 0x76:
+            0x77: self.get_modbus_log_lvl,
+            # 0x78:
+            0x04: logging.INFO,
+        }
+        self.modbus_elms = 0    # for unit tests
+        self.node_id = 'G3'     # will be overwritten in __set_serial_no
+        # self.forwarding = Config.get('tsun')['enabled']
 
     '''
     Our puplic methods
@@ -59,6 +76,9 @@ class Talent(Message):
         # so we have to erase self.switch, otherwise this instance can't be
         # deallocated by the garbage collector ==> we get a memory leak
         self.switch.clear()
+        self.log_lvl.clear()
+        self.state = self.STATE_CLOSED
+        super().close()
 
     def __set_serial_no(self, serial_no: str):
 
@@ -94,7 +114,11 @@ class Talent(Message):
 
         if self.header_valid and len(self._recv_buffer) >= (self.header_len +
                                                             self.data_len):
-            hex_dump_memory(logging.INFO, f'Received from {self.addr}:',
+            log_lvl = self.log_lvl.get(self.msg_id, logging.WARNING)
+            if callable(log_lvl):
+                log_lvl = log_lvl()
+
+            hex_dump_memory(log_lvl, f'Received from {self.addr}:',
                             self._recv_buffer, self.header_len+self.data_len)
 
             self.__set_serial_no(self.id_str.decode("utf-8"))
@@ -115,6 +139,30 @@ class Talent(Message):
             logger.info(self.__flow_str(self.server_side, 'forwrd') +
                         f' Ctl: {int(self.ctrl):#02x} Msg: {fnc.__name__!r}')
         return
+
+    def send_modbus_cb(self, modbus_pdu: bytearray, log_lvl: int, state: str):
+        if self.state != self.STATE_UP:
+            logger.warn(f'[{self.node_id}] ignore MODBUS cmd,'
+                        ' cause the state is not UP anymore')
+            return
+
+        self.__build_header(0x70, 0x77)
+        self._send_buffer += b'\x00\x01\xa3\x28'   # fixme
+        self._send_buffer += struct.pack('!B', len(modbus_pdu))
+        self._send_buffer += modbus_pdu
+        self.__finish_send_msg()
+
+        hex_dump_memory(log_lvl, f'Send Modbus {state}:{self.addr}:',
+                        self._send_buffer, len(self._send_buffer))
+        self.writer.write(self._send_buffer)
+        self._send_buffer = bytearray(0)  # self._send_buffer[sent:]
+
+    async def send_modbus_cmd(self, func, addr, val, log_lvl) -> None:
+        if self.state != self.STATE_UP:
+            logger.log(log_lvl, f'[{self.node_id}] ignore MODBUS cmd,'
+                       ' as the state is not UP')
+            return
+        self.mb.build_msg(Modbus.INV_ADDR, func, addr, val, log_lvl)
 
     def _init_new_client_conn(self) -> bool:
         contact_name = self.contact_name
@@ -209,11 +257,13 @@ class Talent(Message):
         self.header_valid = True
         return
 
-    def __build_header(self, ctrl) -> None:
+    def __build_header(self, ctrl, msg_id=None) -> None:
+        if not msg_id:
+            msg_id = self.msg_id
         self.send_msg_ofs = len(self._send_buffer)
         self._send_buffer += struct.pack(f'!l{len(self.id_str)+1}pBB',
-                                         0, self.id_str, ctrl, self.msg_id)
-        fnc = self.switch.get(self.msg_id, self.msg_unknown)
+                                         0, self.id_str, ctrl, msg_id)
+        fnc = self.switch.get(msg_id, self.msg_unknown)
         logger.info(self.__flow_str(self.server_side, 'tx') +
                     f' Ctl: {int(ctrl):#02x} Msg: {fnc.__name__!r}')
 
@@ -322,6 +372,7 @@ class Talent(Message):
             self._send_buffer += b'\x01'
             self.__finish_send_msg()
             self.__process_data()
+            self.state = self.STATE_UP
 
         elif self.ctrl.is_resp():
             return  # ignore received response
@@ -337,6 +388,7 @@ class Talent(Message):
             self._send_buffer += b'\x01'
             self.__finish_send_msg()
             self.__process_data()
+            self.state = self.STATE_UP
 
         elif self.ctrl.is_resp():
             return  # ignore received response
@@ -350,7 +402,7 @@ class Talent(Message):
         msg_hdr_len = self.parse_msg_header()
 
         for key, update in self.db.parse(self._recv_buffer, self.header_len
-                                         + msg_hdr_len):
+                                         + msg_hdr_len, self.node_id):
             if update:
                 self.new_data[key] = True
 
@@ -362,6 +414,53 @@ class Talent(Message):
         else:
             logger.warning('Unknown Ctrl')
             self.inc_counter('Unknown_Ctrl')
+        self.forward(self._recv_buffer, self.header_len+self.data_len)
+
+    def parse_modbus_header(self):
+
+        msg_hdr_len = 5
+
+        result = struct.unpack_from('!lBB', self._recv_buffer,
+                                    self.header_len)
+        modbus_len = result[1]
+        # logger.debug(f'Ref: {result[0]}')
+        # logger.debug(f'Modbus MsgLen: {modbus_len} Func:{result[2]}')
+        return msg_hdr_len, modbus_len
+
+    def get_modbus_log_lvl(self) -> int:
+        if self.ctrl.is_req():
+            return logging.INFO
+        elif self.ctrl.is_ind():
+            if self.server_side:
+                return self.mb.last_log_lvl
+        return logging.WARNING
+
+    def msg_modbus(self):
+        hdr_len, modbus_len = self.parse_modbus_header()
+        data = self._recv_buffer[self.header_len:
+                                 self.header_len+self.data_len]
+
+        if self.ctrl.is_req():
+            if self.remoteStream.mb.recv_req(data[hdr_len:],
+                                             self.msg_forward):
+                self.inc_counter('Modbus_Command')
+            else:
+                self.inc_counter('Invalid_Msg_Format')
+        elif self.ctrl.is_ind():
+            # logger.debug(f'Modbus Ind  MsgLen: {modbus_len}')
+            self.modbus_elms = 0
+            for key, update, _ in self.mb.recv_resp(self.db, data[
+                    hdr_len:],
+                    self.node_id):
+                if update:
+                    self.new_data[key] = True
+                self.modbus_elms += 1          # count for unit tests
+        else:
+            logger.warning('Unknown Ctrl')
+            self.inc_counter('Unknown_Ctrl')
+            self.forward(self._recv_buffer, self.header_len+self.data_len)
+
+    def msg_forward(self):
         self.forward(self._recv_buffer, self.header_len+self.data_len)
 
     def msg_unknown(self):

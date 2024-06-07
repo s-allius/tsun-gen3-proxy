@@ -17,17 +17,18 @@ class AsyncStream():
 
     async def server_loop(self, addr):
         '''Loop for receiving messages from the inverter (server-side)'''
-        logging.info(f'Accept connection from  {addr}')
+        logging.info(f'[{self.node_id}] Accept connection from {addr}')
         self.inc_counter('Inverter_Cnt')
         await self.loop()
         self.dec_counter('Inverter_Cnt')
-        logging.info(f'Server loop stopped for r{self.r_addr}')
+        logging.info(f'[{self.node_id}] Server loop stopped for'
+                     f' r{self.r_addr}')
 
         # if the server connection closes, we also have to disconnect
         # the connection to te TSUN cloud
         if self.remoteStream:
             logging.debug("disconnect client connection")
-            self.remoteStream.disc()
+            await self.remoteStream.disc()
         try:
             await self._async_publ_mqtt_proxy_stat('proxy')
         except Exception:
@@ -36,7 +37,8 @@ class AsyncStream():
     async def client_loop(self, addr):
         '''Loop for receiving messages from the TSUN cloud (client-side)'''
         clientStream = await self.remoteStream.loop()
-        logging.info(f'Client loop stopped for l{clientStream.l_addr}')
+        logging.info(f'[{self.node_id}] Client loop stopped for'
+                     f' l{clientStream.l_addr}')
 
         # if the client connection closes, we don't touch the server
         # connection. Instead we erase the client connection stream,
@@ -61,31 +63,39 @@ class AsyncStream():
                 await self.__async_read()
 
                 if self.unique_id:
-                    await self.__async_write()
+                    await self.async_write()
                     await self.__async_forward()
                     await self.async_publ_mqtt()
 
-            except (ConnectionResetError,
-                    ConnectionAbortedError,
-                    BrokenPipeError,
-                    RuntimeError) as error:
-                logger.warning(f'In loop for l{self.l_addr} | '
-                               f'r{self.r_addr}: {error}')
+            except OSError as error:
+                logger.error(f'[{self.node_id}] {error} for l{self.l_addr} | '
+                             f'r{self.r_addr}')
+                await self.disc()
                 self.close()
                 return self
+
+            except RuntimeError as error:
+                logger.info(f"[{self.node_id}] {error} for {self.l_addr}")
+                await self.disc()
+                self.close()
+                return self
+
             except Exception:
                 self.inc_counter('SW_Exception')
                 logger.error(
                     f"Exception for {self.addr}:\n"
                     f"{traceback.format_exc()}")
-                self.close()
-                return self
 
-    def disc(self) -> None:
+    async def disc(self) -> None:
+        if self.writer.is_closing():
+            return
         logger.debug(f'AsyncStream.disc() l{self.l_addr} | r{self.r_addr}')
         self.writer.close()
+        await self.writer.wait_closed()
 
     def close(self):
+        if self.writer.is_closing():
+            return
         logger.debug(f'AsyncStream.close() l{self.l_addr} | r{self.r_addr}')
         self.writer.close()
 
@@ -100,9 +110,9 @@ class AsyncStream():
         else:
             raise RuntimeError("Peer closed.")
 
-    async def __async_write(self) -> None:
+    async def async_write(self, headline='Transmit to ') -> None:
         if self._send_buffer:
-            hex_dump_memory(logging.INFO, f'Transmit to {self.addr}:',
+            hex_dump_memory(logging.INFO, f'{headline}{self.addr}:',
                             self._send_buffer, len(self._send_buffer))
             self.writer.write(self._send_buffer)
             await self.writer.drain()
@@ -114,7 +124,7 @@ class AsyncStream():
                 await self.async_create_remote()
                 if self.remoteStream:
                     if self.remoteStream._init_new_client_conn():
-                        await self.remoteStream.__async_write()
+                        await self.remoteStream.async_write()
 
             if self.remoteStream:
                 self.remoteStream._update_header(self._forward_buffer)
