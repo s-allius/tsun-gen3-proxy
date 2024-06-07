@@ -1,10 +1,14 @@
 import logging
 import weakref
+from typing import Callable
+
 
 if __name__ == "app.src.messages":
     from app.src.infos import Infos
+    from app.src.modbus import Modbus
 else:  # pragma: no cover
     from infos import Infos
+    from modbus import Modbus
 
 logger = logging.getLogger('msg')
 
@@ -50,21 +54,31 @@ class IterRegistry(type):
 
 class Message(metaclass=IterRegistry):
     _registry = []
+    STATE_INIT = 0
+    STATE_UP = 2
+    STATE_CLOSED = 3
 
-    def __init__(self, server_side: bool):
+    def __init__(self, server_side: bool, send_modbus_cb:
+                 Callable[[bytes, int, str], None], mb_timeout):
         self._registry.append(weakref.ref(self))
 
         self.server_side = server_side
+        if server_side:
+            self.mb = Modbus(send_modbus_cb, mb_timeout)
+        else:
+            self.mb = None
+
         self.header_valid = False
         self.header_len = 0
         self.data_len = 0
         self.unique_id = 0
-        self.node_id = ''
+        self.node_id = ''  # will be overwritten in the child class's __init__
         self.sug_area = ''
         self._recv_buffer = bytearray(0)
         self._send_buffer = bytearray(0)
         self._forward_buffer = bytearray(0)
         self.new_data = {}
+        self.state = self.STATE_INIT
 
     '''
     Empty methods, that have to be implemented in any child class which
@@ -82,6 +96,9 @@ class Message(metaclass=IterRegistry):
     Our puplic methods
     '''
     def close(self) -> None:
+        if self.mb:
+            del self.mb
+            self.mb = None
         pass  # pragma: no cover
 
     def inc_counter(self, counter: str) -> None:

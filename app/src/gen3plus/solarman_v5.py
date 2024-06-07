@@ -2,16 +2,19 @@ import struct
 # import json
 import logging
 import time
+import asyncio
 from datetime import datetime
 
 if __name__ == "app.src.gen3plus.solarman_v5":
     from app.src.messages import hex_dump_memory, Message
+    from app.src.modbus import Modbus
     from app.src.config import Config
     from app.src.gen3plus.infos_g3p import InfosG3P
     from app.src.infos import Register
 else:  # pragma: no cover
     from messages import hex_dump_memory, Message
     from config import Config
+    from modbus import Modbus
     from gen3plus.infos_g3p import InfosG3P
     from infos import Register
 # import traceback
@@ -46,9 +49,11 @@ class Sequence():
 
 
 class SolarmanV5(Message):
+    AT_CMD = 1
+    MB_RTU_CMD = 2
 
     def __init__(self, server_side: bool):
-        super().__init__(server_side)
+        super().__init__(server_side, self.send_modbus_cb, mb_timeout=5)
 
         self.header_len = 11  # overwrite construcor in class Message
         self.control = 0
@@ -56,6 +61,7 @@ class SolarmanV5(Message):
         self.snr = 0
         self.db = InfosG3P()
         self.time_ofs = 0
+        self.forward_at_cmd_resp = False
         self.switch = {
 
             0x4210: self.msg_data_ind,   # real time data
@@ -84,8 +90,40 @@ class SolarmanV5(Message):
             #
             # MODbus or AT cmd
             0x4510: self.msg_command_req,  # from server
-            0x1510: self.msg_response,     # from inverter
+            0x1510: self.msg_command_rsp,     # from inverter
+            # 0x0510: self.msg_command_rsp,     # from inverter
         }
+
+        self.log_lvl = {
+
+            0x4210: logging.INFO,   # real time data
+            0x1210: logging.INFO,   # at least every 5 minutes
+
+            0x4710: logging.DEBUG,  # heatbeat
+            0x1710: logging.DEBUG,  # every 2 minutes
+
+            0x4110: logging.INFO,   # device data, sync start
+            0x1110: logging.INFO,   # every 3 hours
+
+            0x4310: logging.INFO,   # regulary after 3-6 hours
+            0x1310: logging.INFO,
+
+            0x4810: logging.INFO,   # sync end
+            0x1810: logging.INFO,
+
+            #
+            # MODbus or AT cmd
+            0x4510: logging.INFO,  # from server
+            0x1510: self.get_cmd_rsp_log_lvl,
+        }
+        self.modbus_elms = 0    # for unit tests
+        g3p_cnf = Config.get('gen3plus')
+
+        if 'at_acl' in g3p_cnf:  # pragma: no cover
+            self.at_acl = g3p_cnf['at_acl']
+
+        self.node_id = 'G3P'  # will be overwritten in __set_serial_no
+        # self.forwarding = Config.get('solarman')['enabled']
 
     '''
     Our puplic methods
@@ -96,6 +134,9 @@ class SolarmanV5(Message):
         # so we have to erase self.switch, otherwise this instance can't be
         # deallocated by the garbage collector ==> we get a memory leak
         self.switch.clear()
+        self.log_lvl.clear()
+        self.state = self.STATE_CLOSED
+        super().close()
 
     def __set_serial_no(self, snr: int):
         serial_no = str(snr)
@@ -136,7 +177,10 @@ class SolarmanV5(Message):
 
         if self.header_valid and len(self._recv_buffer) >= (self.header_len +
                                                             self.data_len+2):
-            hex_dump_memory(logging.INFO, f'Received from {self.addr}:',
+            log_lvl = self.log_lvl.get(self.control, logging.WARNING)
+            if callable(log_lvl):
+                log_lvl = log_lvl()
+            hex_dump_memory(log_lvl, f'Received from {self.addr}:',
                             self._recv_buffer, self.header_len+self.data_len+2)
             if self.__trailer_is_ok(self._recv_buffer, self.header_len
                                     + self.data_len + 2):
@@ -293,41 +337,90 @@ class SolarmanV5(Message):
                                          self._heartbeat())
         self.__finish_send_msg()
 
-    def send_at_cmd(self, AT_cmd: str) -> None:
+    def send_modbus_cb(self, pdu: bytearray, log_lvl: int, state: str):
+        if self.state != self.STATE_UP:
+            logger.warn(f'[{self.node_id}] ignore MODBUS cmd,'
+                        ' cause the state is not UP anymore')
+            return
         self.__build_header(0x4510)
-        self._send_buffer += struct.pack(f'<BHLLL{len(AT_cmd)}sc', 1, 2,
-                                         0, 0, 0, AT_cmd.encode('utf-8'),
+        self._send_buffer += struct.pack('<BHLLL', self.MB_RTU_CMD,
+                                         0x2b0, 0, 0, 0)
+        self._send_buffer += pdu
+        self.__finish_send_msg()
+        hex_dump_memory(log_lvl, f'Send Modbus {state}:{self.addr}:',
+                        self._send_buffer, len(self._send_buffer))
+        self.writer.write(self._send_buffer)
+        self._send_buffer = bytearray(0)  # self._send_buffer[sent:]
+
+    async def send_modbus_cmd(self, func, addr, val, log_lvl) -> None:
+        if self.state != self.STATE_UP:
+            logger.log(log_lvl, f'[{self.node_id}] ignore MODBUS cmd,'
+                       ' as the state is not UP')
+            return
+        self.mb.build_msg(Modbus.INV_ADDR, func, addr, val, log_lvl)
+
+    def at_cmd_forbidden(self, cmd: str, connection: str) -> bool:
+        return not cmd.startswith(tuple(self.at_acl[connection]['allow'])) or \
+                cmd.startswith(tuple(self.at_acl[connection]['block']))
+
+    async def send_at_cmd(self, AT_cmd: str) -> None:
+        if self.state != self.STATE_UP:
+            logger.warn(f'[{self.node_id}] ignore AT+ cmd,'
+                        ' as the state is not UP')
+            return
+        AT_cmd = AT_cmd.strip()
+
+        if self.at_cmd_forbidden(cmd=AT_cmd, connection='mqtt'):
+            data_json = f'\'{AT_cmd}\' is forbidden'
+            node_id = self.node_id
+            key = 'at_resp'
+            logger.info(f'{key}: {data_json}')
+            asyncio.ensure_future(
+                self.publish_mqtt(f'{self.entity_prfx}{node_id}{key}', data_json))  # noqa: E501
+            return
+
+        self.forward_at_cmd_resp = False
+        self.__build_header(0x4510)
+        self._send_buffer += struct.pack(f'<BHLLL{len(AT_cmd)}sc', self.AT_CMD,
+                                         2, 0, 0, 0, AT_cmd.encode('utf-8'),
                                          b'\r')
         self.__finish_send_msg()
+        try:
+            await self.async_write('Send AT Command:')
+        except Exception:
+            self._send_buffer = bytearray(0)
 
     def __forward_msg(self):
         self.forward(self._recv_buffer, self.header_len+self.data_len+2)
 
+    def __build_model_name(self):
+        db = self.db
+        MaxPow = db.get_db_value(Register.MAX_DESIGNED_POWER, 0)
+        Rated = db.get_db_value(Register.RATED_POWER, 0)
+        Model = None
+        if MaxPow == 2000:
+            if Rated == 800 or Rated == 600:
+                Model = f'TSOL-MS{MaxPow}({Rated})'
+            else:
+                Model = f'TSOL-MS{MaxPow}'
+        elif MaxPow == 1800 or MaxPow == 1600:
+            Model = f'TSOL-MS{MaxPow}'
+        if Model:
+            logger.info(f'Model: {Model}')
+            self.db.set_db_def_value(Register.EQUIPMENT_MODEL, Model)
+
     def __process_data(self, ftype):
         inv_update = False
         msg_type = self.control >> 8
-        for key, update in self.db.parse(self._recv_buffer, msg_type, ftype):
+        for key, update in self.db.parse(self._recv_buffer, msg_type, ftype,
+                                         self.node_id):
             if update:
                 if key == 'inverter':
                     inv_update = True
                 self.new_data[key] = True
 
         if inv_update:
-            db = self.db
-            MaxPow = db.get_db_value(Register.MAX_DESIGNED_POWER, 0)
-            Rated = db.get_db_value(Register.RATED_POWER, 0)
-            Model = None
-            if MaxPow == 2000:
-                if Rated == 800 or Rated == 600:
-                    Model = f'TSOL-MS{MaxPow}({Rated})'
-                else:
-                    Model = f'TSOL-MS{MaxPow}'
-            elif MaxPow == 1800 or MaxPow == 1600:
-                Model = f'TSOL-MS{MaxPow}'
-            if Model:
-                logger.info(f'Model: {Model}')
-                self.db.set_db_def_value(Register.EQUIPMENT_MODEL, Model)
-
+            self.__build_model_name()
     '''
     Message handler methods
     '''
@@ -340,14 +433,14 @@ class SolarmanV5(Message):
         data = self._recv_buffer[self.header_len:]
         result = struct.unpack_from('<BLLL', data, 0)
         ftype = result[0]  # always 2
-        total = result[1]
+        # total = result[1]
         tim = result[2]
         res = result[3]  # always zero
         logger.info(f'frame type:{ftype:02x}'
                     f' timer:{tim:08x}s  null:{res}')
-        if self.time_ofs:
-            dt = datetime.fromtimestamp(total + self.time_ofs)
-            logger.info(f'ts: {dt.strftime("%Y-%m-%d %H:%M:%S")}')
+        # if self.time_ofs:
+        #     dt = datetime.fromtimestamp(total + self.time_ofs)
+        #     logger.info(f'ts: {dt.strftime("%Y-%m-%d %H:%M:%S")}')
 
         self.__process_data(ftype)
         self.__forward_msg()
@@ -357,7 +450,7 @@ class SolarmanV5(Message):
         data = self._recv_buffer
         result = struct.unpack_from('<BHLLLHL', data, self.header_len)
         ftype = result[0]  # 1 or 0x81
-        total = result[2]
+        # total = result[2]
         tim = result[3]
         if 1 == ftype:
             self.time_ofs = result[4]
@@ -365,13 +458,14 @@ class SolarmanV5(Message):
         cnt = result[6]
         logger.info(f'ftype:{ftype:02x} timer:{tim:08x}s'
                     f' ??: {unkn:04x} cnt:{cnt}')
-        if self.time_ofs:
-            dt = datetime.fromtimestamp(total + self.time_ofs)
-            logger.info(f'ts: {dt.strftime("%Y-%m-%d %H:%M:%S")}')
+        # if self.time_ofs:
+        #     dt = datetime.fromtimestamp(total + self.time_ofs)
+        #     logger.info(f'ts: {dt.strftime("%Y-%m-%d %H:%M:%S")}')
 
         self.__process_data(ftype)
         self.__forward_msg()
         self.__send_ack_rsp(0x1210, ftype)
+        self.state = self.STATE_UP
 
     def msg_sync_start(self):
         data = self._recv_buffer[self.header_len:]
@@ -387,13 +481,77 @@ class SolarmanV5(Message):
         self.__send_ack_rsp(0x1310, ftype)
 
     def msg_command_req(self):
-        data = self._recv_buffer[self.header_len:]
+        data = self._recv_buffer[self.header_len:
+                                 self.header_len+self.data_len]
         result = struct.unpack_from('<B', data, 0)
         ftype = result[0]
+        if ftype == self.AT_CMD:
+            AT_cmd = data[15:].decode()
+            if self.at_cmd_forbidden(cmd=AT_cmd, connection='tsun'):
+                self.inc_counter('AT_Command_Blocked')
+                return
+            self.inc_counter('AT_Command')
+            self.forward_at_cmd_resp = True
 
-        self.inc_counter('AT_Command')
+        elif ftype == self.MB_RTU_CMD:
+            if self.remoteStream.mb.recv_req(data[15:],
+                                             self.__forward_msg()):
+                self.inc_counter('Modbus_Command')
+            else:
+                self.inc_counter('Invalid_Msg_Format')
+            return
+
         self.__forward_msg()
-        self.__send_ack_rsp(0x1510, ftype)
+
+    async def publish_mqtt(self, key, data):
+        await self.mqtt.publish(key, data)  # pragma: no cover
+
+    def get_cmd_rsp_log_lvl(self) -> int:
+        ftype = self._recv_buffer[self.header_len]
+        if ftype == self.AT_CMD:
+            if self.forward_at_cmd_resp:
+                return logging.INFO
+            return logging.DEBUG
+        elif ftype == self.MB_RTU_CMD:
+            if self.server_side:
+                return self.mb.last_log_lvl
+
+        return logging.WARNING
+
+    def msg_command_rsp(self):
+        data = self._recv_buffer[self.header_len:
+                                 self.header_len+self.data_len]
+        ftype = data[0]
+        if ftype == self.AT_CMD:
+            if not self.forward_at_cmd_resp:
+                data_json = data[14:].decode("utf-8")
+                node_id = self.node_id
+                key = 'at_resp'
+                logger.info(f'{key}: {data_json}')
+                asyncio.ensure_future(
+                    self.publish_mqtt(f'{self.entity_prfx}{node_id}{key}', data_json))  # noqa: E501
+                return
+        elif ftype == self.MB_RTU_CMD:
+            valid = data[1]
+            modbus_msg_len = self.data_len - 14
+            # logger.debug(f'modbus_len:{modbus_msg_len} accepted:{valid}')
+            if valid == 1 and modbus_msg_len > 4:
+                # logger.info(f'first byte modbus:{data[14]}')
+                inv_update = False
+                self.modbus_elms = 0
+
+                for key, update, _ in self.mb.recv_resp(self.db, data[14:],
+                                                        self.node_id):
+                    self.modbus_elms += 1
+                    if update:
+                        if key == 'inverter':
+                            inv_update = True
+                        self.new_data[key] = True
+
+                if inv_update:
+                    self.__build_model_name()
+            return
+        self.__forward_msg()
 
     def msg_hbeat_ind(self):
         data = self._recv_buffer[self.header_len:]
@@ -402,6 +560,7 @@ class SolarmanV5(Message):
 
         self.__forward_msg()
         self.__send_ack_rsp(0x1710, ftype)
+        self.state = self.STATE_UP
 
     def msg_sync_end(self):
         data = self._recv_buffer[self.header_len:]
@@ -423,8 +582,8 @@ class SolarmanV5(Message):
         valid = result[1] == 1  # status
         ts = result[2]
         set_hb = result[3]  # always 60 or 120
-        logger.info(f'ftype:{ftype} accepted:{valid}'
-                    f' ts:{ts:08x}  nextHeartbeat: {set_hb}s')
+        logger.debug(f'ftype:{ftype} accepted:{valid}'
+                     f' ts:{ts:08x}  nextHeartbeat: {set_hb}s')
 
         dt = datetime.fromtimestamp(ts)
-        logger.info(f'ts: {dt.strftime("%Y-%m-%d %H:%M:%S")}')
+        logger.debug(f'ts: {dt.strftime("%Y-%m-%d %H:%M:%S")}')
