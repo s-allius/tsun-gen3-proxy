@@ -148,10 +148,10 @@ class Mqtt(metaclass=Singleton):
         node_id = topic.split('/')[1] + '/'
         # refactor into a loop over a table
         payload = message.payload.decode("UTF-8")
-        logger_mqtt.info(f'InvCnf: {node_id}:{payload}')
+        logger_mqtt.info(f'MODBUS via MQTT: {topic} = {payload}')
         for m in Message:
             if m.server_side and (m.node_id == node_id):
-                logger_mqtt.info(f'Found: {node_id}')
+                logger_mqtt.debug(f'Found: {node_id}')
                 fnc = getattr(m, "send_modbus_cmd", None)
                 res = payload.split(',')
                 if params != len(res):

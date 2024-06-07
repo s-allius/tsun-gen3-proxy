@@ -172,23 +172,25 @@ class Modbus():
             self.err = 5
             return
         if not self.__check_crc(buf):
-            logger.error('Modbus resp: CRC error')
+            logger.error(f'[{node_id}] Modbus resp: CRC error')
             self.err = 1
             return
         if buf[0] != self.last_addr:
-            logger.info(f'Modbus resp: Wrong addr {buf[0]}')
+            logger.info(f'[{node_id}] Modbus resp: Wrong addr {buf[0]}')
             self.err = 2
             return
         fcode = buf[1]
         if fcode != self.last_fcode:
-            logger.info(f'Modbus: Wrong fcode {fcode} != {self.last_fcode}')
+            logger.info(f'[{node_id}] Modbus: Wrong fcode {fcode}'
+                        f' != {self.last_fcode}')
             self.err = 3
             return
         if self.last_addr == self.INV_ADDR and \
                 (fcode == 3 or fcode == 4):
             elmlen = buf[2] >> 1
             if elmlen != self.last_len:
-                logger.info(f'Modbus: len error {elmlen} != {self.last_len}')
+                logger.info(f'[{node_id}] Modbus: len error {elmlen}'
+                            f' != {self.last_len}')
                 self.err = 4
                 return
             first_reg = self.last_reg  # save last_reg before sending next pdu
