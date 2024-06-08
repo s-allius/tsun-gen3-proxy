@@ -5,9 +5,9 @@ from app.src.modbus import Modbus
 from app.src.infos import Infos, Register
 
 pytest_plugins = ('pytest_asyncio',)
-pytestmark = pytest.mark.asyncio(scope="module")
+# pytestmark = pytest.mark.asyncio(scope="module")
 
-class TestHelper(Modbus):
+class TestHelper(Modbus):   # pragma: no cover
     def __init__(self):
         super().__init__(self.send_cb)
         self.db = Infos()
