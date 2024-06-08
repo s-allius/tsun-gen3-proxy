@@ -1,6 +1,6 @@
 import logging
 import weakref
-from typing import Callable
+from typing import Callable, Generator
 
 
 if __name__ == "app.src.messages":
@@ -45,7 +45,7 @@ def hex_dump_memory(level, info, data, num):
 
 
 class IterRegistry(type):
-    def __iter__(cls):
+    def __iter__(cls) -> Generator['Message', None, None]:
         for ref in cls._registry:
             obj = ref()
             if obj is not None:
