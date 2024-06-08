@@ -1,5 +1,5 @@
 import logging
-import asyncio
+from asyncio import StreamReader, StreamWriter, asyncio
 import signal
 import os
 from logging import config  # noqa F401
@@ -11,14 +11,14 @@ from scheduler import Schedule
 from config import Config
 
 
-async def handle_client(reader, writer):
+async def handle_client(reader: StreamReader, writer: StreamWriter):
     '''Handles a new incoming connection and starts an async loop'''
 
     addr = writer.get_extra_info('peername')
     await InverterG3(reader, writer, addr).server_loop(addr)
 
 
-async def handle_client_v2(reader, writer):
+async def handle_client_v2(reader: StreamReader, writer: StreamWriter):
     '''Handles a new incoming connection and starts an async loop'''
 
     addr = writer.get_extra_info('peername')
