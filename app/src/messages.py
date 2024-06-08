@@ -59,7 +59,7 @@ class Message(metaclass=IterRegistry):
     STATE_CLOSED = 3
 
     def __init__(self, server_side: bool, send_modbus_cb:
-                 Callable[[bytes, int, str], None], mb_timeout):
+                 Callable[[bytes, int, str], None], mb_timeout: int):
         self._registry.append(weakref.ref(self))
 
         self.server_side = server_side
