@@ -343,7 +343,7 @@ class Infos:
         dict[counter] -= 1
 
     def ha_proxy_confs(self, ha_prfx: str, node_id: str, snr: str) \
-            -> Generator[tuple[dict, str], None, None]:
+            -> Generator[tuple[str, str, str, str], None, None]:
         '''Generator function yields json register struct for home-assistant
         auto configuration and the unique entity string, for all proxy
         registers
