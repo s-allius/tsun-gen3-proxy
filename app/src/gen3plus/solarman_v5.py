@@ -375,7 +375,7 @@ class SolarmanV5(Message):
             node_id = self.node_id
             key = 'at_resp'
             logger.info(f'{key}: {data_json}')
-            await self.publish_mqtt(f'{self.entity_prfx}{node_id}{key}', data_json)  # noqa: E501
+            await self.mqtt.publish(f'{self.entity_prfx}{node_id}{key}', data_json)  # noqa: E501
             return
 
         self.forward_at_cmd_resp = False
@@ -502,8 +502,9 @@ class SolarmanV5(Message):
 
         self.__forward_msg()
 
-    async def publish_mqtt(self, key, data):
-        await self.mqtt.publish(key, data)  # pragma: no cover
+    def publish_mqtt(self, key, data):
+        asyncio.ensure_future(
+            self.mqtt.publish(key, data))
 
     def get_cmd_rsp_log_lvl(self) -> int:
         ftype = self._recv_buffer[self.header_len]
@@ -527,8 +528,7 @@ class SolarmanV5(Message):
                 node_id = self.node_id
                 key = 'at_resp'
                 logger.info(f'{key}: {data_json}')
-                asyncio.ensure_future(
-                    self.publish_mqtt(f'{self.entity_prfx}{node_id}{key}', data_json))  # noqa: E501
+                self.publish_mqtt(f'{self.entity_prfx}{node_id}{key}', data_json)  # noqa: E501
                 return
         elif ftype == self.MB_RTU_CMD:
             valid = data[1]
