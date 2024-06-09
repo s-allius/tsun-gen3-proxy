@@ -41,7 +41,7 @@ class Talent(Message):
         self.id_str = id_str
         self.contact_name = b''
         self.contact_mail = b''
-        self.ts_offset = 0
+        self.ts_offset = 0        # time offset between tsun cloud and local
         self.db = InfosG3()
         self.switch = {
             0x00: self.msg_contact_info,
@@ -142,8 +142,8 @@ class Talent(Message):
 
     def send_modbus_cb(self, modbus_pdu: bytearray, log_lvl: int, state: str):
         if self.state != self.STATE_UP:
-            logger.warn(f'[{self.node_id}] ignore MODBUS cmd,'
-                        ' cause the state is not UP anymore')
+            logger.warning(f'[{self.node_id}] ignore MODBUS cmd,'
+                           ' cause the state is not UP anymore')
             return
 
         self.__build_header(0x70, 0x77)
@@ -324,7 +324,6 @@ class Talent(Message):
         return True
 
     def msg_get_time(self):
-        tsun = Config.get('tsun')
         if self.ctrl.is_ind():
             if self.data_len == 0:
                 ts = self._timestamp()
@@ -332,21 +331,21 @@ class Talent(Message):
                 self.__build_header(0x91)
                 self._send_buffer += struct.pack('!q', ts)
                 self.__finish_send_msg()
-            if tsun['enabled']:
-                if self.data_len == 0:
-                    self.forward(self._recv_buffer, self.header_len +
-                                 self.data_len)
-                if self.data_len >= 8:
-                    ts = self._timestamp()
-                    result = struct.unpack_from('!q', self._recv_buffer,
-                                                self.header_len)
-                    self.ts_offset = result[0]-ts
-                    logger.debug(f'tsun-time: {result[0]:08x}'
-                                 f'  proxy-time: {ts:08x}',
-                                 f'  offset: {self.ts_offset}')
+
+            elif self.data_len >= 8:
+                ts = self._timestamp()
+                result = struct.unpack_from('!q', self._recv_buffer,
+                                            self.header_len)
+                self.ts_offset = result[0]-ts
+                logger.debug(f'tsun-time: {int(result[0]):08x}'
+                             f'  proxy-time: {ts:08x}'
+                             f'  offset: {self.ts_offset}')
+                return  # ignore received response
         else:
             logger.warning('Unknown Ctrl')
             self.inc_counter('Unknown_Ctrl')
+
+        self.forward(self._recv_buffer, self.header_len+self.data_len)
 
     def parse_msg_header(self):
         result = struct.unpack_from('!lB', self._recv_buffer, self.header_len)
