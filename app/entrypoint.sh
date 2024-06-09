@@ -5,6 +5,7 @@ user="$(id -u)"
 echo "######################################################"
 echo "# prepare: '$SERVICE_NAME' Version:$VERSION"
 echo "# for running with UserID:$UID, GroupID:$GID"
+echo "# Image built: $(cat /build-date.txt) "
 echo "#"
 
 if [ "$user" = '0' ]; then
