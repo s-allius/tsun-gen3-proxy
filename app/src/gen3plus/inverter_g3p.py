@@ -1,7 +1,8 @@
 import logging
 import traceback
 import json
-from asyncio import StreamReader, StreamWriter, asyncio
+import asyncio
+from asyncio import StreamReader, StreamWriter
 from config import Config
 from inverter import Inverter
 from gen3plus.connection_g3p import ConnectionG3P

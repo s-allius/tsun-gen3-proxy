@@ -1,7 +1,8 @@
 import logging
-from asyncio import StreamReader, StreamWriter, asyncio
+import asyncio
 import signal
 import os
+from asyncio import StreamReader, StreamWriter
 from logging import config  # noqa F401
 from messages import Message
 from inverter import Inverter
