@@ -549,7 +549,7 @@ def test_msg_time_resp_autark(ConfigNoTsunInv1, MsgTimeResp):
     assert int(m.ctrl)==145
     assert m.msg_id==34
     assert m.header_len==23
-    assert m.ts_offset==0
+    assert m.ts_offset==3600000
     assert m.data_len==8
     assert m._forward_buffer==b''
     assert m._send_buffer==b''
@@ -570,7 +570,7 @@ def test_msg_time_invalid(ConfigTsunInv1, MsgTimeInvalid):
     assert m.header_len==23
     assert m.ts_offset==0
     assert m.data_len==0
-    assert m._forward_buffer==b''
+    assert m._forward_buffer==MsgTimeInvalid
     assert m._send_buffer==b''
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 1
     m.close()
