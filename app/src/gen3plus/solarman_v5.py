@@ -254,8 +254,8 @@ class SolarmanV5(Message):
 
         if start != 0xA5:
             hex_dump_memory(logging.ERROR,
-                            f'Drop packet w invalid start byte from {self.addr}:',
-                            buf, buf_len)
+                            'Drop packet w invalid start byte from'
+                            f' {self.addr}:', buf, buf_len)
 
             self.inc_counter('Invalid_Msg_Format')
             # erase broken recv buffer
@@ -269,8 +269,8 @@ class SolarmanV5(Message):
         stop = buf[self.data_len+12]
         if stop != 0x15:
             hex_dump_memory(logging.ERROR,
-                            f'Drop packet w invalid stop byte from {self.addr}:',
-                            buf, buf_len)
+                            'Drop packet w invalid stop byte from '
+                            f'{self.addr}:', buf, buf_len)
             self.inc_counter('Invalid_Msg_Format')
             if len(self._recv_buffer) > (self.data_len+13):
                 next_start = buf[self.data_len+13]
