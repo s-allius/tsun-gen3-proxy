@@ -1,7 +1,8 @@
-import asyncio
 import logging
 import traceback
 import json
+import asyncio
+from asyncio import StreamReader, StreamWriter
 from config import Config
 from inverter import Inverter
 from gen3plus.connection_g3p import ConnectionG3P
@@ -44,7 +45,7 @@ class InverterG3P(Inverter, ConnectionG3P):
                  destroyed
     '''
 
-    def __init__(self, reader, writer, addr):
+    def __init__(self, reader: StreamReader, writer: StreamWriter, addr):
         super().__init__(reader, writer, addr, None, True)
         self.__ha_restarts = -1
 

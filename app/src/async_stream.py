@@ -1,5 +1,6 @@
 import logging
 import traceback
+from asyncio import StreamReader, StreamWriter
 from messages import hex_dump_memory
 
 logger = logging.getLogger('conn')
@@ -7,7 +8,8 @@ logger = logging.getLogger('conn')
 
 class AsyncStream():
 
-    def __init__(self, reader, writer, addr) -> None:
+    def __init__(self, reader: StreamReader, writer: StreamWriter,
+                 addr) -> None:
         logger.debug('AsyncStream.__init__')
         self.reader = reader
         self.writer = writer

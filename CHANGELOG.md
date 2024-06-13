@@ -10,6 +10,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.8.0] - 2024-06-07
 
+- print imgae build time during proxy start
+- add type annotations
+- improve async unit test and fix pytest warnings
+- run github tests even for pulls on issue branches
+
+## [0.8.0] - 2024-06-07
+
 - improve logging: add protocol or node_id to connection logs
 - improve logging: log ignored AT+ or MODBUS commands
 - improve tracelog: log level depends on message type and source

@@ -1,6 +1,6 @@
 import logging
 import weakref
-from typing import Callable
+from typing import Callable, Generator
 
 
 if __name__ == "app.src.messages":
@@ -45,7 +45,7 @@ def hex_dump_memory(level, info, data, num):
 
 
 class IterRegistry(type):
-    def __iter__(cls):
+    def __iter__(cls) -> Generator['Message', None, None]:
         for ref in cls._registry:
             obj = ref()
             if obj is not None:
@@ -59,7 +59,7 @@ class Message(metaclass=IterRegistry):
     STATE_CLOSED = 3
 
     def __init__(self, server_side: bool, send_modbus_cb:
-                 Callable[[bytes, int, str], None], mb_timeout):
+                 Callable[[bytes, int, str], None], mb_timeout: int):
         self._registry.append(weakref.ref(self))
 
         self.server_side = server_side
