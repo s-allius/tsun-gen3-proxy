@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - GEN3PLUS: dump invalid packages with wrong start or stop byte
 - label debug imagages als `debug`
 
-## [0.8.0] - 2024-06-07
+## [unreleased]
 
 - print imgae build time during proxy start
 - add type annotations
