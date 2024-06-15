@@ -3,6 +3,7 @@ import asyncio
 import signal
 import os
 from asyncio import StreamReader, StreamWriter
+from aiohttp import web
 from logging import config  # noqa F401
 from messages import Message
 from inverter import Inverter
@@ -10,6 +11,51 @@ from gen3.inverter_g3 import InverterG3
 from gen3plus.inverter_g3p import InverterG3P
 from scheduler import Schedule
 from config import Config
+
+routes = web.RouteTableDef()
+proxy_is_up = False
+
+
+@routes.get('/')
+async def hello(request):
+    return web.Response(text="Hello, world")
+
+
+@routes.get('/-/ready')
+async def ready(request):
+    if proxy_is_up:
+        status = 200
+        text = 'Is ready'
+    else:
+        status = 503
+        text = 'Not ready'
+    return web.Response(status=status, text=text)
+
+
+@routes.get('/-/healthy')
+async def healthy(request):
+
+    if proxy_is_up:
+        # logging.info('web reqeust healthy()')
+        for stream in Message:
+            try:
+                res = stream.healthy()
+                if not res:
+                    return web.Response(status=503, text="I have a problem")
+            except Exception as err:
+                logging.info(f'Exception:{err}')
+
+    return web.Response(status=200, text="I'm fine")
+
+
+async def webserver(runner, addr, port):
+    await runner.setup()
+    site = web.TCPSite(runner, addr, port)
+    await site.start()
+    logging.info(f'HTTP server listen on port: {port}')
+
+    while True:
+        await asyncio.sleep(3600)  # sleep forever
 
 
 async def handle_client(reader: StreamReader, writer: StreamWriter):
@@ -26,10 +72,12 @@ async def handle_client_v2(reader: StreamReader, writer: StreamWriter):
     await InverterG3P(reader, writer, addr).server_loop(addr)
 
 
-async def handle_shutdown(loop):
+async def handle_shutdown(loop, runner):
     '''Close all TCP connections and stop the event loop'''
 
     logging.info('Shutdown due to SIGTERM')
+    await runner.cleanup()
+    logging.info('HTTP server stopped')
 
     #
     # first, disc all open TCP connections gracefully
@@ -87,14 +135,21 @@ if __name__ == "__main__":
     logging.getLogger('tracer').setLevel(log_level)
     # logging.getLogger('mqtt').setLevel(log_level)
 
-    # read config file
-    Config.class_init()
-
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
 
+    # read config file
+    ConfigErr = Config.class_init()
+    logging.info(f'ConfigErr: {ConfigErr}')
     Inverter.class_init()
     Schedule.start()
+
+    #
+    # Setup webserver application and runner
+    #
+    app = web.Application()
+    app.add_routes(routes)
+    runner = web.AppRunner(app)
 
     #
     # Register some UNIX Signal handler for a gracefully server shutdown
@@ -103,21 +158,25 @@ if __name__ == "__main__":
     for signame in ('SIGINT', 'SIGTERM'):
         loop.add_signal_handler(getattr(signal, signame),
                                 lambda loop=loop: asyncio.create_task(
-                                    handle_shutdown(loop)))
+                                    handle_shutdown(loop, runner)))
 
     #
-    # Create taska for our listening servera. These must be tasks! If we call
+    # Create tasks for our listening servers. These must be tasks! If we call
     # start_server directly out of our main task, the eventloop will be blocked
     # and we can't receive and handle the UNIX signals!
     #
     loop.create_task(asyncio.start_server(handle_client, '0.0.0.0', 5005))
     loop.create_task(asyncio.start_server(handle_client_v2, '0.0.0.0', 10000))
+    loop.create_task(webserver(runner, '0.0.0.0', 8127))
 
     try:
+        if ConfigErr is None:
+            proxy_is_up = True
         loop.run_forever()
     except KeyboardInterrupt:
         pass
     finally:
+        proxy_is_up = False
         Inverter.class_close(loop)
         logging.info('Close event loop')
         loop.close()
