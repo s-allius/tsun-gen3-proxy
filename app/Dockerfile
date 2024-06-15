@@ -64,7 +64,10 @@ COPY --chmod=0700 entrypoint.sh /root/entrypoint.sh
 COPY config .
 COPY src .
 RUN date > /build-date.txt
-EXPOSE 5005
+EXPOSE 5005 8127 10000
+
+# HEALTHCHECK --interval=10s --timeout=3s \
+#   CMD wget --no-verbose --tries=1 --spider  http://localhost:8127/-/healthy || exit 1
 
 # command to run on container start
 ENTRYPOINT ["/root/entrypoint.sh"]
