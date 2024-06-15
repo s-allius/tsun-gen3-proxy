@@ -1,5 +1,6 @@
 import logging
 import traceback
+import time
 from asyncio import StreamReader, StreamWriter
 from messages import hex_dump_memory
 
@@ -16,6 +17,8 @@ class AsyncStream():
         self.addr = addr
         self.r_addr = ''
         self.l_addr = ''
+        self.proc_start = None  # start processing start timestamp
+        self.proc_max = 0
 
     async def server_loop(self, addr):
         '''Loop for receiving messages from the inverter (server-side)'''
@@ -59,9 +62,14 @@ class AsyncStream():
     async def loop(self):
         self.r_addr = self.writer.get_extra_info('peername')
         self.l_addr = self.writer.get_extra_info('sockname')
-
+        self.proc_start = time.time()
         while True:
             try:
+                proc = time.time() - self.proc_start
+                if proc > self.proc_max:
+                    self.proc_max = proc
+                self.proc_start = None
+
                 await self.__async_read()
 
                 if self.unique_id:
@@ -101,12 +109,22 @@ class AsyncStream():
         logger.debug(f'AsyncStream.close() l{self.l_addr} | r{self.r_addr}')
         self.writer.close()
 
+    def healthy(self) -> bool:
+        elapsed = 0
+        if self.proc_start is not None:
+            elapsed = time.time() - self.proc_start
+        logging.debug('async_stream healthy() elapsed: '
+                      f'{round(1000*elapsed)}ms'
+                      f' max:{round(1000*self.proc_max)}ms')
+        return True
+
     '''
     Our private methods
     '''
     async def __async_read(self) -> None:
         data = await self.reader.read(4096)
         if data:
+            self.proc_start = time.time()
             self._recv_buffer += data
             self.read()                # call read in parent class
         else:
