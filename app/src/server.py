@@ -36,7 +36,7 @@ async def ready(request):
 async def healthy(request):
 
     if proxy_is_up:
-        # logging.info('web reqeust healthy()')
+        # logging.info('web request healthy()')
         for stream in Message:
             try:
                 res = stream.healthy()
