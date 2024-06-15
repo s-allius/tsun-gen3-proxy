@@ -140,7 +140,7 @@ if __name__ == "__main__":
 
     # read config file
     ConfigErr = Config.class_init()
-    logging.info(f'ConfigErr: {ConfigErr}')
+    logging.debug(f'ConfigErr: {ConfigErr}')
     Inverter.class_init()
     Schedule.start()
 
