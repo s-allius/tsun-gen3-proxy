@@ -3,6 +3,7 @@
 import shutil
 import tomllib
 import logging
+from typing import Tuple
 from schema import Schema, And, Or, Use, Optional
 
 
@@ -84,7 +85,7 @@ class Config():
         )
 
     @classmethod
-    def class_init(cls):  # pragma: no cover
+    def class_init(cls) -> None | str:  # pragma: no cover
         try:
             # make the default config transparaent by copying it
             # in the config.example file
@@ -94,11 +95,12 @@ class Config():
                          "config/config.example.toml")
         except Exception:
             pass
-        cls.read()
+        return cls.read()
 
     @classmethod
-    def _read_config_file(cls) -> dict:  # pragma: no cover
+    def _read_config_file(cls) -> Tuple[dict, None | str]:  # pragma: no cover
         usr_config = {}
+        err = None
 
         try:
             with open("config/config.toml", "rb") as f:
@@ -110,7 +112,7 @@ class Config():
                 '\n  To create the missing config.toml file, '
                 'you can rename the template config.example.toml\n'
                 '  and customize it for your scenario.\n')
-        return usr_config
+        return usr_config, err
 
     @classmethod
     def read(cls, path='') -> None | str:
@@ -129,7 +131,7 @@ class Config():
 
             # overwrite the default values, with values from
             # the config.toml file
-            usr_config = cls._read_config_file()
+            usr_config, err = cls._read_config_file()
 
             # merge the default and the user config
             config = def_config.copy()
