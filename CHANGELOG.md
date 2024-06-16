@@ -5,13 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-- GEN3PLUS: dump invalid packages with wrong start or stop byte
-- label debug imagages als `debug`
-
 ## [unreleased]
 
 - MODBUS close handler releases internal resource [#93](https://github.com/s-allius/tsun-gen3-proxy/issues/93)
 - add exception handling for message forwarding [#94](https://github.com/s-allius/tsun-gen3-proxy/issues/94)
+- GEN3: make timestamp handling stateless, to avoid blocking when the TSUN cloud is down [#56](https://github.com/s-allius/tsun-gen3-proxy/issues/56)
+- GEN3PLUS: dump invalid packages with wrong start or stop byte
+- label debug imagages als `debug`
 - print imgae build time during proxy start
 - add type annotations
 - improve async unit test and fix pytest warnings
