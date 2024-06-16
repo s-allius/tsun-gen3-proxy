@@ -132,10 +132,10 @@ class AsyncStream():
         if self.proc_start is not None:
             elapsed = time.time() - self.proc_start
         if self.state == State.closed or elapsed > 1:
-            logging.info(f'[{self.node_id}]'
-                         f' act:{round(1000*elapsed)}ms'
-                         f' max:{round(1000*self.proc_max)}ms')
-            logging.info(f'Healthy()) refs: {gc.get_referrers(self)}')
+            logging.debug(f'[{self.node_id}:{type(self).__name__}]'
+                          f' act:{round(1000*elapsed)}ms'
+                          f' max:{round(1000*self.proc_max)}ms')
+            logging.debug(f'Healthy()) refs: {gc.get_referrers(self)}')
         return elapsed < 5
 
     '''
