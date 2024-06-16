@@ -54,9 +54,15 @@ class IterRegistry(type):
 
 
 class State(Enum):
+    '''state of the logical connection'''
     init = 0
+    '''just created'''
+    received = 1
+    '''at least one packet received'''
     up = 2
+    '''at least one cmd-rsp transaction'''
     closed = 3
+    '''connection closed'''
 
 
 class Message(metaclass=IterRegistry):
