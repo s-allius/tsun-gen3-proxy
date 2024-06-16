@@ -97,7 +97,7 @@ class Message(metaclass=IterRegistry):
     '''
     def close(self) -> None:
         if self.mb:
-            del self.mb
+            self.mb.close()
             self.mb = None
         pass  # pragma: no cover
 
