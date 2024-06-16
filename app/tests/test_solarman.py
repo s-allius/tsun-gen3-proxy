@@ -1682,21 +1682,21 @@ def test_zombie_conn(ConfigTsunInv1, MsgInverterInd):
     m1 = MemoryStream(MsgInverterInd, (0,))
     m2 = MemoryStream(MsgInverterInd, (0,))
     m3 = MemoryStream(MsgInverterInd, (0,))
-    assert m1.state == m1.STATE_INIT
-    assert m2.state == m2.STATE_INIT
-    assert m3.state == m3.STATE_INIT
+    assert m1.state == m1.State.init
+    assert m2.state == m2.State.init
+    assert m3.state == m3.State.init
     m1.read()         # read complete msg, and set unique_id
-    assert m1.state == m1.STATE_INIT
-    assert m2.state == m2.STATE_INIT
-    assert m3.state == m3.STATE_INIT
+    assert m1.state == m1.State.init
+    assert m2.state == m2.State.init
+    assert m3.state == m3.State.init
     m2.read()         # read complete msg, and set unique_id
-    assert m1.state == m1.STATE_CLOSED
-    assert m2.state == m2.STATE_INIT
-    assert m3.state == m3.STATE_INIT
+    assert m1.state == m1.State.closed
+    assert m2.state == m2.State.init
+    assert m3.state == m3.State.init
     m3.read()         # read complete msg, and set unique_id
-    assert m1.state == m1.STATE_CLOSED
-    assert m2.state == m2.STATE_CLOSED
-    assert m3.state == m3.STATE_INIT
+    assert m1.state == m1.State.closed
+    assert m2.state == m2.State.closed
+    assert m3.state == m3.State.init
     m1.close()
     m2.close()
     m3.close()

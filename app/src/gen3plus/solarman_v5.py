@@ -6,13 +6,13 @@ import asyncio
 from datetime import datetime
 
 if __name__ == "app.src.gen3plus.solarman_v5":
-    from app.src.messages import hex_dump_memory, Message
+    from app.src.messages import hex_dump_memory, Message, State
     from app.src.modbus import Modbus
     from app.src.config import Config
     from app.src.gen3plus.infos_g3p import InfosG3P
     from app.src.infos import Register
 else:  # pragma: no cover
-    from messages import hex_dump_memory, Message
+    from messages import hex_dump_memory, Message, State
     from config import Config
     from modbus import Modbus
     from gen3plus.infos_g3p import InfosG3P
@@ -135,7 +135,7 @@ class SolarmanV5(Message):
         # deallocated by the garbage collector ==> we get a memory leak
         self.switch.clear()
         self.log_lvl.clear()
-        self.state = self.STATE_CLOSED
+        self.state = State.closed
         super().close()
 
     def __set_serial_no(self, snr: int):
@@ -345,7 +345,7 @@ class SolarmanV5(Message):
         self.__finish_send_msg()
 
     def send_modbus_cb(self, pdu: bytearray, log_lvl: int, state: str):
-        if self.state != self.STATE_UP:
+        if self.state != State.up:
             logger.warning(f'[{self.node_id}] ignore MODBUS cmd,'
                            ' cause the state is not UP anymore')
             return
@@ -360,7 +360,7 @@ class SolarmanV5(Message):
         self._send_buffer = bytearray(0)  # self._send_buffer[sent:]
 
     async def send_modbus_cmd(self, func, addr, val, log_lvl) -> None:
-        if self.state != self.STATE_UP:
+        if self.state != State.up:
             logger.log(log_lvl, f'[{self.node_id}] ignore MODBUS cmd,'
                        ' as the state is not UP')
             return
@@ -371,7 +371,7 @@ class SolarmanV5(Message):
                 cmd.startswith(tuple(self.at_acl[connection]['block']))
 
     async def send_at_cmd(self, AT_cmd: str) -> None:
-        if self.state != self.STATE_UP:
+        if self.state != State.up:
             logger.warning(f'[{self.node_id}] ignore AT+ cmd,'
                            ' as the state is not UP')
             return
@@ -471,7 +471,7 @@ class SolarmanV5(Message):
         self.__process_data(ftype)
         self.__forward_msg()
         self.__send_ack_rsp(0x1210, ftype)
-        self.state = self.STATE_UP
+        self.state = State.up
 
     def msg_sync_start(self):
         data = self._recv_buffer[self.header_len:]
@@ -567,7 +567,7 @@ class SolarmanV5(Message):
 
         self.__forward_msg()
         self.__send_ack_rsp(0x1710, ftype)
-        self.state = self.STATE_UP
+        self.state = State.up
 
     def msg_sync_end(self):
         data = self._recv_buffer[self.header_len:]
