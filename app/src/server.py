@@ -106,7 +106,7 @@ if __name__ == "__main__":
                                     handle_shutdown(loop)))
 
     #
-    # Create taska for our listening servera. These must be tasks! If we call
+    # Create tasks for our listening servers. These must be tasks! If we call
     # start_server directly out of our main task, the eventloop will be blocked
     # and we can't receive and handle the UNIX signals!
     #

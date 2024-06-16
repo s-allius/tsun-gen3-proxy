@@ -61,7 +61,6 @@ class AsyncStream():
         """Async loop handler for precessing all received messages"""
         self.r_addr = self.writer.get_extra_info('peername')
         self.l_addr = self.writer.get_extra_info('sockname')
-
         while True:
             try:
                 await self.__async_read()

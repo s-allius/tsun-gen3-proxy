@@ -122,7 +122,7 @@ class InverterG3(Inverter, ConnectionG3):
     def close(self) -> None:
         logging.debug(f'InverterG3.close() l{self.l_addr} | r{self.r_addr}')
         super().close()         # call close handler in the parent class
-#        logger.debug (f'Inverter refs: {gc.get_referrers(self)}')
+#         logging.info(f'Inverter refs: {gc.get_referrers(self)}')
 
     def __del__(self):
         logging.debug("InverterG3.__del__")
