@@ -63,7 +63,7 @@ RUN python -m pip install --no-cache --no-index /root/wheels/* && \
 COPY --chmod=0700 entrypoint.sh /root/entrypoint.sh
 COPY config .
 COPY src .
-
+RUN date > /build-date.txt
 EXPOSE 5005
 
 # command to run on container start
