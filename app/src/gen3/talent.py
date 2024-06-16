@@ -114,6 +114,9 @@ class Talent(Message):
 
         if self.header_valid and len(self._recv_buffer) >= (self.header_len +
                                                             self.data_len):
+            if self.state == State.init:
+                self.state = State.received
+
             log_lvl = self.log_lvl.get(self.msg_id, logging.WARNING)
             if callable(log_lvl):
                 log_lvl = log_lvl()

@@ -184,6 +184,9 @@ class SolarmanV5(Message):
                             self._recv_buffer, self.header_len+self.data_len+2)
             if self.__trailer_is_ok(self._recv_buffer, self.header_len
                                     + self.data_len + 2):
+                if self.state == State.init:
+                    self.state = State.received
+
                 self.__set_serial_no(self.snr)
                 self.__dispatch_msg()
             self.__flush_recv_msg()
