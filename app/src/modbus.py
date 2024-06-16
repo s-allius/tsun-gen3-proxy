@@ -106,7 +106,7 @@ class Modbus():
         self.tim = None
 
     def close(self):
-        """free the queue and the callback handler"""
+        """free the queue and erase the callback handlers"""
         logging.debug('Modbus close:')
         self.rsp_handler = None
         self.snd_handler = None
