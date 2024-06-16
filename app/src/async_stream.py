@@ -116,7 +116,7 @@ class AsyncStream():
         logging.debug('async_stream healthy() elapsed: '
                       f'{round(1000*elapsed)}ms'
                       f' max:{round(1000*self.proc_max)}ms')
-        return True
+        return elapsed < 5
 
     '''
     Our private methods
