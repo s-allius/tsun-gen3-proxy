@@ -2,7 +2,6 @@
 import tomllib
 from schema import SchemaMissingKeyError
 from app.src.config import Config
-from typing import Tuple
 
 class TstConfig(Config):
 
@@ -11,8 +10,8 @@ class TstConfig(Config):
         cls.config = cnf
 
     @classmethod
-    def _read_config_file(cls) -> Tuple[dict, str| None]:
-        return cls.config, None
+    def _read_config_file(cls) -> dict:
+        return cls.config
 
 
 def test_empty_config():

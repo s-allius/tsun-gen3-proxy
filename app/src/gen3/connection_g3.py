@@ -31,10 +31,6 @@ class ConnectionG3(AsyncStream, Talent):
     async def async_publ_mqtt(self) -> None:
         pass
 
-    def healthy(self) -> bool:
-        logger.debug('ConnectionG3 healthy()')
-        return AsyncStream.healthy(self)
-
     '''
     Our private methods
     '''

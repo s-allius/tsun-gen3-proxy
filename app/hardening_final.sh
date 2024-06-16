@@ -17,5 +17,6 @@ if [ "$environment" = "production" ] ; then \
   -name od -o \
   -name strings -o \
   -name su -o \
+  -name wget -o \
   \) -delete  \
 ; fi
