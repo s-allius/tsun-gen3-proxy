@@ -5,6 +5,7 @@ from asyncio import StreamReader, StreamWriter
 from messages import hex_dump_memory
 from typing import Self
 
+import gc
 logger = logging.getLogger('conn')
 
 
@@ -125,6 +126,7 @@ class AsyncStream():
         logging.info('async_stream healthy() elapsed: '
                      f'{round(1000*elapsed)}ms'
                      f' max:{round(1000*self.proc_max)}ms')
+        logging.info(f'Healthy()) refs: {gc.get_referrers(self)}')
         return elapsed < 5
 
     '''
