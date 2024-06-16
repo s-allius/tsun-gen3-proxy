@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+- MODBUS close handler releases internal resource [#93](https://github.com/s-allius/tsun-gen3-proxy/issues/93)
 - add exception handling for message forwarding [#94](https://github.com/s-allius/tsun-gen3-proxy/issues/94)
 - print imgae build time during proxy start
 - add type annotations
