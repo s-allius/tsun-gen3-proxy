@@ -1,5 +1,6 @@
 import logging
 import traceback
+import time
 from asyncio import StreamReader, StreamWriter
 from messages import hex_dump_memory
 from typing import Self
@@ -116,6 +117,15 @@ class AsyncStream():
             return
         logger.debug(f'AsyncStream.close() l{self.l_addr} | r{self.r_addr}')
         self.writer.close()
+
+    def healthy(self) -> bool:
+        elapsed = 0
+        if self.proc_start is not None:
+            elapsed = time.time() - self.proc_start
+        logging.info('async_stream healthy() elapsed: '
+                     f'{round(1000*elapsed)}ms'
+                     f' max:{round(1000*self.proc_max)}ms')
+        return elapsed < 5
 
     '''
     Our private methods
