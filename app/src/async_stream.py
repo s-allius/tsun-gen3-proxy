@@ -1,9 +1,11 @@
 import logging
 import traceback
+import time
 from asyncio import StreamReader, StreamWriter
-from messages import hex_dump_memory
+from messages import hex_dump_memory, State
 from typing import Self
 
+import gc
 logger = logging.getLogger('conn')
 
 
@@ -17,6 +19,8 @@ class AsyncStream():
         self.addr = addr
         self.r_addr = ''
         self.l_addr = ''
+        self.proc_start = None  # start processing start timestamp
+        self.proc_max = 0
 
     async def server_loop(self, addr: str) -> None:
         '''Loop for receiving messages from the inverter (server-side)'''
@@ -61,8 +65,14 @@ class AsyncStream():
         """Async loop handler for precessing all received messages"""
         self.r_addr = self.writer.get_extra_info('peername')
         self.l_addr = self.writer.get_extra_info('sockname')
+        self.proc_start = time.time()
         while True:
             try:
+                proc = time.time() - self.proc_start
+                if proc > self.proc_max:
+                    self.proc_max = proc
+                self.proc_start = None
+
                 await self.__async_read()
 
                 if self.unique_id:
@@ -117,6 +127,17 @@ class AsyncStream():
         logger.debug(f'AsyncStream.close() l{self.l_addr} | r{self.r_addr}')
         self.writer.close()
 
+    def healthy(self) -> bool:
+        elapsed = 0
+        if self.proc_start is not None:
+            elapsed = time.time() - self.proc_start
+        if self.state == State.closed or elapsed > 1:
+            logging.debug(f'[{self.node_id}:{type(self).__name__}]'
+                          f' act:{round(1000*elapsed)}ms'
+                          f' max:{round(1000*self.proc_max)}ms')
+            logging.debug(f'Healthy()) refs: {gc.get_referrers(self)}')
+        return elapsed < 5
+
     '''
     Our private methods
     '''
@@ -124,6 +145,7 @@ class AsyncStream():
         """Async read handler to read received data from TCP stream"""
         data = await self.reader.read(4096)
         if data:
+            self.proc_start = time.time()
             self._recv_buffer += data
             self.read()                # call read in parent class
         else:

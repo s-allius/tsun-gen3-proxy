@@ -4,12 +4,12 @@ import time
 from datetime import datetime
 
 if __name__ == "app.src.gen3.talent":
-    from app.src.messages import hex_dump_memory, Message
+    from app.src.messages import hex_dump_memory, Message, State
     from app.src.modbus import Modbus
     from app.src.config import Config
     from app.src.gen3.infos_g3 import InfosG3
 else:  # pragma: no cover
-    from messages import hex_dump_memory, Message
+    from messages import hex_dump_memory, Message, State
     from modbus import Modbus
     from config import Config
     from gen3.infos_g3 import InfosG3
@@ -77,7 +77,7 @@ class Talent(Message):
         # deallocated by the garbage collector ==> we get a memory leak
         self.switch.clear()
         self.log_lvl.clear()
-        self.state = self.STATE_CLOSED
+        self.state = State.closed
         super().close()
 
     def __set_serial_no(self, serial_no: str):
@@ -114,6 +114,9 @@ class Talent(Message):
 
         if self.header_valid and len(self._recv_buffer) >= (self.header_len +
                                                             self.data_len):
+            if self.state == State.init:
+                self.state = State.received
+
             log_lvl = self.log_lvl.get(self.msg_id, logging.WARNING)
             if callable(log_lvl):
                 log_lvl = log_lvl()
@@ -141,7 +144,7 @@ class Talent(Message):
         return
 
     def send_modbus_cb(self, modbus_pdu: bytearray, log_lvl: int, state: str):
-        if self.state != self.STATE_UP:
+        if self.state != State.up:
             logger.warning(f'[{self.node_id}] ignore MODBUS cmd,'
                            ' cause the state is not UP anymore')
             return
@@ -158,7 +161,7 @@ class Talent(Message):
         self._send_buffer = bytearray(0)  # self._send_buffer[sent:]
 
     async def send_modbus_cmd(self, func, addr, val, log_lvl) -> None:
-        if self.state != self.STATE_UP:
+        if self.state != State.up:
             logger.log(log_lvl, f'[{self.node_id}] ignore MODBUS cmd,'
                        ' as the state is not UP')
             return
@@ -371,7 +374,7 @@ class Talent(Message):
             self._send_buffer += b'\x01'
             self.__finish_send_msg()
             self.__process_data()
-            self.state = self.STATE_UP
+            self.state = State.up
 
         elif self.ctrl.is_resp():
             return  # ignore received response
@@ -387,7 +390,7 @@ class Talent(Message):
             self._send_buffer += b'\x01'
             self.__finish_send_msg()
             self.__process_data()
-            self.state = self.STATE_UP
+            self.state = State.up
 
         elif self.ctrl.is_resp():
             return  # ignore received response

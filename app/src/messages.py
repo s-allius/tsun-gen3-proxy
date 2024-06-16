@@ -1,6 +1,7 @@
 import logging
 import weakref
 from typing import Callable, Generator
+from enum import Enum
 
 
 if __name__ == "app.src.messages":
@@ -52,11 +53,20 @@ class IterRegistry(type):
                 yield obj
 
 
+class State(Enum):
+    '''state of the logical connection'''
+    init = 0
+    '''just created'''
+    received = 1
+    '''at least one packet received'''
+    up = 2
+    '''at least one cmd-rsp transaction'''
+    closed = 3
+    '''connection closed'''
+
+
 class Message(metaclass=IterRegistry):
     _registry = []
-    STATE_INIT = 0
-    STATE_UP = 2
-    STATE_CLOSED = 3
 
     def __init__(self, server_side: bool, send_modbus_cb:
                  Callable[[bytes, int, str], None], mb_timeout: int):
@@ -78,7 +88,7 @@ class Message(metaclass=IterRegistry):
         self._send_buffer = bytearray(0)
         self._forward_buffer = bytearray(0)
         self.new_data = {}
-        self.state = self.STATE_INIT
+        self.state = State.init
 
     '''
     Empty methods, that have to be implemented in any child class which

@@ -31,6 +31,10 @@ class ConnectionG3P(AsyncStream, SolarmanV5):
     async def async_publ_mqtt(self) -> None:
         pass
 
+    def healthy(self) -> bool:
+        logger.debug('ConnectionG3P healthy()')
+        return AsyncStream.healthy(self)
+
     '''
     Our private methods
     '''

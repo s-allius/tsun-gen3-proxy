@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+- Add healthcheck, readiness and liveness checks [#91](https://github.com/s-allius/tsun-gen3-proxy/issues/91)
 - MODBUS close handler releases internal resource [#93](https://github.com/s-allius/tsun-gen3-proxy/issues/93)
 - add exception handling for message forwarding [#94](https://github.com/s-allius/tsun-gen3-proxy/issues/94)
 - GEN3: make timestamp handling stateless, to avoid blocking when the TSUN cloud is down [#56](https://github.com/s-allius/tsun-gen3-proxy/issues/56)
@@ -29,7 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - catch all OSError errors in the read loop
 - log Modbus traces with different log levels
 - add Modbus fifo and timeout handler
-- build version string in the same format as TSUN for GEN3 invterts
+- build version string in the same format as TSUN for GEN3 inverters
 - add graceful shutdown
 - parse Modbus values and store them in the database
 - add cron task to request the output power every minute

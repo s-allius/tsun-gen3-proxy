@@ -4,6 +4,7 @@ from app.src.gen3.talent import Talent, Control
 from app.src.config import Config
 from app.src.infos import Infos, Register
 from app.src.modbus import Modbus
+from app.src.messages import State
 
  
 pytest_plugins = ('pytest_asyncio',)
@@ -909,7 +910,7 @@ def test_msg_modbus_req(ConfigTsunInv1, MsgModbusCmd):
     ConfigTsunInv1
     m = MemoryStream(b'')
     m.id_str = b"R170000000000001" 
-    m.state = m.STATE_UP
+    m.state = State.up
 
     c = m.createClientStream(MsgModbusCmd)
     
@@ -1159,7 +1160,7 @@ async def test_msg_build_modbus_req(ConfigTsunInv1, MsgModbusCmd):
     assert m._send_buffer == b''
     assert m.writer.sent_pdu == b''
 
-    m.state = m.STATE_UP
+    m.state = State.up
     await m.send_modbus_cmd(Modbus.WRITE_SINGLE_REG, 0x2008, 0, logging.DEBUG)
     assert 0 == m.send_msg_ofs
     assert m._forward_buffer == b''
@@ -1189,21 +1190,21 @@ def test_zombie_conn(ConfigTsunInv1, MsgInverterInd):
     m3 = MemoryStream(MsgInverterInd, (0,))
     assert MemoryStream._RefNo == 3 + start_val
     assert m3.RefNo == 3 + start_val
-    assert m1.state == m1.STATE_INIT
-    assert m2.state == m2.STATE_INIT
-    assert m3.state == m3.STATE_INIT
+    assert m1.state == m1.State.init
+    assert m2.state == m2.State.init
+    assert m3.state == m3.State.init
     m1.read()         # read complete msg, and set unique_id
-    assert m1.state == m1.STATE_UP
-    assert m2.state == m2.STATE_INIT
-    assert m3.state == m3.STATE_INIT
+    assert m1.state == m1.State.up
+    assert m2.state == m2.State.init
+    assert m3.state == m3.State.init
     m2.read()         # read complete msg, and set unique_id
-    assert m1.state == m1.STATE_CLOSED
-    assert m2.state == m2.STATE_UP
-    assert m3.state == m3.STATE_INIT
+    assert m1.state == m1.State.closed
+    assert m2.state == m2.State.up
+    assert m3.state == m3.State.init
     m3.read()         # read complete msg, and set unique_id
-    assert m1.state == m1.STATE_CLOSED
-    assert m2.state == m2.STATE_CLOSED
-    assert m3.state == m3.STATE_UP
+    assert m1.state == m1.State.closed
+    assert m2.state == m2.State.closed
+    assert m3.state == m3.State.up
     m1.close()
     m2.close()
     m3.close()
