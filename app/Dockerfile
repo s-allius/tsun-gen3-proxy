@@ -64,7 +64,7 @@ COPY --chmod=0700 entrypoint.sh /root/entrypoint.sh
 COPY config .
 COPY src .
 RUN date > /build-date.txt
-EXPOSE 5005
+EXPOSE 5005 8127 10000
 
 # command to run on container start
 ENTRYPOINT ["/root/entrypoint.sh"]
