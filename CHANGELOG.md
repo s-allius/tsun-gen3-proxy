@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+- add exception handling for message forwarding [#94](https://github.com/s-allius/tsun-gen3-proxy/issues/94)
 - print imgae build time during proxy start
 - add type annotations
 - improve async unit test and fix pytest warnings
