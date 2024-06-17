@@ -57,11 +57,14 @@ class InverterG3(Inverter, ConnectionG3):
         addr = (host, port)
 
         try:
-            logging.info(f'[{self.node_id}] Connected to {addr}')
+            logging.info(f'[{self.node_id}] Connect to {addr}')
             connect = asyncio.open_connection(host, port)
             reader, writer = await connect
             self.remoteStream = ConnectionG3(reader, writer, addr, self,
                                              False, self.id_str)
+            logging.info(f'[{self.remoteStream.node_id}:'
+                         f'{self.remoteStream.conn_no}] '
+                         f'Connected to {addr}')
             asyncio.create_task(self.client_loop(addr))
 
         except (ConnectionRefusedError, TimeoutError) as error:
