@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+- detect dead connections [#100](https://github.com/s-allius/tsun-gen3-proxy/issues/100)
+- improve connection logging wirt a unique connection id
 - Add healthcheck, readiness and liveness checks [#91](https://github.com/s-allius/tsun-gen3-proxy/issues/91)
 - MODBUS close handler releases internal resource [#93](https://github.com/s-allius/tsun-gen3-proxy/issues/93)
 - add exception handling for message forwarding [#94](https://github.com/s-allius/tsun-gen3-proxy/issues/94)
