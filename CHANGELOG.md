@@ -7,10 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.1] - 2024-06-21
+
 - Fix MODBUS responses are dropped and not forwarded to the TSUN cloud [#104](https://github.com/s-allius/tsun-gen3-proxy/issues/104)
 - GEN3 Fix connections losts due MODBUS requests [#102](https://github.com/s-allius/tsun-gen3-proxy/issues/102)
 
-[0.8.0] - 2024-06-07
+## [0.8.0] - 2024-06-07
 
 - improve logging: add protocol or node_id to connection logs
 - improve logging: log ignored AT+ or MODBUS commands
