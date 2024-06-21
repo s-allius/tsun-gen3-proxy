@@ -91,6 +91,9 @@ class MemoryStream(SolarmanV5):
 def get_sn() -> bytes:
     return b'\x21\x43\x65\x7b'
 
+def get_sn_int() -> int:
+    return 2070233889
+
 def get_inv_no() -> bytes:
     return b'T170000000000001'
 
@@ -525,6 +528,15 @@ def SyncEndRspMsg():  # 0x1810
 @pytest.fixture
 def MsgModbusCmd():
     msg  = b'\xa5\x17\x00\x10\x45\x03\x02' +get_sn()  +b'\x02\xb0\x02'
+    msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x06\x20\x08'
+    msg += b'\x00\x00\x03\xc8'
+    msg += correct_checksum(msg)
+    msg += b'\x15'
+    return msg
+
+@pytest.fixture
+def MsgModbusCmdFwd():
+    msg  = b'\xa5\x17\x00\x10\x45\x01\x00' +get_sn()  +b'\x02\xb0\x02'
     msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x06\x20\x08'
     msg += b'\x00\x00\x03\xc8'
     msg += correct_checksum(msg)
@@ -1412,9 +1424,11 @@ def test_msg_at_command_rsp2(ConfigTsunInv1, AtCommandRspMsg):
     assert m.db.stat['proxy']['Modbus_Command'] == 0
     m.close()
 
-def test_msg_modbus_req(ConfigTsunInv1, MsgModbusCmd):
+def test_msg_modbus_req(ConfigTsunInv1, MsgModbusCmd, MsgModbusCmdFwd):
     ConfigTsunInv1
     m = MemoryStream(b'')
+    m.snr = get_sn_int()
+    m.state = m.STATE_UP
     c = m.createClientStream(MsgModbusCmd)
 
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
@@ -1428,8 +1442,9 @@ def test_msg_modbus_req(ConfigTsunInv1, MsgModbusCmd):
     assert str(c.seq) == '03:02'
     assert c.header_len==11
     assert c.data_len==23
-    assert c._forward_buffer==MsgModbusCmd
+    assert c._forward_buffer==b''
     assert c._send_buffer==b''
+    assert m.writer.sent_pdu == MsgModbusCmdFwd
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
     assert m.db.stat['proxy']['AT_Command'] == 0
     assert m.db.stat['proxy']['Modbus_Command'] == 1
@@ -1439,6 +1454,8 @@ def test_msg_modbus_req(ConfigTsunInv1, MsgModbusCmd):
 def test_msg_modbus_req2(ConfigTsunInv1, MsgModbusCmdCrcErr):
     ConfigTsunInv1
     m = MemoryStream(b'')
+    m.snr = get_sn_int()
+    m.state = m.STATE_UP
     c = m.createClientStream(MsgModbusCmdCrcErr)
 
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
@@ -1452,8 +1469,9 @@ def test_msg_modbus_req2(ConfigTsunInv1, MsgModbusCmdCrcErr):
     assert str(c.seq) == '03:02'
     assert c.header_len==11
     assert c.data_len==23
-    assert c._forward_buffer==MsgModbusCmdCrcErr
+    assert c._forward_buffer==b''
     assert c._send_buffer==b''
+    assert m.writer.sent_pdu==b''
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
     assert m.db.stat['proxy']['AT_Command'] == 0
     assert m.db.stat['proxy']['Modbus_Command'] == 0

@@ -426,7 +426,8 @@ class Talent(Message):
 
         if self.ctrl.is_req():
             if self.remoteStream.mb.recv_req(data[hdr_len:],
-                                             self.msg_forward):
+                                             self.remoteStream.
+                                             msg_forward):
                 self.inc_counter('Modbus_Command')
             else:
                 self.inc_counter('Invalid_Msg_Format')
