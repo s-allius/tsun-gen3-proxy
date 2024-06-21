@@ -6,13 +6,13 @@ import asyncio
 from datetime import datetime
 
 if __name__ == "app.src.gen3plus.solarman_v5":
-    from app.src.messages import hex_dump_memory, Message
+    from app.src.messages import hex_dump_memory, Message, State
     from app.src.modbus import Modbus
     from app.src.config import Config
     from app.src.gen3plus.infos_g3p import InfosG3P
     from app.src.infos import Register
 else:  # pragma: no cover
-    from messages import hex_dump_memory, Message
+    from messages import hex_dump_memory, Message, State
     from config import Config
     from modbus import Modbus
     from gen3plus.infos_g3p import InfosG3P
@@ -135,7 +135,7 @@ class SolarmanV5(Message):
         # deallocated by the garbage collector ==> we get a memory leak
         self.switch.clear()
         self.log_lvl.clear()
-        self.state = self.STATE_CLOSED
+        self.state = State.closed
         super().close()
 
     def __set_serial_no(self, snr: int):
@@ -184,6 +184,9 @@ class SolarmanV5(Message):
                             self._recv_buffer, self.header_len+self.data_len+2)
             if self.__trailer_is_ok(self._recv_buffer, self.header_len
                                     + self.data_len + 2):
+                if self.state == State.init:
+                    self.state = State.received
+
                 self.__set_serial_no(self.snr)
                 self.__dispatch_msg()
             self.__flush_recv_msg()
@@ -253,6 +256,10 @@ class SolarmanV5(Message):
         self.snr = result[4]
 
         if start != 0xA5:
+            hex_dump_memory(logging.ERROR,
+                            'Drop packet w invalid start byte from'
+                            f' {self.addr}:', buf, buf_len)
+
             self.inc_counter('Invalid_Msg_Format')
             # erase broken recv buffer
             self._recv_buffer = bytearray()
@@ -264,6 +271,9 @@ class SolarmanV5(Message):
         crc = buf[self.data_len+11]
         stop = buf[self.data_len+12]
         if stop != 0x15:
+            hex_dump_memory(logging.ERROR,
+                            'Drop packet w invalid stop byte from '
+                            f'{self.addr}:', buf, buf_len)
             self.inc_counter('Invalid_Msg_Format')
             if len(self._recv_buffer) > (self.data_len+13):
                 next_start = buf[self.data_len+13]
@@ -338,9 +348,9 @@ class SolarmanV5(Message):
         self.__finish_send_msg()
 
     def send_modbus_cb(self, pdu: bytearray, log_lvl: int, state: str):
-        if self.state != self.STATE_UP:
-            logger.warn(f'[{self.node_id}] ignore MODBUS cmd,'
-                        ' cause the state is not UP anymore')
+        if self.state != State.up:
+            logger.warning(f'[{self.node_id}] ignore MODBUS cmd,'
+                           ' cause the state is not UP anymore')
             return
         self.__build_header(0x4510)
         self._send_buffer += struct.pack('<BHLLL', self.MB_RTU_CMD,
@@ -353,7 +363,7 @@ class SolarmanV5(Message):
         self._send_buffer = bytearray(0)  # self._send_buffer[sent:]
 
     async def send_modbus_cmd(self, func, addr, val, log_lvl) -> None:
-        if self.state != self.STATE_UP:
+        if self.state != State.up:
             logger.log(log_lvl, f'[{self.node_id}] ignore MODBUS cmd,'
                        ' as the state is not UP')
             return
@@ -364,9 +374,9 @@ class SolarmanV5(Message):
                 cmd.startswith(tuple(self.at_acl[connection]['block']))
 
     async def send_at_cmd(self, AT_cmd: str) -> None:
-        if self.state != self.STATE_UP:
-            logger.warn(f'[{self.node_id}] ignore AT+ cmd,'
-                        ' as the state is not UP')
+        if self.state != State.up:
+            logger.warning(f'[{self.node_id}] ignore AT+ cmd,'
+                           ' as the state is not UP')
             return
         AT_cmd = AT_cmd.strip()
 
@@ -375,8 +385,7 @@ class SolarmanV5(Message):
             node_id = self.node_id
             key = 'at_resp'
             logger.info(f'{key}: {data_json}')
-            asyncio.ensure_future(
-                self.publish_mqtt(f'{self.entity_prfx}{node_id}{key}', data_json))  # noqa: E501
+            await self.mqtt.publish(f'{self.entity_prfx}{node_id}{key}', data_json)  # noqa: E501
             return
 
         self.forward_at_cmd_resp = False
@@ -465,7 +474,7 @@ class SolarmanV5(Message):
         self.__process_data(ftype)
         self.__forward_msg()
         self.__send_ack_rsp(0x1210, ftype)
-        self.state = self.STATE_UP
+        self.state = State.up
 
     def msg_sync_start(self):
         data = self._recv_buffer[self.header_len:]
@@ -495,16 +504,19 @@ class SolarmanV5(Message):
 
         elif ftype == self.MB_RTU_CMD:
             if self.remoteStream.mb.recv_req(data[15:],
-                                             self.__forward_msg()):
+                                             self.remoteStream.
+                                             __forward_msg):
                 self.inc_counter('Modbus_Command')
             else:
+                logger.error('Invalid Modbus Msg')
                 self.inc_counter('Invalid_Msg_Format')
             return
 
         self.__forward_msg()
 
-    async def publish_mqtt(self, key, data):
-        await self.mqtt.publish(key, data)  # pragma: no cover
+    def publish_mqtt(self, key, data):
+        asyncio.ensure_future(
+            self.mqtt.publish(key, data))
 
     def get_cmd_rsp_log_lvl(self) -> int:
         ftype = self._recv_buffer[self.header_len]
@@ -528,8 +540,7 @@ class SolarmanV5(Message):
                 node_id = self.node_id
                 key = 'at_resp'
                 logger.info(f'{key}: {data_json}')
-                asyncio.ensure_future(
-                    self.publish_mqtt(f'{self.entity_prfx}{node_id}{key}', data_json))  # noqa: E501
+                self.publish_mqtt(f'{self.entity_prfx}{node_id}{key}', data_json)  # noqa: E501
                 return
         elif ftype == self.MB_RTU_CMD:
             valid = data[1]
@@ -560,7 +571,7 @@ class SolarmanV5(Message):
 
         self.__forward_msg()
         self.__send_ack_rsp(0x1710, ftype)
-        self.state = self.STATE_UP
+        self.state = State.up
 
     def msg_sync_end(self):
         data = self._recv_buffer[self.header_len:]

@@ -4,6 +4,7 @@ from app.src.gen3.talent import Talent, Control
 from app.src.config import Config
 from app.src.infos import Infos, Register
 from app.src.modbus import Modbus
+from app.src.messages import State
 
  
 pytest_plugins = ('pytest_asyncio',)
@@ -60,7 +61,8 @@ class MemoryStream(Talent):
         return copied_bytes
     
     def _timestamp(self):
-        return 1700260990000
+        # return 1700260990000
+        return 1691246944000
     
     def createClientStream(self, msg, chunks = (0,)):
         c = MemoryStream(msg, chunks, False)
@@ -130,6 +132,18 @@ def MsgControllerInd(): # Data indication from the controller
     return msg
 
 @pytest.fixture
+def MsgControllerIndTsOffs(): # Data indication from the controller - offset 0x1000
+    msg  =  b'\x00\x00\x01\x2f\x10R170000000000001\x91\x71\x0e\x10\x00\x00\x10R170000000000001'
+    msg +=  b'\x01\x00\x00\x01\x89\xc6\x63\x45\x50'
+    msg +=  b'\x00\x00\x00\x15\x00\x09\x2b\xa8\x54\x10\x52\x53\x57\x5f\x34\x30\x30\x5f\x56\x31\x2e\x30\x30\x2e\x30\x36\x00\x09\x27\xc0\x54\x06\x52\x61\x79\x6d\x6f'
+    msg +=  b'\x6e\x00\x09\x2f\x90\x54\x0b\x52\x53\x57\x2d\x31\x2d\x31\x30\x30\x30\x31\x00\x09\x5a\x88\x54\x0f\x74\x2e\x72\x61\x79\x6d\x6f\x6e\x69\x6f\x74\x2e\x63\x6f\x6d\x00\x09\x5a\xec\x54'
+    msg +=  b'\x1c\x6c\x6f\x67\x67\x65\x72\x2e\x74\x61\x6c\x65\x6e\x74\x2d\x6d\x6f\x6e\x69\x74\x6f\x72\x69\x6e\x67\x2e\x63\x6f\x6d\x00\x0d\x00\x20\x49\x00\x00\x00\x01\x00\x0c\x35\x00\x49\x00'
+    msg +=  b'\x00\x00\x64\x00\x0c\x96\xa8\x49\x00\x00\x00\x1d\x00\x0c\x7f\x38\x49\x00\x00\x00\x01\x00\x0c\xfc\x38\x49\x00\x00\x00\x01\x00\x0c\xf8\x50\x49\x00\x00\x01\x2c\x00\x0c\x63\xe0\x49'
+    msg +=  b'\x00\x00\x00\x00\x00\x0c\x67\xc8\x49\x00\x00\x00\x00\x00\x0c\x50\x58\x49\x00\x00\x00\x01\x00\x09\x5e\x70\x49\x00\x00\x13\x8d\x00\x09\x5e\xd4\x49\x00\x00\x13\x8d\x00\x09\x5b\x50'
+    msg +=  b'\x49\x00\x00\x00\x02\x00\x0d\x04\x08\x49\x00\x00\x00\x00\x00\x07\xa1\x84\x49\x00\x00\x00\x01\x00\x0c\x50\x59\x49\x00\x00\x00\x4c\x00\x0d\x1f\x60\x49\x00\x00\x00\x00'
+    return msg
+
+@pytest.fixture
 def MsgControllerAck(): # Get Time Request message
     return b'\x00\x00\x00\x14\x10R170000000000001\x99\x71\x01'
 
@@ -141,6 +155,14 @@ def MsgControllerInvalid(): # Get Time Request message
 def MsgInverterInd(): # Data indication from the controller
     msg  =  b'\x00\x00\x00\x8b\x10R170000000000001\x91\x04\x01\x90\x00\x01\x10R170000000000001'
     msg +=  b'\x01\x00\x00\x01\x89\xc6\x63\x61\x08'
+    msg +=  b'\x00\x00\x00\x06\x00\x00\x00\x0a\x54\x08\x4d\x69\x63\x72\x6f\x69\x6e\x76\x00\x00\x00\x14\x54\x04\x54\x53\x55\x4e\x00\x00\x00\x1E\x54\x07\x56\x35\x2e\x30\x2e\x31\x31\x00\x00\x00\x28'
+    msg +=  b'\x54\x10T170000000000001\x00\x00\x00\x32\x54\x0a\x54\x53\x4f\x4c\x2d\x4d\x53\x36\x30\x30\x00\x00\x00\x3c\x54\x05\x41\x2c\x42\x2c\x43'
+    return msg
+
+@pytest.fixture
+def MsgInverterIndTsOffs(): # Data indication from the controller + offset 256
+    msg  =  b'\x00\x00\x00\x8b\x10R170000000000001\x91\x04\x01\x90\x00\x01\x10R170000000000001'
+    msg +=  b'\x01\x00\x00\x01\x89\xc6\x63\x62\x08'
     msg +=  b'\x00\x00\x00\x06\x00\x00\x00\x0a\x54\x08\x4d\x69\x63\x72\x6f\x69\x6e\x76\x00\x00\x00\x14\x54\x04\x54\x53\x55\x4e\x00\x00\x00\x1E\x54\x07\x56\x35\x2e\x30\x2e\x31\x31\x00\x00\x00\x28'
     msg +=  b'\x54\x10T170000000000001\x00\x00\x00\x32\x54\x0a\x54\x53\x4f\x4c\x2d\x4d\x53\x36\x30\x30\x00\x00\x00\x3c\x54\x05\x41\x2c\x42\x2c\x43'
     return msg
@@ -471,9 +493,10 @@ def test_msg_get_time(ConfigTsunInv1, MsgGetTime):
     assert int(m.ctrl)==145
     assert m.msg_id==34
     assert m.header_len==23
+    assert m.ts_offset==0
     assert m.data_len==0
     assert m._forward_buffer==MsgGetTime
-    assert m._send_buffer==b''
+    assert m._send_buffer==b'\x00\x00\x00\x1b\x10R170000000000001\x91"\x00\x00\x01\x89\xc6,_\x00'
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
     m.close()
 
@@ -489,9 +512,10 @@ def test_msg_get_time_autark(ConfigNoTsunInv1, MsgGetTime):
     assert int(m.ctrl)==145
     assert m.msg_id==34
     assert m.header_len==23
+    assert m.ts_offset==0
     assert m.data_len==0
     assert m._forward_buffer==b''
-    assert m._send_buffer==b'\x00\x00\x00\x1b\x10R170000000000001\x91"\x00\x00\x01\x8b\xdfs\xcc0'
+    assert m._send_buffer==bytearray(b'\x00\x00\x00\x1b\x10R170000000000001\x91"\x00\x00\x01\x89\xc6,_\x00')
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
     m.close()
 
@@ -507,8 +531,9 @@ def test_msg_time_resp(ConfigTsunInv1, MsgTimeResp):
     assert int(m.ctrl)==145
     assert m.msg_id==34
     assert m.header_len==23
+    assert m.ts_offset==3600000
     assert m.data_len==8
-    assert m._forward_buffer==MsgTimeResp
+    assert m._forward_buffer==b''
     assert m._send_buffer==b''
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
     m.close()
@@ -525,6 +550,7 @@ def test_msg_time_resp_autark(ConfigNoTsunInv1, MsgTimeResp):
     assert int(m.ctrl)==145
     assert m.msg_id==34
     assert m.header_len==23
+    assert m.ts_offset==3600000
     assert m.data_len==8
     assert m._forward_buffer==b''
     assert m._send_buffer==b''
@@ -543,6 +569,7 @@ def test_msg_time_invalid(ConfigTsunInv1, MsgTimeInvalid):
     assert int(m.ctrl)==148
     assert m.msg_id==34
     assert m.header_len==23
+    assert m.ts_offset==0
     assert m.data_len==0
     assert m._forward_buffer==MsgTimeInvalid
     assert m._send_buffer==b''
@@ -560,6 +587,7 @@ def test_msg_time_invalid_autark(ConfigNoTsunInv1, MsgTimeInvalid):
     assert m.unique_id == 'R170000000000001'
     assert int(m.ctrl)==148
     assert m.msg_id==34
+    assert m.ts_offset==0
     assert m.header_len==23
     assert m.data_len==0
     assert m._forward_buffer==b''
@@ -567,7 +595,7 @@ def test_msg_time_invalid_autark(ConfigNoTsunInv1, MsgTimeInvalid):
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 1
     m.close()
 
-def test_msg_cntrl_ind(ConfigTsunInv1, MsgControllerInd, MsgControllerAck):
+def test_msg_cntrl_ind(ConfigTsunInv1, MsgControllerInd, MsgControllerIndTsOffs, MsgControllerAck):
     ConfigTsunInv1
     m = MemoryStream(MsgControllerInd, (0,))
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
@@ -580,7 +608,12 @@ def test_msg_cntrl_ind(ConfigTsunInv1, MsgControllerInd, MsgControllerAck):
     assert m.msg_id==113
     assert m.header_len==23
     assert m.data_len==284
+    m.ts_offset = 0
+    m._update_header(m._forward_buffer)
     assert m._forward_buffer==MsgControllerInd
+    m.ts_offset = -4096
+    m._update_header(m._forward_buffer)
+    assert m._forward_buffer==MsgControllerIndTsOffs
     assert m._send_buffer==MsgControllerAck
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
     m.close()
@@ -616,12 +649,17 @@ def test_msg_cntrl_invalid(ConfigTsunInv1, MsgControllerInvalid):
     assert m.msg_id==113
     assert m.header_len==23
     assert m.data_len==1
+    m.ts_offset = 0
+    m._update_header(m._forward_buffer)
+    assert m._forward_buffer==MsgControllerInvalid
+    m.ts_offset = -4096
+    m._update_header(m._forward_buffer)
     assert m._forward_buffer==MsgControllerInvalid
     assert m._send_buffer==b''
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 1
     m.close()
 
-def test_msg_inv_ind(ConfigTsunInv1, MsgInverterInd, MsgInverterAck):
+def test_msg_inv_ind(ConfigTsunInv1, MsgInverterInd, MsgInverterIndTsOffs, MsgInverterAck):
     ConfigTsunInv1
     tracer.setLevel(logging.DEBUG)
     m = MemoryStream(MsgInverterInd, (0,))
@@ -635,7 +673,12 @@ def test_msg_inv_ind(ConfigTsunInv1, MsgInverterInd, MsgInverterAck):
     assert m.msg_id==4
     assert m.header_len==23
     assert m.data_len==120
+    m.ts_offset = 0
+    m._update_header(m._forward_buffer)
     assert m._forward_buffer==MsgInverterInd
+    m.ts_offset = +256
+    m._update_header(m._forward_buffer)
+    assert m._forward_buffer==MsgInverterIndTsOffs
     assert m._send_buffer==MsgInverterAck
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
     m.close()
@@ -673,6 +716,11 @@ def test_msg_inv_invalid(ConfigTsunInv1, MsgInverterInvalid):
     assert m.msg_id==4
     assert m.header_len==23
     assert m.data_len==1
+    m.ts_offset = 0
+    m._update_header(m._forward_buffer)
+    assert m._forward_buffer==MsgInverterInvalid
+    m.ts_offset = 256
+    m._update_header(m._forward_buffer)
     assert m._forward_buffer==MsgInverterInvalid
     assert m._send_buffer==b''
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 1
@@ -692,6 +740,11 @@ def test_msg_ota_req(ConfigTsunInv1, MsgOtaReq):
     assert m.msg_id==19
     assert m.header_len==23
     assert m.data_len==259
+    m.ts_offset = 0
+    m._update_header(m._forward_buffer)
+    assert m._forward_buffer==MsgOtaReq
+    m.ts_offset = 4096
+    m._update_header(m._forward_buffer)
     assert m._forward_buffer==MsgOtaReq
     assert m._send_buffer==b''
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
@@ -714,6 +767,11 @@ def test_msg_ota_ack(ConfigTsunInv1, MsgOtaAck):
     assert m.msg_id==19
     assert m.header_len==23
     assert m.data_len==1
+    m.ts_offset = 0
+    m._update_header(m._forward_buffer)
+    assert m._forward_buffer==MsgOtaAck
+    m.ts_offset = 256
+    m._update_header(m._forward_buffer)
     assert m._forward_buffer==MsgOtaAck
     assert m._send_buffer==b''
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
@@ -734,7 +792,12 @@ def test_msg_ota_invalid(ConfigTsunInv1, MsgOtaInvalid):
     assert m.msg_id==19
     assert m.header_len==23
     assert m.data_len==1
+    m.ts_offset = 0
+    m._update_header(m._forward_buffer)
     assert m._forward_buffer==MsgOtaInvalid
+    m.ts_offset = 4096
+    assert m._forward_buffer==MsgOtaInvalid
+    m._update_header(m._forward_buffer)
     assert m._send_buffer==b''
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 1
     assert m.db.stat['proxy']['OTA_Start_Msg'] == 0
@@ -847,7 +910,7 @@ def test_msg_modbus_req(ConfigTsunInv1, MsgModbusCmd):
     ConfigTsunInv1
     m = MemoryStream(b'')
     m.id_str = b"R170000000000001" 
-    m.state = m.STATE_UP
+    m.state = State.up
 
     c = m.createClientStream(MsgModbusCmd)
     
@@ -1097,7 +1160,7 @@ async def test_msg_build_modbus_req(ConfigTsunInv1, MsgModbusCmd):
     assert m._send_buffer == b''
     assert m.writer.sent_pdu == b''
 
-    m.state = m.STATE_UP
+    m.state = State.up
     await m.send_modbus_cmd(Modbus.WRITE_SINGLE_REG, 0x2008, 0, logging.DEBUG)
     assert 0 == m.send_msg_ofs
     assert m._forward_buffer == b''
@@ -1127,21 +1190,21 @@ def test_zombie_conn(ConfigTsunInv1, MsgInverterInd):
     m3 = MemoryStream(MsgInverterInd, (0,))
     assert MemoryStream._RefNo == 3 + start_val
     assert m3.RefNo == 3 + start_val
-    assert m1.state == m1.STATE_INIT
-    assert m2.state == m2.STATE_INIT
-    assert m3.state == m3.STATE_INIT
+    assert m1.state == m1.State.init
+    assert m2.state == m2.State.init
+    assert m3.state == m3.State.init
     m1.read()         # read complete msg, and set unique_id
-    assert m1.state == m1.STATE_UP
-    assert m2.state == m2.STATE_INIT
-    assert m3.state == m3.STATE_INIT
+    assert m1.state == m1.State.up
+    assert m2.state == m2.State.init
+    assert m3.state == m3.State.init
     m2.read()         # read complete msg, and set unique_id
-    assert m1.state == m1.STATE_CLOSED
-    assert m2.state == m2.STATE_UP
-    assert m3.state == m3.STATE_INIT
+    assert m1.state == m1.State.closed
+    assert m2.state == m2.State.up
+    assert m3.state == m3.State.init
     m3.read()         # read complete msg, and set unique_id
-    assert m1.state == m1.STATE_CLOSED
-    assert m2.state == m2.STATE_CLOSED
-    assert m3.state == m3.STATE_UP
+    assert m1.state == m1.State.closed
+    assert m2.state == m2.State.closed
+    assert m3.state == m3.State.up
     m1.close()
     m2.close()
     m3.close()
