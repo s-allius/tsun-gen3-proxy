@@ -7,6 +7,7 @@ from app.src.gen3plus.solarman_v5 import SolarmanV5
 from app.src.config import Config
 from app.src.infos import Infos, Register
 from app.src.modbus import Modbus
+from app.src.messages import State
 
 
 pytest_plugins = ('pytest_asyncio',)
@@ -1467,7 +1468,7 @@ def test_msg_modbus_req(ConfigTsunInv1, MsgModbusCmd, MsgModbusCmdFwd):
     ConfigTsunInv1
     m = MemoryStream(b'')
     m.snr = get_sn_int()
-    m.state = m.STATE_UP
+    m.state = State.up
     c = m.createClientStream(MsgModbusCmd)
 
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
@@ -1494,7 +1495,7 @@ def test_msg_modbus_req2(ConfigTsunInv1, MsgModbusCmdCrcErr):
     ConfigTsunInv1
     m = MemoryStream(b'')
     m.snr = get_sn_int()
-    m.state = m.STATE_UP
+    m.state = State.up
     c = m.createClientStream(MsgModbusCmdCrcErr)
 
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
