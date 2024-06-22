@@ -106,7 +106,7 @@ class Talent(Message):
 
             self.unique_id = serial_no
 
-    def read(self) -> None:
+    def read(self) -> float:
         self._read()
 
         if not self.header_valid:
@@ -127,7 +127,7 @@ class Talent(Message):
             self.__set_serial_no(self.id_str.decode("utf-8"))
             self.__dispatch_msg()
             self.__flush_recv_msg()
-        return
+        return 0.5  # wait 500ms before sending a response
 
     def forward(self, buffer, buflen) -> None:
         tsun = Config.get('tsun')
