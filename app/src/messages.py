@@ -61,6 +61,8 @@ class State(Enum):
     '''at least one packet received'''
     up = 2
     '''at least one cmd-rsp transaction'''
+    pend = 2
+    '''inverter transaction pending, don't send MODBUS cmds'''
     closed = 3
     '''connection closed'''
 
