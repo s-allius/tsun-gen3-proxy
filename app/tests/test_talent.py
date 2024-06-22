@@ -353,8 +353,7 @@ def test_read_message_in_chunks2(MsgContactInfo):
     assert int(m.ctrl)==145
     assert m.msg_id==0 
     assert m.msg_count == 1
-    while m.read(): # read rest of message
-        pass
+    m.read()         # read rest of message
     assert m.msg_count == 1
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
     m.close()
