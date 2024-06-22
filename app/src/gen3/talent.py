@@ -450,8 +450,13 @@ class Talent(Message):
             else:
                 self.inc_counter('Invalid_Msg_Format')
         elif self.ctrl.is_ind():
-            # logger.debug(f'Modbus Ind  MsgLen: {modbus_len}')
             self.modbus_elms = 0
+            # logger.debug(f'Modbus Ind  MsgLen: {modbus_len}')
+            if not self.server_side: 
+                logger.warning('Unknown Message')
+                self.inc_counter('Unknown_Msg')
+                return
+
             for key, update, _ in self.mb.recv_resp(self.db, data[
                     hdr_len:],
                     self.node_id):

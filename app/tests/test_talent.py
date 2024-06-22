@@ -116,6 +116,10 @@ def MsgTimeResp(): # Get Time Resonse message
     return b'\x00\x00\x00\x1b\x10R170000000000001\x91\x22\x00\x00\x01\x89\xc6\x63\x4d\x80'
 
 @pytest.fixture
+def MsgTimeRespInv(): # Get Time Resonse message
+    return b'\x00\x00\x00\x17\x10R170000000000001\x91\x22\x00\x00\x01\x89'
+
+@pytest.fixture
 def MsgTimeInvalid(): # Get Time Request message
     return b'\x00\x00\x00\x13\x10R170000000000001\x94\x22'           
 
@@ -166,7 +170,6 @@ def MsgInverterIndTsOffs(): # Data indication from the controller + offset 256
     msg +=  b'\x00\x00\x00\x06\x00\x00\x00\x0a\x54\x08\x4d\x69\x63\x72\x6f\x69\x6e\x76\x00\x00\x00\x14\x54\x04\x54\x53\x55\x4e\x00\x00\x00\x1E\x54\x07\x56\x35\x2e\x30\x2e\x31\x31\x00\x00\x00\x28'
     msg +=  b'\x54\x10T170000000000001\x00\x00\x00\x32\x54\x0a\x54\x53\x4f\x4c\x2d\x4d\x53\x36\x30\x30\x00\x00\x00\x3c\x54\x05\x41\x2c\x42\x2c\x43'
     return msg
-
 
 @pytest.fixture
 def MsgInverterIndNew(): # Data indication from DSP V5.0.17
@@ -632,6 +635,25 @@ def test_msg_time_resp_autark(ConfigNoTsunInv1, MsgTimeResp):
     assert m.ts_offset==3600000
     assert m.data_len==8
     assert m._forward_buffer==b''
+    assert m._send_buffer==b''
+    assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
+    m.close()
+
+def test_msg_time_inv_resp(ConfigTsunInv1, MsgTimeRespInv):
+    ConfigTsunInv1
+    m = MemoryStream(MsgTimeRespInv, (0,), False)
+    m.db.stat['proxy']['Unknown_Ctrl'] = 0
+    m.read()         # read complete msg, and dispatch msg
+    assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
+    assert m.msg_count == 1
+    assert m.id_str == b"R170000000000001" 
+    assert m.unique_id == 'R170000000000001'
+    assert int(m.ctrl)==145
+    assert m.msg_id==34
+    assert m.header_len==23
+    assert m.ts_offset==0
+    assert m.data_len==4
+    assert m._forward_buffer==MsgTimeRespInv
     assert m._send_buffer==b''
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
     m.close()
@@ -1114,6 +1136,29 @@ def test_msg_modbus_rsp1(ConfigTsunInv1, MsgModbusRsp):
     assert m.data_len==13
     assert m._forward_buffer==b''
     assert m._send_buffer==b''
+    assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
+    assert m.db.stat['proxy']['Modbus_Command'] == 0
+    m.close()
+
+def test_msg_modbus_cloud_rsp(ConfigTsunInv1, MsgModbusRsp):
+    '''Modbus response from TSUN without a valid Modbus request must be dropped'''
+    ConfigTsunInv1
+    m = MemoryStream(MsgModbusRsp, (0,), False)
+    m.db.stat['proxy']['Unknown_Ctrl'] = 0
+    m.db.stat['proxy']['Unknown_Msg'] = 0
+    m.db.stat['proxy']['Modbus_Command'] = 0
+    m.read()         # read complete msg, and dispatch msg
+    assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
+    assert m.msg_count == 1
+    assert m.id_str == b"R170000000000001" 
+    assert m.unique_id == 'R170000000000001'
+    assert int(m.ctrl)==145
+    assert m.msg_id==119
+    assert m.header_len==23
+    assert m.data_len==13
+    assert m._forward_buffer==b''
+    assert m._send_buffer==b''
+    assert m.db.stat['proxy']['Unknown_Msg'] == 1
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
     assert m.db.stat['proxy']['Modbus_Command'] == 0
     m.close()
