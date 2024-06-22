@@ -169,7 +169,9 @@ class AsyncStream():
         if data:
             self.proc_start = time.time()
             self._recv_buffer += data
-            self.read()                # call read in parent class
+            wait = self.read()                # call read in parent class
+            if wait > 0:
+                await asyncio.sleep(wait)
         else:
             raise RuntimeError("Peer closed.")
 
