@@ -132,11 +132,24 @@ class InfosG3(Infos):
                                                            errors='replace')
                 ind += str_len+1
 
+            elif data_type == 0x00:  # 'Nul' -> end
+                i = elms  # abort the loop
+
+            elif data_type == 0x41:  # 'A' -> Nop ??
+                # result = struct.unpack_from('!l', buf, ind)[0]
+                ind += 0
+                i += 1
+                continue
+
+            elif data_type == 0x42:  # 'B' -> byte, int8
+                result = struct.unpack_from('!B', buf, ind)[0]
+                ind += 1
+
             elif data_type == 0x49:  # 'I' -> int32
                 result = struct.unpack_from('!l', buf, ind)[0]
                 ind += 4
 
-            elif data_type == 0x53:  # 'S' -> short
+            elif data_type == 0x53:  # 'S' -> short, int16
                 result = struct.unpack_from('!h', buf, ind)[0]
                 ind += 2
 
@@ -144,13 +157,14 @@ class InfosG3(Infos):
                 result = round(struct.unpack_from('!f', buf, ind)[0], 2)
                 ind += 4
 
-            elif data_type == 0x4c:  # 'L' -> int64
+            elif data_type == 0x4c:  # 'L' -> long, int64
                 result = struct.unpack_from('!q', buf, ind)[0]
                 ind += 8
 
             else:
                 self.inc_counter('Invalid_Data_Type')
                 logging.error(f"Infos.parse: data_type: {data_type}"
+                              f" @0x{addr:04x} No:{i}"
                               " not supported")
                 return
 
