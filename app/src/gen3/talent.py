@@ -452,7 +452,7 @@ class Talent(Message):
         elif self.ctrl.is_ind():
             self.modbus_elms = 0
             # logger.debug(f'Modbus Ind  MsgLen: {modbus_len}')
-            if not self.server_side: 
+            if not self.server_side:
                 logger.warning('Unknown Message')
                 self.inc_counter('Unknown_Msg')
                 return
