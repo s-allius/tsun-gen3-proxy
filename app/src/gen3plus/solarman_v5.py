@@ -8,6 +8,7 @@ from datetime import datetime
 if __name__ == "app.src.gen3plus.solarman_v5":
     from app.src.messages import hex_dump_memory, Message, State
     from app.src.modbus import Modbus
+    from app.src.my_timer import Timer
     from app.src.config import Config
     from app.src.gen3plus.infos_g3p import InfosG3P
     from app.src.infos import Register
@@ -15,6 +16,7 @@ else:  # pragma: no cover
     from messages import hex_dump_memory, Message, State
     from config import Config
     from modbus import Modbus
+    from my_timer import Timer
     from gen3plus.infos_g3p import InfosG3P
     from infos import Register
 # import traceback
@@ -51,6 +53,8 @@ class Sequence():
 class SolarmanV5(Message):
     AT_CMD = 1
     MB_RTU_CMD = 2
+    MB_START_TIMEOUT = 40
+    MB_REGULAR_TIMEOUT = 60
 
     def __init__(self, server_side: bool):
         super().__init__(server_side, self.send_modbus_cb, mb_timeout=5)
@@ -123,7 +127,7 @@ class SolarmanV5(Message):
             self.at_acl = g3p_cnf['at_acl']
 
         self.node_id = 'G3P'  # will be overwritten in __set_serial_no
-        # self.forwarding = Config.get('solarman')['enabled']
+        self.mb_timer = Timer(self.mb_timout_cb, self.node_id)
 
     '''
     Our puplic methods
@@ -136,6 +140,7 @@ class SolarmanV5(Message):
         self.switch.clear()
         self.log_lvl.clear()
         self.state = State.closed
+        del self.mb_timer
         super().close()
 
     def __set_serial_no(self, snr: int):
@@ -362,12 +367,24 @@ class SolarmanV5(Message):
         self.writer.write(self._send_buffer)
         self._send_buffer = bytearray(0)  # self._send_buffer[sent:]
 
-    async def send_modbus_cmd(self, func, addr, val, log_lvl) -> None:
+    def _send_modbus_cmd(self, func, addr, val, log_lvl) -> None:
         if self.state != State.up:
             logger.log(log_lvl, f'[{self.node_id}] ignore MODBUS cmd,'
                        ' as the state is not UP')
             return
         self.mb.build_msg(Modbus.INV_ADDR, func, addr, val, log_lvl)
+
+    async def send_modbus_cmd(self, func, addr, val, log_lvl) -> None:
+        self._send_modbus_cmd(func, addr, val, log_lvl)
+
+    def mb_timout_cb(self, exp_cnt):
+        self.mb_timer.start(self.MB_REGULAR_TIMEOUT)
+
+        self._send_modbus_cmd(Modbus.READ_REGS, 0x3008, 21, logging.DEBUG)
+
+        if 0 == (exp_cnt % 30):
+            # logging.info("Regular Modbus Status request")
+            self._send_modbus_cmd(Modbus.READ_REGS, 0x2007, 2, logging.DEBUG)
 
     def at_cmd_forbidden(self, cmd: str, connection: str) -> bool:
         return not cmd.startswith(tuple(self.at_acl[connection]['allow'])) or \
@@ -474,7 +491,9 @@ class SolarmanV5(Message):
         self.__process_data(ftype)
         self.__forward_msg()
         self.__send_ack_rsp(0x1210, ftype)
-        self.state = State.up
+        if self.state is not State.up:
+            self.state = State.up
+            self.mb_timer.start(self.MB_START_TIMEOUT)
 
     def msg_sync_start(self):
         data = self._recv_buffer[self.header_len:]
@@ -571,7 +590,9 @@ class SolarmanV5(Message):
 
         self.__forward_msg()
         self.__send_ack_rsp(0x1710, ftype)
-        self.state = State.up
+        if self.state is not State.up:
+            self.state = State.up
+            self.mb_timer.start(self.MB_START_TIMEOUT)
 
     def msg_sync_end(self):
         data = self._recv_buffer[self.header_len:]
