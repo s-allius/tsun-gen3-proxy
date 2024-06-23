@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+- GEN3: determine the connection timeout based on the connection state
 - GEN3: support more data encodings for DSP version V5.0.17 [#108](https://github.com/s-allius/tsun-gen3-proxy/issues/108)
 - detect dead connections [#100](https://github.com/s-allius/tsun-gen3-proxy/issues/100)
 - improve connection logging wirt a unique connection id

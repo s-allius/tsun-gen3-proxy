@@ -15,7 +15,9 @@ class AsyncStream():
     _ids = count(0)
     MAX_PROC_TIME = 2
     '''maximum processing time for a received msg in sec'''
-    MAX_IDLE_TIME = 400
+    MAX_START_TIME = 400
+    '''maximum time without a received msg in sec'''
+    MAX_IDLE_TIME = 90
     '''maximum time without a received msg in sec'''
 
     def __init__(self, reader: StreamReader, writer: StreamWriter,
@@ -29,6 +31,12 @@ class AsyncStream():
         self.conn_no = next(self._ids)
         self.proc_start = None  # start processing start timestamp
         self.proc_max = 0
+
+    def __timeout(self):
+        if self.state == State.init:
+            self.MAX_START_TIME
+        else:
+            self.MAX_IDLE_TIME
 
     async def server_loop(self, addr: str) -> None:
         '''Loop for receiving messages from the inverter (server-side)'''
@@ -85,7 +93,8 @@ class AsyncStream():
                     self.proc_max = proc
                 self.proc_start = None
 
-                await asyncio.wait_for(self.__async_read(), self.MAX_IDLE_TIME)
+                await asyncio.wait_for(self.__async_read(),
+                                       self.__timeout())
 
                 if self.unique_id:
                     await self.async_write()
