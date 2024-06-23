@@ -852,8 +852,7 @@ def test_read_message_in_chunks2(ConfigTsunInv1, DeviceIndMsg):
     assert m.data_len == 0xd4
     assert m.msg_count == 1
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
-    while m.read(): # read rest of message
-        pass
+    m.read()        # read rest of message
     assert m.msg_count == 1
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0

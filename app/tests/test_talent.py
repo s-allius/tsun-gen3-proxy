@@ -435,8 +435,7 @@ def test_read_message_in_chunks2(MsgContactInfo):
     assert int(m.ctrl)==145
     assert m.msg_id==0 
     assert m.msg_count == 1
-    while m.read(): # read rest of message
-        pass
+    m.read()         # read rest of message
     assert m.msg_count == 1
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
     m.close()
@@ -782,6 +781,29 @@ def test_msg_inv_ind(ConfigTsunInv1, MsgInverterInd, MsgInverterIndTsOffs, MsgIn
     assert m._forward_buffer==MsgInverterIndTsOffs
     assert m._send_buffer==MsgInverterAck
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
+    m.close()
+
+def test_msg_inv_ind2(ConfigTsunInv1, MsgInverterIndNew, MsgInverterIndTsOffs, MsgInverterAck):
+    ConfigTsunInv1
+    tracer.setLevel(logging.DEBUG)
+    m = MemoryStream(MsgInverterIndNew, (0,))
+    m.db.stat['proxy']['Unknown_Ctrl'] = 0
+    m.db.stat['proxy']['Invalid_Data_Type'] = 0
+    m.read()         # read complete msg, and dispatch msg
+    assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
+    assert m.db.stat['proxy']['Invalid_Data_Type'] == 0
+    assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
+    assert m.msg_count == 1
+    assert m.id_str == b"R170000000000001" 
+    assert m.unique_id == 'R170000000000001'
+    assert int(m.ctrl)==145
+    assert m.msg_id==4
+    assert m.header_len==23
+    assert m.data_len==1165
+    m.ts_offset = 0
+    m._update_header(m._forward_buffer)
+    assert m._forward_buffer==MsgInverterIndNew
+    assert m._send_buffer==MsgInverterAck
     m.close()
 
 def test_msg_inv_ind2(ConfigTsunInv1, MsgInverterIndNew, MsgInverterIndTsOffs, MsgInverterAck):

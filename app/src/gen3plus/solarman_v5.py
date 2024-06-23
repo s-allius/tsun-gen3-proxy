@@ -169,7 +169,7 @@ class SolarmanV5(Message):
 
             self.unique_id = serial_no
 
-    def read(self) -> None:
+    def read(self) -> float:
         self._read()
 
         if not self.header_valid:
@@ -190,7 +190,7 @@ class SolarmanV5(Message):
                 self.__set_serial_no(self.snr)
                 self.__dispatch_msg()
             self.__flush_recv_msg()
-        return
+        return 0  # wait 0s before sending a response
 
     def forward(self, buffer, buflen) -> None:
         tsun = Config.get('solarman')
