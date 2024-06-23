@@ -15,7 +15,7 @@ RUN apk upgrade --no-cache && \
 
 #
 # second stage for building wheels packages
-FROM base as builder
+FROM base AS builder
 
 # copy the dependencies file to the root dir and install requirements
 COPY ./requirements.txt /root/
@@ -26,7 +26,7 @@ RUN apk add --no-cache build-base && \
 
 #
 # third stage for our runtime image
-FROM base as runtime
+FROM base AS runtime
 ARG SERVICE_NAME
 ARG VERSION
 ARG UID
@@ -73,7 +73,7 @@ CMD [ "python3", "./server.py" ]
 
 LABEL org.opencontainers.image.title="TSUN Gen3 Proxy"
 LABEL org.opencontainers.image.authors="Stefan Allius"
-LABEL org.opencontainers.image.source https://github.com/s-allius/tsun-gen3-proxy
-LABEL org.opencontainers.image.description 'This proxy enables a reliable connection between TSUN third generation inverters (eg. TSOL MS600, MS800, MS2000) and an MQTT broker to integrate the inverter into typical home automations.'
+LABEL org.opencontainers.image.source=https://github.com/s-allius/tsun-gen3-proxy
+LABEL org.opencontainers.image.description='This proxy enables a reliable connection between TSUN third generation inverters (eg. TSOL MS600, MS800, MS2000) and an MQTT broker to integrate the inverter into typical home automations.'
 LABEL org.opencontainers.image.licenses="BSD-3-Clause"
 LABEL org.opencontainers.image.vendor="Stefan Allius"
