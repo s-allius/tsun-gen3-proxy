@@ -23,6 +23,7 @@ class Timer:
         logging.debug(f'[{self.id_str}]Stop timer')
         if self.tim:
             self.tim.cancel()
+            self.tim = None
 
     def __timeout(self) -> None:
         '''timer expired handler'''
