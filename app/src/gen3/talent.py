@@ -115,7 +115,7 @@ class Talent(Message):
         if self.header_valid and len(self._recv_buffer) >= (self.header_len +
                                                             self.data_len):
             if self.state == State.init:
-                self.state = State.received
+                self.state = State.received     # received 1st package
 
             log_lvl = self.log_lvl.get(self.msg_id, logging.WARNING)
             if callable(log_lvl):
@@ -278,7 +278,8 @@ class Talent(Message):
         fnc = self.switch.get(self.msg_id, self.msg_unknown)
         if self.unique_id:
             logger.info(self.__flow_str(self.server_side, 'rx') +
-                        f' Ctl: {int(self.ctrl):#02x} Msg: {fnc.__name__!r}')
+                        f' Ctl: {int(self.ctrl):#02x} ({self.state}) '
+                        f'Msg: {fnc.__name__!r}')
             fnc()
         else:
             logger.info(self.__flow_str(self.server_side, 'drop') +
@@ -329,6 +330,7 @@ class Talent(Message):
     def msg_get_time(self):
         if self.ctrl.is_ind():
             if self.data_len == 0:
+                self.state = State.pend     # block MODBUS cmds
                 ts = self._timestamp()
                 logger.debug(f'time: {ts:08x}')
                 self.__build_header(0x91)
@@ -374,7 +376,6 @@ class Talent(Message):
             self._send_buffer += b'\x01'
             self.__finish_send_msg()
             self.__process_data()
-            self.state = State.up
 
         elif self.ctrl.is_resp():
             return  # ignore received response
@@ -390,7 +391,7 @@ class Talent(Message):
             self._send_buffer += b'\x01'
             self.__finish_send_msg()
             self.__process_data()
-            self.state = State.up
+            self.state = State.up  # allow MODBUS cmds
 
         elif self.ctrl.is_resp():
             return  # ignore received response
