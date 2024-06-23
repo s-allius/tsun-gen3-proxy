@@ -37,7 +37,7 @@ class Control:
 
 
 class Talent(Message):
-    MB_START_TIMEOUT = 90
+    MB_START_TIMEOUT = 40
     MB_REGULAR_TIMEOUT = 60
 
     def __init__(self, server_side: bool, id_str=b''):

@@ -53,7 +53,7 @@ class Sequence():
 class SolarmanV5(Message):
     AT_CMD = 1
     MB_RTU_CMD = 2
-    MB_START_TIMEOUT = 60
+    MB_START_TIMEOUT = 40
     MB_REGULAR_TIMEOUT = 60
 
     def __init__(self, server_side: bool):
