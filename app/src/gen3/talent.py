@@ -6,11 +6,13 @@ from datetime import datetime
 if __name__ == "app.src.gen3.talent":
     from app.src.messages import hex_dump_memory, Message, State
     from app.src.modbus import Modbus
+    from app.src.my_timer import Timer
     from app.src.config import Config
     from app.src.gen3.infos_g3 import InfosG3
 else:  # pragma: no cover
     from messages import hex_dump_memory, Message, State
     from modbus import Modbus
+    from my_timer import Timer
     from config import Config
     from gen3.infos_g3 import InfosG3
 
@@ -35,6 +37,9 @@ class Control:
 
 
 class Talent(Message):
+    MB_START_TIMEOUT = 90
+    MB_REGULAR_TIMEOUT = 60
+
     def __init__(self, server_side: bool, id_str=b''):
         super().__init__(server_side, self.send_modbus_cb, mb_timeout=11)
         self.await_conn_resp_cnt = 0
@@ -65,7 +70,7 @@ class Talent(Message):
         }
         self.modbus_elms = 0    # for unit tests
         self.node_id = 'G3'     # will be overwritten in __set_serial_no
-        # self.forwarding = Config.get('tsun')['enabled']
+        self.mb_timer = Timer(self.mb_timout_cb, self.node_id)
 
     '''
     Our puplic methods
@@ -78,6 +83,7 @@ class Talent(Message):
         self.switch.clear()
         self.log_lvl.clear()
         self.state = State.closed
+        del self.mb_timer
         super().close()
 
     def __set_serial_no(self, serial_no: str):
@@ -166,6 +172,21 @@ class Talent(Message):
                        ' as the state is not UP')
             return
         self.mb.build_msg(Modbus.INV_ADDR, func, addr, val, log_lvl)
+
+    def mb_timout_cb(self, exp_cnt):
+        self.mb_timer.start(self.MB_REGULAR_TIMEOUT)
+        # self.send_modbus_cmd(Modbus.READ_REGS, 0x3008, 21, logging.DEBUG)
+        if self.state != State.up:
+            logger.log(logging.DEBUG, f'[{self.node_id}] ignore MODBUS cmd,'
+                       ' as the state is not UP')
+            return
+        if 0 == (exp_cnt % 30):
+            # logging.info("Regular Modbus Status request")
+            self.mb.build_msg(Modbus.INV_ADDR, Modbus.READ_REGS, 0x2007,
+                              2, logging.DEBUG)
+        else:
+            self.mb.build_msg(Modbus.INV_ADDR, Modbus.READ_REGS, 0x3008,
+                              21, logging.DEBUG)
 
     def _init_new_client_conn(self) -> bool:
         contact_name = self.contact_name
@@ -331,6 +352,7 @@ class Talent(Message):
         if self.ctrl.is_ind():
             if self.data_len == 0:
                 self.state = State.pend     # block MODBUS cmds
+                self.mb_timer.start(self.MB_START_TIMEOUT)
                 ts = self._timestamp()
                 logger.debug(f'time: {ts:08x}')
                 self.__build_header(0x91)
