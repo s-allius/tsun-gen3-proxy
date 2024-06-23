@@ -367,29 +367,24 @@ class SolarmanV5(Message):
         self.writer.write(self._send_buffer)
         self._send_buffer = bytearray(0)  # self._send_buffer[sent:]
 
-    async def send_modbus_cmd(self, func, addr, val, log_lvl) -> None:
+    def _send_modbus_cmd(self, func, addr, val, log_lvl) -> None:
         if self.state != State.up:
             logger.log(log_lvl, f'[{self.node_id}] ignore MODBUS cmd,'
                        ' as the state is not UP')
             return
         self.mb.build_msg(Modbus.INV_ADDR, func, addr, val, log_lvl)
 
+    async def send_modbus_cmd(self, func, addr, val, log_lvl) -> None:
+        self._send_modbus_cmd(func, addr, val, log_lvl)
+
     def mb_timout_cb(self, exp_cnt):
         self.mb_timer.start(self.MB_REGULAR_TIMEOUT)
 
-        # self.send_modbus_cmd(Modbus.READ_REGS, 0x3008, 21, logging.DEBUG)
-        if self.state != State.up:
-            logger.log(logging.DEBUG, f'[{self.node_id}] ignore MODBUS cmd,'
-                       ' as the state is not UP')
-            return
-
-        self.mb.build_msg(Modbus.INV_ADDR, Modbus.READ_REGS, 0x3008,
-                          21, logging.DEBUG)
+        self._send_modbus_cmd(Modbus.READ_REGS, 0x3008, 21, logging.DEBUG)
 
         if 0 == (exp_cnt % 30):
             # logging.info("Regular Modbus Status request")
-            self.mb.build_msg(Modbus.INV_ADDR, Modbus.READ_REGS, 0x2007,
-                              2, logging.DEBUG)
+            self._send_modbus_cmd(Modbus.READ_REGS, 0x2007, 2, logging.DEBUG)
 
     def at_cmd_forbidden(self, cmd: str, connection: str) -> bool:
         return not cmd.startswith(tuple(self.at_acl[connection]['allow'])) or \
