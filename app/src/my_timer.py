@@ -30,6 +30,6 @@ class Timer:
         logging.debug(f'[{self.id_str}]Timer expired')
         self.__timeout_cb(next(self.exp_count))
 
-    def __del__(self) -> None:
+    def close(self) -> None:
         self.stop()
         self.__timeout_cb = None

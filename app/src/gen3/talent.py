@@ -77,13 +77,13 @@ class Talent(Message):
     '''
     def close(self) -> None:
         logging.debug('Talent.close()')
-        # we have refernces to methods of this class in self.switch
+        # we have references to methods of this class in self.switch
         # so we have to erase self.switch, otherwise this instance can't be
         # deallocated by the garbage collector ==> we get a memory leak
         self.switch.clear()
         self.log_lvl.clear()
         self.state = State.closed
-        del self.mb_timer
+        self.mb_timer.close()
         super().close()
 
     def __set_serial_no(self, serial_no: str):
