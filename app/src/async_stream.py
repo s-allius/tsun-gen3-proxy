@@ -17,8 +17,10 @@ class AsyncStream():
     '''maximum processing time for a received msg in sec'''
     MAX_START_TIME = 400
     '''maximum time without a received msg in sec'''
-    MAX_IDLE_TIME = 90
-    '''maximum time without a received msg in sec'''
+    MAX_INV_IDLE_TIME = 90
+    '''maximum time without a received msg from the inverter in sec'''
+    MAX_CLOUD_IDLE_TIME = 360
+    '''maximum time without a received msg from cloud side in sec'''
 
     def __init__(self, reader: StreamReader, writer: StreamWriter,
                  addr) -> None:
@@ -32,11 +34,15 @@ class AsyncStream():
         self.proc_start = None  # start processing start timestamp
         self.proc_max = 0
 
-    def __timeout(self):
+    def __timeout(self) -> int:
         if self.state == State.init:
-            self.MAX_START_TIME
+            to = self.MAX_START_TIME
         else:
-            self.MAX_IDLE_TIME
+            if self.server_side:
+                to = self.MAX_INV_IDLE_TIME
+            else:
+                to = self.MAX_CLOUD_IDLE_TIME
+        return to
 
     async def server_loop(self, addr: str) -> None:
         '''Loop for receiving messages from the inverter (server-side)'''
@@ -92,9 +98,9 @@ class AsyncStream():
                 if proc > self.proc_max:
                     self.proc_max = proc
                 self.proc_start = None
-
+                dead_conn_to = self.__timeout()
                 await asyncio.wait_for(self.__async_read(),
-                                       self.__timeout())
+                                       dead_conn_to)
 
                 if self.unique_id:
                     await self.async_write()
@@ -103,7 +109,8 @@ class AsyncStream():
 
             except asyncio.TimeoutError:
                 logger.warning(f'[{self.node_id}:{self.conn_no}] Dead '
-                               f'connection timeout for {self.l_addr}')
+                               f'connection timeout ({dead_conn_to}s) '
+                               f'for {self.l_addr}')
                 await self.disc()
                 self.close()
                 return self
