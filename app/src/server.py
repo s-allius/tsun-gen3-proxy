@@ -1,5 +1,6 @@
 import logging
 import asyncio
+import ssl
 import signal
 import os
 from asyncio import StreamReader, StreamWriter
@@ -72,6 +73,13 @@ async def handle_client_v2(reader: StreamReader, writer: StreamWriter):
     await InverterG3P(reader, writer, addr).server_loop(addr)
 
 
+async def handle_client_v3(reader: StreamReader, writer: StreamWriter):
+    '''Handles a new incoming connection and starts an async loop'''
+    logging.info('Accept on port 10443')
+    addr = writer.get_extra_info('peername')
+    await InverterG3P(reader, writer, addr).server_loop(addr)
+
+
 async def handle_shutdown(loop, runner):
     '''Close all TCP connections and stop the event loop'''
 
@@ -133,6 +141,7 @@ if __name__ == "__main__":
     logging.getLogger('conn').setLevel(log_level)
     logging.getLogger('data').setLevel(log_level)
     logging.getLogger('tracer').setLevel(log_level)
+    logging.getLogger('asyncio').setLevel(log_level)
     # logging.getLogger('mqtt').setLevel(log_level)
 
     loop = asyncio.new_event_loop()
@@ -168,8 +177,38 @@ if __name__ == "__main__":
     #
     loop.create_task(asyncio.start_server(handle_client, '0.0.0.0', 5005))
     loop.create_task(asyncio.start_server(handle_client_v2, '0.0.0.0', 10000))
+
+    # https://crypto.stackexchange.com/questions/26591/tls-encryption-with-a-self-signed-pki-and-python-s-asyncio-module
+    '''
+    openssl genrsa -out -des3 ca.key.pem 2048
+    openssl genrsa -out server.key.pem 2048
+    openssl genrsa -out client.key.pem 2048
+
+    openssl req -x509 -new -nodes -key ca.key.pem -sha256 -days 365 -out ca.cert.pem -subj /C=US/ST=CA/L=Somewhere/O=Someone/CN=FoobarCA
+
+    openssl req -new -sha256 -key server.key.pem -subj /C=US/ST=CA/L=Somewhere/O=Someone/CN=Foobar -out server.csr
+    openssl x509 -req -in server.csr -CA ca.cert.pem -CAkey ca.key.pem -CAcreateserial -out server.cert.pem -days 365 -sha256
+
+    openssl req -new -sha256 -key client.key.pem -subj /C=US/ST=CA/L=Somewhere/O=Someone/CN=Foobar -out client.csr
+    openssl x509 -req -in client.csr -CA ca.cert.pem -CAkey ca.key.pem -CAcreateserial -out client.cert.pem -days 365 -sha256
+    '''
+
+    server_ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+    server_ctx.minimum_version = ssl.TLSVersion.TLSv1_2
+    server_ctx.maximum_version = ssl.TLSVersion.TLSv1_3
+    server_ctx.verify_mode = ssl.CERT_REQUIRED
+    server_ctx.options |= ssl.OP_SINGLE_ECDH_USE
+    server_ctx.options |= ssl.OP_NO_COMPRESSION
+    server_ctx.load_cert_chain(certfile='cert/server.pem',
+                               keyfile='cert/server.key')
+    server_ctx.load_verify_locations(cafile='cert/ca.pem')
+    server_ctx.set_ciphers('ECDH+AESGCM')
+
+    loop.create_task(asyncio.start_server(handle_client_v3, '0.0.0.0', 10443,
+                                          ssl=server_ctx))
     loop.create_task(webserver(runner, '0.0.0.0', 8127))
 
+    loop.set_debug(True)
     try:
         if ConfigErr is None:
             proxy_is_up = True
