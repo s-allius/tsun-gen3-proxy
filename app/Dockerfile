@@ -45,7 +45,7 @@ ENV HOME=/home/$SERVICE_NAME
 # set the working directory in the container
 WORKDIR /home/$SERVICE_NAME
 
-VOLUME ["/home/$SERVICE_NAME/log", "/home/$SERVICE_NAME/config"]
+VOLUME ["/home/$SERVICE_NAME/log", "/home/$SERVICE_NAME/config", "/home/$SERVICE_NAME/cert"]
 
 # install the requirements from the wheels packages from the builder stage 
 # and unistall python packages and alpine package manger to reduce attack surface
@@ -64,7 +64,7 @@ COPY --chmod=0700 entrypoint.sh /root/entrypoint.sh
 COPY config .
 COPY src .
 RUN date > /build-date.txt
-EXPOSE 5005 8127 10000
+EXPOSE 5005 8127 10000 10443
 
 # command to run on container start
 ENTRYPOINT ["/root/entrypoint.sh"]
