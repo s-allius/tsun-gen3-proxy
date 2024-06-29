@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+## [0.9.0-RC1] - 2024-06-29
+
 - add asyncio log and debug mode
 - stop the HTTP server on shutdown gracefully
 - Synchronize regular MODBUS commands with the status of the inverter to prevent the inverter from crashing due to
