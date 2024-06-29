@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+- add asyncio log and debug mode
+- stop the HTTP server on shutdown gracefully
 - Synchronize regular MODBUS commands with the status of the inverter to prevent the inverter from crashing due to
   unexpected packets. [#111](https://github.com/s-allius/tsun-gen3-proxy/issues/111)
 - GEN3: avoid sending MODBUS commands to the inverter during the inverter's reporting phase
