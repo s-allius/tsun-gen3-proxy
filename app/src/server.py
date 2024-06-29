@@ -48,14 +48,25 @@ async def healthy(request):
     return web.Response(status=200, text="I'm fine")
 
 
-async def webserver(runner, addr, port):
+async def webserver(addr, port):
+    '''coro running our webserver'''
+    app = web.Application()
+    app.add_routes(routes)
+    runner = web.AppRunner(app)
+
     await runner.setup()
     site = web.TCPSite(runner, addr, port)
     await site.start()
     logging.info(f'HTTP server listen on port: {port}')
 
-    while True:
-        await asyncio.sleep(3600)  # sleep forever
+    try:
+        # Normal interaction with aiohttp
+        while True:
+            await asyncio.sleep(3600)  # sleep forever
+    except asyncio.CancelledError:
+        logging.info('HTTP server cancelled')
+        await runner.cleanup()
+        logging.debug('HTTP cleanup done')
 
 
 async def handle_client(reader: StreamReader, writer: StreamWriter):
@@ -72,12 +83,12 @@ async def handle_client_v2(reader: StreamReader, writer: StreamWriter):
     await InverterG3P(reader, writer, addr).server_loop(addr)
 
 
-async def handle_shutdown(loop, runner):
+async def handle_shutdown(web_task):
     '''Close all TCP connections and stop the event loop'''
 
     logging.info('Shutdown due to SIGTERM')
-    await runner.cleanup()
-    logging.info('HTTP server stopped')
+    global proxy_is_up
+    proxy_is_up = False
 
     #
     # first, disc all open TCP connections gracefully
@@ -87,7 +98,7 @@ async def handle_shutdown(loop, runner):
             await asyncio.wait_for(stream.disc(), 2)
         except Exception:
             pass
-    logging.info('Disconnecting done')
+    logging.info('Proxy disconnecting done')
 
     #
     # second, close all open TCP connections
@@ -95,12 +106,20 @@ async def handle_shutdown(loop, runner):
     for stream in Message:
         stream.close()
 
-    #
-    # at last, we stop the loop
-    #
-    loop.stop()
+    await asyncio.sleep(0.1)  # give time for closing
+    logging.info('Proxy closing done')
 
-    logging.info('Shutdown complete')
+    #
+    # third, cancel the web server
+    #
+    web_task.cancel()
+    await web_task
+
+    #
+    # at last, start a coro for stopping the loop
+    #
+    logging.debug("Stop event loop")
+    loop.stop()
 
 
 def get_log_level() -> int:
@@ -133,6 +152,7 @@ if __name__ == "__main__":
     logging.getLogger('conn').setLevel(log_level)
     logging.getLogger('data').setLevel(log_level)
     logging.getLogger('tracer').setLevel(log_level)
+    logging.getLogger('asyncio').setLevel(log_level)
     # logging.getLogger('mqtt').setLevel(log_level)
 
     loop = asyncio.new_event_loop()
@@ -146,11 +166,13 @@ if __name__ == "__main__":
     Schedule.start()
 
     #
-    # Setup webserver application and runner
+    # Create tasks for our listening servers. These must be tasks! If we call
+    # start_server directly out of our main task, the eventloop will be blocked
+    # and we can't receive and handle the UNIX signals!
     #
-    app = web.Application()
-    app.add_routes(routes)
-    runner = web.AppRunner(app)
+    loop.create_task(asyncio.start_server(handle_client, '0.0.0.0', 5005))
+    loop.create_task(asyncio.start_server(handle_client_v2, '0.0.0.0', 10000))
+    web_task = loop.create_task(webserver('0.0.0.0', 8127))
 
     #
     # Register some UNIX Signal handler for a gracefully server shutdown
@@ -159,17 +181,9 @@ if __name__ == "__main__":
     for signame in ('SIGINT', 'SIGTERM'):
         loop.add_signal_handler(getattr(signal, signame),
                                 lambda loop=loop: asyncio.create_task(
-                                    handle_shutdown(loop, runner)))
+                                    handle_shutdown(web_task)))
 
-    #
-    # Create tasks for our listening servers. These must be tasks! If we call
-    # start_server directly out of our main task, the eventloop will be blocked
-    # and we can't receive and handle the UNIX signals!
-    #
-    loop.create_task(asyncio.start_server(handle_client, '0.0.0.0', 5005))
-    loop.create_task(asyncio.start_server(handle_client_v2, '0.0.0.0', 10000))
-    loop.create_task(webserver(runner, '0.0.0.0', 8127))
-
+    loop.set_debug(log_level == logging.DEBUG)
     try:
         if ConfigErr is None:
             proxy_is_up = True
@@ -177,8 +191,8 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         pass
     finally:
-        proxy_is_up = False
+        logging.info("Event loop is stopped")
         Inverter.class_close(loop)
-        logging.info('Close event loop')
+        logging.debug('Close event loop')
         loop.close()
         logging.info(f'Finally, exit Server "{serv_name}"')
