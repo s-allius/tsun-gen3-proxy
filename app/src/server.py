@@ -49,14 +49,25 @@ async def healthy(request):
     return web.Response(status=200, text="I'm fine")
 
 
-async def webserver(runner, addr, port):
+async def webserver(addr, port):
+    '''coro running our webserver'''
+    app = web.Application()
+    app.add_routes(routes)
+    runner = web.AppRunner(app)
+
     await runner.setup()
     site = web.TCPSite(runner, addr, port)
     await site.start()
     logging.info(f'HTTP server listen on port: {port}')
 
-    while True:
-        await asyncio.sleep(3600)  # sleep forever
+    try:
+        # Normal interaction with aiohttp
+        while True:
+            await asyncio.sleep(3600)  # sleep forever
+    except asyncio.CancelledError:
+        logging.info('HTTP server cancelled')
+        await runner.cleanup()
+        logging.debug('HTTP cleanup done')
 
 
 async def handle_client(reader: StreamReader, writer: StreamWriter):
@@ -84,8 +95,6 @@ async def handle_shutdown(loop, runner):
     '''Close all TCP connections and stop the event loop'''
 
     logging.info('Shutdown due to SIGTERM')
-    await runner.cleanup()
-    logging.info('HTTP server stopped')
 
     #
     # first, disc all open TCP connections gracefully
@@ -95,7 +104,7 @@ async def handle_shutdown(loop, runner):
             await asyncio.wait_for(stream.disc(), 2)
         except Exception:
             pass
-    logging.info('Disconnecting done')
+    logging.info('Proxy disconnecting done')
 
     #
     # second, close all open TCP connections
@@ -103,12 +112,20 @@ async def handle_shutdown(loop, runner):
     for stream in Message:
         stream.close()
 
+    await asyncio.sleep(0.1)  # give time for closing
+    logging.info('Proxy closing done')
+
+    #
+    # third, cancel the web server
+    #
+    web_task.cancel()
+    await web_task
+
     #
     # at last, we stop the loop
     #
+    logging.debug("Stop event loop")
     loop.stop()
-
-    logging.info('Shutdown complete')
 
 
 def get_log_level() -> int:
@@ -155,22 +172,6 @@ if __name__ == "__main__":
     Schedule.start()
 
     #
-    # Setup webserver application and runner
-    #
-    app = web.Application()
-    app.add_routes(routes)
-    runner = web.AppRunner(app)
-
-    #
-    # Register some UNIX Signal handler for a gracefully server shutdown
-    # on Docker restart and stop
-    #
-    for signame in ('SIGINT', 'SIGTERM'):
-        loop.add_signal_handler(getattr(signal, signame),
-                                lambda loop=loop: asyncio.create_task(
-                                    handle_shutdown(loop, runner)))
-
-    #
     # Create tasks for our listening servers. These must be tasks! If we call
     # start_server directly out of our main task, the eventloop will be blocked
     # and we can't receive and handle the UNIX signals!
@@ -184,13 +185,18 @@ if __name__ == "__main__":
     openssl genrsa -out server.key.pem 2048
     openssl genrsa -out client.key.pem 2048
 
-    openssl req -x509 -new -nodes -key ca.key.pem -sha256 -days 365 -out ca.cert.pem -subj /C=US/ST=CA/L=Somewhere/O=Someone/CN=FoobarCA
+    openssl req -x509 -new -nodes -key ca.key.pem -sha256 -days 365
+      -out ca.cert.pem -subj /C=US/ST=CA/L=Somewhere/O=Someone/CN=FoobarCA
 
-    openssl req -new -sha256 -key server.key.pem -subj /C=US/ST=CA/L=Somewhere/O=Someone/CN=Foobar -out server.csr
-    openssl x509 -req -in server.csr -CA ca.cert.pem -CAkey ca.key.pem -CAcreateserial -out server.cert.pem -days 365 -sha256
+    openssl req -new -sha256 -key server.key.pem
+     -subj /C=US/ST=CA/L=Somewhere/O=Someone/CN=Foobar -out server.csr
+    openssl x509 -req -in server.csr -CA ca.cert.pem -CAkey ca.key.pem
+      -CAcreateserial -out server.cert.pem -days 365 -sha256
 
-    openssl req -new -sha256 -key client.key.pem -subj /C=US/ST=CA/L=Somewhere/O=Someone/CN=Foobar -out client.csr
-    openssl x509 -req -in client.csr -CA ca.cert.pem -CAkey ca.key.pem -CAcreateserial -out client.cert.pem -days 365 -sha256
+    openssl req -new -sha256 -key client.key.pem
+      -subj /C=US/ST=CA/L=Somewhere/O=Someone/CN=Foobar -out client.csr
+    openssl x509 -req -in client.csr -CA ca.cert.pem -CAkey ca.key.pem
+      -CAcreateserial -out client.cert.pem -days 365 -sha256
     '''
 
     server_ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
@@ -206,7 +212,16 @@ if __name__ == "__main__":
 
     loop.create_task(asyncio.start_server(handle_client_v3, '0.0.0.0', 10443,
                                           ssl=server_ctx))
-    loop.create_task(webserver(runner, '0.0.0.0', 8127))
+    web_task = loop.create_task(webserver('0.0.0.0', 8127))
+
+    #
+    # Register some UNIX Signal handler for a gracefully server shutdown
+    # on Docker restart and stop
+    #
+    for signame in ('SIGINT', 'SIGTERM'):
+        loop.add_signal_handler(getattr(signal, signame),
+                                lambda loop=loop: asyncio.create_task(
+                                    handle_shutdown(web_task)))
 
     loop.set_debug(True)
     try:
@@ -216,8 +231,8 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         pass
     finally:
-        proxy_is_up = False
+        logging.info("Event loop is stopped")
         Inverter.class_close(loop)
-        logging.info('Close event loop')
+        logging.debug('Close event loop')
         loop.close()
         logging.info(f'Finally, exit Server "{serv_name}"')
