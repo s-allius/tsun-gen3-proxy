@@ -1,6 +1,7 @@
 import logging
 import weakref
-from typing import Callable
+from typing import Callable, Generator
+from enum import Enum
 
 
 if __name__ == "app.src.messages":
@@ -45,21 +46,32 @@ def hex_dump_memory(level, info, data, num):
 
 
 class IterRegistry(type):
-    def __iter__(cls):
+    def __iter__(cls) -> Generator['Message', None, None]:
         for ref in cls._registry:
             obj = ref()
             if obj is not None:
                 yield obj
 
 
+class State(Enum):
+    '''state of the logical connection'''
+    init = 0
+    '''just created'''
+    received = 1
+    '''at least one packet received'''
+    up = 2
+    '''at least one cmd-rsp transaction'''
+    pend = 3
+    '''inverter transaction pending, don't send MODBUS cmds'''
+    closed = 4
+    '''connection closed'''
+
+
 class Message(metaclass=IterRegistry):
     _registry = []
-    STATE_INIT = 0
-    STATE_UP = 2
-    STATE_CLOSED = 3
 
     def __init__(self, server_side: bool, send_modbus_cb:
-                 Callable[[bytes, int, str], None], mb_timeout):
+                 Callable[[bytes, int, str], None], mb_timeout: int):
         self._registry.append(weakref.ref(self))
 
         self.server_side = server_side
@@ -78,7 +90,7 @@ class Message(metaclass=IterRegistry):
         self._send_buffer = bytearray(0)
         self._forward_buffer = bytearray(0)
         self.new_data = {}
-        self.state = self.STATE_INIT
+        self.state = State.init
 
     '''
     Empty methods, that have to be implemented in any child class which
@@ -97,7 +109,7 @@ class Message(metaclass=IterRegistry):
     '''
     def close(self) -> None:
         if self.mb:
-            del self.mb
+            self.mb.close()
             self.mb = None
         pass  # pragma: no cover
 

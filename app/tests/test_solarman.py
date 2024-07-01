@@ -7,6 +7,7 @@ from app.src.gen3plus.solarman_v5 import SolarmanV5
 from app.src.config import Config
 from app.src.infos import Infos, Register
 from app.src.modbus import Modbus
+from app.src.messages import State
 
 
 pytest_plugins = ('pytest_asyncio',)
@@ -24,12 +25,24 @@ class Writer():
     def write(self, pdu: bytearray):
         self.sent_pdu = pdu
 
+
+class Mqtt():
+    def __init__(self):
+        self.key = ''
+        self.data = ''
+
+    async def publish(self, key, data):
+        self.key = key
+        self.data = data
+
+
 class MemoryStream(SolarmanV5):
     def __init__(self, msg, chunks = (0,), server_side: bool = True):
         super().__init__(server_side)
         if server_side:
             self.mb.timeout = 1   # overwrite for faster testing
         self.writer = Writer()
+        self.mqtt = Mqtt()
         self.__msg = msg
         self.__msg_len = len(msg)
         self.__chunks = chunks
@@ -43,6 +56,8 @@ class MemoryStream(SolarmanV5):
         self.test_exception_async_write = False
         self.entity_prfx = ''
         self.at_acl = {'mqtt': {'allow': ['AT+'], 'block': ['AT+WEBU']}, 'tsun': {'allow': ['AT+Z', 'AT+UPURL', 'AT+SUPDATE', 'AT+TIME'], 'block': ['AT+WEBU']}}
+        self.key = ''
+        self.data = ''
 
     def _timestamp(self):
         return timestamp
@@ -53,6 +68,10 @@ class MemoryStream(SolarmanV5):
     def append_msg(self, msg):
         self.__msg += msg
         self.__msg_len += len(msg)    
+
+    def publish_mqtt(self, key, data):
+        self.key = key
+        self.data = data
 
     def _read(self) -> int:
         copied_bytes = 0
@@ -481,9 +500,10 @@ def AtCommandIndMsgBlock():  # 0x4510
 
 @pytest.fixture
 def AtCommandRspMsg():  # 0x1510
-    msg  = b'\xa5\x0a\x00\x10\x15\x03\x03' +get_sn()  +b'\x01\x01'
+    msg  = b'\xa5\x11\x00\x10\x15\x03\x03' +get_sn()  +b'\x01\x01'
     msg += total()  
     msg += hb()
+    msg += b'\x00\x00\x00\x00+ok'
     msg += correct_checksum(msg)
     msg += b'\x15'
     return msg
@@ -832,8 +852,7 @@ def test_read_message_in_chunks2(ConfigTsunInv1, DeviceIndMsg):
     assert m.data_len == 0xd4
     assert m.msg_count == 1
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
-    while m.read(): # read rest of message
-        pass
+    m.read()        # read rest of message
     assert m.msg_count == 1
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
@@ -1255,48 +1274,64 @@ async def test_msg_build_modbus_req(ConfigTsunInv1, DeviceIndMsg, DeviceRspMsg, 
     m.close()
 
 @pytest.mark.asyncio
-async def test_AT_cmd(ConfigTsunAllowAll, DeviceIndMsg, DeviceRspMsg, InverterIndMsg, InverterRspMsg, AtCommandIndMsg):
+async def test_AT_cmd(ConfigTsunAllowAll, DeviceIndMsg, DeviceRspMsg, InverterIndMsg, InverterRspMsg, AtCommandIndMsg, AtCommandRspMsg):
     ConfigTsunAllowAll
     m = MemoryStream(DeviceIndMsg, (0,), True)
     m.append_msg(InverterIndMsg)
-    m.read()
+    m.append_msg(AtCommandRspMsg)
+    m.read()   # read device ind
     assert m.control == 0x4110
     assert str(m.seq) == '01:01'
-    assert m._recv_buffer==InverterIndMsg   # unhandled next message
+    assert m._recv_buffer==InverterIndMsg + AtCommandRspMsg  # unhandled next message
     assert m._send_buffer==DeviceRspMsg
     assert m._forward_buffer==DeviceIndMsg
 
     m._send_buffer = bytearray(0) # clear send buffer for next test    
     m._forward_buffer = bytearray(0) # clear send buffer for next test    
     await m.send_at_cmd('AT+TIME=214028,1,60,120')
-    assert m._recv_buffer==InverterIndMsg   # unhandled next message
+    assert m._recv_buffer==InverterIndMsg + AtCommandRspMsg     # unhandled next message
     assert m._send_buffer==b''
     assert m._forward_buffer==b''
     assert str(m.seq) == '01:01'
+    assert m.mqtt.key == ''
+    assert m.mqtt.data == ""
 
-    m.read()
+    m.read() # read inverter ind
     assert m.control == 0x4210
     assert str(m.seq) == '02:02'
-    assert m._recv_buffer==b''
+    assert m._recv_buffer==AtCommandRspMsg   # unhandled next message
     assert m._send_buffer==InverterRspMsg
     assert m._forward_buffer==InverterIndMsg
     
     m._send_buffer = bytearray(0) # clear send buffer for next test    
     m._forward_buffer = bytearray(0) # clear send buffer for next test    
     await m.send_at_cmd('AT+TIME=214028,1,60,120')
-    assert m._recv_buffer==b''
+    assert m._recv_buffer==AtCommandRspMsg   # unhandled next message
     assert m._send_buffer==AtCommandIndMsg
     assert m._forward_buffer==b''
     assert str(m.seq) == '02:03'
+    assert m.mqtt.key == ''
+    assert m.mqtt.data == ""
 
     m._send_buffer = bytearray(0) # clear send buffer for next test    
+    m.read() # read at resp
+    assert m.control == 0x1510
+    assert str(m.seq) == '03:03'
+    assert m._recv_buffer==b''
+    assert m._send_buffer==b''
+    assert m._forward_buffer==b''
+    assert m.key == 'at_resp'
+    assert m.data == "+ok"
+
     m.test_exception_async_write = True
     await m.send_at_cmd('AT+TIME=214028,1,60,120')
     assert m._recv_buffer==b''
     assert m._send_buffer==b''
     assert m._forward_buffer==b''
-    assert str(m.seq) == '02:04'
+    assert str(m.seq) == '03:04'
     assert m.forward_at_cmd_resp == False
+    assert m.mqtt.key == ''
+    assert m.mqtt.data == ""
     m.close()
 
 @pytest.mark.asyncio
@@ -1318,6 +1353,8 @@ async def test_AT_cmd_blocked(ConfigTsunAllowAll, DeviceIndMsg, DeviceRspMsg, In
     assert m._send_buffer==b''
     assert m._forward_buffer==b''
     assert str(m.seq) == '01:01'
+    assert m.mqtt.key == ''
+    assert m.mqtt.data == ""
 
     m.read()
     assert m.control == 0x4210
@@ -1334,6 +1371,8 @@ async def test_AT_cmd_blocked(ConfigTsunAllowAll, DeviceIndMsg, DeviceRspMsg, In
     assert m._forward_buffer==b''
     assert str(m.seq) == '02:02'
     assert m.forward_at_cmd_resp == False
+    assert m.mqtt.key == 'at_resp'
+    assert m.mqtt.data == "'AT+WEBU' is forbidden"
     m.close()
 
 def test_AT_cmd_ind(ConfigTsunInv1, AtCommandIndMsg):
@@ -1398,7 +1437,7 @@ def test_msg_at_command_rsp1(ConfigTsunInv1, AtCommandRspMsg):
     assert m.control == 0x1510
     assert str(m.seq) == '03:03'
     assert m.header_len==11
-    assert m.data_len==10
+    assert m.data_len==17
     assert m._forward_buffer==AtCommandRspMsg
     assert m._send_buffer==b''
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
@@ -1417,7 +1456,7 @@ def test_msg_at_command_rsp2(ConfigTsunInv1, AtCommandRspMsg):
     assert m.control == 0x1510
     assert str(m.seq) == '03:03'
     assert m.header_len==11
-    assert m.data_len==10
+    assert m.data_len==17
     assert m._forward_buffer==b''
     assert m._send_buffer==b''
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
@@ -1428,7 +1467,7 @@ def test_msg_modbus_req(ConfigTsunInv1, MsgModbusCmd, MsgModbusCmdFwd):
     ConfigTsunInv1
     m = MemoryStream(b'')
     m.snr = get_sn_int()
-    m.state = m.STATE_UP
+    m.state = State.up
     c = m.createClientStream(MsgModbusCmd)
 
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
@@ -1455,7 +1494,7 @@ def test_msg_modbus_req2(ConfigTsunInv1, MsgModbusCmdCrcErr):
     ConfigTsunInv1
     m = MemoryStream(b'')
     m.snr = get_sn_int()
-    m.state = m.STATE_UP
+    m.state = State.up
     c = m.createClientStream(MsgModbusCmdCrcErr)
 
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
@@ -1661,21 +1700,21 @@ def test_zombie_conn(ConfigTsunInv1, MsgInverterInd):
     m1 = MemoryStream(MsgInverterInd, (0,))
     m2 = MemoryStream(MsgInverterInd, (0,))
     m3 = MemoryStream(MsgInverterInd, (0,))
-    assert m1.state == m1.STATE_INIT
-    assert m2.state == m2.STATE_INIT
-    assert m3.state == m3.STATE_INIT
+    assert m1.state == m1.State.init
+    assert m2.state == m2.State.init
+    assert m3.state == m3.State.init
     m1.read()         # read complete msg, and set unique_id
-    assert m1.state == m1.STATE_INIT
-    assert m2.state == m2.STATE_INIT
-    assert m3.state == m3.STATE_INIT
+    assert m1.state == m1.State.init
+    assert m2.state == m2.State.init
+    assert m3.state == m3.State.init
     m2.read()         # read complete msg, and set unique_id
-    assert m1.state == m1.STATE_CLOSED
-    assert m2.state == m2.STATE_INIT
-    assert m3.state == m3.STATE_INIT
+    assert m1.state == m1.State.closed
+    assert m2.state == m2.State.init
+    assert m3.state == m3.State.init
     m3.read()         # read complete msg, and set unique_id
-    assert m1.state == m1.STATE_CLOSED
-    assert m2.state == m2.STATE_CLOSED
-    assert m3.state == m3.STATE_INIT
+    assert m1.state == m1.State.closed
+    assert m2.state == m2.State.closed
+    assert m3.state == m3.State.init
     m1.close()
     m2.close()
     m3.close()

@@ -4,7 +4,7 @@
 # rc: release candidate build
 # rel: release build and push to ghcr.io
 # Note: for release build, you need to set GHCR_TOKEN
-# export GHCR_TOKEN=<YOUR_GITHUB_TOKEN> in your .profile
+# export GHCR_TOKEN=<YOUR_GITHUB_TOKEN> in your .zprofile
 # see also: https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry
 
 
@@ -31,7 +31,7 @@ fi
 
 echo version: $VERSION  build-date: $BUILD_DATE   image: $IMAGE
 if [[ $1 == debug ]];then
-docker build --build-arg "VERSION=${VERSION}" --build-arg environment=dev --build-arg "LOG_LVL=DEBUG" --label "org.opencontainers.image.created=${BUILD_DATE}" --label "org.opencontainers.image.version=${VERSION}" --label "org.opencontainers.image.revision=${BRANCH}" -t ${IMAGE}:dev app
+docker build --build-arg "VERSION=${VERSION}" --build-arg environment=dev --build-arg "LOG_LVL=DEBUG" --label "org.opencontainers.image.created=${BUILD_DATE}" --label "org.opencontainers.image.version=${VERSION}" --label "org.opencontainers.image.revision=${BRANCH}" -t ${IMAGE}:debug app
 elif [[ $1 == dev ]];then
 docker build --build-arg "VERSION=${VERSION}" --build-arg environment=production --label "org.opencontainers.image.created=${BUILD_DATE}" --label "org.opencontainers.image.version=${VERSION}" --label "org.opencontainers.image.revision=${BRANCH}" -t ${IMAGE}:dev app
 
@@ -39,16 +39,16 @@ elif [[ $1 == rc ]];then
 docker build --build-arg "VERSION=${VERSION}" --build-arg environment=production --label "org.opencontainers.image.created=${BUILD_DATE}" --label "org.opencontainers.image.version=${VERSION}" --label "org.opencontainers.image.revision=${BRANCH}" -t ${IMAGE}:rc -t ${IMAGE}:${VERSION} app
 echo 'login to ghcr.io'    
 echo $GHCR_TOKEN | docker login ghcr.io -u s-allius --password-stdin
-docker push ghcr.io/s-allius/tsun-gen3-proxy:rc
-docker push ghcr.io/s-allius/tsun-gen3-proxy:${VERSION}
+docker push -q ghcr.io/s-allius/tsun-gen3-proxy:rc
+docker push -q ghcr.io/s-allius/tsun-gen3-proxy:${VERSION}
 
 elif [[ $1 == rel ]];then
 docker build --no-cache --build-arg "VERSION=${VERSION}" --build-arg environment=production --label "org.opencontainers.image.created=${BUILD_DATE}" --label "org.opencontainers.image.version=${VERSION}" --label "org.opencontainers.image.revision=${BRANCH}" -t ${IMAGE}:latest -t ${IMAGE}:${MAJOR} -t ${IMAGE}:${VERSION} app
 echo 'login to ghcr.io'    
 echo $GHCR_TOKEN | docker login ghcr.io -u s-allius --password-stdin
-docker push ghcr.io/s-allius/tsun-gen3-proxy:latest
-docker push ghcr.io/s-allius/tsun-gen3-proxy:${MAJOR}
-docker push ghcr.io/s-allius/tsun-gen3-proxy:${VERSION}
+docker push -q ghcr.io/s-allius/tsun-gen3-proxy:latest
+docker push -q ghcr.io/s-allius/tsun-gen3-proxy:${MAJOR}
+docker push -q ghcr.io/s-allius/tsun-gen3-proxy:${VERSION}
 fi
 
 echo 'check docker-compose.yaml file'

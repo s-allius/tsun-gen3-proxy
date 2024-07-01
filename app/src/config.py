@@ -84,7 +84,7 @@ class Config():
         )
 
     @classmethod
-    def class_init(cls):  # pragma: no cover
+    def class_init(cls) -> None | str:  # pragma: no cover
         try:
             # make the default config transparaent by copying it
             # in the config.example file
@@ -94,7 +94,9 @@ class Config():
                          "config/config.example.toml")
         except Exception:
             pass
-        cls.read()
+        err_str = cls.read()
+        del cls.conf_schema
+        return err_str
 
     @classmethod
     def _read_config_file(cls) -> dict:  # pragma: no cover

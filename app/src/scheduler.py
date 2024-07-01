@@ -3,8 +3,6 @@ import json
 from mqtt import Mqtt
 from aiocron import crontab
 from infos import ClrAtMidnight
-from modbus import Modbus
-from messages import Message
 
 logger_mqtt = logging.getLogger('mqtt')
 
@@ -21,9 +19,6 @@ class Schedule:
 
         crontab('0 0 * * *', func=cls.atmidnight, start=True)
 
-        # every minute
-        crontab('* * * * *', func=cls.regular_modbus_cmds, start=True)
-
     @classmethod
     async def atmidnight(cls) -> None:
         '''Clear daily counters at midnight'''
@@ -33,15 +28,3 @@ class Schedule:
             logger_mqtt.debug(f'{key}: {data}')
             data_json = json.dumps(data)
             await cls.mqtt.publish(f"{key}", data_json)
-
-    @classmethod
-    async def regular_modbus_cmds(cls):
-        for m in Message:
-            if m.server_side:
-                fnc = getattr(m, "send_modbus_cmd", None)
-                if callable(fnc):
-                    await fnc(Modbus.READ_REGS, 0x3008, 21, logging.DEBUG)
-                    # if 0 == (cls.count % 30):
-                    #     # logging.info("Regular Modbus Status request")
-                    #     await fnc(Modbus.READ_REGS, 0x2007, 2, logging.DEBUG)
-        cls.count += 1

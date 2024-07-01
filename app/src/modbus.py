@@ -105,7 +105,17 @@ class Modbus():
         self.req_pend = False
         self.tim = None
 
+    def close(self):
+        """free the queue and erase the callback handlers"""
+        logging.debug('Modbus close:')
+        self.__stop_timer()
+        self.rsp_handler = None
+        self.snd_handler = None
+        while not self.que.empty:
+            self.que.get_nowait()
+
     def __del__(self):
+        """log statistics on the deleting of a MODBUS instance"""
         logging.debug(f'Modbus __del__:\n {self.counter}')
 
     def build_msg(self, addr: int, func: int, reg: int, val: int,
@@ -243,6 +253,7 @@ class Modbus():
         # logging.debug(f'Modbus stop timer {self}')
         if self.tim:
             self.tim.cancel()
+            self.tim = None
 
     def __timeout_cb(self) -> None:
         '''Rsponse timeout handler retransmit pdu or send next pdu'''
