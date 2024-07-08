@@ -118,6 +118,13 @@ async def handle_shutdown(web_task):
     await web_task
 
     #
+    # now cancel all remaining (pending) tasks
+    #
+    pending = asyncio.all_tasks()
+    for task in pending:
+        task.cancel()
+
+    #
     # at last, start a coro for stopping the loop
     #
     logging.debug("Stop event loop")
@@ -166,7 +173,7 @@ if __name__ == "__main__":
         logging.info(f'ConfigErr: {ConfigErr}')
     Inverter.class_init()
     Schedule.start()
-    mb_tcp = ModbusTcp(loop, '192.168.80.49', 8899, snr=0x7b4d1ec8)
+    mb_tcp = ModbusTcp(loop)
 
     #
     # Create tasks for our listening servers. These must be tasks! If we call
