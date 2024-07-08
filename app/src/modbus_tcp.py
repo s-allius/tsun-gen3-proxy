@@ -1,6 +1,8 @@
 import logging
 import traceback
 import asyncio
+from config import Config
+
 # import gc
 from gen3plus.inverter_g3p import InverterG3P
 
@@ -30,8 +32,19 @@ class ModbusConn():
 
 class ModbusTcp():
 
-    def __init__(self, loop, host, port, snr: int) -> None:
-        loop.create_task(self.modbus_loop(host, port, snr))
+    def __init__(self, loop) -> None:
+        inverters = Config.get('inverters')
+        # logging.info(f'Inverters: {inverters}')
+
+        for inv in inverters.values():
+            if (type(inv) is dict
+               and 'monitor_sn' in inv
+               and 'client_mode' in inv):
+                client = inv['client_mode']
+                # logging.info(f"SerialNo:{inv['monitor_sn']} host:{client['host']} port:{client['port']}")  # noqa: E501
+                loop.create_task(self.modbus_loop(client['host'],
+                                                  client['port'],
+                                                  inv['monitor_sn']))
 
     async def modbus_loop(self, host, port, snr: int) -> None:
         '''Loop for receiving messages from the TSUN cloud (client-side)'''
