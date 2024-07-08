@@ -91,6 +91,7 @@ class Message(metaclass=IterRegistry):
         self._forward_buffer = bytearray(0)
         self.new_data = {}
         self.state = State.init
+        self.shutdown_started = False
 
     '''
     Empty methods, that have to be implemented in any child class which

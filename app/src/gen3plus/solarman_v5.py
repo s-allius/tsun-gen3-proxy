@@ -66,6 +66,8 @@ class SolarmanV5(Message):
         self.db = InfosG3P()
         self.time_ofs = 0
         self.forward_at_cmd_resp = False
+        self.no_forwarding = False
+        '''not allowed to connect to TSUN cloud by connection type'''
         self.switch = {
 
             0x4210: self.msg_data_ind,   # real time data
@@ -143,6 +145,19 @@ class SolarmanV5(Message):
         self.mb_timer.close()
         super().close()
 
+    async def send_start_cmd(self, snr: int):
+        self.no_forwarding = True
+        self.snr = snr
+        self.__set_serial_no(snr)
+
+        self.__send_ack_rsp(0x1710, ftype=0)
+        await self.async_write('Send Start Command:')
+        self._send_buffer = bytearray(0)
+
+        self.state = State.up
+        self._send_modbus_cmd(Modbus.READ_REGS, 0x2000, 64, logging.INFO)
+        self.mb_timer.start(self.MB_START_TIMEOUT)
+
     def __set_serial_no(self, snr: int):
         serial_no = str(snr)
         if self.unique_id == serial_no:
@@ -198,6 +213,8 @@ class SolarmanV5(Message):
         return 0  # wait 0s before sending a response
 
     def forward(self, buffer, buflen) -> None:
+        if self.no_forwarding:
+            return
         tsun = Config.get('solarman')
         if tsun['enabled']:
             self._forward_buffer = buffer[:buflen]
@@ -380,11 +397,11 @@ class SolarmanV5(Message):
     def mb_timout_cb(self, exp_cnt):
         self.mb_timer.start(self.MB_REGULAR_TIMEOUT)
 
-        self._send_modbus_cmd(Modbus.READ_REGS, 0x3008, 21, logging.DEBUG)
+        self._send_modbus_cmd(Modbus.READ_REGS, 0x3000, 48, logging.DEBUG)
 
         if 0 == (exp_cnt % 30):
             # logging.info("Regular Modbus Status request")
-            self._send_modbus_cmd(Modbus.READ_REGS, 0x2007, 2, logging.DEBUG)
+            self._send_modbus_cmd(Modbus.READ_REGS, 0x2000, 64, logging.DEBUG)
 
     def at_cmd_forbidden(self, cmd: str, connection: str) -> bool:
         return not cmd.startswith(tuple(self.at_acl[connection]['allow'])) or \

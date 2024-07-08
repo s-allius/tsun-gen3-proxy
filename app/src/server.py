@@ -11,6 +11,7 @@ from gen3.inverter_g3 import InverterG3
 from gen3plus.inverter_g3p import InverterG3P
 from scheduler import Schedule
 from config import Config
+from modbus_tcp import ModbusTcp
 
 routes = web.RouteTableDef()
 proxy_is_up = False
@@ -94,6 +95,7 @@ async def handle_shutdown(web_task):
     # first, disc all open TCP connections gracefully
     #
     for stream in Message:
+        stream.shutdown_started = True
         try:
             await asyncio.wait_for(stream.disc(), 2)
         except Exception:
@@ -114,6 +116,13 @@ async def handle_shutdown(web_task):
     #
     web_task.cancel()
     await web_task
+
+    #
+    # now cancel all remaining (pending) tasks
+    #
+    pending = asyncio.all_tasks()
+    for task in pending:
+        task.cancel()
 
     #
     # at last, start a coro for stopping the loop
@@ -164,6 +173,7 @@ if __name__ == "__main__":
         logging.info(f'ConfigErr: {ConfigErr}')
     Inverter.class_init()
     Schedule.start()
+    mb_tcp = ModbusTcp(loop)
 
     #
     # Create tasks for our listening servers. These must be tasks! If we call

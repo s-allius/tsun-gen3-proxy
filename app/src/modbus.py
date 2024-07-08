@@ -41,7 +41,9 @@ class Modbus():
     __crc_tab = []
     map = {
         0x2007: {'reg': Register.MAX_DESIGNED_POWER,   'fmt': '!H', 'ratio':  1},  # noqa: E501
-        # 0x????: {'reg': Register.INVERTER_STATUS,      'fmt': '!H'},                 # noqa: E501
+        0x203e: {'reg': Register.NO_INPUTS,   'fmt': '!H', 'ratio':  1/256},  # noqa: E501
+
+        0x3000: {'reg': Register.INVERTER_STATUS,      'fmt': '!H'},                 # noqa: E501
         0x3008: {'reg': Register.VERSION,              'fmt': '!H', 'eval': "f'V{(result>>12)}.{(result>>8)&0xf}.{(result>>4)&0xf}{result&0xf}'"},  # noqa: E501
         0x3009: {'reg': Register.GRID_VOLTAGE,         'fmt': '!H', 'ratio':  0.1},  # noqa: E501
         0x300a: {'reg': Register.GRID_CURRENT,         'fmt': '!H', 'ratio': 0.01},  # noqa: E501
