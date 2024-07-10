@@ -32,7 +32,12 @@ def test_modbus_crc():
     assert mb._Modbus__check_crc(b'\x01\x06\x20\x08\x00\x00\x03\xc8')
 
     assert 0x5c75 == mb._Modbus__calc_crc(b'\x01\x03\x08\x01\x2c\x00\x2c\x02\x2c\x2c\x46')
-    
+    msg = b'\x01\x03\x28\x51'
+    msg += b'\x0e\x08\xd3\x00\x29\x13\x87\x00\x3e\x00\x00\x01\x2c\x03\xb4\x00'
+    msg += b'\x08\x00\x00\x00\x00\x01\x59\x01\x21\x03\xe6\x00\x00\x00\x00\x00'
+    msg += b'\x00\x00\x00\x00\x00\x00\x00\xe6\xef'
+    assert 0 == mb._Modbus__calc_crc(msg)
+
 def test_build_modbus_pdu():
     '''Check building and sending a MODBUS RTU'''
     mb = ModbusTestHelper()
@@ -173,7 +178,7 @@ def test_parse_resp():
     assert mb.req_pend
 
     call = 0
-    exp_result = ['V0.0.212', 4.4, 0.7, 0.7, 30]
+    exp_result = ['V0.0.2C', 4.4, 0.7, 0.7, 30]
     for key, update, val in mb.recv_resp(mb.db, b'\x01\x03\x0c\x01\x2c\x00\x2c\x00\x2c\x00\x46\x00\x46\x00\x46\x32\xc8', 'test'):
         if key == 'grid':
             assert update == True
@@ -222,7 +227,7 @@ def test_queue2():
     assert mb.send_calls == 1
     assert mb.pdu == b'\x01\x030\x07\x00\x06{\t'
     call = 0
-    exp_result = ['V0.0.212', 4.4, 0.7, 0.7, 30]
+    exp_result = ['V0.0.2C', 4.4, 0.7, 0.7, 30]
     for key, update, val in mb.recv_resp(mb.db, b'\x01\x03\x0c\x01\x2c\x00\x2c\x00\x2c\x00\x46\x00\x46\x00\x46\x32\xc8', 'test'):
         if key == 'grid':
             assert update == True
@@ -272,7 +277,7 @@ def test_queue3():
     assert mb.recv_responses == 0
 
     call = 0
-    exp_result = ['V0.0.212', 4.4, 0.7, 0.7, 30]
+    exp_result = ['V0.0.2C', 4.4, 0.7, 0.7, 30]
     for key, update, val in mb.recv_resp(mb.db, b'\x01\x03\x0c\x01\x2c\x00\x2c\x00\x2c\x00\x46\x00\x46\x00\x46\x32\xc8', 'test'):
         if key == 'grid':
             assert update == True

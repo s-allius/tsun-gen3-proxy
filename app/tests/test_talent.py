@@ -339,6 +339,15 @@ def MsgModbusResp20():
     msg += b'\x00\x00\x00\x00\x00\x00\x00\xdb\x6b'
     return msg
 
+@pytest.fixture
+def MsgModbusResp21():
+    msg  = b'\x00\x00\x00\x45\x10R170000000000001'
+    msg += b'\x91\x77\x17\x18\x19\x1a\x2d\x01\x03\x28\x51'
+    msg += b'\x0e\x08\xd3\x00\x29\x13\x87\x00\x3e\x00\x00\x01\x2c\x03\xb4\x00'
+    msg += b'\x08\x00\x00\x00\x00\x01\x59\x01\x21\x03\xe6\x00\x00\x00\x00\x00'
+    msg += b'\x00\x00\x00\x00\x00\x00\x00\xe6\xef'
+    return msg
+
 def test_read_message(MsgContactInfo):
     m = MemoryStream(MsgContactInfo, (0,))
     m.read()         # read complete msg, and dispatch msg
@@ -1226,11 +1235,11 @@ def test_msg_modbus_rsp2(ConfigTsunInv1, MsgModbusResp20):
 
     m.close()
 
-def test_msg_modbus_rsp3(ConfigTsunInv1, MsgModbusResp20):
+def test_msg_modbus_rsp3(ConfigTsunInv1, MsgModbusResp21):
     '''Modbus response with a valid Modbus request must be forwarded'''
     ConfigTsunInv1
-    m = MemoryStream(MsgModbusResp20)
-    m.append_msg(MsgModbusResp20)
+    m = MemoryStream(MsgModbusResp21)
+    m.append_msg(MsgModbusResp21)
 
     m.mb.rsp_handler = m.msg_forward
     m.mb.last_addr = 1
@@ -1247,10 +1256,10 @@ def test_msg_modbus_rsp3(ConfigTsunInv1, MsgModbusResp20):
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
     assert m.mb.err == 0
     assert m.msg_count == 1
-    assert m._forward_buffer==MsgModbusResp20
+    assert m._forward_buffer==MsgModbusResp21
     assert m._send_buffer==b''
-    assert m.db.db == {'inverter': {'Version': 'V5.1.09', 'Rated_Power': 300}, 'grid': {'Voltage': 225.9, 'Current': 0.41, 'Frequency': 49.99, 'Output_Power': 94.8}, 'env': {'Inverter_Temp': 22}, 'input': {'pv1': {'Voltage': 0.8, 'Current': 0.0, 'Power': 0.0}, 'pv2': {'Voltage': 34.5, 'Current': 2.89, 'Power': 99.8}, 'pv3': {'Voltage': 0.0, 'Current': 0.0, 'Power': 0.0}, 'pv4': {'Voltage': 0.0, 'Current': 0.0, 'Power': 0.0}}}
-    assert m.db.get_db_value(Register.VERSION) == 'V5.1.09'
+    assert m.db.db == {'inverter': {'Version': 'V5.1.0E', 'Rated_Power': 300}, 'grid': {'Voltage': 225.9, 'Current': 0.41, 'Frequency': 49.99, 'Output_Power': 94.8}, 'env': {'Inverter_Temp': 22}, 'input': {'pv1': {'Voltage': 0.8, 'Current': 0.0, 'Power': 0.0}, 'pv2': {'Voltage': 34.5, 'Current': 2.89, 'Power': 99.8}, 'pv3': {'Voltage': 0.0, 'Current': 0.0, 'Power': 0.0}, 'pv4': {'Voltage': 0.0, 'Current': 0.0, 'Power': 0.0}}}
+    assert m.db.get_db_value(Register.VERSION) == 'V5.1.0E'
     assert m.new_data['inverter'] == True
     m.new_data['inverter'] = False
     assert m.mb.req_pend == False
@@ -1259,10 +1268,10 @@ def test_msg_modbus_rsp3(ConfigTsunInv1, MsgModbusResp20):
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
     assert m.mb.err == 5
     assert m.msg_count == 2
-    assert m._forward_buffer==MsgModbusResp20
+    assert m._forward_buffer==MsgModbusResp21
     assert m._send_buffer==b''
-    assert m.db.db == {'inverter': {'Version': 'V5.1.09', 'Rated_Power': 300}, 'grid': {'Voltage': 225.9, 'Current': 0.41, 'Frequency': 49.99, 'Output_Power': 94.8}, 'env': {'Inverter_Temp': 22}, 'input': {'pv1': {'Voltage': 0.8, 'Current': 0.0, 'Power': 0.0}, 'pv2': {'Voltage': 34.5, 'Current': 2.89, 'Power': 99.8}, 'pv3': {'Voltage': 0.0, 'Current': 0.0, 'Power': 0.0}, 'pv4': {'Voltage': 0.0, 'Current': 0.0, 'Power': 0.0}}}
-    assert m.db.get_db_value(Register.VERSION) == 'V5.1.09'
+    assert m.db.db == {'inverter': {'Version': 'V5.1.0E', 'Rated_Power': 300}, 'grid': {'Voltage': 225.9, 'Current': 0.41, 'Frequency': 49.99, 'Output_Power': 94.8}, 'env': {'Inverter_Temp': 22}, 'input': {'pv1': {'Voltage': 0.8, 'Current': 0.0, 'Power': 0.0}, 'pv2': {'Voltage': 34.5, 'Current': 2.89, 'Power': 99.8}, 'pv3': {'Voltage': 0.0, 'Current': 0.0, 'Power': 0.0}, 'pv4': {'Voltage': 0.0, 'Current': 0.0, 'Power': 0.0}}}
+    assert m.db.get_db_value(Register.VERSION) == 'V5.1.0E'
     assert m.new_data['inverter'] == False
 
     m.close()
