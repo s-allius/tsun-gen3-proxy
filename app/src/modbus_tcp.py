@@ -60,7 +60,10 @@ class ModbusTcp():
                         return
 
             except (ConnectionRefusedError, TimeoutError) as error:
-                logging.info(f'{error}')
+                logging.debug(f'Inv-conn:{error}')
+
+            except OSError as error:
+                logging.info(f'os-error: {error}')
 
             except Exception:
                 logging.error(
