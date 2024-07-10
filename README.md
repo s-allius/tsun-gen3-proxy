@@ -165,6 +165,9 @@ pv2 = {type = 'RSM40-8-405M', manufacturer = 'Risen'}   # Optional, PV module de
 monitor_sn = 2000000000       # The "Monitoring SN:" can be found on a sticker enclosed with the inverter
 node_id = 'inv_3'             # MQTT replacement for inverters serial number  
 suggested_area = 'garage'     # suggested installation place for home-assistant
+# if your inverter supports SSL connections you must use the client_mode. Pls, uncomment
+# the next line and configure the fixed IP of your inverter
+#client_mode = {host = '192.168.0.1', port = 8899}       
 pv1 = {type = 'RSM40-8-410M', manufacturer = 'Risen'}   # Optional, PV module descr
 pv2 = {type = 'RSM40-8-410M', manufacturer = 'Risen'}   # Optional, PV module descr
 pv3 = {type = 'RSM40-8-410M', manufacturer = 'Risen'}   # Optional, PV module descr
@@ -188,7 +191,18 @@ The standard web interface of the inverter can be accessed at `http://<ip-adress
 
 For our purpose, the hidden URL `http://<ip-adress>/config_hide.html` should be called. There you can see and modify the parameters for accessing the cloud. Here we enter the IP address of our proxy and the IP port `10000` for the `Server A Setting` and for `Optional Server Setting`. The second entry is used as a backup in the event of connection problems.
 
+❗If the IP port is set to 10443 in the inverter configuration, you probably have a firmware with SSL support. In this case, you must use the client-mode configuration.
+
 If access to the web interface does not work, it can also be redirected via DNS redirection, as is necessary for the GEN3 inverters.
+
+## Client Mode (GEN3PLUS only)
+
+Newer GEN3PLUS inverters support SSL encrypted connections over port 10443 to the TSUN cloud. In this case you can't loop the proxy into this connection, since the certicate verification of the inverter don't allow this. You can configure the proxy in client-mode to establish an unencrypted connection to the inverter. For this porpuse the inverter listen on port `8899`.
+
+There are some requirements to be met:
+- the inverter should have a fixed IP
+- the proxy must be able to reach the inverter. You must configure a corresponding route in your router if the inverter and the proxy are in different IP networks
+- add a 'client_mode' line to your config.toml file, to specify the inverter's ip address
 
 ## DNS Settings
 
