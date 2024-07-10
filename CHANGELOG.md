@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+- cleanup shutdown
+- add preview build
 - MODBUS: the last digit of the inverter version is a hexadecimal number [#119](https://github.com/s-allius/tsun-gen3-proxy/issues/119)
 - GEN3PLUS: add client_mode connection on port 8899 [#117](https://github.com/s-allius/tsun-gen3-proxy/issues/117)
 
