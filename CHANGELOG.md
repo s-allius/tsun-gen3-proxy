@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+- make the maximum output coefficient configurable [#123](https://github.com/s-allius/tsun-gen3-proxy/issues/123)
 - cleanup shutdown
 - add preview build
 - MODBUS: the last digit of the inverter version is a hexadecimal number [#119](https://github.com/s-allius/tsun-gen3-proxy/issues/119)
