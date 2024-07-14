@@ -626,11 +626,11 @@ def ConfigTsunAllowAll():
 
 @pytest.fixture
 def ConfigNoTsunInv1():
-    Config.config = {'solarman':{'enabled': False},'inverters':{'Y170000000000001':{'monitor_sn': 2070233889,'node_id':'inv1','suggested_area':'roof'}}}
+    Config.config = {'solarman':{'enabled': False},'inverters':{'Y170000000000001':{'monitor_sn': 2070233889, 'node_id':'inv1', 'modbus_polling': True, 'suggested_area':'roof'}}}
 
 @pytest.fixture
 def ConfigTsunInv1():
-    Config.config = {'solarman':{'enabled': True},'inverters':{'Y170000000000001':{'monitor_sn': 2070233889,'node_id':'inv1','suggested_area':'roof'}}}
+    Config.config = {'solarman':{'enabled': True},'inverters':{'Y170000000000001':{'monitor_sn': 2070233889, 'node_id':'inv1', 'modbus_polling': True, 'suggested_area':'roof'}}}
 
 def test_read_message(DeviceIndMsg):
     m = MemoryStream(DeviceIndMsg, (0,))

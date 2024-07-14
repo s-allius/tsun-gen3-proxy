@@ -267,11 +267,11 @@ def ConfigTsunAllowAll():
 
 @pytest.fixture
 def ConfigNoTsunInv1():
-    Config.config = {'tsun':{'enabled': False},'inverters':{'R170000000000001':{'node_id':'inv1','suggested_area':'roof'}}}
+    Config.config = {'tsun':{'enabled': False},'inverters':{'R170000000000001':{'node_id':'inv1', 'modbus_polling': True, 'suggested_area':'roof'}}}
 
 @pytest.fixture
 def ConfigTsunInv1():
-    Config.config = {'tsun':{'enabled': True},'inverters':{'R170000000000001':{'node_id':'inv1','suggested_area':'roof'}}}
+    Config.config = {'tsun':{'enabled': True},'inverters':{'R170000000000001':{'node_id':'inv1', 'modbus_polling': True, 'suggested_area':'roof'}}}
 
 @pytest.fixture
 def MsgOtaReq(): # Over the air update rewuest from tsun cloud

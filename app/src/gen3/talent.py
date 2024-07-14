@@ -71,6 +71,7 @@ class Talent(Message):
         self.modbus_elms = 0    # for unit tests
         self.node_id = 'G3'     # will be overwritten in __set_serial_no
         self.mb_timer = Timer(self.mb_timout_cb, self.node_id)
+        self.modbus_polling = False
 
     '''
     Our puplic methods
@@ -98,6 +99,7 @@ class Talent(Message):
                 inv = inverters[serial_no]
                 self.node_id = inv['node_id']
                 self.sug_area = inv['suggested_area']
+                self.modbus_polling = inv['modbus_polling']
                 logger.debug(f'SerialNo {serial_no} allowed! area:{self.sug_area}')  # noqa: E501
                 self.db.set_pv_module_details(inv)
             else:
@@ -349,7 +351,8 @@ class Talent(Message):
         if self.ctrl.is_ind():
             if self.data_len == 0:
                 self.state = State.pend     # block MODBUS cmds
-                self.mb_timer.start(self.MB_START_TIMEOUT)
+                if (self.modbus_polling):
+                    self.mb_timer.start(self.MB_START_TIMEOUT)
                 ts = self._timestamp()
                 logger.debug(f'time: {ts:08x}')
                 self.__build_header(0x91)
