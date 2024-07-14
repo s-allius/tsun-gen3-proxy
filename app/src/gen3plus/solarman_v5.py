@@ -130,6 +130,7 @@ class SolarmanV5(Message):
 
         self.node_id = 'G3P'  # will be overwritten in __set_serial_no
         self.mb_timer = Timer(self.mb_timout_cb, self.node_id)
+        self.modbus_polling = False
 
     '''
     Our puplic methods
@@ -155,8 +156,14 @@ class SolarmanV5(Message):
         self._send_buffer = bytearray(0)
 
         self.state = State.up
-        self._send_modbus_cmd(Modbus.READ_REGS, 0x2000, 64, logging.INFO)
+        self._send_modbus_cmd(Modbus.READ_REGS, 0x2000, 96, logging.INFO)
         self.mb_timer.start(self.MB_START_TIMEOUT)
+
+    def new_state_up(self):
+        if self.state is not State.up:
+            self.state = State.up
+            if (self.modbus_polling):
+                self.mb_timer.start(self.MB_START_TIMEOUT)
 
     def __set_serial_no(self, snr: int):
         serial_no = str(snr)
@@ -174,6 +181,7 @@ class SolarmanV5(Message):
                     found = True
                     self.node_id = inv['node_id']
                     self.sug_area = inv['suggested_area']
+                    self.modbus_polling = inv['modbus_polling']
                     logger.debug(f'SerialNo {serial_no} allowed! area:{self.sug_area}')  # noqa: E501
                     self.db.set_pv_module_details(inv)
 
@@ -401,7 +409,7 @@ class SolarmanV5(Message):
 
         if 0 == (exp_cnt % 30):
             # logging.info("Regular Modbus Status request")
-            self._send_modbus_cmd(Modbus.READ_REGS, 0x2000, 64, logging.DEBUG)
+            self._send_modbus_cmd(Modbus.READ_REGS, 0x2000, 96, logging.DEBUG)
 
     def at_cmd_forbidden(self, cmd: str, connection: str) -> bool:
         return not cmd.startswith(tuple(self.at_acl[connection]['allow'])) or \
@@ -508,9 +516,7 @@ class SolarmanV5(Message):
         self.__process_data(ftype)
         self.__forward_msg()
         self.__send_ack_rsp(0x1210, ftype)
-        if self.state is not State.up:
-            self.state = State.up
-            self.mb_timer.start(self.MB_START_TIMEOUT)
+        self.new_state_up()
 
     def msg_sync_start(self):
         data = self._recv_buffer[self.header_len:]
@@ -607,9 +613,7 @@ class SolarmanV5(Message):
 
         self.__forward_msg()
         self.__send_ack_rsp(0x1710, ftype)
-        if self.state is not State.up:
-            self.state = State.up
-            self.mb_timer.start(self.MB_START_TIMEOUT)
+        self.new_state_up()
 
     def msg_sync_end(self):
         data = self._recv_buffer[self.header_len:]

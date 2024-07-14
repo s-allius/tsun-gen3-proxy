@@ -38,7 +38,7 @@ class AsyncStream():
         if self.state == State.init:
             to = self.MAX_START_TIME
         else:
-            if self.server_side:
+            if self.server_side and self.modbus_polling:
                 to = self.MAX_INV_IDLE_TIME
             else:
                 to = self.MAX_CLOUD_IDLE_TIME
