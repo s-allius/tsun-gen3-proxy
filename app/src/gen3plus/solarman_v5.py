@@ -156,7 +156,7 @@ class SolarmanV5(Message):
         self._send_buffer = bytearray(0)
 
         self.state = State.up
-        self._send_modbus_cmd(Modbus.READ_REGS, 0x2000, 64, logging.INFO)
+        self._send_modbus_cmd(Modbus.READ_REGS, 0x2000, 96, logging.INFO)
         self.mb_timer.start(self.MB_START_TIMEOUT)
 
     def new_state_up(self):
@@ -409,7 +409,7 @@ class SolarmanV5(Message):
 
         if 0 == (exp_cnt % 30):
             # logging.info("Regular Modbus Status request")
-            self._send_modbus_cmd(Modbus.READ_REGS, 0x2000, 64, logging.DEBUG)
+            self._send_modbus_cmd(Modbus.READ_REGS, 0x2000, 96, logging.DEBUG)
 
     def at_cmd_forbidden(self, cmd: str, connection: str) -> bool:
         return not cmd.startswith(tuple(self.at_acl[connection]['allow'])) or \
