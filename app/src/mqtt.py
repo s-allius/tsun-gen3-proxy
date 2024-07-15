@@ -38,7 +38,8 @@ class Mqtt(metaclass=Singleton):
         self.task.cancel()
         try:
             await self.task
-        except Exception as e:
+
+        except (asyncio.CancelledError, Exception) as e:
             logging.debug(f"Mqtt.close: exception: {e} ...")
 
     async def publish(self, topic: str, payload: str | bytes | bytearray

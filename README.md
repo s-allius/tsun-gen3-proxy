@@ -200,6 +200,7 @@ If access to the web interface does not work, it can also be redirected via DNS 
 Newer GEN3PLUS inverters support SSL encrypted connections over port 10443 to the TSUN cloud. In this case you can't loop the proxy into this connection, since the certicate verification of the inverter don't allow this. You can configure the proxy in client-mode to establish an unencrypted connection to the inverter. For this porpuse the inverter listen on port `8899`.
 
 There are some requirements to be met:
+
 - the inverter should have a fixed IP
 - the proxy must be able to reach the inverter. You must configure a corresponding route in your router if the inverter and the proxy are in different IP networks
 - add a 'client_mode' line to your config.toml file, to specify the inverter's ip address
