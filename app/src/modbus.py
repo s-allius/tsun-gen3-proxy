@@ -42,7 +42,6 @@ class Modbus():
     map = {
         0x2007: {'reg': Register.MAX_DESIGNED_POWER,   'fmt': '!H', 'ratio':  1},  # noqa: E501
         0x202c: {'reg': Register.OUTPUT_COEFFICIENT,   'fmt': '!H', 'ratio':  100/1024},  # noqa: E501
-        0x203e: {'reg': Register.NO_INPUTS,            'fmt': '!H', 'ratio':  1/256},  # noqa: E501
 
         0x3000: {'reg': Register.INVERTER_STATUS,      'fmt': '!H'},                 # noqa: E501
         0x3008: {'reg': Register.VERSION,              'fmt': '!H', 'eval': "f'V{(result>>12)}.{(result>>8)&0xf}.{(result>>4)&0xf}{result&0xf:1X}'"},  # noqa: E501
