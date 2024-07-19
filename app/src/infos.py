@@ -179,6 +179,20 @@ class Infos:
 
     __comm_type_val_tpl = "{%set com_types = ['n/a','Wi-Fi', 'G4', 'G5', 'GPRS'] %}{{com_types[value_json['Communication_Type']|int(0)]|default(value_json['Communication_Type'])}}"    # noqa: E501
     __status_type_val_tpl = "{%set inv_status = ['n/a', 'Online', 'Offline'] %}{{inv_status[value_json['Inverter_Status']|int(0)]|default(value_json['Inverter_Status'])}}"    # noqa: E501
+    __rated_power_val_tpl = "{% if 'Rated_Power' in value_json and value_json['Rated_Power'] != None %}{{value_json['Rated_Power']|string() +' W'}}{% else %}{{ this.state }}{% endif %}"  # noqa: E501
+    __designed_power_val_tpl = '''
+{% if 'Max_Designed_Power' in value_json and
+      value_json['Max_Designed_Power'] != None %}
+  {% if value_json['Max_Designed_Power'] | int(0xffff) < 0x8000 %}
+    {{value_json['Max_Designed_Power']|string() +' W'}}
+  {% else %}
+    n/a
+  {% endif %}
+{% else %}
+  {{ this.state }}
+{% endif %}
+'''
+    __output_coef_val_tpl = "{% if 'Output_Coefficient' in value_json and value_json['Output_Coefficient'] != None %}{{value_json['Output_Coefficient']|string() +' %'}}{% else %}{{ this.state }}{% endif %}"  # noqa: E501
 
     __info_defs = {
         # collector values used for device registration:
@@ -195,9 +209,9 @@ class Infos:
         Register.SERIAL_NUMBER:   {'name': ['inverter', 'Serial_Number'],          'level': logging.DEBUG, 'unit': ''},  # noqa: E501
         Register.EQUIPMENT_MODEL: {'name': ['inverter', 'Equipment_Model'],        'level': logging.DEBUG, 'unit': ''},  # noqa: E501
         Register.NO_INPUTS:       {'name': ['inverter', 'No_Inputs'],              'level': logging.DEBUG, 'unit': ''},  # noqa: E501
-        Register.MAX_DESIGNED_POWER: {'name': ['inverter',  'Max_Designed_Power'], 'level': logging.INFO,  'unit': 'W',    'ha': {'dev': 'inverter', 'dev_cla': None,          'stat_cla': None,          'id': 'designed_power_', 'fmt': '| string + " W"', 'name': 'Max Designed Power', 'icon': 'mdi:lightning-bolt', 'ent_cat': 'diagnostic'}},  # noqa: E501
-        Register.RATED_POWER:     {'name': ['inverter',  'Rated_Power'],           'level': logging.DEBUG, 'unit': 'W',    'ha': {'dev': 'inverter', 'dev_cla': None,          'stat_cla': None,          'id': 'rated_power_', 'fmt': '| string + " W"', 'name': 'Rated Power', 'icon': 'mdi:lightning-bolt', 'ent_cat': 'diagnostic'}},  # noqa: E501
-        Register.OUTPUT_COEFFICIENT: {'name': ['inverter',  'Output_Coefficient'], 'level': logging.INFO,  'unit': '%',    'ha': {'dev': 'inverter', 'dev_cla': None,          'stat_cla': 'measurement', 'id': 'output_coef_', 'fmt': '| int',           'name': 'Output Coefficient', 'icon': 'mdi:lightning-bolt', 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.MAX_DESIGNED_POWER: {'name': ['inverter',  'Max_Designed_Power'], 'level': logging.INFO,  'unit': 'W',    'ha': {'dev': 'inverter', 'dev_cla': None, 'stat_cla': None, 'id': 'designed_power_', 'val_tpl': __designed_power_val_tpl, 'name': 'Max Designed Power', 'icon': 'mdi:lightning-bolt', 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.RATED_POWER:        {'name': ['inverter',  'Rated_Power'],        'level': logging.DEBUG, 'unit': 'W',    'ha': {'dev': 'inverter', 'dev_cla': None, 'stat_cla': None, 'id': 'rated_power_',    'val_tpl': __rated_power_val_tpl,    'name': 'Rated Power',        'icon': 'mdi:lightning-bolt', 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.OUTPUT_COEFFICIENT: {'name': ['inverter',  'Output_Coefficient'], 'level': logging.INFO,  'unit': '%',    'ha': {'dev': 'inverter', 'dev_cla': None, 'stat_cla': None, 'id': 'output_coef_',    'val_tpl': __output_coef_val_tpl,    'name': 'Output Coefficient', 'icon': 'mdi:lightning-bolt', 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.PV1_MANUFACTURER: {'name': ['inverter', 'PV1_Manufacturer'],      'level': logging.DEBUG, 'unit': ''},  # noqa: E501
         Register.PV1_MODEL:        {'name': ['inverter', 'PV1_Model'],             'level': logging.DEBUG, 'unit': ''},  # noqa: E501
         Register.PV2_MANUFACTURER: {'name': ['inverter', 'PV2_Manufacturer'],      'level': logging.DEBUG, 'unit': ''},  # noqa: E501
