@@ -56,7 +56,6 @@ class RegisterMap:
         0x42010110: {'reg': Register.PV4_DAILY_GENERATION, 'fmt': '!H', 'ratio': 0.01},  # noqa: E501
         0x42010112: {'reg': Register.PV4_TOTAL_GENERATION, 'fmt': '!L', 'ratio': 0.01},  # noqa: E501
         0x42010126: {'reg': Register.MAX_DESIGNED_POWER,   'fmt': '!H', 'ratio':    1},  # noqa: E501
-        0x42010170: {'reg': Register.NO_INPUTS,            'fmt': '!B'},                 # noqa: E501
 
         # 0x4281001c: {'reg': Register.POWER_ON_TIME,        'fmt': '<H', 'ratio':    1},  # noqa: E501
 
@@ -69,6 +68,7 @@ class InfosG3P(Infos):
         self.set_db_def_value(Register.MANUFACTURER, 'TSUN')
         self.set_db_def_value(Register.EQUIPMENT_MODEL, 'TSOL-MSxx00')
         self.set_db_def_value(Register.CHIP_TYPE, 'IGEN TECH')
+        self.set_db_def_value(Register.NO_INPUTS, 4)
 
     def ha_confs(self, ha_prfx: str, node_id: str, snr: str,
                  sug_area: str = '') \
