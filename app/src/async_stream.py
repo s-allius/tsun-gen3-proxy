@@ -62,7 +62,10 @@ class AsyncStream():
                         f'{self.remoteStream.conn_no}]')
             await self.remoteStream.disc()
         try:
-            await self._async_publ_mqtt_proxy_stat('proxy')
+            if self.unique_id:
+                await self.async_publ_mqtt()
+            else:
+                await self._async_publ_mqtt_proxy_stat('proxy')
         except Exception:
             pass
 
