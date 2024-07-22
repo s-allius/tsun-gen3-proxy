@@ -51,7 +51,7 @@ class ModbusTcp():
         while True:
             try:
                 async with ModbusConn(host, port) as stream:
-                    await stream.send_start_cmd(snr)
+                    await stream.send_start_cmd(snr, host)
                     await stream.loop()
                     logger.info(f'[{stream.node_id}:{stream.conn_no}] '
                                 f'Connection closed - Shutdown: '
