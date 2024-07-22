@@ -31,6 +31,8 @@ class RegisterMap:
         0xffffff06: Register.OTA_START_MSG,
         0xffffff07: Register.SW_EXCEPTION,
         0xffffff08: Register.MAX_DESIGNED_POWER,
+        0xffffff09: Register.OUTPUT_COEFFICIENT,
+        0xffffff0a: Register.INVERTER_STATUS,
         0xfffffffe: Register.TEST_REG1,
         0xffffffff: Register.TEST_REG2,
         0x00000640: Register.OUTPUT_POWER,

@@ -59,7 +59,7 @@ def test_default_db():
     i = InfosG3P()
     
     assert json.dumps(i.db) == json.dumps({
-        "inverter": {"Manufacturer": "TSUN", "Equipment_Model": "TSOL-MSxx00"}, 
+        "inverter": {"Manufacturer": "TSUN", "Equipment_Model": "TSOL-MSxx00", "No_Inputs": 4}, 
         "collector": {"Chip_Type": "IGEN TECH"},
         })
 
@@ -83,7 +83,7 @@ def test_parse_4210(InverterData: bytes):
 
     assert json.dumps(i.db) == json.dumps({
          "controller": {"Power_On_Time": 2051}, 
-         "inverter": {"Serial_Number": "Y17E00000000000E", "Version": "V4.0.10", "Rated_Power": 600, "Max_Designed_Power": 2000, "No_Inputs": 4}, 
+         "inverter": {"Serial_Number": "Y17E00000000000E", "Version": "V4.0.10", "Rated_Power": 600, "Max_Designed_Power": 2000}, 
          "env": {"Inverter_Status": 1, "Inverter_Temp": 14}, 
          "grid": {"Voltage": 224.8, "Current": 0.73, "Frequency": 50.05, "Output_Power": 165.8}, 
          "input": {"pv1": {"Voltage": 35.3, "Current": 1.68, "Power": 59.6, "Daily_Generation": 0.04, "Total_Generation": 30.76}, 
@@ -116,8 +116,19 @@ def test_build_ha_conf1():
             tests +=1
 
         elif id == 'power_pv2_123':
-            assert False    # if we haven't received and parsed a control data msg, we don't know the number of inputs. In this case we only register the first one!!
+            assert comp == 'sensor'
+            assert  d_json == json.dumps({"name": "Power", "stat_t": "tsun/garagendach/input", "dev_cla": "power", "stat_cla": "measurement", "uniq_id": "power_pv2_123", "val_tpl": "{{ (value_json['pv2']['Power'] | float)}}", "unit_of_meas": "W", "dev": {"name": "Module PV2", "sa": "Module PV2", "via_device": "inverter_123", "ids": ["input_pv2_123"]}, "o": {"name": "proxy", "sw": "unknown"}})
+            tests +=1
 
+        elif id == 'power_pv3_123':
+            assert comp == 'sensor'
+            assert  d_json == json.dumps({"name": "Power", "stat_t": "tsun/garagendach/input", "dev_cla": "power", "stat_cla": "measurement", "uniq_id": "power_pv3_123", "val_tpl": "{{ (value_json['pv3']['Power'] | float)}}", "unit_of_meas": "W", "dev": {"name": "Module PV3", "sa": "Module PV3", "via_device": "inverter_123", "ids": ["input_pv3_123"]}, "o": {"name": "proxy", "sw": "unknown"}})
+            tests +=1
+
+        elif id == 'power_pv4_123':
+            assert comp == 'sensor'
+            assert  d_json == json.dumps({"name": "Power", "stat_t": "tsun/garagendach/input", "dev_cla": "power", "stat_cla": "measurement", "uniq_id": "power_pv4_123", "val_tpl": "{{ (value_json['pv4']['Power'] | float)}}", "unit_of_meas": "W", "dev": {"name": "Module PV4", "sa": "Module PV4", "via_device": "inverter_123", "ids": ["input_pv4_123"]}, "o": {"name": "proxy", "sw": "unknown"}})
+            tests +=1
 
         elif id == 'signal_123':
             assert comp == 'sensor'
@@ -126,7 +137,7 @@ def test_build_ha_conf1():
         elif id == 'inv_count_456':
             assert False
 
-    assert tests==4
+    assert tests==7
 
 
     for d_json, comp, node_id, id in i.ha_proxy_confs(ha_prfx="tsun/", node_id = 'proxy/', snr = '456'):
@@ -138,8 +149,11 @@ def test_build_ha_conf1():
         elif id == 'power_pv1_123':
             assert False
         elif id == 'power_pv2_123':
-            assert False    # if we haven't received and parsed a control data msg, we don't know the number of inputs. In this case we only register the first one!!
-
+            assert False
+        elif id == 'power_pv3_123':
+            assert False
+        elif id == 'power_pv4_123':
+            assert False
         elif id == 'signal_123':
             assert False
         elif id == 'inv_count_456':
@@ -147,7 +161,7 @@ def test_build_ha_conf1():
             assert  d_json == json.dumps({"name": "Active Inverter Connections", "stat_t": "tsun/proxy/proxy", "dev_cla": None, "stat_cla": None, "uniq_id": "inv_count_456", "val_tpl": "{{value_json['Inverter_Cnt'] | int}}", "ic": "mdi:counter", "dev": {"name": "Proxy", "sa": "Proxy", "mdl": "proxy", "mf": "Stefan Allius", "sw": "unknown", "ids": ["proxy"]}, "o": {"name": "proxy", "sw": "unknown"}})
             tests +=1
 
-    assert tests==5
+    assert tests==8
 
 def test_exception_and_eval(InverterData: bytes):
 

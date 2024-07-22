@@ -44,13 +44,24 @@ class AsyncStream():
                 to = self.MAX_CLOUD_IDLE_TIME
         return to
 
+    async def __publish_outstanding_mqtt(self):
+        '''Publish all outstanding MQTT topics'''
+        try:
+            if self.unique_id:
+                await self.async_publ_mqtt()
+            await self._async_publ_mqtt_proxy_stat('proxy')
+        except Exception:
+            pass
+
     async def server_loop(self, addr: str) -> None:
         '''Loop for receiving messages from the inverter (server-side)'''
         logger.info(f'[{self.node_id}:{self.conn_no}] '
                     f'Accept connection from {addr}')
         self.inc_counter('Inverter_Cnt')
+        await self.__publish_outstanding_mqtt()
         await self.loop()
         self.dec_counter('Inverter_Cnt')
+        await self.__publish_outstanding_mqtt()
         logger.info(f'[{self.node_id}:{self.conn_no}] Server loop stopped for'
                     f' r{self.r_addr}')
 
@@ -61,10 +72,6 @@ class AsyncStream():
                         f'connection: [{self.remoteStream.node_id}:'
                         f'{self.remoteStream.conn_no}]')
             await self.remoteStream.disc()
-        try:
-            await self._async_publ_mqtt_proxy_stat('proxy')
-        except Exception:
-            pass
 
     async def client_loop(self, addr: str) -> None:
         '''Loop for receiving messages from the TSUN cloud (client-side)'''

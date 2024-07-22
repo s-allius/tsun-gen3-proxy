@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+- Home Assistant: improve inverter status value texts
+- GEN3: add inverter status
+- fix flapping registers [#128](https://github.com/s-allius/tsun-gen3-proxy/issues/128)
+- register OUTPUT_COEFFICIENT at HA
+- GEN3: INVERTER_STATUS,
 - add config option to disable the MODBUS polling [#120](https://github.com/s-allius/tsun-gen3-proxy/issues/120)
 - make the maximum output coefficient configurable [#123](https://github.com/s-allius/tsun-gen3-proxy/issues/123)
 - cleanup shutdown
