@@ -54,7 +54,11 @@ class SolarmanV5(Message):
     AT_CMD = 1
     MB_RTU_CMD = 2
     MB_START_TIMEOUT = 40
+    '''start delay for Modbus polling in server mode'''
     MB_REGULAR_TIMEOUT = 60
+    '''regular Modbus polling time in server mode'''
+    MB_CLIENT_DATA_UP = 30
+    '''Data up time in client mode'''
 
     def __init__(self, server_side: bool):
         super().__init__(server_side, self.send_modbus_cb, mb_timeout=5)
@@ -130,6 +134,8 @@ class SolarmanV5(Message):
 
         self.node_id = 'G3P'  # will be overwritten in __set_serial_no
         self.mb_timer = Timer(self.mb_timout_cb, self.node_id)
+        self.mb_timeout = self.MB_REGULAR_TIMEOUT
+        '''timer value for next Modbus polling request'''
         self.modbus_polling = False
 
     '''
@@ -146,18 +152,25 @@ class SolarmanV5(Message):
         self.mb_timer.close()
         super().close()
 
-    async def send_start_cmd(self, snr: int):
+    async def send_start_cmd(self, snr: int, host: str):
         self.no_forwarding = True
         self.snr = snr
         self.__set_serial_no(snr)
+        self.mb_timeout = self.MB_CLIENT_DATA_UP
+        self.db.set_db_def_value(Register.IP_ADDRESS, host)
+        self.db.set_db_def_value(Register.DATA_UP_INTERVAL,
+                                 self.mb_timeout)
+        self.db.set_db_def_value(Register.HEARTBEAT_INTERVAL,
+                                 120)  # fixme
+        self.new_data['controller'] = True
 
         self.__send_ack_rsp(0x1710, ftype=0)
         await self.async_write('Send Start Command:')
         self._send_buffer = bytearray(0)
 
         self.state = State.up
-        self._send_modbus_cmd(Modbus.READ_REGS, 0x2000, 96, logging.INFO)
-        self.mb_timer.start(self.MB_START_TIMEOUT)
+        self._send_modbus_cmd(Modbus.READ_REGS, 0x3000, 48, logging.DEBUG)
+        self.mb_timer.start(self.mb_timeout)
 
     def new_state_up(self):
         if self.state is not State.up:
@@ -403,11 +416,11 @@ class SolarmanV5(Message):
         self._send_modbus_cmd(func, addr, val, log_lvl)
 
     def mb_timout_cb(self, exp_cnt):
-        self.mb_timer.start(self.MB_REGULAR_TIMEOUT)
+        self.mb_timer.start(self.mb_timeout)
 
         self._send_modbus_cmd(Modbus.READ_REGS, 0x3000, 48, logging.DEBUG)
 
-        if 0 == (exp_cnt % 30):
+        if 1 == (exp_cnt % 30):
             # logging.info("Regular Modbus Status request")
             self._send_modbus_cmd(Modbus.READ_REGS, 0x2000, 96, logging.DEBUG)
 
