@@ -44,7 +44,7 @@ class AsyncStream():
                 to = self.MAX_CLOUD_IDLE_TIME
         return to
 
-    async def __publish_outstanding_mqtt(self):
+    async def publish_outstanding_mqtt(self):
         '''Publish all outstanding MQTT topics'''
         try:
             if self.unique_id:
@@ -58,10 +58,10 @@ class AsyncStream():
         logger.info(f'[{self.node_id}:{self.conn_no}] '
                     f'Accept connection from {addr}')
         self.inc_counter('Inverter_Cnt')
-        await self.__publish_outstanding_mqtt()
+        await self.publish_outstanding_mqtt()
         await self.loop()
         self.dec_counter('Inverter_Cnt')
-        await self.__publish_outstanding_mqtt()
+        await self.publish_outstanding_mqtt()
         logger.info(f'[{self.node_id}:{self.conn_no}] Server loop stopped for'
                     f' r{self.r_addr}')
 
