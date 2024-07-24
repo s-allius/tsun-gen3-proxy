@@ -143,6 +143,14 @@ class SolarmanV5(Message):
     '''
     def close(self) -> None:
         logging.debug('Solarman.close()')
+        if self.server_side:
+            # set inverter state to offline, if output power is very low
+            logging.debug('close power: '
+                          f'{self.db.get_db_value(Register.OUTPUT_POWER, -1)}')
+            if self.db.get_db_value(Register.OUTPUT_POWER, 999) < 2:
+                self.db.set_db_def_value(Register.INVERTER_STATUS, 0)
+                self.new_data['env'] = True
+
         # we have references to methods of this class in self.switch
         # so we have to erase self.switch, otherwise this instance can't be
         # deallocated by the garbage collector ==> we get a memory leak
