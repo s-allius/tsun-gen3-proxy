@@ -21,7 +21,7 @@
 [ConnectionG3]has-0..1>[ConnectionG3]
 [ConnectionG3P]^[InverterG3P]
 [ConnectionG3P]has-0..1>[ConnectionG3P]
-[Infos|stat;new_stat_data;info_dev|static_init();dev_value();inc_counter();dec_counter();ha_proxy_conf;ha_conf;update_db;set_db_def_value;get_db_value;ignore_this_device]^[InfosG3||ha_confs();parse()]
+[Infos|stat;new_stat_data;info_dev|static_init();dev_value();inc_counter();dec_counter();ha_proxy_conf;ha_conf;ha_remove;update_db;set_db_def_value;get_db_value;ignore_this_device]^[InfosG3||ha_confs();parse()]
 [Infos]^[InfosG3P||ha_confs();parse()]
 [InfosG3P]->[SolarmanV5]
 [InfosG3]->[Talent]
