@@ -5,6 +5,11 @@ from enum import Enum
 from typing import Generator
 
 
+class ProxyMode(Enum):
+    SERVER = 1
+    CLIENT = 2
+
+
 class Register(Enum):
     COLLECTOR_FW_VERSION = 1
     CHIP_TYPE = 2
@@ -90,6 +95,7 @@ class Register(Enum):
     CONNECT_COUNT = 405
     HEARTBEAT_INTERVAL = 406
     IP_ADDRESS = 407
+    POLLING_INTERVAL = 408
     EVENT_401 = 500
     EVENT_402 = 501
     EVENT_403 = 502
@@ -310,6 +316,7 @@ class Infos:
         Register.DATA_UP_INTERVAL:   {'name': ['controller', 'Data_Up_Interval'],   'level': logging.DEBUG, 'unit': 's',    'ha': {'dev': 'controller', 'dev_cla': None,       'stat_cla': None,          'id': 'data_up_intval_', 'fmt': '| string + " s"', 'name': 'Data Up Interval', 'icon': 'mdi:update', 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.HEARTBEAT_INTERVAL: {'name': ['controller', 'Heartbeat_Interval'], 'level': logging.DEBUG, 'unit': 's',    'ha': {'dev': 'controller', 'dev_cla': None,       'stat_cla': None,          'id': 'heartbeat_intval_',    'fmt': '| string + " s"', 'name': 'Heartbeat Interval', 'icon': 'mdi:update', 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.IP_ADDRESS:         {'name': ['controller', 'IP_Address'],         'level': logging.DEBUG, 'unit': '',     'ha': {'dev': 'controller', 'dev_cla': None,       'stat_cla': None,          'id': 'ip_address_',           'fmt': '| string',        'name': 'IP Address', 'icon': 'mdi:wifi', 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.POLLING_INTERVAL:   {'name': ['controller', 'Polling_Interval'],   'level': logging.DEBUG, 'unit': 's',    'ha': {'dev': 'controller', 'dev_cla': None,       'stat_cla': None,          'id': 'polling_intval_', 'fmt': '| string + " s"', 'name': 'Polling Interval', 'icon': 'mdi:update', 'ent_cat': 'diagnostic'}},  # noqa: E501
     }
 
     @property
@@ -378,6 +385,20 @@ class Infos:
 
     def ha_conf(self, key, ha_prfx, node_id, snr,  singleton: bool,
                 sug_area: str = '') -> tuple[str, str, str, str] | None:
+        '''Method to build json register struct for home-assistant
+        auto configuration and the unique entity string, for all proxy
+        registers
+
+        arguments:
+        key          ==> index of info_defs dict which reference the topic
+        ha_prfx:str  ==> MQTT prefix for the home assistant 'stat_t string
+        node_id:str  ==> node id of the inverter, used to build unique entity
+        snr:str      ==> serial number of the inverter, used to build unique
+                         entity strings
+        singleton    ==> bool to allow/disaalow proxy topics which are common
+                         for all invters
+        sug_area     ==> area name for home assistant
+        '''
         if key not in self.info_defs:
             return None
         row = self.info_defs[key]
@@ -479,6 +500,40 @@ class Infos:
                 logging.error(f"Infos.info_defs: the row for {key} "
                               "missing 'dev' value for ha register")
             return json.dumps(attr), component, node_id, attr['uniq_id']
+        return None
+
+    def ha_remove(self, key, node_id, snr) -> tuple[str, str, str, str] | None:
+        '''Method to build json unregister struct for home-assistant
+        to remove topics per auto configuration. Only for inverer topics.
+
+        arguments:
+        key          ==> index of info_defs dict which reference the topic
+        node_id:str  ==> node id of the inverter, used to build unique entity
+        snr:str      ==> serial number of the inverter, used to build unique
+                         entity strings
+
+        hint:
+        the returned tuple must have the same format as self.ha_conf()
+        '''
+        if key not in self.info_defs:
+            return None
+        row = self.info_defs[key]
+
+        if 'singleton' in row:
+            if row['singleton']:
+                return None
+
+        # check if we have details for home assistant
+        if 'ha' in row:
+            ha = row['ha']
+            if 'comp' in ha:
+                component = ha['comp']
+            else:
+                component = 'sensor'
+            attr = {}
+            uniq_id = ha['id']+snr
+
+            return json.dumps(attr), component, node_id, uniq_id
         return None
 
     def _key_obj(self, id: Register) -> list:
