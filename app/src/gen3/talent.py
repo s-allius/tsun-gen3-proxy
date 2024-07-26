@@ -363,6 +363,9 @@ class Talent(Message):
                 self.state = State.pend     # block MODBUS cmds
                 if (self.modbus_polling):
                     self.mb_timer.start(self.MB_START_TIMEOUT)
+                    self.db.set_db_def_value(Register.POLLING_INTERVAL,
+                                             self.MB_REGULAR_TIMEOUT)
+
                 ts = self._timestamp()
                 logger.debug(f'time: {ts:08x}')
                 self.__build_header(0x91)
