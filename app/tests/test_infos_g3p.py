@@ -56,7 +56,7 @@ def InverterData():  # 0x4210 ftype: 0x01
 
 
 def test_default_db():
-    i = InfosG3P()
+    i = InfosG3P(client_mode=False)
     
     assert json.dumps(i.db) == json.dumps({
         "inverter": {"Manufacturer": "TSUN", "Equipment_Model": "TSOL-MSxx00", "No_Inputs": 4}, 
@@ -64,7 +64,7 @@ def test_default_db():
         })
 
 def test_parse_4110(DeviceData: bytes):
-    i = InfosG3P()
+    i = InfosG3P(client_mode=False)
     i.db.clear()
     for key, update in i.parse (DeviceData, 0x41, 2):
         pass
@@ -75,7 +75,7 @@ def test_parse_4110(DeviceData: bytes):
         })
 
 def test_parse_4210(InverterData: bytes):
-    i = InfosG3P()
+    i = InfosG3P(client_mode=False)
     i.db.clear()
     
     for key, update in i.parse (InverterData, 0x42, 1):
@@ -94,7 +94,7 @@ def test_parse_4210(InverterData: bytes):
         })
     
 def test_build_ha_conf1():
-    i = InfosG3P()
+    i = InfosG3P(client_mode=False)
     i.static_init()                # initialize counter
 
     tests = 0
@@ -173,7 +173,7 @@ def test_exception_and_eval(InverterData: bytes):
     Backup = RegisterMap.map[0x420100de]
     RegisterMap.map[0x420100de] = 'invalid_entry'
 
-    i = InfosG3P()
+    i = InfosG3P(client_mode=False)
     # i.db.clear()
     
     for key, update in i.parse (InverterData, 0x42, 1):

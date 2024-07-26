@@ -38,7 +38,7 @@ class Mqtt():
 
 class MemoryStream(SolarmanV5):
     def __init__(self, msg, chunks = (0,), server_side: bool = True):
-        super().__init__(server_side)
+        super().__init__(server_side, client_mode=False)
         if server_side:
             self.mb.timeout = 1   # overwrite for faster testing
         self.writer = Writer()
@@ -1192,9 +1192,9 @@ def test_build_logger_modell(ConfigTsunAllowAll, DeviceIndMsg):
     m.close()
 
 def test_msg_iterator():
-    m1 = SolarmanV5(server_side=True)
-    m2 = SolarmanV5(server_side=True)
-    m3 = SolarmanV5(server_side=True)
+    m1 = SolarmanV5(server_side=True, client_mode=False)
+    m2 = SolarmanV5(server_side=True, client_mode=False)
+    m3 = SolarmanV5(server_side=True, client_mode=False)
     m3.close()
     del m3
     test1 = 0
@@ -1212,7 +1212,7 @@ def test_msg_iterator():
     assert test2 == 1
 
 def test_proxy_counter():
-    m = SolarmanV5(server_side=True)
+    m = SolarmanV5(server_side=True, client_mode=False)
     assert m.new_data == {}
     m.db.stat['proxy']['Unknown_Msg'] = 0
     Infos.new_stat_data['proxy'] =  False

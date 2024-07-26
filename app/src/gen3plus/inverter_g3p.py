@@ -45,8 +45,10 @@ class InverterG3P(Inverter, ConnectionG3P):
                  destroyed
     '''
 
-    def __init__(self, reader: StreamReader, writer: StreamWriter, addr):
-        super().__init__(reader, writer, addr, None, True)
+    def __init__(self, reader: StreamReader, writer: StreamWriter, addr,
+                 client_mode: bool = False):
+        super().__init__(reader, writer, addr, None,
+                         server_side=True, client_mode=client_mode)
         self.__ha_restarts = -1
 
     async def async_create_remote(self) -> None:
@@ -61,7 +63,8 @@ class InverterG3P(Inverter, ConnectionG3P):
             connect = asyncio.open_connection(host, port)
             reader, writer = await connect
             self.remoteStream = ConnectionG3P(reader, writer, addr, self,
-                                              False)
+                                              server_side=False,
+                                              client_mode=False)
             logging.info(f'[{self.remoteStream.node_id}:'
                          f'{self.remoteStream.conn_no}] '
                          f'Connected to {addr}')
