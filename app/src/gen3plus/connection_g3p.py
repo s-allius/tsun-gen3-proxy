@@ -11,9 +11,10 @@ class ConnectionG3P(AsyncStream, SolarmanV5):
 
     def __init__(self, reader: StreamReader, writer: StreamWriter,
                  addr, remote_stream: 'ConnectionG3P',
-                 server_side: bool) -> None:
+                 server_side: bool,
+                 client_mode: bool) -> None:
         AsyncStream.__init__(self, reader, writer, addr)
-        SolarmanV5.__init__(self, server_side)
+        SolarmanV5.__init__(self, server_side, client_mode)
 
         self.remoteStream: 'ConnectionG3P' = remote_stream
 

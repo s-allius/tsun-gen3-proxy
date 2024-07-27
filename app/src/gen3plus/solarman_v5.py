@@ -60,14 +60,14 @@ class SolarmanV5(Message):
     MB_CLIENT_DATA_UP = 30
     '''Data up time in client mode'''
 
-    def __init__(self, server_side: bool):
+    def __init__(self, server_side: bool, client_mode: bool):
         super().__init__(server_side, self.send_modbus_cb, mb_timeout=5)
 
         self.header_len = 11  # overwrite construcor in class Message
         self.control = 0
         self.seq = Sequence(server_side)
         self.snr = 0
-        self.db = InfosG3P()
+        self.db = InfosG3P(client_mode)
         self.time_ofs = 0
         self.forward_at_cmd_resp = False
         self.no_forwarding = False
@@ -135,6 +135,7 @@ class SolarmanV5(Message):
         self.node_id = 'G3P'  # will be overwritten in __set_serial_no
         self.mb_timer = Timer(self.mb_timout_cb, self.node_id)
         self.mb_timeout = self.MB_REGULAR_TIMEOUT
+        self.mb_start_timeout = self.MB_START_TIMEOUT
         '''timer value for next Modbus polling request'''
         self.modbus_polling = False
 
@@ -160,21 +161,18 @@ class SolarmanV5(Message):
         self.mb_timer.close()
         super().close()
 
-    async def send_start_cmd(self, snr: int, host: str):
+    async def send_start_cmd(self, snr: int, host: str,
+                             start_timeout=MB_CLIENT_DATA_UP):
         self.no_forwarding = True
         self.snr = snr
         self.__set_serial_no(snr)
-        self.mb_timeout = self.MB_CLIENT_DATA_UP
+        self.mb_timeout = start_timeout
         self.db.set_db_def_value(Register.IP_ADDRESS, host)
-        self.db.set_db_def_value(Register.DATA_UP_INTERVAL,
+        self.db.set_db_def_value(Register.POLLING_INTERVAL,
                                  self.mb_timeout)
         self.db.set_db_def_value(Register.HEARTBEAT_INTERVAL,
                                  120)  # fixme
         self.new_data['controller'] = True
-
-        self.__send_ack_rsp(0x1710, ftype=0)
-        await self.async_write('Send Start Command:')
-        self._send_buffer = bytearray(0)
 
         self.state = State.up
         self._send_modbus_cmd(Modbus.READ_REGS, 0x3000, 48, logging.DEBUG)
@@ -184,7 +182,9 @@ class SolarmanV5(Message):
         if self.state is not State.up:
             self.state = State.up
             if (self.modbus_polling):
-                self.mb_timer.start(self.MB_START_TIMEOUT)
+                self.mb_timer.start(self.mb_start_timeout)
+                self.db.set_db_def_value(Register.POLLING_INTERVAL,
+                                         self.mb_timeout)
 
     def __set_serial_no(self, snr: int):
         serial_no = str(snr)
@@ -577,7 +577,7 @@ class SolarmanV5(Message):
 
         self.__forward_msg()
 
-    def publish_mqtt(self, key, data):
+    def publish_mqtt(self, key, data):  # pragma: no cover
         asyncio.ensure_future(
             self.mqtt.publish(key, data))
 

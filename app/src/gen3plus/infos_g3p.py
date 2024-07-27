@@ -3,9 +3,9 @@ import struct
 from typing import Generator
 
 if __name__ == "app.src.gen3plus.infos_g3p":
-    from app.src.infos import Infos, Register
+    from app.src.infos import Infos, Register, ProxyMode
 else:  # pragma: no cover
-    from infos import Infos, Register
+    from infos import Infos, Register, ProxyMode
 
 
 class RegisterMap:
@@ -14,15 +14,15 @@ class RegisterMap:
     __slots__ = ()
     map = {
         # 0x41020007: {'reg': Register.DEVICE_SNR,           'fmt': '<L'},                 # noqa: E501
-        0x41020018: {'reg': Register.DATA_UP_INTERVAL,     'fmt': '<B', 'ratio':   60},  # noqa: E501
-        0x41020019: {'reg': Register.COLLECT_INTERVAL,     'fmt': '<B', 'eval': 'round(result/60)'},  # noqa: E501
+        0x41020018: {'reg': Register.DATA_UP_INTERVAL,     'fmt': '<B', 'ratio':   60, 'dep': ProxyMode.SERVER},  # noqa: E501
+        0x41020019: {'reg': Register.COLLECT_INTERVAL,     'fmt': '<B', 'eval': 'round(result/60)', 'dep': ProxyMode.SERVER},  # noqa: E501
         0x4102001a: {'reg': Register.HEARTBEAT_INTERVAL,   'fmt': '<B', 'ratio':    1},  # noqa: E501
-        0x4102001c: {'reg': Register.SIGNAL_STRENGTH,      'fmt': '<B', 'ratio':    1},  # noqa: E501
+        0x4102001c: {'reg': Register.SIGNAL_STRENGTH,      'fmt': '<B', 'ratio':    1, 'dep': ProxyMode.SERVER},  # noqa: E501
         0x4102001e: {'reg': Register.CHIP_MODEL,           'fmt': '!40s'},               # noqa: E501
         0x4102004c: {'reg': Register.IP_ADDRESS,           'fmt': '!16s'},               # noqa: E501
         0x41020064: {'reg': Register.COLLECTOR_FW_VERSION, 'fmt': '!40s'},               # noqa: E501
 
-        0x4201001c: {'reg': Register.POWER_ON_TIME,        'fmt': '<H', 'ratio':    1},  # noqa: E501
+        0x4201001c: {'reg': Register.POWER_ON_TIME,        'fmt': '<H', 'ratio':    1, 'dep': ProxyMode.SERVER},  # noqa: E501
         0x42010020: {'reg': Register.SERIAL_NUMBER,        'fmt': '!16s'},               # noqa: E501
         0x420100c0: {'reg': Register.INVERTER_STATUS,      'fmt': '!H'},                 # noqa: E501
         0x420100d0: {'reg': Register.VERSION,              'fmt': '!H', 'eval': "f'V{(result>>12)}.{(result>>8)&0xf}.{(result>>4)&0xf}{result&0xf}'"},  # noqa: E501
@@ -58,18 +58,29 @@ class RegisterMap:
         0x42010126: {'reg': Register.MAX_DESIGNED_POWER,   'fmt': '!H', 'ratio':    1},  # noqa: E501
 
         0xffffff01: {'reg': Register.OUTPUT_COEFFICIENT},
+        0xffffff02: {'reg': Register.POLLING_INTERVAL},
         # 0x4281001c: {'reg': Register.POWER_ON_TIME,        'fmt': '<H', 'ratio':    1},  # noqa: E501
 
     }
 
 
 class InfosG3P(Infos):
-    def __init__(self):
+    def __init__(self, client_mode: bool):
         super().__init__()
+        self.client_mode = client_mode
         self.set_db_def_value(Register.MANUFACTURER, 'TSUN')
         self.set_db_def_value(Register.EQUIPMENT_MODEL, 'TSOL-MSxx00')
         self.set_db_def_value(Register.CHIP_TYPE, 'IGEN TECH')
         self.set_db_def_value(Register.NO_INPUTS, 4)
+
+    def __hide_topic(self, row: dict) -> bool:
+        if 'dep' in row:
+            mode = row['dep']
+            if self.client_mode:
+                return mode != ProxyMode.CLIENT
+            else:
+                return mode != ProxyMode.SERVER
+        return False
 
     def ha_confs(self, ha_prfx: str, node_id: str, snr: str,
                  sug_area: str = '') \
@@ -85,7 +96,10 @@ class InfosG3P(Infos):
         # iterate over RegisterMap.map and get the register values
         for row in RegisterMap.map.values():
             info_id = row['reg']
-            res = self.ha_conf(info_id, ha_prfx, node_id, snr, False, sug_area)  # noqa: E501
+            if self.__hide_topic(row):
+                res = self.ha_remove(info_id, node_id, snr)  # noqa: E501
+            else:
+                res = self.ha_conf(info_id, ha_prfx, node_id, snr, False, sug_area)  # noqa: E501
             if res:
                 yield res
 

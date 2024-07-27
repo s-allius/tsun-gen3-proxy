@@ -73,6 +73,8 @@ class Talent(Message):
         self.modbus_elms = 0    # for unit tests
         self.node_id = 'G3'     # will be overwritten in __set_serial_no
         self.mb_timer = Timer(self.mb_timout_cb, self.node_id)
+        self.mb_timeout = self.MB_REGULAR_TIMEOUT
+        self.mb_start_timeout = self.MB_START_TIMEOUT
         self.modbus_polling = False
 
     '''
@@ -189,7 +191,7 @@ class Talent(Message):
         self._send_modbus_cmd(func, addr, val, log_lvl)
 
     def mb_timout_cb(self, exp_cnt):
-        self.mb_timer.start(self.MB_REGULAR_TIMEOUT)
+        self.mb_timer.start(self.mb_timeout)
 
         if 2 == (exp_cnt % 30):
             # logging.info("Regular Modbus Status request")
@@ -362,7 +364,10 @@ class Talent(Message):
             if self.data_len == 0:
                 self.state = State.pend     # block MODBUS cmds
                 if (self.modbus_polling):
-                    self.mb_timer.start(self.MB_START_TIMEOUT)
+                    self.mb_timer.start(self.mb_start_timeout)
+                    self.db.set_db_def_value(Register.POLLING_INTERVAL,
+                                             self.mb_timeout)
+
                 ts = self._timestamp()
                 logger.debug(f'time: {ts:08x}')
                 self.__build_header(0x91)

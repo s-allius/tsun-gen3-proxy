@@ -123,6 +123,30 @@ def test_table_definition():
     val = i.dev_value(Register.INTERNAL_ERROR)  # check internal error counter
     assert val == 3
 
+def test_table_remove():
+    i = Infos()
+    i.static_init()                # initialize counter
+
+    val = i.dev_value(Register.INTERNAL_ERROR)  # check internal error counter
+    assert val == 0
+
+    # for d_json, comp, node_id, id in i.ha_confs(ha_prfx="tsun/", node_id="garagendach/", snr='123', sug_area = 'roof'):
+    #    pass
+    test = 0
+    for reg in Register:
+        res = i.ha_remove(reg, node_id="garagendach/", snr='123')  # noqa: E501
+        if reg == Register.INVERTER_STATUS:
+            test += 1
+            assert res == ('{}', 'sensor', 'garagendach/', 'inv_status_123')
+        elif reg == Register.COLLECT_INTERVAL:
+            test += 1
+            assert res == ('{}', 'sensor', 'garagendach/', 'data_collect_intval_123')
+
+    assert test == 2
+    val = i.dev_value(Register.INTERNAL_ERROR)  # check internal error counter
+    assert val == 0
+
+
 def test_clr_at_midnight():
     i = Infos()
     i.static_init()                # initialize counter

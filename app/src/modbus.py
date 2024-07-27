@@ -113,7 +113,7 @@ class Modbus():
         self.__stop_timer()
         self.rsp_handler = None
         self.snd_handler = None
-        while not self.que.empty:
+        while not self.que.empty():
             self.que.get_nowait()
 
     def __del__(self):

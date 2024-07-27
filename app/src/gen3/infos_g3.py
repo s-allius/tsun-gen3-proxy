@@ -33,6 +33,7 @@ class RegisterMap:
         0xffffff08: Register.MAX_DESIGNED_POWER,
         0xffffff09: Register.OUTPUT_COEFFICIENT,
         0xffffff0a: Register.INVERTER_STATUS,
+        0xffffff0b: Register.POLLING_INTERVAL,
         0xfffffffe: Register.TEST_REG1,
         0xffffffff: Register.TEST_REG2,
         0x00000640: Register.OUTPUT_POWER,

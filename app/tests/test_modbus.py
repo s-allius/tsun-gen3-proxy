@@ -383,3 +383,16 @@ def test_recv_unknown_data():
     assert not mb.req_pend
 
     del mb.map[0x9000]
+
+def test_close():
+    '''Check queue handling for build_msg() calls'''
+    mb = ModbusTestHelper()
+    mb.build_msg(1,3,0x3007,6)
+    mb.build_msg(1,6,0x2008,4)
+    assert mb.que.qsize() == 1
+    mb.build_msg(1,3,0x3007,6)
+    assert mb.que.qsize() == 2
+    assert mb.que.empty() == False 
+    mb.close()
+    assert mb.que.qsize() == 0
+    assert mb.que.empty() == True 
