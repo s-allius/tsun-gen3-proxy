@@ -203,10 +203,10 @@ class Infos:
     __info_defs = {
         # collector values used for device registration:
         Register.COLLECTOR_FW_VERSION:  {'name': ['collector', 'Collector_Fw_Version'],       'level': logging.INFO,  'unit': ''},  # noqa: E501
-        Register.CHIP_TYPE:  {'name': ['collector', 'Chip_Type'],                  'level': logging.DEBUG, 'unit': ''},  # noqa: E501
-        Register.CHIP_MODEL: {'name': ['collector', 'Chip_Model'],                 'level': logging.DEBUG, 'unit': ''},  # noqa: E501
-        Register.TRACE_URL:  {'name': ['collector', 'Trace_URL'],                  'level': logging.DEBUG, 'unit': ''},  # noqa: E501
-        Register.LOGGER_URL: {'name': ['collector', 'Logger_URL'],                 'level': logging.DEBUG, 'unit': ''},  # noqa: E501
+        Register.CHIP_TYPE:  {'name': ['collector', 'Chip_Type'],        'singleton': False,  'level': logging.DEBUG, 'unit': ''},  # noqa: E501
+        Register.CHIP_MODEL: {'name': ['collector', 'Chip_Model'],       'singleton': False,  'level': logging.DEBUG, 'unit': ''},  # noqa: E501
+        Register.TRACE_URL:  {'name': ['collector', 'Trace_URL'],        'singleton': False,  'level': logging.DEBUG, 'unit': ''},  # noqa: E501
+        Register.LOGGER_URL: {'name': ['collector', 'Logger_URL'],       'singleton': False,  'level': logging.DEBUG, 'unit': ''},  # noqa: E501
 
         # inverter values used for device registration:
         Register.PRODUCT_NAME:    {'name': ['inverter', 'Product_Name'],           'level': logging.DEBUG, 'unit': ''},  # noqa: E501
@@ -270,7 +270,7 @@ class Infos:
         Register.GRID_FREQUENCY:  {'name': ['grid', 'Frequency'],                  'level': logging.DEBUG, 'unit': 'Hz',   'ha': {'dev': 'inverter', 'dev_cla': 'frequency',   'stat_cla': 'measurement', 'id': 'out_freq_',  'fmt': '| float', 'name': 'Grid Frequency', 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.OUTPUT_POWER:    {'name': ['grid', 'Output_Power'],               'level': logging.INFO,  'unit': 'W',    'ha': {'dev': 'inverter', 'dev_cla': 'power',       'stat_cla': 'measurement', 'id': 'out_power_', 'fmt': '| float', 'name': 'Power'}},  # noqa: E501
         Register.INVERTER_TEMP:   {'name': ['env',  'Inverter_Temp'],              'level': logging.DEBUG, 'unit': '°C',   'ha': {'dev': 'inverter', 'dev_cla': 'temperature', 'stat_cla': 'measurement', 'id': 'temp_',       'fmt': '| int', 'name': 'Temperature'}},  # noqa: E501
-        Register.INVERTER_STATUS: {'name': ['env',  'Inverter_Status'],            'level': logging.INFO,  'unit': '',     'ha': {'dev': 'inverter', 'comp': 'sensor', 'dev_cla': None, 'stat_cla': None, 'id': 'inv_status_', 'name': 'Inverter Status', 'val_tpl': __status_type_val_tpl,          'icon': 'mdi:counter'}},  # noqa: E501
+        Register.INVERTER_STATUS: {'name': ['env',  'Inverter_Status'],            'level': logging.INFO,  'unit': '',     'ha': {'dev': 'inverter', 'comp': 'sensor', 'dev_cla': None, 'stat_cla': None, 'id': 'inv_status_', 'name': 'Inverter Status', 'val_tpl': __status_type_val_tpl,          'icon': 'mdi:power'}},  # noqa: E501
 
         # input measures:
         Register.PV1_VOLTAGE:  {'name': ['input', 'pv1', 'Voltage'],               'level': logging.DEBUG, 'unit': 'V',    'ha': {'dev': 'input_pv1', 'dev_cla': 'voltage', 'stat_cla': 'measurement', 'id': 'volt_pv1_',  'val_tpl': "{{ (value_json['pv1']['Voltage'] | float)}}", 'icon': 'mdi:gauge', 'ent_cat': 'diagnostic'}},  # noqa: E501
