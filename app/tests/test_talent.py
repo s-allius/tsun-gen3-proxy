@@ -26,9 +26,9 @@ class MemoryStream(Talent):
     def __init__(self, msg, chunks = (0,), server_side: bool = True):
         super().__init__(server_side)
         if server_side:
-            self.mb.timeout = 1   # overwrite for faster testing
-        self.mb_start_timeout = 1
-        self.mb_timeout = 1
+            self.mb.timeout = 0.4   # overwrite for faster testing
+        self.mb_start_timeout = 0.5
+        self.mb_timeout = 0.5
         self.writer = Writer()
         self.__msg = msg
         self.__msg_len = len(msg)
@@ -1474,18 +1474,18 @@ async def test_modbus_polling(ConfigTsunInv1, MsgGetTime):
 
     m._send_buffer = bytearray(0) # clear send buffer for next test
     m.state = State.up
-    assert m.mb_timeout == 1
+    assert m.mb_timeout == 0.5
     assert next(m.mb_timer.exp_count) == 0
     
-    await asyncio.sleep(1.2)
+    await asyncio.sleep(0.5)
     assert m.writer.sent_pdu==b'\x00\x00\x00 \x10R170000000000001pw\x00\x01\xa3(\x08\x01\x030\x00\x000J\xde'
     assert m._send_buffer==b''
     
-    await asyncio.sleep(1)
+    await asyncio.sleep(0.5)
     assert m.writer.sent_pdu==b'\x00\x00\x00 \x10R170000000000001pw\x00\x01\xa3(\x08\x01\x030\x00\x000J\xde'
     assert m._send_buffer==b''
     
-    await asyncio.sleep(1)
+    await asyncio.sleep(0.5)
     assert m.writer.sent_pdu==b'\x00\x00\x00 \x10R170000000000001pw\x00\x01\xa3(\x08\x01\x03\x20\x00\x00`N"'
     assert m._send_buffer==b''
     assert next(m.mb_timer.exp_count) == 4

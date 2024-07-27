@@ -3,7 +3,6 @@ import struct
 import time
 import asyncio
 import logging
-from datetime import datetime
 from app.src.gen3plus.solarman_v5 import SolarmanV5
 from app.src.config import Config
 from app.src.infos import Infos, Register
@@ -41,9 +40,9 @@ class MemoryStream(SolarmanV5):
     def __init__(self, msg, chunks = (0,), server_side: bool = True):
         super().__init__(server_side, client_mode=False)
         if server_side:
-            self.mb.timeout = 1   # overwrite for faster testing
-        self.mb_start_timeout = 1
-        self.mb_timeout = 1
+            self.mb.timeout = 0.4   # overwrite for faster testing
+        self.mb_start_timeout = 0.5
+        self.mb_timeout = 0.5
         self.writer = Writer()
         self.mqtt = Mqtt()
         self.__msg = msg
@@ -1740,19 +1739,19 @@ async def test_modbus_polling(ConfigTsunInv1, HeartbeatIndMsg, HeartbeatRspMsg):
 
     m._send_buffer = bytearray(0) # clear send buffer for next test
     assert m.state == State.up
-    assert m.mb_timeout == 1
+    assert m.mb_timeout == 0.5
     assert next(m.mb_timer.exp_count) == 0
     
-    await asyncio.sleep(1.2)
+    await asyncio.sleep(0.5)
     assert m.writer.sent_pdu==bytearray(b'\xa5\x17\x00\x10E\x12\x84!Ce{\x02\xb0\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x03\x30\x00\x000J\xde\x86\x15')
     assert m._send_buffer==b''
     
-    await asyncio.sleep(1)
+    await asyncio.sleep(0.5)
     assert m.writer.sent_pdu==bytearray(b'\xa5\x17\x00\x10E\x13\x84!Ce{\x02\xb0\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x03\x30\x00\x000J\xde\x87\x15')
     assert m._send_buffer==b''
     m.state = State.closed
     m.writer.sent_pdu = bytearray()
-    await asyncio.sleep(1)
+    await asyncio.sleep(0.5)
     assert m.writer.sent_pdu==bytearray(b'')
     assert m._send_buffer==b''
     assert next(m.mb_timer.exp_count) == 4
@@ -1767,24 +1766,24 @@ async def test_start_client_mode(ConfigTsunInv1):
     assert m.no_forwarding == False
     assert m.mb_timer.tim == None
     assert asyncio.get_running_loop() == m.mb_timer.loop
-    await m.send_start_cmd(get_sn_int(), '192.168.1.1', m.mb_timeout)
+    await m.send_start_cmd(get_sn_int(), '192.168.1.1', m.mb_start_timeout)
     assert m.writer.sent_pdu==bytearray(b'\xa5\x17\x00\x10E\x01\x00!Ce{\x02\xb0\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x030\x00\x000J\xde\xf1\x15')
     assert m.db.get_db_value(Register.IP_ADDRESS) == '192.168.1.1'
-    assert m.db.get_db_value(Register.POLLING_INTERVAL) == 1
+    assert m.db.get_db_value(Register.POLLING_INTERVAL) == 0.5
     assert m.db.get_db_value(Register.HEARTBEAT_INTERVAL) == 120
 
     assert m.state == State.up
     assert m.no_forwarding == True
 
     assert m._send_buffer==b''
-    assert m.mb_timeout == 1
+    assert m.mb_timeout == 0.5
     assert next(m.mb_timer.exp_count) == 0
     
-    await asyncio.sleep(1.2)
+    await asyncio.sleep(0.5)
     assert m.writer.sent_pdu==bytearray(b'\xa5\x17\x00\x10E\x02\x00!Ce{\x02\xb0\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x030\x00\x000J\xde\xf2\x15')
     assert m._send_buffer==b''
     
-    await asyncio.sleep(1)
+    await asyncio.sleep(0.5)
     assert m.writer.sent_pdu==bytearray(b'\xa5\x17\x00\x10E\x03\x00!Ce{\x02\xb0\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x030\x00\x000J\xde\xf3\x15')
     assert m._send_buffer==b''
     assert next(m.mb_timer.exp_count) == 3
