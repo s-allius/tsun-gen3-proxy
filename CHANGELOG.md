@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+- bump aiomqtt to version 2.2.0
+- bump schema to version 0.7.7
 - Home Assistant: improve inverter status value texts
 - GEN3: add inverter status
 - fix flapping registers [#128](https://github.com/s-allius/tsun-gen3-proxy/issues/128)
