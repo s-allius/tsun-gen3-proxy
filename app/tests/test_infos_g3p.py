@@ -163,6 +163,76 @@ def test_build_ha_conf1():
 
     assert tests==8
 
+def test_build_ha_conf2():
+    i = InfosG3P(client_mode=True)
+    i.static_init()                # initialize counter
+
+    tests = 0
+    for d_json, comp, node_id, id in i.ha_confs(ha_prfx="tsun/", node_id="garagendach/", snr='123'):
+
+        if id == 'out_power_123':
+            assert comp == 'sensor'
+            assert  d_json == json.dumps({"name": "Power", "stat_t": "tsun/garagendach/grid", "dev_cla": "power", "stat_cla": "measurement", "uniq_id": "out_power_123", "val_tpl": "{{value_json['Output_Power'] | float}}", "unit_of_meas": "W", "dev": {"name": "Micro Inverter", "sa": "Micro Inverter", "via_device": "controller_123", "mdl": "TSOL-MSxx00", "mf": "TSUN", "ids": ["inverter_123"]}, "o": {"name": "proxy", "sw": "unknown"}})
+            tests +=1
+
+        elif id == 'daily_gen_123':
+            assert comp == 'sensor'
+            assert  d_json == json.dumps({"name": "Daily Generation", "stat_t": "tsun/garagendach/total", "dev_cla": "energy", "stat_cla": "total_increasing", "uniq_id": "daily_gen_123", "val_tpl": "{{value_json['Daily_Generation'] | float}}", "unit_of_meas": "kWh", "ic": "mdi:solar-power-variant", "dev": {"name": "Micro Inverter", "sa": "Micro Inverter", "via_device": "controller_123", "mdl": "TSOL-MSxx00", "mf": "TSUN", "ids": ["inverter_123"]}, "o": {"name": "proxy", "sw": "unknown"}})
+            tests +=1
+
+        elif id == 'power_pv1_123':
+            assert comp == 'sensor'
+            assert  d_json == json.dumps({"name": "Power", "stat_t": "tsun/garagendach/input", "dev_cla": "power", "stat_cla": "measurement", "uniq_id": "power_pv1_123", "val_tpl": "{{ (value_json['pv1']['Power'] | float)}}", "unit_of_meas": "W", "dev": {"name": "Module PV1", "sa": "Module PV1", "via_device": "inverter_123", "ids": ["input_pv1_123"]}, "o": {"name": "proxy", "sw": "unknown"}})
+            tests +=1
+
+        elif id == 'power_pv2_123':
+            assert comp == 'sensor'
+            assert  d_json == json.dumps({"name": "Power", "stat_t": "tsun/garagendach/input", "dev_cla": "power", "stat_cla": "measurement", "uniq_id": "power_pv2_123", "val_tpl": "{{ (value_json['pv2']['Power'] | float)}}", "unit_of_meas": "W", "dev": {"name": "Module PV2", "sa": "Module PV2", "via_device": "inverter_123", "ids": ["input_pv2_123"]}, "o": {"name": "proxy", "sw": "unknown"}})
+            tests +=1
+
+        elif id == 'power_pv3_123':
+            assert comp == 'sensor'
+            assert  d_json == json.dumps({"name": "Power", "stat_t": "tsun/garagendach/input", "dev_cla": "power", "stat_cla": "measurement", "uniq_id": "power_pv3_123", "val_tpl": "{{ (value_json['pv3']['Power'] | float)}}", "unit_of_meas": "W", "dev": {"name": "Module PV3", "sa": "Module PV3", "via_device": "inverter_123", "ids": ["input_pv3_123"]}, "o": {"name": "proxy", "sw": "unknown"}})
+            tests +=1
+
+        elif id == 'power_pv4_123':
+            assert comp == 'sensor'
+            assert  d_json == json.dumps({"name": "Power", "stat_t": "tsun/garagendach/input", "dev_cla": "power", "stat_cla": "measurement", "uniq_id": "power_pv4_123", "val_tpl": "{{ (value_json['pv4']['Power'] | float)}}", "unit_of_meas": "W", "dev": {"name": "Module PV4", "sa": "Module PV4", "via_device": "inverter_123", "ids": ["input_pv4_123"]}, "o": {"name": "proxy", "sw": "unknown"}})
+            tests +=1
+
+        elif id == 'signal_123':
+            assert comp == 'sensor'
+            assert  d_json == json.dumps({})
+            tests +=1
+        elif id == 'inv_count_456':
+            assert False
+
+    assert tests==7
+
+
+    for d_json, comp, node_id, id in i.ha_proxy_confs(ha_prfx="tsun/", node_id = 'proxy/', snr = '456'):
+
+        if id == 'out_power_123':
+            assert False
+        elif id == 'daily_gen_123':
+            assert False
+        elif id == 'power_pv1_123':
+            assert False
+        elif id == 'power_pv2_123':
+            assert False
+        elif id == 'power_pv3_123':
+            assert False
+        elif id == 'power_pv4_123':
+            assert False
+        elif id == 'signal_123':
+            assert False
+        elif id == 'inv_count_456':
+            assert comp == 'sensor'
+            assert  d_json == json.dumps({"name": "Active Inverter Connections", "stat_t": "tsun/proxy/proxy", "dev_cla": None, "stat_cla": None, "uniq_id": "inv_count_456", "val_tpl": "{{value_json['Inverter_Cnt'] | int}}", "ic": "mdi:counter", "dev": {"name": "Proxy", "sa": "Proxy", "mdl": "proxy", "mf": "Stefan Allius", "sw": "unknown", "ids": ["proxy"]}, "o": {"name": "proxy", "sw": "unknown"}})
+            tests +=1
+
+    assert tests==8
+
 def test_exception_and_eval(InverterData: bytes):
 
     # add eval to convert temperature from °F to °C

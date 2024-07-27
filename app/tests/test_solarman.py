@@ -1,6 +1,7 @@
 import pytest
 import struct
 import time
+import asyncio
 import logging
 from datetime import datetime
 from app.src.gen3plus.solarman_v5 import SolarmanV5
@@ -41,6 +42,8 @@ class MemoryStream(SolarmanV5):
         super().__init__(server_side, client_mode=False)
         if server_side:
             self.mb.timeout = 1   # overwrite for faster testing
+        self.mb_start_timeout = 1
+        self.mb_timeout = 1
         self.writer = Writer()
         self.mqtt = Mqtt()
         self.__msg = msg
@@ -1020,6 +1023,25 @@ def test_heartbeat_ind(ConfigTsunInv1, HeartbeatIndMsg, HeartbeatRspMsg):
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
     m.close()
 
+def test_heartbeat_ind2(ConfigTsunInv1, HeartbeatIndMsg, HeartbeatRspMsg):
+    ConfigTsunInv1
+    m = MemoryStream(HeartbeatIndMsg, (0,))
+    m.no_forwarding = True
+    m.read()         # read complete msg, and dispatch msg
+    assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
+    assert m.msg_count == 1
+    assert m.header_len==11
+    assert m.snr == 2070233889
+    # assert m.unique_id == '2070233889'
+    assert m.control == 0x4710
+    assert str(m.seq) == '84:11'  # value after sending response
+    assert m.data_len == 0x01
+    assert m._recv_buffer==b''
+    assert m._send_buffer==HeartbeatRspMsg
+    assert m._forward_buffer==b''
+    assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
+    m.close()
+
 def test_heartbeat_rsp(ConfigTsunInv1, HeartbeatRspMsg):
     ConfigTsunInv1
     m = MemoryStream(HeartbeatRspMsg, (0,), False)
@@ -1693,6 +1715,81 @@ def test_msg_modbus_fragment(ConfigTsunInv1, MsgModbusRsp):
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
     assert m.db.stat['proxy']['Modbus_Command'] == 0
     m.close()
+
+@pytest.mark.asyncio
+async def test_modbus_polling(ConfigTsunInv1, HeartbeatIndMsg, HeartbeatRspMsg):
+    ConfigTsunInv1
+    assert asyncio.get_running_loop()
+    m = MemoryStream(HeartbeatIndMsg, (0,))
+    assert asyncio.get_running_loop() == m.mb_timer.loop
+    m.db.stat['proxy']['Unknown_Ctrl'] = 0
+    assert m.mb_timer.tim == None
+    m.read()         # read complete msg, and dispatch msg
+    assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
+    assert m.msg_count == 1
+    assert m.header_len==11
+    assert m.snr == 2070233889
+    # assert m.unique_id == '2070233889'
+    assert m.control == 0x4710
+    assert str(m.seq) == '84:11'  # value after sending response
+    assert m.data_len == 0x01
+    assert m._recv_buffer==b''
+    assert m._send_buffer==HeartbeatRspMsg
+    assert m._forward_buffer==HeartbeatIndMsg
+    assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
+
+    m._send_buffer = bytearray(0) # clear send buffer for next test
+    assert m.state == State.up
+    assert m.mb_timeout == 1
+    assert next(m.mb_timer.exp_count) == 0
+    
+    await asyncio.sleep(1.2)
+    assert m.writer.sent_pdu==bytearray(b'\xa5\x17\x00\x10E\x12\x84!Ce{\x02\xb0\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x03\x30\x00\x000J\xde\x86\x15')
+    assert m._send_buffer==b''
+    
+    await asyncio.sleep(1)
+    assert m.writer.sent_pdu==bytearray(b'\xa5\x17\x00\x10E\x13\x84!Ce{\x02\xb0\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x03\x30\x00\x000J\xde\x87\x15')
+    assert m._send_buffer==b''
+    m.state = State.closed
+    m.writer.sent_pdu = bytearray()
+    await asyncio.sleep(1)
+    assert m.writer.sent_pdu==bytearray(b'')
+    assert m._send_buffer==b''
+    assert next(m.mb_timer.exp_count) == 4
+    m.close()
+
+@pytest.mark.asyncio
+async def test_start_client_mode(ConfigTsunInv1):
+    ConfigTsunInv1
+    assert asyncio.get_running_loop()
+    m = MemoryStream(b'')
+    assert m.state == State.init
+    assert m.no_forwarding == False
+    assert m.mb_timer.tim == None
+    assert asyncio.get_running_loop() == m.mb_timer.loop
+    await m.send_start_cmd(get_sn_int(), '192.168.1.1', m.mb_timeout)
+    assert m.writer.sent_pdu==bytearray(b'\xa5\x17\x00\x10E\x01\x00!Ce{\x02\xb0\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x030\x00\x000J\xde\xf1\x15')
+    assert m.db.get_db_value(Register.IP_ADDRESS) == '192.168.1.1'
+    assert m.db.get_db_value(Register.POLLING_INTERVAL) == 1
+    assert m.db.get_db_value(Register.HEARTBEAT_INTERVAL) == 120
+
+    assert m.state == State.up
+    assert m.no_forwarding == True
+
+    assert m._send_buffer==b''
+    assert m.mb_timeout == 1
+    assert next(m.mb_timer.exp_count) == 0
+    
+    await asyncio.sleep(1.2)
+    assert m.writer.sent_pdu==bytearray(b'\xa5\x17\x00\x10E\x02\x00!Ce{\x02\xb0\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x030\x00\x000J\xde\xf2\x15')
+    assert m._send_buffer==b''
+    
+    await asyncio.sleep(1)
+    assert m.writer.sent_pdu==bytearray(b'\xa5\x17\x00\x10E\x03\x00!Ce{\x02\xb0\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x030\x00\x000J\xde\xf3\x15')
+    assert m._send_buffer==b''
+    assert next(m.mb_timer.exp_count) == 3
+    m.close()
+
 '''
 def test_zombie_conn(ConfigTsunInv1, MsgInverterInd):
     ConfigTsunInv1
