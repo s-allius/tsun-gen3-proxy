@@ -63,7 +63,6 @@ class MemoryStream(Talent):
         return copied_bytes
     
     def _timestamp(self):
-        # return 1700260990000
         return 1691246944000
 
     def _utc(self):
