@@ -1,7 +1,9 @@
 import struct
 import logging
 import time
+import pytz
 from datetime import datetime
+from tzlocal import get_localzone
 
 if __name__ == "app.src.gen3.talent":
     from app.src.messages import hex_dump_memory, Message, State
@@ -232,6 +234,8 @@ class Talent(Message):
         return switch.get(type, '???')
 
     def _timestamp(self):   # pragma: no cover
+        '''returns timestamp fo the inverter as localtime
+        since 1.1.1970 in msec'''
         if False:
             # utc as epoche
             ts = time.time()
@@ -239,6 +243,16 @@ class Talent(Message):
             # convert localtime in epoche
             ts = (datetime.now() - datetime(1970, 1, 1)).total_seconds()
         return round(ts*1000)
+
+    def _utcfromts(self, ts: float):
+        '''converts inverter timestamp into unix time (epoche)'''
+        dt = datetime.fromtimestamp(ts/1000, pytz.UTC). \
+            replace(tzinfo=get_localzone())
+        return dt.timestamp()
+
+    def _utc(self):
+        '''returns unix time (epoche)'''
+        return datetime.now().timestamp()
 
     def _update_header(self, _forward_buffer):
         '''update header for message before forwarding,
@@ -401,11 +415,12 @@ class Talent(Message):
         result = struct.unpack_from(f'!{id_len+1}pBq', self._recv_buffer,
                                     self.header_len + 4)
 
+        timestamp = result[2]
         logger.debug(f'ID: {result[0]}  B: {result[1]}')
-        logger.debug(f'time: {result[2]:08x}')
+        logger.debug(f'time: {timestamp:08x}')
         # logger.info(f'time: {datetime.utcfromtimestamp(result[2]).strftime(
         # "%Y-%m-%d %H:%M:%S")}')
-        return msg_hdr_len
+        return msg_hdr_len, timestamp
 
     def msg_collector_data(self):
         if self.ctrl.is_ind():
@@ -439,11 +454,12 @@ class Talent(Message):
         self.forward(self._recv_buffer, self.header_len+self.data_len)
 
     def __process_data(self):
-        msg_hdr_len = self.parse_msg_header()
+        msg_hdr_len, ts = self.parse_msg_header()
 
         for key, update in self.db.parse(self._recv_buffer, self.header_len
                                          + msg_hdr_len, self.node_id):
             if update:
+                self._set_mqtt_timestamp(key, self._utcfromts(ts))
                 self.new_data[key] = True
 
     def msg_ota_update(self):
@@ -499,6 +515,7 @@ class Talent(Message):
                     hdr_len:],
                     self.node_id):
                 if update:
+                    self._set_mqtt_timestamp(key, self._utc())
                     self.new_data[key] = True
                 self.modbus_elms += 1          # count for unit tests
         else:

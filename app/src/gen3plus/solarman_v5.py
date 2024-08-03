@@ -481,7 +481,7 @@ class SolarmanV5(Message):
             logger.info(f'Model: {Model}')
             self.db.set_db_def_value(Register.EQUIPMENT_MODEL, Model)
 
-    def __process_data(self, ftype):
+    def __process_data(self, ftype, ts):
         inv_update = False
         msg_type = self.control >> 8
         for key, update in self.db.parse(self._recv_buffer, msg_type, ftype,
@@ -489,6 +489,7 @@ class SolarmanV5(Message):
             if update:
                 if key == 'inverter':
                     inv_update = True
+                self._set_mqtt_timestamp(key, ts)
                 self.new_data[key] = True
 
         if inv_update:
@@ -505,16 +506,18 @@ class SolarmanV5(Message):
         data = self._recv_buffer[self.header_len:]
         result = struct.unpack_from('<BLLL', data, 0)
         ftype = result[0]  # always 2
-        # total = result[1]
+        total = result[1]
         tim = result[2]
         res = result[3]  # always zero
         logger.info(f'frame type:{ftype:02x}'
                     f' timer:{tim:08x}s  null:{res}')
-        # if self.time_ofs:
-        #     dt = datetime.fromtimestamp(total + self.time_ofs)
-        #     logger.info(f'ts: {dt.strftime("%Y-%m-%d %H:%M:%S")}')
-
-        self.__process_data(ftype)
+        if self.time_ofs:
+            #     dt = datetime.fromtimestamp(total + self.time_ofs)
+            #     logger.info(f'ts: {dt.strftime("%Y-%m-%d %H:%M:%S")}')
+            ts = total + self.time_ofs
+        else:
+            ts = None
+        self.__process_data(ftype, ts)
         self.__forward_msg()
         self.__send_ack_rsp(0x1110, ftype)
 
@@ -522,7 +525,7 @@ class SolarmanV5(Message):
         data = self._recv_buffer
         result = struct.unpack_from('<BHLLLHL', data, self.header_len)
         ftype = result[0]  # 1 or 0x81
-        # total = result[2]
+        total = result[2]
         tim = result[3]
         if 1 == ftype:
             self.time_ofs = result[4]
@@ -530,11 +533,14 @@ class SolarmanV5(Message):
         cnt = result[6]
         logger.info(f'ftype:{ftype:02x} timer:{tim:08x}s'
                     f' ??: {unkn:04x} cnt:{cnt}')
-        # if self.time_ofs:
-        #     dt = datetime.fromtimestamp(total + self.time_ofs)
-        #     logger.info(f'ts: {dt.strftime("%Y-%m-%d %H:%M:%S")}')
+        if self.time_ofs:
+            #     dt = datetime.fromtimestamp(total + self.time_ofs)
+            #     logger.info(f'ts: {dt.strftime("%Y-%m-%d %H:%M:%S")}')
+            ts = total + self.time_ofs
+        else:
+            ts = None
 
-        self.__process_data(ftype)
+        self.__process_data(ftype, ts)
         self.__forward_msg()
         self.__send_ack_rsp(0x1210, ftype)
         self.new_state_up()
@@ -620,6 +626,7 @@ class SolarmanV5(Message):
                     if update:
                         if key == 'inverter':
                             inv_update = True
+                        self._set_mqtt_timestamp(key, self._timestamp())
                         self.new_data[key] = True
 
                 if inv_update:
