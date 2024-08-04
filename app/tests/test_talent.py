@@ -39,6 +39,7 @@ class MemoryStream(Talent):
         self.addr = 'Test: SrvSide'
         self.send_msg_ofs = 0
         self.test_exception_async_write = False
+        self.msg_recvd = []
 
     def append_msg(self, msg):
         self.__msg += msg
@@ -63,8 +64,10 @@ class MemoryStream(Talent):
         return copied_bytes
     
     def _timestamp(self):
-        # return 1700260990000
         return 1691246944000
+
+    def _utc(self):
+        return 1691239744.0
     
     def createClientStream(self, msg, chunks = (0,)):
         c = MemoryStream(msg, chunks, False)
@@ -73,7 +76,17 @@ class MemoryStream(Talent):
         return c
 
     def _Talent__flush_recv_msg(self) -> None:
+        self.msg_recvd.append(
+            {
+                'ctrl': int(self.ctrl),
+                'msg_id': self.msg_id,
+                'header_len': self.header_len,
+                'data_len': self.data_len
+            }
+        )
+
         super()._Talent__flush_recv_msg()
+
         self.msg_count += 1
         return
     
@@ -171,6 +184,43 @@ def MsgInverterIndTsOffs(): # Data indication from the controller + offset 256
     msg +=  b'\x01\x00\x00\x01\x89\xc6\x63\x62\x08'
     msg +=  b'\x00\x00\x00\x06\x00\x00\x00\x0a\x54\x08\x4d\x69\x63\x72\x6f\x69\x6e\x76\x00\x00\x00\x14\x54\x04\x54\x53\x55\x4e\x00\x00\x00\x1E\x54\x07\x56\x35\x2e\x30\x2e\x31\x31\x00\x00\x00\x28'
     msg +=  b'\x54\x10T170000000000001\x00\x00\x00\x32\x54\x0a\x54\x53\x4f\x4c\x2d\x4d\x53\x36\x30\x30\x00\x00\x00\x3c\x54\x05\x41\x2c\x42\x2c\x43'
+    return msg
+
+@pytest.fixture
+def MsgInverterInd2(): # Data indication from the controller
+    msg  =  b'\x00\x00\x05\x02\x10R170000000000001\x91\x04\x01\x90\x00\x01\x10R170000000000001'
+    msg +=  b'\x01\x00\x00\x01\x89\xc6\x63\x61\x08'
+    msg +=  b'\x00\x00\x00\xa3\x00\x00\x00\x64\x53\x00\x01\x00\x00\x00\xc8\x53\x00\x02\x00\x00\x01\x2c\x53\x00\x00\x00\x00\x01\x90\x49\x00\x00\x00\x00\x00\x00\x01\x91\x53\x00\x00'
+    msg +=  b'\x00\x00\x01\x92\x53\x00\x00\x00\x00\x01\x93\x53\x00\x00\x00\x00\x01\x94\x53\x00\x00\x00\x00\x01\x95\x53\x00\x00\x00\x00\x01\x96\x53\x00\x00\x00\x00\x01\x97\x53\x00'
+    msg +=  b'\x00\x00\x00\x01\x98\x53\x00\x00\x00\x00\x01\x99\x53\x00\x00\x00\x00\x01\x9a\x53\x00\x00\x00\x00\x01\x9b\x53\x00\x00\x00\x00\x01\x9c\x53\x00\x00\x00\x00\x01\x9d\x53'
+    msg +=  b'\x00\x00\x00\x00\x01\x9e\x53\x00\x00\x00\x00\x01\x9f\x53\x00\x00\x00\x00\x01\xa0\x53\x00\x00\x00\x00\x01\xf4\x49\x00\x00\x00\x00\x00\x00\x01\xf5\x53\x00\x00\x00\x00'
+    msg +=  b'\x01\xf6\x53\x00\x00\x00\x00\x01\xf7\x53\x00\x00\x00\x00\x01\xf8\x53\x00\x00\x00\x00\x01\xf9\x53\x00\x00\x00\x00\x01\xfa\x53\x00\x00\x00\x00\x01\xfb\x53\x00\x00\x00'
+    msg +=  b'\x00\x01\xfc\x53\x00\x00\x00\x00\x01\xfd\x53\x00\x00\x00\x00\x01\xfe\x53\x00\x00\x00\x00\x01\xff\x53\x00\x00\x00\x00\x02\x00\x53\x00\x00\x00\x00\x02\x01\x53\x00\x00'
+    msg +=  b'\x00\x00\x02\x02\x53\x00\x00\x00\x00\x02\x03\x53\x00\x00\x00\x00\x02\x04\x53\x00\x00\x00\x00\x02\x58\x49\x00\x00\x00\x00\x00\x00\x02\x59\x53\x00\x00\x00\x00\x02\x5a'
+    msg +=  b'\x53\x00\x00\x00\x00\x02\x5b\x53\x00\x00\x00\x00\x02\x5c\x53\x00\x00\x00\x00\x02\x5d\x53\x00\x00\x00\x00\x02\x5e\x53\x00\x00\x00\x00\x02\x5f\x53\x00\x00\x00\x00\x02'
+    msg +=  b'\x60\x53\x00\x00\x00\x00\x02\x61\x53\x00\x00\x00\x00\x02\x62\x53\x00\x00\x00\x00\x02\x63\x53\x00\x00\x00\x00\x02\x64\x53\x00\x00\x00\x00\x02\x65\x53\x00\x00\x00\x00'
+    msg +=  b'\x02\x66\x53\x00\x00\x00\x00\x02\x67\x53\x00\x00\x00\x00\x02\x68\x53\x00\x00\x00\x00\x02\xbc\x49\x00\x00\x00\x00\x00\x00\x02\xbd\x53\x00\x00\x00\x00\x02\xbe\x53\x00'
+    msg +=  b'\x00\x00\x00\x02\xbf\x53\x00\x00\x00\x00\x02\xc0\x53\x00\x00\x00\x00\x02\xc1\x53\x00\x00\x00\x00\x02\xc2\x53\x00\x00\x00\x00\x02\xc3\x53\x00\x00\x00\x00\x02\xc4\x53'
+    msg +=  b'\x00\x00\x00\x00\x02\xc5\x53\x00\x00\x00\x00\x02\xc6\x53\x00\x00\x00\x00\x02\xc7\x53\x00\x00\x00\x00\x02\xc8\x53\x00\x00\x00\x00\x02\xc9\x53\x00\x00\x00\x00\x02\xca'
+    msg +=  b'\x53\x00\x00\x00\x00\x02\xcb\x53\x00\x00\x00\x00\x02\xcc\x53\x00\x00\x00\x00\x03\x20\x53\x00\x00\x00\x00\x03\x84\x53\x50\x11\x00\x00\x03\xe8\x46\x43\x61\x66\x66\x00'
+    msg +=  b'\x00\x04\x4c\x46\x3e\xeb\x85\x1f\x00\x00\x04\xb0\x46\x42\x48\x14\x7b\x00\x00\x05\x14\x53\x00\x17\x00\x00\x05\x78\x53\x00\x00\x00\x00\x05\xdc\x53\x02\x58\x00\x00\x06'
+    msg +=  b'\x40\x46\x42\xd3\x66\x66\x00\x00\x06\xa4\x46\x42\x06\x66\x66\x00\x00\x07\x08\x46\x3f\xf4\x7a\xe1\x00\x00\x07\x6c\x46\x42\x81\x00\x00\x00\x00\x07\xd0\x46\x42\x06\x00'
+    msg +=  b'\x00\x00\x00\x08\x34\x46\x3f\xae\x14\x7b\x00\x00\x08\x98\x46\x42\x36\xcc\xcd\x00\x00\x08\xfc\x46\x00\x00\x00\x00\x00\x00\x09\x60\x46\x00\x00\x00\x00\x00\x00\x09\xc4'
+    msg +=  b'\x46\x00\x00\x00\x00\x00\x00\x0a\x28\x46\x00\x00\x00\x00\x00\x00\x0a\x8c\x46\x00\x00\x00\x00\x00\x00\x0a\xf0\x46\x00\x00\x00\x00\x00\x00\x0b\x54\x46\x3f\xd9\x99\x9a'
+    msg +=  b'\x00\x00\x0b\xb8\x46\x41\x8a\xe1\x48\x00\x00\x0c\x1c\x46\x3f\x8a\x3d\x71\x00\x00\x0c\x80\x46\x41\x1b\xd7\x0a\x00\x00\x0c\xe4\x46\x3f\x1e\xb8\x52\x00\x00\x0d\x48\x46'
+    msg +=  b'\x40\xf3\xd7\x0a\x00\x00\x0d\xac\x46\x00\x00\x00\x00\x00\x00\x0e\x10\x46\x00\x00\x00\x00\x00\x00\x0e\x74\x46\x00\x00\x00\x00\x00\x00\x0e\xd8\x46\x00\x00\x00\x00\x00'
+    msg +=  b'\x00\x0f\x3c\x53\x00\x00\x00\x00\x0f\xa0\x53\x00\x00\x00\x00\x10\x04\x53\x55\xaa\x00\x00\x10\x68\x53\x00\x00\x00\x00\x10\xcc\x53\x00\x00\x00\x00\x11\x30\x53\x00\x00'
+    msg +=  b'\x00\x00\x11\x94\x53\x00\x00\x00\x00\x11\xf8\x53\xff\xff\x00\x00\x12\x5c\x53\xff\xff\x00\x00\x12\xc0\x53\x00\x02\x00\x00\x13\x24\x53\xff\xff\x00\x00\x13\x88\x53\xff'
+    msg +=  b'\xff\x00\x00\x13\xec\x53\xff\xff\x00\x00\x14\x50\x53\xff\xff\x00\x00\x14\xb4\x53\xff\xff\x00\x00\x15\x18\x53\xff\xff\x00\x00\x15\x7c\x53\x00\x00\x00\x00\x27\x10\x53'
+    msg +=  b'\x00\x02\x00\x00\x27\x74\x53\x00\x3c\x00\x00\x27\xd8\x53\x00\x68\x00\x00\x28\x3c\x53\x05\x00\x00\x00\x28\xa0\x46\x43\x79\x00\x00\x00\x00\x29\x04\x46\x43\x48\x00\x00'
+    msg +=  b'\x00\x00\x29\x68\x46\x42\x48\x33\x33\x00\x00\x29\xcc\x46\x42\x3e\x3d\x71\x00\x00\x2a\x30\x53\x00\x01\x00\x00\x2a\x94\x46\x43\x37\x00\x00\x00\x00\x2a\xf8\x46\x42\xce'
+    msg +=  b'\x00\x00\x00\x00\x2b\x5c\x53\x00\x96\x00\x00\x2b\xc0\x53\x00\x10\x00\x00\x2c\x24\x46\x43\x90\x00\x00\x00\x00\x2c\x88\x46\x43\x95\x00\x00\x00\x00\x2c\xec\x53\x00\x06'
+    msg +=  b'\x00\x00\x2d\x50\x53\x00\x06\x00\x00\x2d\xb4\x46\x43\x7d\x00\x00\x00\x00\x2e\x18\x46\x42\x3d\xeb\x85\x00\x00\x2e\x7c\x46\x42\x3d\xeb\x85\x00\x00\x2e\xe0\x53\x00\x03'
+    msg +=  b'\x00\x00\x2f\x44\x53\x00\x03\x00\x00\x2f\xa8\x46\x42\x4d\xeb\x85\x00\x00\x30\x0c\x46\x42\x4d\xeb\x85\x00\x00\x30\x70\x53\x00\x03\x00\x00\x30\xd4\x53\x00\x03\x00\x00'
+    msg +=  b'\x31\x38\x46\x42\x08\x00\x00\x00\x00\x31\x9c\x53\x00\x05\x00\x00\x32\x00\x53\x04\x00\x00\x00\x32\x64\x53\x00\x01\x00\x00\x32\xc8\x53\x13\x9c\x00\x00\x33\x2c\x53\x0f'
+    msg +=  b'\xa0\x00\x00\x33\x90\x53\x00\x4f\x00\x00\x33\xf4\x53\x00\x66\x00\x00\x34\x58\x53\x03\xe8\x00\x00\x34\xbc\x53\x04\x00\x00\x00\x35\x20\x53\x00\x00\x00\x00\x35\x84\x53'
+    msg +=  b'\x00\x00\x00\x00\x35\xe8\x53\x00\x00\x00\x00\x36\x4c\x53\x00\x00\x00\x01\x38\x80\x53\x00\x02\x00\x01\x38\x81\x53\x00\x01\x00\x01\x38\x82\x53\x00\x01\x00\x01\x38\x83'
+    msg +=  b'\x53\x00\x00'  
     return msg
 
 @pytest.fixture
@@ -392,6 +442,90 @@ def MsgModbusResp21():
     msg += b'\x00\x00\x00\x00\x00\x00\x00\xe6\xef'
     return msg
 
+@pytest.fixture
+def BrokenRecvBuf(): # There are two message in the buffer, but the second has overwritten the first partly
+    msg  = b'\x00\x00\x05\x02\x10R170000000000001\x91\x04\x01\x90\x00\x01\x10R170000000000001'
+    msg += b'\x01\x00\x00\x01\x89\xc6\x63\x61\x08'
+    msg += b'\x00\x00\x00\xa3\x00\x00\x00\x64\x53\x00\x01'
+    msg += b'\x00\x00\x00\xc8\x53\x00\x00\x00\x00\x01\x2c\x53\x00\x02\x00\x00'
+    msg += b'\x01\x90\x49\x00\x00\x00\x00\x00\x00\x01\x91\x53\x00\x00\x00\x00'
+    msg += b'\x01\x92\x53\x00\x00\x00\x00\x01\x93\x53\x00\x00\x00\x00\x01\x94'
+    msg += b'\x53\x00\x00\x00\x00\x00\x05\x02\x10\x52\x31\x37\x45\x37\x33\x30'
+    msg += b'\x37\x30\x32\x31\x44\x30\x30\x36\x41\x91\x04\x01\x90\x00\x01\x10'
+    msg += b'\x54\x31\x37\x45\x37\x33\x30\x37\x30\x32\x31\x44\x30\x30\x36\x41'
+    msg += b'\x01\x00\x00\x01\x91\x1c\xe6\x80\xd0\x00\x00\x00\xa3\x00\x00\x00'
+    msg += b'\x64\x53\x00\x01\x00\x00\x00\xc8\x53\x00\x00\x00\x00\x01\x2c\x53'
+    msg += b'\x00\x02\x00\x00\x01\x90\x49\x00\x00\x00\x00\x00\x00\x01\x91\x53'
+    msg += b'\x00\x00\x00\x00\x01\x92\x53\x00\x00\x00\x00\x01\x93\x53\x00\x00'
+    msg += b'\x00\x00\x01\x94\x53\x00\x00\x00\x00\x01\x95\x53\x00\x00\x00\x00'
+    msg += b'\x01\x96\x53\x00\x00\x00\x00\x01\x97\x53\x00\x00\x00\x00\x01\x98'
+    msg += b'\x53\x00\x00\x00\x00\x01\x99\x53\x00\x00\x00\x00\x01\x9a\x53\x00'
+    msg += b'\x00\x00\x00\x01\x9b\x53\x00\x00\x00\x00\x01\x9c\x53\x00\x00\x00'
+    msg += b'\x00\x01\x9d\x53\x00\x00\x00\x00\x01\x9e\x53\x00\x00\x00\x00\x01'
+    msg += b'\x9f\x53\x00\x00\x00\x00\x01\xa0\x53\x00\x00\x00\x00\x01\xf4\x49'
+    msg += b'\x00\x00\x00\x00\x00\x00\x01\xf5\x53\x00\x00\x00\x00\x01\xf6\x53'
+    msg += b'\x00\x00\x00\x00\x01\xf7\x53\x00\x00\x00\x00\x01\xf8\x53\x00\x00'
+    msg += b'\x00\x00\x01\xf9\x53\x00\x00\x00\x00\x01\xfa\x53\x00\x00\x00\x00'
+    msg += b'\x01\xfb\x53\x00\x00\x00\x00\x01\xfc\x53\x00\x00\x00\x00\x01\xfd'
+    msg += b'\x53\x00\x00\x00\x00\x01\xfe\x53\x00\x00\x00\x00\x01\xff\x53\x00'
+    msg += b'\x00\x00\x00\x02\x00\x53\x00\x00\x00\x00\x02\x01\x53\x00\x00\x00'
+    msg += b'\x00\x02\x02\x53\x00\x00\x00\x00\x02\x03\x53\x00\x00\x00\x00\x02'
+    msg += b'\x04\x53\x00\x00\x00\x00\x02\x58\x49\x00\x00\x00\x00\x00\x00\x02'
+    msg += b'\x59\x53\x00\x00\x00\x00\x02\x5a\x53\x00\x00\x00\x00\x02\x5b\x53'
+    msg += b'\x00\x00\x00\x00\x02\x5c\x53\x00\x00\x00\x00\x02\x5d\x53\x00\x00'
+    msg += b'\x00\x00\x02\x5e\x53\x00\x00\x00\x00\x02\x5f\x53\x00\x00\x00\x00'
+    msg += b'\x02\x60\x53\x00\x00\x00\x00\x02\x61\x53\x00\x00\x00\x00\x02\x62'
+    msg += b'\x53\x00\x00\x00\x00\x02\x63\x53\x00\x00\x00\x00\x02\x64\x53\x00'
+    msg += b'\x00\x00\x00\x02\x65\x53\x00\x00\x00\x00\x02\x66\x53\x00\x00\x00'
+    msg += b'\x00\x02\x67\x53\x00\x00\x00\x00\x02\x68\x53\x00\x00\x00\x00\x02'
+    msg += b'\xbc\x49\x00\x00\x00\x00\x00\x00\x02\xbd\x53\x00\x00\x00\x00\x02'
+    msg += b'\xbe\x53\x00\x00\x00\x00\x02\xbf\x53\x00\x00\x00\x00\x02\xc0\x53'
+    msg += b'\x00\x00\x00\x00\x02\xc1\x53\x00\x00\x00\x00\x02\xc2\x53\x00\x00'
+    msg += b'\x00\x00\x02\xc3\x53\x00\x00\x00\x00\x02\xc4\x53\x00\x00\x00\x00'
+    msg += b'\x02\xc5\x53\x00\x00\x00\x00\x02\xc6\x53\x00\x00\x00\x00\x02\xc7'
+    msg += b'\x53\x00\x00\x00\x00\x02\xc8\x53\x00\x00\x00\x00\x02\xc9\x53\x00'
+    msg += b'\x00\x00\x00\x02\xca\x53\x00\x00\x00\x00\x02\xcb\x53\x00\x00\x00'
+    msg += b'\x00\x02\xcc\x53\x00\x00\x00\x00\x03\x20\x53\x00\x00\x00\x00\x03'
+    msg += b'\x84\x53\x51\x09\x00\x00\x03\xe8\x46\x43\x62\xb3\x33\x00\x00\x04'
+    msg += b'\x4c\x46\x3e\xc2\x8f\x5c\x00\x00\x04\xb0\x46\x42\x48\x00\x00\x00'
+    msg += b'\x00\x05\x14\x53\x00\x18\x00\x00\x05\x78\x53\x00\x00\x00\x00\x05'
+    msg += b'\xdc\x53\x02\x58\x00\x00\x06\x40\x46\x42\xae\xcc\xcd\x00\x00\x06'
+    msg += b'\xa4\x46\x3f\x4c\xcc\xcd\x00\x00\x07\x08\x46\x00\x00\x00\x00\x00'
+    msg += b'\x00\x07\x6c\x46\x00\x00\x00\x00\x00\x00\x07\xd0\x46\x42\x0a\x66'
+    msg += b'\x66\x00\x00\x08\x34\x46\x40\x2a\x3d\x71\x00\x00\x08\x98\x46\x42'
+    msg += b'\xb8\x33\x33\x00\x00\x08\xfc\x46\x00\x00\x00\x00\x00\x00\x09\x60'
+    msg += b'\x46\x00\x00\x00\x00\x00\x00\x09\xc4\x46\x00\x00\x00\x00\x00\x00'
+    msg += b'\x0a\x28\x46\x00\x00\x00\x00\x00\x00\x0a\x8c\x46\x00\x00\x00\x00'
+    msg += b'\x00\x00\x0a\xf0\x46\x00\x00\x00\x00\x00\x00\x0b\x54\x46\x3e\x05'
+    msg += b'\x1e\xb8\x00\x00\x0b\xb8\x46\x43\xe2\x42\x8f\x00\x00\x0c\x1c\x46'
+    msg += b'\x00\x00\x00\x00\x00\x00\x0c\x80\x46\x43\x04\x4a\x3d\x00\x00\x0c'
+    msg += b'\xe4\x46\x3e\x0f\x5c\x29\x00\x00\x0d\x48\x46\x43\xad\x48\xf6\x00'
+    msg += b'\x00\x0d\xac\x46\x00\x00\x00\x00\x00\x00\x0e\x10\x46\x00\x00\x00'
+    msg += b'\x00\x00\x00\x0e\x74\x46\x00\x00\x00\x00\x00\x00\x0e\xd8\x46\x00'
+    msg += b'\x00\x00\x00\x00\x00\x0f\x3c\x53\x00\x00\x00\x00\x0f\xa0\x53\x00'
+    msg += b'\x00\x00\x00\x10\x04\x53\x55\xaa\x00\x00\x10\x68\x53\x00\x01\x00'
+    msg += b'\x00\x10\xcc\x53\x00\x00\x00\x00\x11\x30\x53\x00\x00\x00\x00\x11'
+    msg += b'\x94\x53\x00\x00\x00\x00\x11\xf8\x53\xff\xff\x00\x00\x12\x5c\x53'
+    msg += b'\x03\x20\x00\x00\x12\xc0\x53\x00\x02\x00\x00\x13\x24\x53\x04\x00'
+    msg += b'\x00\x00\x13\x88\x53\x04\x00\x00\x00\x13\xec\x53\x04\x00\x00\x00'
+    msg += b'\x14\x50\x53\x04\x00\x00\x00\x14\xb4\x53\x00\x01\x00\x00\x15\x18'
+    msg += b'\x53\x08\x04\x00\x00\x15\x7c\x53\x00\x00\x00\x00\x27\x10\x53\x00'
+    msg += b'\x02\x00\x00\x27\x74\x53\x00\x3c\x00\x00\x27\xd8\x53\x00\x68\x00'
+    msg += b'\x00\x28\x3c\x53\x05\x00\x00\x00\x28\xa0\x46\x43\x79\x00\x00\x00'
+    msg += b'\x00\x29\x04\x46\x43\x48\x00\x00\x00\x00\x29\x68\x46\x42\x48\x33'
+    msg += b'\x33\x00\x00\x29\xcc\x46\x42\x3e\x3d\x71\x00\x00\x2a\x30\x53\x00'
+    msg += b'\x01\x00\x00\x2a\x94\x46\x43\x37\x00\x00\x00\x00\x2a\xf8\x46\x42'
+    msg += b'\xce\x00\x00\x00\x00\x2b\x5c\x53\x00\x96\x00\x00\x2b\xc0\x53\x00'
+    msg += b'\x10\x00\x00\x2c\x24\x46\x43\x90\x00\x00\x00\x00\x2c\x88\x46\x43'
+    msg += b'\x95\x00\x00\x00\x00\x2c\xec\x53\x00\x06\x00\x00\x2d\x50\x53\x00'
+    msg += b'\x06\x00\x00\x2d\xb4\x46\x43\x7d\x00\x00\x00\x00\x2e\x18\x46\x42'
+    msg += b'\x3d\xeb\x85\x00\x00\x2e\x7c\x46\x42\x3d\xeb\x85\x00\x00\x2e\xe0'
+    msg += b'\x53\x00\x03\x00\x00\x2f\x44\x53\x00\x03\x00\x00\x2f\xa8\x46\x42'
+    msg += b'\x4d\xeb\x85\x00\x00\x30\x0c\x46\x42\x4d\xeb\x85\x00\x00\x30\x70'
+    msg += b'\x53\x00\x03\x00\x00\x30\xd4\x53\x00\x03\x00\x00\x31\x38\x46\x42'
+    msg += b'\x08\x00\x00\x00\x00\x31'
+    return msg
+
 def test_read_message(MsgContactInfo):
     m = MemoryStream(MsgContactInfo, (0,))
     m.read()         # read complete msg, and dispatch msg
@@ -412,23 +546,17 @@ def test_read_message_twice(ConfigNoTsunInv1, MsgInverterInd):
     m.append_msg(MsgInverterInd)
     m.read()         # read complete msg, and dispatch msg
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
-    assert m.msg_count == 1
-    assert m.id_str == b"R170000000000001" 
-    assert m.unique_id == 'R170000000000001'
-    assert int(m.ctrl)==145
-    assert m.msg_id==4
-    assert m.header_len==23
-    assert m.data_len==120
-    assert m._forward_buffer==b''
-    m.read()         # read complete msg, and dispatch msg
-    assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
     assert m.msg_count == 2
+    assert m.msg_recvd[0]['ctrl']==145
+    assert m.msg_recvd[0]['msg_id']==4
+    assert m.msg_recvd[0]['header_len']==23
+    assert m.msg_recvd[0]['data_len']==120
+    assert m.msg_recvd[1]['ctrl']==145
+    assert m.msg_recvd[1]['msg_id']==4
+    assert m.msg_recvd[1]['header_len']==23
+    assert m.msg_recvd[1]['data_len']==120
     assert m.id_str == b"R170000000000001" 
     assert m.unique_id == 'R170000000000001'
-    assert int(m.ctrl)==145
-    assert m.msg_id==4
-    assert m.header_len==23
-    assert m.data_len==120
     assert m._forward_buffer==b''
     m.close()
  
@@ -499,35 +627,21 @@ def test_read_two_messages(ConfigTsunAllowAll, Msg2ContactInfo,MsgContactResp,Ms
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
     m.read()         # read complete msg, and dispatch msg
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
-    assert m.msg_count == 1
-    assert m.id_str == b"R170000000000001" 
-    assert m.unique_id == 'R170000000000001'
-    assert int(m.ctrl)==145
-    assert m.msg_id==0 
-    assert m.header_len==23
-    assert m.data_len==25
-    assert m._forward_buffer==b''
-    assert m._send_buffer==MsgContactResp
-    assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
-
-    m._send_buffer = bytearray(0) # clear send buffer for next test  
-    m.contact_name = b'solarhub'
-    m.contact_mail = b'solarhub@123456'
-    m._init_new_client_conn()
-    assert m._send_buffer==b'\x00\x00\x00,\x10R170000000000001\x91\x00\x08solarhub\x0fsolarhub@123456'
-
-    m._send_buffer = bytearray(0) # clear send buffer for next test
-    m.read()         # read complete msg, and dispatch msg
-    assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
     assert m.msg_count == 2
     assert m.id_str == b"R170000000000002" 
     assert m.unique_id == 'R170000000000002'
-    assert int(m.ctrl)==145
-    assert m.msg_id==0 
-    assert m.header_len==23
-    assert m.data_len==25
+    m.contact_name = b'solarhub'
+    m.contact_mail = b'solarhub@123456'
+    assert m.msg_recvd[0]['ctrl']==145
+    assert m.msg_recvd[0]['msg_id']==0
+    assert m.msg_recvd[0]['header_len']==23
+    assert m.msg_recvd[0]['data_len']==25
+    assert m.msg_recvd[1]['ctrl']==145
+    assert m.msg_recvd[1]['msg_id']==0
+    assert m.msg_recvd[1]['header_len']==23
+    assert m.msg_recvd[1]['data_len']==25
     assert m._forward_buffer==b''
-    assert m._send_buffer==MsgContactResp2
+    assert m._send_buffer==MsgContactResp + MsgContactResp2
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
 
     m._send_buffer = bytearray(0) # clear send buffer for next test    
@@ -836,10 +950,10 @@ def test_msg_inv_ind(ConfigTsunInv1, MsgInverterInd, MsgInverterIndTsOffs, MsgIn
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
     m.close()
 
-def test_msg_inv_ind2(ConfigTsunInv1, MsgInverterIndNew, MsgInverterIndTsOffs, MsgInverterAck):
+def test_msg_inv_ind1(ConfigTsunInv1, MsgInverterInd2, MsgInverterIndTsOffs, MsgInverterAck):
     ConfigTsunInv1
     tracer.setLevel(logging.DEBUG)
-    m = MemoryStream(MsgInverterIndNew, (0,))
+    m = MemoryStream(MsgInverterInd2, (0,))
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
     m.db.stat['proxy']['Invalid_Data_Type'] = 0
     m.read()         # read complete msg, and dispatch msg
@@ -852,11 +966,12 @@ def test_msg_inv_ind2(ConfigTsunInv1, MsgInverterIndNew, MsgInverterIndTsOffs, M
     assert int(m.ctrl)==145
     assert m.msg_id==4
     assert m.header_len==23
-    assert m.data_len==1165
+    assert m.data_len==1263
     m.ts_offset = 0
     m._update_header(m._forward_buffer)
-    assert m._forward_buffer==MsgInverterIndNew
+    assert m._forward_buffer==MsgInverterInd2
     assert m._send_buffer==MsgInverterAck
+    assert m.db.get_db_value(Register.TS_GRID) == 1691243349
     m.close()
 
 def test_msg_inv_ind2(ConfigTsunInv1, MsgInverterIndNew, MsgInverterIndTsOffs, MsgInverterAck):
@@ -881,6 +996,7 @@ def test_msg_inv_ind2(ConfigTsunInv1, MsgInverterIndNew, MsgInverterIndTsOffs, M
     assert m._forward_buffer==MsgInverterIndNew
     assert m._send_buffer==MsgInverterAck
     assert m.db.get_db_value(Register.INVERTER_STATUS) == None
+    assert m.db.get_db_value(Register.TS_GRID) == None
     m.db.db['grid'] = {'Output_Power': 100}
     m.close()
     assert m.db.get_db_value(Register.INVERTER_STATUS) == None
@@ -1086,6 +1202,23 @@ def test_msg_iterator():
     assert test1 == 1
     assert test2 == 1
 
+def test_timestamp_cnv():
+    '''test converting inverter timestamps into utc'''
+    m = MemoryStream(b'')
+    ts = 1722645998453    # Saturday, 3. August 2024 00:46:38.453 (GMT+2:00)
+    utc =1722638798.453   # GMT: Friday, 2. August 2024 22:46:38.453
+    assert utc == m._utcfromts(ts)
+
+    ts = 1691246944000    # Saturday, 5. August 2023 14:49:04 (GMT+2:00)
+    utc =1691239744.0     # GMT: Saturday, 5. August 2023 12:49:04
+    assert utc == m._utcfromts(ts)
+
+    ts = 1704152544000    # Monday, 1. January 2024 23:42:24 (GMT+1:00)
+    utc =1704148944.0     # GMT: Monday, 1. January 2024 22:42:24
+    assert utc == m._utcfromts(ts)
+
+    m.close()
+
 def test_proxy_counter():
     # m = MemoryStream(b'')
     # m.close()
@@ -1286,27 +1419,29 @@ def test_msg_modbus_rsp2(ConfigTsunInv1, MsgModbusResp20):
     assert m.db.db == {}
     m.new_data['inverter'] = False
 
+    # m.read()         # read complete msg, and dispatch msg
+    # assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
+    # assert m.mb.err == 0
+    # assert m.msg_count == 1
+    # assert m._forward_buffer==MsgModbusResp20
+    # assert m._send_buffer==b''
+    # assert m.db.db == {'inverter': {'Version': 'V5.1.09', 'Rated_Power': 300}, 'grid': {'Timestamp': m._utc(), 'Voltage': 225.9, 'Current': 0.41, 'Frequency': 49.99, 'Output_Power': 94.8}, 'env': {'Inverter_Temp': 22}, 'input': {'Timestamp': m._utc(), 'pv1': {'Voltage': 0.8, 'Current': 0.0, 'Power': 0.0}, 'pv2': {'Voltage': 34.5, 'Current': 2.89, 'Power': 99.8}, 'pv3': {'Voltage': 0.0, 'Current': 0.0, 'Power': 0.0}, 'pv4': {'Voltage': 0.0, 'Current': 0.0, 'Power': 0.0}}}
+    # assert m.db.get_db_value(Register.VERSION) == 'V5.1.09'
+    # assert m.db.get_db_value(Register.TS_GRID) == m._utc()
+    # assert m.new_data['inverter'] == True
+ 
+    # m.new_data['inverter'] = False    
+    # m.mb.req_pend = True
     m.read()         # read complete msg, and dispatch msg
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
-    assert m.mb.err == 0
-    assert m.msg_count == 1
-    assert m._forward_buffer==MsgModbusResp20
-    assert m._send_buffer==b''
-    assert m.db.db == {'inverter': {'Version': 'V5.1.09', 'Rated_Power': 300}, 'grid': {'Voltage': 225.9, 'Current': 0.41, 'Frequency': 49.99, 'Output_Power': 94.8}, 'env': {'Inverter_Temp': 22}, 'input': {'pv1': {'Voltage': 0.8, 'Current': 0.0, 'Power': 0.0}, 'pv2': {'Voltage': 34.5, 'Current': 2.89, 'Power': 99.8}, 'pv3': {'Voltage': 0.0, 'Current': 0.0, 'Power': 0.0}, 'pv4': {'Voltage': 0.0, 'Current': 0.0, 'Power': 0.0}}}
-    assert m.db.get_db_value(Register.VERSION) == 'V5.1.09'
-    assert m.new_data['inverter'] == True
-
-    m.new_data['inverter'] = False    
-    m.mb.req_pend = True
-    m.read()         # read complete msg, and dispatch msg
-    assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
-    assert m.mb.err == 0
+    assert m.mb.err == 5
     assert m.msg_count == 2
     assert m._forward_buffer==MsgModbusResp20
     assert m._send_buffer==b''
-    assert m.db.db == {'inverter': {'Version': 'V5.1.09', 'Rated_Power': 300}, 'grid': {'Voltage': 225.9, 'Current': 0.41, 'Frequency': 49.99, 'Output_Power': 94.8}, 'env': {'Inverter_Temp': 22}, 'input': {'pv1': {'Voltage': 0.8, 'Current': 0.0, 'Power': 0.0}, 'pv2': {'Voltage': 34.5, 'Current': 2.89, 'Power': 99.8}, 'pv3': {'Voltage': 0.0, 'Current': 0.0, 'Power': 0.0}, 'pv4': {'Voltage': 0.0, 'Current': 0.0, 'Power': 0.0}}}
+    assert m.db.db == {'inverter': {'Version': 'V5.1.09', 'Rated_Power': 300}, 'grid': {'Timestamp': m._utc(), 'Voltage': 225.9, 'Current': 0.41, 'Frequency': 49.99, 'Output_Power': 94.8}, 'env': {'Inverter_Temp': 22}, 'input': {'Timestamp': m._utc(), 'pv1': {'Voltage': 0.8, 'Current': 0.0, 'Power': 0.0}, 'pv2': {'Voltage': 34.5, 'Current': 2.89, 'Power': 99.8}, 'pv3': {'Voltage': 0.0, 'Current': 0.0, 'Power': 0.0}, 'pv4': {'Voltage': 0.0, 'Current': 0.0, 'Power': 0.0}}}
     assert m.db.get_db_value(Register.VERSION) == 'V5.1.09'
-    assert m.new_data['inverter'] == False
+    assert m.db.get_db_value(Register.TS_GRID) == m._utc()
+    assert m.new_data['inverter'] == True
 
     m.close()
 
@@ -1327,17 +1462,18 @@ def test_msg_modbus_rsp3(ConfigTsunInv1, MsgModbusResp21):
     assert m.db.db == {}
     m.new_data['inverter'] = False
 
-    m.read()         # read complete msg, and dispatch msg
-    assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
-    assert m.mb.err == 0
-    assert m.msg_count == 1
-    assert m._forward_buffer==MsgModbusResp21
-    assert m._send_buffer==b''
-    assert m.db.db == {'inverter': {'Version': 'V5.1.0E', 'Rated_Power': 300}, 'grid': {'Voltage': 225.9, 'Current': 0.41, 'Frequency': 49.99, 'Output_Power': 94.8}, 'env': {'Inverter_Temp': 22}, 'input': {'pv1': {'Voltage': 0.8, 'Current': 0.0, 'Power': 0.0}, 'pv2': {'Voltage': 34.5, 'Current': 2.89, 'Power': 99.8}, 'pv3': {'Voltage': 0.0, 'Current': 0.0, 'Power': 0.0}, 'pv4': {'Voltage': 0.0, 'Current': 0.0, 'Power': 0.0}}}
-    assert m.db.get_db_value(Register.VERSION) == 'V5.1.0E'
-    assert m.new_data['inverter'] == True
-    m.new_data['inverter'] = False
-    assert m.mb.req_pend == False
+    # m.read()         # read complete msg, and dispatch msg
+    # assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
+    # assert m.mb.err == 0
+    # assert m.msg_count == 1
+    # assert m._forward_buffer==MsgModbusResp21
+    # assert m._send_buffer==b''
+    # assert m.db.db == {'inverter': {'Version': 'V5.1.0E', 'Rated_Power': 300}, 'grid': {'Timestamp': m._utc(), 'Voltage': 225.9, 'Current': 0.41, 'Frequency': 49.99, 'Output_Power': 94.8}, 'env': {'Inverter_Temp': 22}, 'input': {'Timestamp': m._utc(), 'pv1': {'Voltage': 0.8, 'Current': 0.0, 'Power': 0.0}, 'pv2': {'Voltage': 34.5, 'Current': 2.89, 'Power': 99.8}, 'pv3': {'Voltage': 0.0, 'Current': 0.0, 'Power': 0.0}, 'pv4': {'Voltage': 0.0, 'Current': 0.0, 'Power': 0.0}}}
+    # assert m.db.get_db_value(Register.VERSION) == 'V5.1.0E'
+    # assert m.new_data['inverter'] == True
+    # assert m.db.get_db_value(Register.TS_GRID) == m._utc()
+    # m.new_data['inverter'] = False
+    # assert m.mb.req_pend == False
 
     m.read()         # read complete msg, and dispatch msg
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
@@ -1345,9 +1481,10 @@ def test_msg_modbus_rsp3(ConfigTsunInv1, MsgModbusResp21):
     assert m.msg_count == 2
     assert m._forward_buffer==MsgModbusResp21
     assert m._send_buffer==b''
-    assert m.db.db == {'inverter': {'Version': 'V5.1.0E', 'Rated_Power': 300}, 'grid': {'Voltage': 225.9, 'Current': 0.41, 'Frequency': 49.99, 'Output_Power': 94.8}, 'env': {'Inverter_Temp': 22}, 'input': {'pv1': {'Voltage': 0.8, 'Current': 0.0, 'Power': 0.0}, 'pv2': {'Voltage': 34.5, 'Current': 2.89, 'Power': 99.8}, 'pv3': {'Voltage': 0.0, 'Current': 0.0, 'Power': 0.0}, 'pv4': {'Voltage': 0.0, 'Current': 0.0, 'Power': 0.0}}}
+    assert m.db.db == {'inverter': {'Version': 'V5.1.0E', 'Rated_Power': 300}, 'grid': {'Timestamp': m._utc(), 'Voltage': 225.9, 'Current': 0.41, 'Frequency': 49.99, 'Output_Power': 94.8}, 'env': {'Inverter_Temp': 22}, 'input': {'Timestamp': m._utc(), 'pv1': {'Voltage': 0.8, 'Current': 0.0, 'Power': 0.0}, 'pv2': {'Voltage': 34.5, 'Current': 2.89, 'Power': 99.8}, 'pv3': {'Voltage': 0.0, 'Current': 0.0, 'Power': 0.0}, 'pv4': {'Voltage': 0.0, 'Current': 0.0, 'Power': 0.0}}}
     assert m.db.get_db_value(Register.VERSION) == 'V5.1.0E'
-    assert m.new_data['inverter'] == False
+    assert m.db.get_db_value(Register.TS_GRID) == m._utc()
+    assert m.new_data['inverter'] == True
 
     m.close()
 
@@ -1490,6 +1627,28 @@ async def test_modbus_polling(ConfigTsunInv1, MsgGetTime):
     assert m._send_buffer==b''
     assert next(m.mb_timer.exp_count) == 4
     m.close()
+
+def test_broken_recv_buf(ConfigTsunAllowAll, BrokenRecvBuf):
+    ConfigTsunAllowAll
+    m = MemoryStream(BrokenRecvBuf, (0,))
+    m.db.stat['proxy']['Unknown_Ctrl'] = 0
+    assert m.db.stat['proxy']['Invalid_Data_Type'] == 0
+    m.read()         # read complete msg, and dispatch msg
+    assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
+    assert m.msg_count == 1
+    assert m.id_str == b"R170000000000001" 
+    assert m.unique_id == 'R170000000000001'
+    assert m.msg_recvd[0]['ctrl']==145
+    assert m.msg_recvd[0]['msg_id']==4
+    assert m.msg_recvd[0]['header_len']==23
+    assert m.msg_recvd[0]['data_len']==1263
+    # assert m._forward_buffer==b''
+    # assert m._send_buffer==b''
+    assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
+    assert m.db.stat['proxy']['Invalid_Data_Type'] == 1
+
+    m.close()
+
 
 '''
 def test_zombie_conn(ConfigTsunInv1, MsgInverterInd):

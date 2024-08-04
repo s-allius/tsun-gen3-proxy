@@ -219,39 +219,41 @@ class SolarmanV5(Message):
             self.unique_id = serial_no
 
     def read(self) -> float:
+        '''process all received messages in the _recv_buffer'''
         self._read()
+        while True:
+            if not self.header_valid:
+                self.__parse_header(self._recv_buffer, len(self._recv_buffer))
 
-        if not self.header_valid:
-            self.__parse_header(self._recv_buffer, len(self._recv_buffer))
+            if self.header_valid and len(self._recv_buffer) >= \
+               (self.header_len + self.data_len+2):
+                log_lvl = self.log_lvl.get(self.control, logging.WARNING)
+                if callable(log_lvl):
+                    log_lvl = log_lvl()
+                hex_dump_memory(log_lvl, f'Received from {self.addr}:',
+                                self._recv_buffer, self.header_len +
+                                self.data_len+2)
+                if self.__trailer_is_ok(self._recv_buffer, self.header_len
+                                        + self.data_len + 2):
+                    if self.state == State.init:
+                        self.state = State.received
 
-        if self.header_valid and len(self._recv_buffer) >= (self.header_len +
-                                                            self.data_len+2):
-            log_lvl = self.log_lvl.get(self.control, logging.WARNING)
-            if callable(log_lvl):
-                log_lvl = log_lvl()
-            hex_dump_memory(log_lvl, f'Received from {self.addr}:',
-                            self._recv_buffer, self.header_len+self.data_len+2)
-            if self.__trailer_is_ok(self._recv_buffer, self.header_len
-                                    + self.data_len + 2):
-                if self.state == State.init:
-                    self.state = State.received
-
-                self.__set_serial_no(self.snr)
-                self.__dispatch_msg()
-            self.__flush_recv_msg()
-        return 0  # wait 0s before sending a response
+                    self.__set_serial_no(self.snr)
+                    self.__dispatch_msg()
+                self.__flush_recv_msg()
+            else:
+                return 0  # wait 0s before sending a response
 
     def forward(self, buffer, buflen) -> None:
+        '''add the actual receive msg to the forwarding queue'''
         if self.no_forwarding:
             return
         tsun = Config.get('solarman')
         if tsun['enabled']:
-            self._forward_buffer = buffer[:buflen]
+            self._forward_buffer += buffer[:buflen]
             hex_dump_memory(logging.DEBUG, 'Store for forwarding:',
                             buffer, buflen)
 
-            self.__parse_header(self._forward_buffer,
-                                len(self._forward_buffer))
             fnc = self.switch.get(self.control, self.msg_unknown)
             logger.info(self.__flow_str(self.server_side, 'forwrd') +
                         f' Ctl: {int(self.control):#04x}'
@@ -259,12 +261,6 @@ class SolarmanV5(Message):
         return
 
     def _init_new_client_conn(self) -> bool:
-        # self.__build_header(0x91)
-        # self._send_buffer += struct.pack(f'!{len(contact_name)+1}p'
-        #                                  f'{len(contact_mail)+1}p',
-        #                                  contact_name, contact_mail)
-
-        # self.__finish_send_msg()
         return False
 
     '''
@@ -366,13 +362,17 @@ class SolarmanV5(Message):
         '''update header for message before forwarding,
         set sequence and checksum'''
         _len = len(_forward_buffer)
-        struct.pack_into('<H', _forward_buffer, 1,
-                         _len-13)
-        struct.pack_into('<H', _forward_buffer, 5,
-                         self.seq.get_send())
+        ofs = 0
+        while ofs < _len:
+            result = struct.unpack_from('<BH', _forward_buffer, ofs)
+            data_len = result[1]    # len of variable id string
 
-        check = sum(_forward_buffer[1:_len-2]) & 0xff
-        struct.pack_into('<B', _forward_buffer, _len-2, check)
+            struct.pack_into('<H', _forward_buffer, ofs+5,
+                             self.seq.get_send())
+
+            check = sum(_forward_buffer[ofs+1:ofs+data_len+11]) & 0xff
+            struct.pack_into('<B', _forward_buffer, ofs+data_len+11, check)
+            ofs += (13 + data_len)
 
     def __dispatch_msg(self) -> None:
         fnc = self.switch.get(self.control, self.msg_unknown)
@@ -481,7 +481,7 @@ class SolarmanV5(Message):
             logger.info(f'Model: {Model}')
             self.db.set_db_def_value(Register.EQUIPMENT_MODEL, Model)
 
-    def __process_data(self, ftype):
+    def __process_data(self, ftype, ts):
         inv_update = False
         msg_type = self.control >> 8
         for key, update in self.db.parse(self._recv_buffer, msg_type, ftype,
@@ -489,6 +489,7 @@ class SolarmanV5(Message):
             if update:
                 if key == 'inverter':
                     inv_update = True
+                self._set_mqtt_timestamp(key, ts)
                 self.new_data[key] = True
 
         if inv_update:
@@ -505,16 +506,18 @@ class SolarmanV5(Message):
         data = self._recv_buffer[self.header_len:]
         result = struct.unpack_from('<BLLL', data, 0)
         ftype = result[0]  # always 2
-        # total = result[1]
+        total = result[1]
         tim = result[2]
         res = result[3]  # always zero
         logger.info(f'frame type:{ftype:02x}'
                     f' timer:{tim:08x}s  null:{res}')
-        # if self.time_ofs:
-        #     dt = datetime.fromtimestamp(total + self.time_ofs)
-        #     logger.info(f'ts: {dt.strftime("%Y-%m-%d %H:%M:%S")}')
-
-        self.__process_data(ftype)
+        if self.time_ofs:
+            #     dt = datetime.fromtimestamp(total + self.time_ofs)
+            #     logger.info(f'ts: {dt.strftime("%Y-%m-%d %H:%M:%S")}')
+            ts = total + self.time_ofs
+        else:
+            ts = None
+        self.__process_data(ftype, ts)
         self.__forward_msg()
         self.__send_ack_rsp(0x1110, ftype)
 
@@ -522,7 +525,7 @@ class SolarmanV5(Message):
         data = self._recv_buffer
         result = struct.unpack_from('<BHLLLHL', data, self.header_len)
         ftype = result[0]  # 1 or 0x81
-        # total = result[2]
+        total = result[2]
         tim = result[3]
         if 1 == ftype:
             self.time_ofs = result[4]
@@ -530,11 +533,14 @@ class SolarmanV5(Message):
         cnt = result[6]
         logger.info(f'ftype:{ftype:02x} timer:{tim:08x}s'
                     f' ??: {unkn:04x} cnt:{cnt}')
-        # if self.time_ofs:
-        #     dt = datetime.fromtimestamp(total + self.time_ofs)
-        #     logger.info(f'ts: {dt.strftime("%Y-%m-%d %H:%M:%S")}')
+        if self.time_ofs:
+            #     dt = datetime.fromtimestamp(total + self.time_ofs)
+            #     logger.info(f'ts: {dt.strftime("%Y-%m-%d %H:%M:%S")}')
+            ts = total + self.time_ofs
+        else:
+            ts = None
 
-        self.__process_data(ftype)
+        self.__process_data(ftype, ts)
         self.__forward_msg()
         self.__send_ack_rsp(0x1210, ftype)
         self.new_state_up()
@@ -620,6 +626,7 @@ class SolarmanV5(Message):
                     if update:
                         if key == 'inverter':
                             inv_update = True
+                        self._set_mqtt_timestamp(key, self._timestamp())
                         self.new_data[key] = True
 
                 if inv_update:

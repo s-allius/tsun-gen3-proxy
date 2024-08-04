@@ -60,6 +60,7 @@ class MemoryStream(SolarmanV5):
         self.at_acl = {'mqtt': {'allow': ['AT+'], 'block': ['AT+WEBU']}, 'tsun': {'allow': ['AT+Z', 'AT+UPURL', 'AT+SUPDATE', 'AT+TIME'], 'block': ['AT+WEBU']}}
         self.key = ''
         self.data = ''
+        self.msg_recvd = []
 
     def _timestamp(self):
         return timestamp
@@ -70,6 +71,7 @@ class MemoryStream(SolarmanV5):
     def append_msg(self, msg):
         self.__msg += msg
         self.__msg_len += len(msg)    
+        self.__chunk_idx = 0
 
     def publish_mqtt(self, key, data):
         self.key = key
@@ -104,6 +106,13 @@ class MemoryStream(SolarmanV5):
         return c
 
     def _SolarmanV5__flush_recv_msg(self) -> None:
+        self.msg_recvd.append(
+            {
+                'control': self.control,
+                'seq': str(self.seq),
+                'data_len': self.data_len
+            }
+        )
         super()._SolarmanV5__flush_recv_msg()
         self.msg_count += 1
         return
@@ -697,29 +706,20 @@ def test_invalid_stop_byte2(InvalidStopByte, DeviceIndMsg):
     # only the first message must be discarded
     m = MemoryStream(InvalidStopByte, (0,))
     m.append_msg(DeviceIndMsg)
-    m.read()         # read complete msg, and dispatch msg
-    assert not m.header_valid  # must be invalid, since start byte is wrong
-    assert m.msg_count == 1     # msg flush was called
-    assert m.header_len==11
-    assert m.snr == 2070233889
-    assert m.unique_id == 0
-    assert m.control == 0x4110
-    assert str(m.seq) == '01:00'
-    assert m.data_len == 0xd4
-    assert m._recv_buffer==DeviceIndMsg
-    assert m._send_buffer==b''
-    assert m._forward_buffer==b''
-    assert m.db.stat['proxy']['Invalid_Msg_Format'] == 1
 
     m.read()         # read complete msg, and dispatch msg
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
     assert m.msg_count == 2
     assert m.header_len==11
     assert m.snr == 2070233889
+    assert m.msg_recvd[0]['control']==0x4110
+    assert m.msg_recvd[0]['seq']=='01:00'
+    assert m.msg_recvd[0]['data_len']==0xd4
+    assert m.msg_recvd[1]['control']==0x4110
+    assert m.msg_recvd[1]['seq']=='01:00'
+    assert m.msg_recvd[1]['data_len']==0xd4
+
     assert m.unique_id == None
-    assert m.control == 0x4110
-    assert str(m.seq) == '01:00'
-    assert m.data_len == 0xd4
     assert m._recv_buffer==b''
     assert m._send_buffer==b''
     assert m._forward_buffer==b''
@@ -753,19 +753,6 @@ def test_invalid_checksum(InvalidChecksum, DeviceIndMsg):
     # only the first message must be discarded
     m = MemoryStream(InvalidChecksum, (0,))
     m.append_msg(DeviceIndMsg)
-    m.read()         # read complete msg, and dispatch msg
-    assert not m.header_valid  # must be invalid, since start byte is wrong
-    assert m.msg_count == 1     # msg flush was called
-    assert m.header_len==11
-    assert m.snr == 2070233889
-    assert m.unique_id == 0
-    assert m.control == 0x4110
-    assert str(m.seq) == '01:00'
-    assert m.data_len == 0xd4
-    assert m._recv_buffer==DeviceIndMsg
-    assert m._send_buffer==b''
-    assert m._forward_buffer==b''
-    assert m.db.stat['proxy']['Invalid_Msg_Format'] == 1
 
     m.read()         # read complete msg, and dispatch msg
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
@@ -773,9 +760,12 @@ def test_invalid_checksum(InvalidChecksum, DeviceIndMsg):
     assert m.header_len==11
     assert m.snr == 2070233889
     assert m.unique_id == None
-    assert m.control == 0x4110
-    assert str(m.seq) == '01:00'
-    assert m.data_len == 0xd4
+    assert m.msg_recvd[0]['control']==0x4110
+    assert m.msg_recvd[0]['seq']=='01:00'
+    assert m.msg_recvd[0]['data_len']==0xd4
+    assert m.msg_recvd[1]['control']==0x4110
+    assert m.msg_recvd[1]['seq']=='01:00'
+    assert m.msg_recvd[1]['data_len']==0xd4
     assert m._recv_buffer==b''
     assert m._send_buffer==b''
     assert m._forward_buffer==b''
@@ -788,28 +778,17 @@ def test_read_message_twice(ConfigNoTsunInv1, DeviceIndMsg, DeviceRspMsg):
     m.append_msg(DeviceIndMsg)
     m.read()         # read complete msg, and dispatch msg
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
-    assert m.msg_count == 1
-    assert m.header_len==11
-    assert m.snr == 2070233889
-    assert m.unique_id == '2070233889'
-    assert m.control == 0x4110
-    assert str(m.seq) == '01:01'
-    assert m.data_len == 0xd4
-    assert m._send_buffer==DeviceRspMsg
-    assert m._forward_buffer==b''
-    assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
-    
-    m._send_buffer = bytearray(0) # clear send buffer for next test    
-    m.read()         # read complete msg, and dispatch msg
-    assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
     assert m.msg_count == 2
     assert m.header_len==11
     assert m.snr == 2070233889
     assert m.unique_id == '2070233889'
-    assert m.control == 0x4110
-    assert str(m.seq) == '01:01'
-    assert m.data_len == 0xd4
-    assert m._send_buffer==DeviceRspMsg
+    assert m.msg_recvd[0]['control']==0x4110
+    assert m.msg_recvd[0]['seq']=='01:01'
+    assert m.msg_recvd[0]['data_len']==0xd4
+    assert m.msg_recvd[1]['control']==0x4110
+    assert m.msg_recvd[1]['seq']=='01:01'
+    assert m.msg_recvd[1]['data_len']==0xd4
+    assert m._send_buffer==DeviceRspMsg+DeviceRspMsg
     assert m._forward_buffer==b''
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
     m.close()
@@ -864,27 +843,8 @@ def test_read_two_messages(ConfigTsunAllowAll, DeviceIndMsg, DeviceRspMsg, Inver
     ConfigTsunAllowAll
     m = MemoryStream(DeviceIndMsg, (0,))
     m.append_msg(InverterIndMsg)
-    m.read()         # read complete msg, and dispatch msg
-    assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
-    assert m.msg_count == 1
-    assert m.header_len==11
-    assert m.snr == 2070233889
-    assert m.unique_id == '2070233889'
-    assert m.control == 0x4110
-    assert str(m.seq) == '01:01'
-    assert m.data_len == 0xd4
-    assert m.msg_count == 1
-    assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
-    assert m._forward_buffer==DeviceIndMsg
-    assert m._send_buffer==DeviceRspMsg
- 
-    m._send_buffer = bytearray(0) # clear send buffer for next test  
+
     m._init_new_client_conn()
-    assert m._send_buffer==b''
-    assert m._recv_buffer==InverterIndMsg
-    
-    m._send_buffer = bytearray(0) # clear send buffer for next test
-    m._forward_buffer = bytearray(0) # clear forward buffer for next test
     m.read()         # read complete msg, and dispatch msg
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
@@ -892,12 +852,14 @@ def test_read_two_messages(ConfigTsunAllowAll, DeviceIndMsg, DeviceRspMsg, Inver
     assert m.header_len==11
     assert m.snr == 2070233889
     assert m.unique_id == '2070233889'
-    assert m.control == 0x4210
-    assert str(m.seq) == '02:02'
-    assert m.data_len == 0x199
-    assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
-    assert m._forward_buffer==InverterIndMsg
-    assert m._send_buffer==InverterRspMsg
+    assert m.msg_recvd[0]['control']==0x4110
+    assert m.msg_recvd[0]['seq']=='01:01'
+    assert m.msg_recvd[0]['data_len']==0xd4
+    assert m.msg_recvd[1]['control']==0x4210
+    assert m.msg_recvd[1]['seq']=='02:02'
+    assert m.msg_recvd[1]['data_len']==0x199
+    assert m._forward_buffer==DeviceIndMsg+InverterIndMsg
+    assert m._send_buffer==DeviceRspMsg+InverterRspMsg
 
     m._send_buffer = bytearray(0) # clear send buffer for next test    
     m._init_new_client_conn()
@@ -909,41 +871,21 @@ def test_read_two_messages2(ConfigTsunAllowAll, InverterIndMsg, InverterIndMsg_8
     m = MemoryStream(InverterIndMsg, (0,))
     m.append_msg(InverterIndMsg_81)
     m.read()         # read complete msg, and dispatch msg
-    assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
-    assert m.msg_count == 1
-    assert m.header_len==11
-    assert m.snr == 2070233889
-    assert m.unique_id == '2070233889'
-    assert m.control == 0x4210
-    assert m.time_ofs == 0x33e447a0
-    assert str(m.seq) == '02:02'
-    assert m.data_len == 0x199
-    assert m.msg_count == 1
-    assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
-    assert m._forward_buffer==InverterIndMsg
-    assert m._send_buffer==InverterRspMsg
- 
-    m._send_buffer = bytearray(0) # clear send buffer for next test  
-    m._init_new_client_conn()
-    assert m._send_buffer==b''
-    assert m._recv_buffer==InverterIndMsg_81
-    
-    m._send_buffer = bytearray(0) # clear send buffer for next test
-    m._forward_buffer = bytearray(0) # clear forward buffer for next test
-    m.read()         # read complete msg, and dispatch msg
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
     assert m.msg_count == 2
     assert m.header_len==11
     assert m.snr == 2070233889
     assert m.unique_id == '2070233889'
-    assert m.control == 0x4210
+    assert m.msg_recvd[0]['control']==0x4210
+    assert m.msg_recvd[0]['seq']=='02:02'
+    assert m.msg_recvd[0]['data_len']==0x199
+    assert m.msg_recvd[1]['control']==0x4210
+    assert m.msg_recvd[1]['seq']=='03:03'
+    assert m.msg_recvd[1]['data_len']==0x199
     assert m.time_ofs == 0x33e447a0
-    assert str(m.seq) == '03:03'
-    assert m.data_len == 0x199
-    assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
-    assert m._forward_buffer==InverterIndMsg_81
-    assert m._send_buffer==InverterRspMsg_81
+    assert m._forward_buffer==InverterIndMsg+InverterIndMsg_81
+    assert m._send_buffer==InverterRspMsg+InverterRspMsg_81
 
     m._send_buffer = bytearray(0) # clear send buffer for next test    
     m._init_new_client_conn()
@@ -1254,26 +1196,28 @@ def test_proxy_counter():
 async def test_msg_build_modbus_req(ConfigTsunInv1, DeviceIndMsg, DeviceRspMsg, InverterIndMsg, InverterRspMsg, MsgModbusCmd):
     ConfigTsunInv1
     m = MemoryStream(DeviceIndMsg, (0,), True)
-    m.append_msg(InverterIndMsg)
     m.read()
     assert m.control == 0x4110
     assert str(m.seq) == '01:01'
-    assert m._recv_buffer==InverterIndMsg   # unhandled next message
     assert m._send_buffer==DeviceRspMsg
     assert m._forward_buffer==DeviceIndMsg
 
     m._send_buffer = bytearray(0) # clear send buffer for next test    
     m._forward_buffer = bytearray(0) # clear send buffer for next test    
     await m.send_modbus_cmd(Modbus.WRITE_SINGLE_REG, 0x2008, 0, logging.DEBUG)
-    assert m._recv_buffer==InverterIndMsg   # unhandled next message
     assert 0 == m.send_msg_ofs
     assert m._forward_buffer == b''
     assert m.writer.sent_pdu == b'' # modbus command must be ignore, cause connection is still not up
     assert m._send_buffer == b''    # modbus command must be ignore, cause connection is still not up
 
+    m.append_msg(InverterIndMsg)
     m.read()
     assert m.control == 0x4210
     assert str(m.seq) == '02:02'
+    assert m.msg_recvd[0]['control']==0x4110
+    assert m.msg_recvd[0]['seq']=='01:01'
+    assert m.msg_recvd[1]['control']==0x4210
+    assert m.msg_recvd[1]['seq']=='02:02'
     assert m._recv_buffer==b''
     assert m._send_buffer==InverterRspMsg
     assert m._forward_buffer==InverterIndMsg
@@ -1298,36 +1242,31 @@ async def test_msg_build_modbus_req(ConfigTsunInv1, DeviceIndMsg, DeviceRspMsg, 
 async def test_AT_cmd(ConfigTsunAllowAll, DeviceIndMsg, DeviceRspMsg, InverterIndMsg, InverterRspMsg, AtCommandIndMsg, AtCommandRspMsg):
     ConfigTsunAllowAll
     m = MemoryStream(DeviceIndMsg, (0,), True)
-    m.append_msg(InverterIndMsg)
-    m.append_msg(AtCommandRspMsg)
     m.read()   # read device ind
     assert m.control == 0x4110
     assert str(m.seq) == '01:01'
-    assert m._recv_buffer==InverterIndMsg + AtCommandRspMsg  # unhandled next message
     assert m._send_buffer==DeviceRspMsg
     assert m._forward_buffer==DeviceIndMsg
 
     m._send_buffer = bytearray(0) # clear send buffer for next test    
     m._forward_buffer = bytearray(0) # clear send buffer for next test    
     await m.send_at_cmd('AT+TIME=214028,1,60,120')
-    assert m._recv_buffer==InverterIndMsg + AtCommandRspMsg     # unhandled next message
     assert m._send_buffer==b''
     assert m._forward_buffer==b''
     assert str(m.seq) == '01:01'
     assert m.mqtt.key == ''
     assert m.mqtt.data == ""
 
+    m.append_msg(InverterIndMsg)
     m.read() # read inverter ind
     assert m.control == 0x4210
     assert str(m.seq) == '02:02'
-    assert m._recv_buffer==AtCommandRspMsg   # unhandled next message
     assert m._send_buffer==InverterRspMsg
     assert m._forward_buffer==InverterIndMsg
     
     m._send_buffer = bytearray(0) # clear send buffer for next test    
     m._forward_buffer = bytearray(0) # clear send buffer for next test    
     await m.send_at_cmd('AT+TIME=214028,1,60,120')
-    assert m._recv_buffer==AtCommandRspMsg   # unhandled next message
     assert m._send_buffer==AtCommandIndMsg
     assert m._forward_buffer==b''
     assert str(m.seq) == '02:03'
@@ -1335,6 +1274,7 @@ async def test_AT_cmd(ConfigTsunAllowAll, DeviceIndMsg, DeviceRspMsg, InverterIn
     assert m.mqtt.data == ""
 
     m._send_buffer = bytearray(0) # clear send buffer for next test    
+    m.append_msg(AtCommandRspMsg)
     m.read() # read at resp
     assert m.control == 0x1510
     assert str(m.seq) == '03:03'
@@ -1359,24 +1299,22 @@ async def test_AT_cmd(ConfigTsunAllowAll, DeviceIndMsg, DeviceRspMsg, InverterIn
 async def test_AT_cmd_blocked(ConfigTsunAllowAll, DeviceIndMsg, DeviceRspMsg, InverterIndMsg, InverterRspMsg, AtCommandIndMsg):
     ConfigTsunAllowAll
     m = MemoryStream(DeviceIndMsg, (0,), True)
-    m.append_msg(InverterIndMsg)
     m.read()
     assert m.control == 0x4110
     assert str(m.seq) == '01:01'
-    assert m._recv_buffer==InverterIndMsg   # unhandled next message
     assert m._send_buffer==DeviceRspMsg
     assert m._forward_buffer==DeviceIndMsg
 
     m._send_buffer = bytearray(0) # clear send buffer for next test    
     m._forward_buffer = bytearray(0) # clear send buffer for next test    
     await m.send_at_cmd('AT+WEBU')
-    assert m._recv_buffer==InverterIndMsg   # unhandled next message
     assert m._send_buffer==b''
     assert m._forward_buffer==b''
     assert str(m.seq) == '01:01'
     assert m.mqtt.key == ''
     assert m.mqtt.data == ""
 
+    m.append_msg(InverterIndMsg)
     m.read()
     assert m.control == 0x4210
     assert str(m.seq) == '02:02'
@@ -1583,7 +1521,6 @@ def test_msg_modbus_rsp2(ConfigTsunInv1, MsgModbusRsp):
     '''Modbus response with a valid Modbus request must be forwarded'''
     ConfigTsunInv1
     m = MemoryStream(MsgModbusRsp)
-    m.append_msg(MsgModbusRsp)
 
     m.mb.rsp_handler = m._SolarmanV5__forward_msg
     m.mb.last_addr = 1
@@ -1607,6 +1544,8 @@ def test_msg_modbus_rsp2(ConfigTsunInv1, MsgModbusRsp):
     m.new_data['inverter'] = False
 
     m.mb.req_pend = True
+    m._forward_buffer = bytearray()
+    m.append_msg(MsgModbusRsp)
     m.read()         # read complete msg, and dispatch msg
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
     assert m.mb.err == 0
@@ -1623,7 +1562,6 @@ def test_msg_modbus_rsp3(ConfigTsunInv1, MsgModbusRsp):
     '''Modbus response with a valid Modbus request must be forwarded'''
     ConfigTsunInv1
     m = MemoryStream(MsgModbusRsp)
-    m.append_msg(MsgModbusRsp)
 
     m.mb.rsp_handler = m._SolarmanV5__forward_msg
     m.mb.last_addr = 1
@@ -1646,11 +1584,13 @@ def test_msg_modbus_rsp3(ConfigTsunInv1, MsgModbusRsp):
     assert m.new_data['inverter'] == True
     m.new_data['inverter'] = False
 
+    m._forward_buffer = bytearray()
+    m.append_msg(MsgModbusRsp)
     m.read()         # read complete msg, and dispatch msg
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
     assert m.mb.err == 5
     assert m.msg_count == 2
-    assert m._forward_buffer==MsgModbusRsp
+    assert m._forward_buffer==b''
     assert m._send_buffer==b''
     # assert m.db.db == {'inverter': {'Version': 'V5.1.09', 'Rated_Power': 300}, 'grid': {'Voltage': 225.9, 'Current': 0.41, 'Frequency': 49.99, 'Output_Power': 94.8}, 'env': {'Inverter_Temp': 22}, 'input': {'pv1': {'Voltage': 0.8, 'Current': 0.0, 'Power': 0.0}, 'pv2': {'Voltage': 34.5, 'Current': 2.89, 'Power': 99.8}, 'pv3': {'Voltage': 0.0, 'Current': 0.0, 'Power': 0.0}, 'pv4': {'Voltage': 0.0, 'Current': 0.0, 'Power': 0.0}}}
     assert m.db.get_db_value(Register.VERSION) == 'V4.0.10'
