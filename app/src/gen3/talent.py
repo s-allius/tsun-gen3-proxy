@@ -130,36 +130,41 @@ class Talent(Message):
 
     def read(self) -> float:
         self._read()
+        while True:
+            if not self.header_valid:
+                self.__parse_header(self._recv_buffer, len(self._recv_buffer))
 
-        if not self.header_valid:
-            self.__parse_header(self._recv_buffer, len(self._recv_buffer))
+            if self.header_valid and \
+               len(self._recv_buffer) >= (self.header_len + self.data_len):
+                if self.state == State.init:
+                    self.state = State.received     # received 1st package
 
-        if self.header_valid and len(self._recv_buffer) >= (self.header_len +
-                                                            self.data_len):
-            if self.state == State.init:
-                self.state = State.received     # received 1st package
+                log_lvl = self.log_lvl.get(self.msg_id, logging.WARNING)
+                if callable(log_lvl):
+                    log_lvl = log_lvl()
 
-            log_lvl = self.log_lvl.get(self.msg_id, logging.WARNING)
-            if callable(log_lvl):
-                log_lvl = log_lvl()
+                hex_dump_memory(log_lvl, f'Received from {self.addr}:'
+                                f' BufLen: {len(self._recv_buffer)}'
+                                f' HdrLen: {self.header_len}'
+                                f' DtaLen: {self.data_len}',
+                                self._recv_buffer, len(self._recv_buffer))
 
-            hex_dump_memory(log_lvl, f'Received from {self.addr}:',
-                            self._recv_buffer, self.header_len+self.data_len)
+                self.__set_serial_no(self.id_str.decode("utf-8"))
+                self.__dispatch_msg()
+                self.__flush_recv_msg()
+            else:
+                return 0  # don not wait before sending a response
 
-            self.__set_serial_no(self.id_str.decode("utf-8"))
-            self.__dispatch_msg()
-            self.__flush_recv_msg()
-        return 0.5  # wait 500ms before sending a response
-
-    def forward(self, buffer, buflen) -> None:
+    def forward(self) -> None:
         tsun = Config.get('tsun')
         if tsun['enabled']:
-            self._forward_buffer = buffer[:buflen]
+            buffer = self._recv_buffer
+            buflen = self.header_len+self.data_len
+            self._forward_buffer += buffer[:buflen]
             hex_dump_memory(logging.DEBUG, 'Store for forwarding:',
                             buffer, buflen)
 
-            self.__parse_header(self._forward_buffer,
-                                len(self._forward_buffer))
+            # self.__parse_header(buffer, buflen)
             fnc = self.switch.get(self.msg_id, self.msg_unknown)
             logger.info(self.__flow_str(self.server_side, 'forwrd') +
                         f' Ctl: {int(self.ctrl):#02x} Msg: {fnc.__name__!r}')
@@ -250,7 +255,7 @@ class Talent(Message):
             replace(tzinfo=get_localzone())
         return dt.timestamp()
 
-    def _utc(self):
+    def _utc(self):   # pragma: no cover
         '''returns unix time (epoche)'''
         return datetime.now().timestamp()
 
@@ -258,19 +263,23 @@ class Talent(Message):
         '''update header for message before forwarding,
         add time offset to timestamp'''
         _len = len(_forward_buffer)
-        result = struct.unpack_from('!lB', _forward_buffer, 0)
-        id_len = result[1]    # len of variable id string
-        if _len < 2*id_len + 21:
-            return
+        ofs = 0
+        while ofs < _len:
+            result = struct.unpack_from('!lB', _forward_buffer, 0)
+            msg_len = 4 + result[0]
+            id_len = result[1]    # len of variable id string
+            if _len < 2*id_len + 21:
+                return
 
-        result = struct.unpack_from('!B', _forward_buffer, id_len+6)
-        msg_code = result[0]
-        if msg_code == 0x71 or msg_code == 0x04:
-            result = struct.unpack_from('!q', _forward_buffer, 13+2*id_len)
-            ts = result[0] + self.ts_offset
-            logger.debug(f'offset: {self.ts_offset:08x}'
-                         f'  proxy-time: {ts:08x}')
-            struct.pack_into('!q', _forward_buffer, 13+2*id_len, ts)
+            result = struct.unpack_from('!B', _forward_buffer, id_len+6)
+            msg_code = result[0]
+            if msg_code == 0x71 or msg_code == 0x04:
+                result = struct.unpack_from('!q', _forward_buffer, 13+2*id_len)
+                ts = result[0] + self.ts_offset
+                logger.debug(f'offset: {self.ts_offset:08x}'
+                             f'  proxy-time: {ts:08x}')
+                struct.pack_into('!q', _forward_buffer, 13+2*id_len, ts)
+            ofs += msg_len
 
     # check if there is a complete header in the buffer, parse it
     # and set
@@ -349,12 +358,12 @@ class Talent(Message):
             elif self.await_conn_resp_cnt > 0:
                 self.await_conn_resp_cnt -= 1
             else:
-                self.forward(self._recv_buffer, self.header_len+self.data_len)
+                self.forward()
             return
         else:
             logger.warning('Unknown Ctrl')
             self.inc_counter('Unknown_Ctrl')
-            self.forward(self._recv_buffer, self.header_len+self.data_len)
+            self.forward()
 
     def __process_contact_info(self) -> bool:
         result = struct.unpack_from('!B', self._recv_buffer, self.header_len)
@@ -401,7 +410,7 @@ class Talent(Message):
             logger.warning('Unknown Ctrl')
             self.inc_counter('Unknown_Ctrl')
 
-        self.forward(self._recv_buffer, self.header_len+self.data_len)
+        self.forward()
 
     def parse_msg_header(self):
         result = struct.unpack_from('!lB', self._recv_buffer, self.header_len)
@@ -435,7 +444,7 @@ class Talent(Message):
             logger.warning('Unknown Ctrl')
             self.inc_counter('Unknown_Ctrl')
 
-        self.forward(self._recv_buffer, self.header_len+self.data_len)
+        self.forward()
 
     def msg_inverter_data(self):
         if self.ctrl.is_ind():
@@ -451,7 +460,7 @@ class Talent(Message):
             logger.warning('Unknown Ctrl')
             self.inc_counter('Unknown_Ctrl')
 
-        self.forward(self._recv_buffer, self.header_len+self.data_len)
+        self.forward()
 
     def __process_data(self):
         msg_hdr_len, ts = self.parse_msg_header()
@@ -470,7 +479,7 @@ class Talent(Message):
         else:
             logger.warning('Unknown Ctrl')
             self.inc_counter('Unknown_Ctrl')
-        self.forward(self._recv_buffer, self.header_len+self.data_len)
+        self.forward()
 
     def parse_modbus_header(self):
 
@@ -521,12 +530,12 @@ class Talent(Message):
         else:
             logger.warning('Unknown Ctrl')
             self.inc_counter('Unknown_Ctrl')
-            self.forward(self._recv_buffer, self.header_len+self.data_len)
+            self.forward()
 
     def msg_forward(self):
-        self.forward(self._recv_buffer, self.header_len+self.data_len)
+        self.forward()
 
     def msg_unknown(self):
         logger.warning(f"Unknow Msg: ID:{self.msg_id}")
         self.inc_counter('Unknown_Msg')
-        self.forward(self._recv_buffer, self.header_len+self.data_len)
+        self.forward()
