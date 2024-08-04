@@ -385,7 +385,8 @@ class Talent(Message):
     def msg_get_time(self):
         if self.ctrl.is_ind():
             if self.data_len == 0:
-                self.state = State.pend     # block MODBUS cmds
+                if self.state == State.up:
+                    self.state = State.pend     # block MODBUS cmds
                 if (self.modbus_polling):
                     self.mb_timer.start(self.mb_start_timeout)
                     self.db.set_db_def_value(Register.POLLING_INTERVAL,

@@ -35,7 +35,7 @@ class AsyncStream():
         self.proc_max = 0
 
     def __timeout(self) -> int:
-        if self.state == State.init:
+        if self.state == State.init or self.state == State.received:
             to = self.MAX_START_TIME
         else:
             if self.server_side and self.modbus_polling:
