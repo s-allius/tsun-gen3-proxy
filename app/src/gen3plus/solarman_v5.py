@@ -220,38 +220,41 @@ class SolarmanV5(Message):
 
     def read(self) -> float:
         self._read()
+        while True:
+            if not self.header_valid:
+                self.__parse_header(self._recv_buffer, len(self._recv_buffer))
 
-        if not self.header_valid:
-            self.__parse_header(self._recv_buffer, len(self._recv_buffer))
+            if self.header_valid and len(self._recv_buffer) >= \
+               (self.header_len + self.data_len+2):
+                log_lvl = self.log_lvl.get(self.control, logging.WARNING)
+                if callable(log_lvl):
+                    log_lvl = log_lvl()
+                hex_dump_memory(log_lvl, f'Received from {self.addr}:',
+                                self._recv_buffer, self.header_len +
+                                self.data_len+2)
+                if self.__trailer_is_ok(self._recv_buffer, self.header_len
+                                        + self.data_len + 2):
+                    if self.state == State.init:
+                        self.state = State.received
 
-        if self.header_valid and len(self._recv_buffer) >= (self.header_len +
-                                                            self.data_len+2):
-            log_lvl = self.log_lvl.get(self.control, logging.WARNING)
-            if callable(log_lvl):
-                log_lvl = log_lvl()
-            hex_dump_memory(log_lvl, f'Received from {self.addr}:',
-                            self._recv_buffer, self.header_len+self.data_len+2)
-            if self.__trailer_is_ok(self._recv_buffer, self.header_len
-                                    + self.data_len + 2):
-                if self.state == State.init:
-                    self.state = State.received
-
-                self.__set_serial_no(self.snr)
-                self.__dispatch_msg()
-            self.__flush_recv_msg()
-        return 0  # wait 0s before sending a response
+                    self.__set_serial_no(self.snr)
+                    self.__dispatch_msg()
+                self.__flush_recv_msg()
+            else:
+                return 0  # wait 0s before sending a response
 
     def forward(self, buffer, buflen) -> None:
         if self.no_forwarding:
             return
         tsun = Config.get('solarman')
         if tsun['enabled']:
-            self._forward_buffer = buffer[:buflen]
+            # struct.pack_into('<H', buffer, 1, buflen-13)
+
+            self._forward_buffer += buffer[:buflen]
             hex_dump_memory(logging.DEBUG, 'Store for forwarding:',
                             buffer, buflen)
 
-            self.__parse_header(self._forward_buffer,
-                                len(self._forward_buffer))
+            # self.__parse_header(buffer, buflen)
             fnc = self.switch.get(self.control, self.msg_unknown)
             logger.info(self.__flow_str(self.server_side, 'forwrd') +
                         f' Ctl: {int(self.control):#04x}'
@@ -366,13 +369,19 @@ class SolarmanV5(Message):
         '''update header for message before forwarding,
         set sequence and checksum'''
         _len = len(_forward_buffer)
-        struct.pack_into('<H', _forward_buffer, 1,
-                         _len-13)
-        struct.pack_into('<H', _forward_buffer, 5,
-                         self.seq.get_send())
+        ofs = 0
+        while ofs < _len:
+            result = struct.unpack_from('<BH', _forward_buffer, ofs)
+            data_len = result[1]    # len of variable id string
 
-        check = sum(_forward_buffer[1:_len-2]) & 0xff
-        struct.pack_into('<B', _forward_buffer, _len-2, check)
+            # struct.pack_into('<H', _forward_buffer, ofs+1,
+            #                  _len-13)
+            struct.pack_into('<H', _forward_buffer, ofs+5,
+                             self.seq.get_send())
+
+            check = sum(_forward_buffer[ofs+1:ofs+data_len+11]) & 0xff
+            struct.pack_into('<B', _forward_buffer, ofs+data_len+11, check)
+            ofs += (13 + data_len)
 
     def __dispatch_msg(self) -> None:
         fnc = self.switch.get(self.control, self.msg_unknown)
