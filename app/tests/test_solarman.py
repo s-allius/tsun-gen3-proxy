@@ -706,19 +706,6 @@ def test_invalid_stop_byte2(InvalidStopByte, DeviceIndMsg):
     # only the first message must be discarded
     m = MemoryStream(InvalidStopByte, (0,))
     m.append_msg(DeviceIndMsg)
-    # m.read()         # read complete msg, and dispatch msg
-    # assert not m.header_valid  # must be invalid, since start byte is wrong
-    # assert m.msg_count == 2     # msg flush was called
-    # assert m.header_len==11
-    # assert m.snr == 2070233889
-    # assert m.unique_id == 0
-    # assert m.control == 0x4110
-    # assert str(m.seq) == '01:00'
-    # assert m.data_len == 0xd4
-    # assert m._recv_buffer==DeviceIndMsg
-    # assert m._send_buffer==b''
-    # assert m._forward_buffer==b''
-    # assert m.db.stat['proxy']['Invalid_Msg_Format'] == 1
 
     m.read()         # read complete msg, and dispatch msg
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
@@ -733,9 +720,6 @@ def test_invalid_stop_byte2(InvalidStopByte, DeviceIndMsg):
     assert m.msg_recvd[1]['data_len']==0xd4
 
     assert m.unique_id == None
-    # assert m.control == 0x4110
-    # assert str(m.seq) == '01:00'
-    # assert m.data_len == 0xd4
     assert m._recv_buffer==b''
     assert m._send_buffer==b''
     assert m._forward_buffer==b''
@@ -859,27 +843,8 @@ def test_read_two_messages(ConfigTsunAllowAll, DeviceIndMsg, DeviceRspMsg, Inver
     ConfigTsunAllowAll
     m = MemoryStream(DeviceIndMsg, (0,))
     m.append_msg(InverterIndMsg)
-    # m.read()         # read complete msg, and dispatch msg
-    # assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
-    # assert m.msg_count == 1
-    # assert m.header_len==11
-    # assert m.snr == 2070233889
-    # assert m.unique_id == '2070233889'
-    # assert m.control == 0x4110
-    # assert str(m.seq) == '01:01'
-    # assert m.data_len == 0xd4
-    # assert m.msg_count == 1
-    # assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
-    # assert m._forward_buffer==DeviceIndMsg
-    # assert m._send_buffer==DeviceRspMsg
- # 
-    # m._send_buffer = bytearray(0) # clear send buffer for next test  
+
     m._init_new_client_conn()
-    # assert m._send_buffer==b''
-    # assert m._recv_buffer==InverterIndMsg
-    # 
-    # m._send_buffer = bytearray(0) # clear send buffer for next test
-    # m._forward_buffer = bytearray(0) # clear forward buffer for next test
     m.read()         # read complete msg, and dispatch msg
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed

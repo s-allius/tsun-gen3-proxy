@@ -219,6 +219,7 @@ class SolarmanV5(Message):
             self.unique_id = serial_no
 
     def read(self) -> float:
+        '''process all received messages in the _recv_buffer'''
         self._read()
         while True:
             if not self.header_valid:
@@ -244,17 +245,15 @@ class SolarmanV5(Message):
                 return 0  # wait 0s before sending a response
 
     def forward(self, buffer, buflen) -> None:
+        '''add the actual receive msg to the forwarding queue'''
         if self.no_forwarding:
             return
         tsun = Config.get('solarman')
         if tsun['enabled']:
-            # struct.pack_into('<H', buffer, 1, buflen-13)
-
             self._forward_buffer += buffer[:buflen]
             hex_dump_memory(logging.DEBUG, 'Store for forwarding:',
                             buffer, buflen)
 
-            # self.__parse_header(buffer, buflen)
             fnc = self.switch.get(self.control, self.msg_unknown)
             logger.info(self.__flow_str(self.server_side, 'forwrd') +
                         f' Ctl: {int(self.control):#04x}'
@@ -262,12 +261,6 @@ class SolarmanV5(Message):
         return
 
     def _init_new_client_conn(self) -> bool:
-        # self.__build_header(0x91)
-        # self._send_buffer += struct.pack(f'!{len(contact_name)+1}p'
-        #                                  f'{len(contact_mail)+1}p',
-        #                                  contact_name, contact_mail)
-
-        # self.__finish_send_msg()
         return False
 
     '''
@@ -374,8 +367,6 @@ class SolarmanV5(Message):
             result = struct.unpack_from('<BH', _forward_buffer, ofs)
             data_len = result[1]    # len of variable id string
 
-            # struct.pack_into('<H', _forward_buffer, ofs+1,
-            #                  _len-13)
             struct.pack_into('<H', _forward_buffer, ofs+5,
                              self.seq.get_send())
 

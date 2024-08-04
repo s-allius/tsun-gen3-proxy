@@ -129,6 +129,7 @@ class Talent(Message):
             self.unique_id = serial_no
 
     def read(self) -> float:
+        '''process all received messages in the _recv_buffer'''
         self._read()
         while True:
             if not self.header_valid:
@@ -156,6 +157,7 @@ class Talent(Message):
                 return 0  # don not wait before sending a response
 
     def forward(self) -> None:
+        '''add the actual receive msg to the forwarding queue'''
         tsun = Config.get('tsun')
         if tsun['enabled']:
             buffer = self._recv_buffer
@@ -164,7 +166,6 @@ class Talent(Message):
             hex_dump_memory(logging.DEBUG, 'Store for forwarding:',
                             buffer, buflen)
 
-            # self.__parse_header(buffer, buflen)
             fnc = self.switch.get(self.msg_id, self.msg_unknown)
             logger.info(self.__flow_str(self.server_side, 'forwrd') +
                         f' Ctl: {int(self.ctrl):#02x} Msg: {fnc.__name__!r}')
