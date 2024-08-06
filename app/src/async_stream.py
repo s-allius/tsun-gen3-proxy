@@ -17,7 +17,7 @@ class AsyncStream():
     '''maximum processing time for a received msg in sec'''
     MAX_START_TIME = 400
     '''maximum time without a received msg in sec'''
-    MAX_INV_IDLE_TIME = 90
+    MAX_INV_IDLE_TIME = 120
     '''maximum time without a received msg from the inverter in sec'''
     MAX_CLOUD_IDLE_TIME = 360
     '''maximum time without a received msg from cloud side in sec'''

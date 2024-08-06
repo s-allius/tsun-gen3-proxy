@@ -45,7 +45,7 @@ class Talent(Message):
     MB_REGULAR_TIMEOUT = 60
 
     def __init__(self, server_side: bool, id_str=b''):
-        super().__init__(server_side, self.send_modbus_cb, mb_timeout=11)
+        super().__init__(server_side, self.send_modbus_cb, mb_timeout=25)
         self.await_conn_resp_cnt = 0
         self.id_str = id_str
         self.contact_name = b''
