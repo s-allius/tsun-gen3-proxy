@@ -57,8 +57,8 @@ jobs:
             # mandatory
             -Dsonar.projectKey=s-allius_tsun-gen3-proxy
             -Dsonar.organization=s-allius
-            -Dsonar.sources=/app/src
-            -Dsonar.tests=/app/tests,/system_tests
+            -Dsonar.sources=./app/src
+            -Dsonar.tests=./app/tests,./system_tests
             # Adds more detail to both client and server-side analysis logs, activating DEBUG mode for the scanner, and adding client-side environment variables and system properties to the server-side log of analysis report processing.
             #-Dsonar.verbose= # optional, default is false
           # When you need the analysis to take place in a directory other than the one from which it was launched, default is .
