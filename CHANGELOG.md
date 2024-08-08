@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+- don't send MODBUS request when state is note up; adapt timeouts [#141](https://github.com/s-allius/tsun-gen3-proxy/issues/141)
 - build multi arch images with sboms [#144](https://github.com/s-allius/tsun-gen3-proxy/issues/144)
 - add timestamp to MQTT topics [#138](https://github.com/s-allius/tsun-gen3-proxy/issues/138)
 - improve the message handling, to avoid hangs
