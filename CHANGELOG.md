@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+- build multi arch images with sboms [#144](https://github.com/s-allius/tsun-gen3-proxy/issues/144)
 - add timestamp to MQTT topics [#138](https://github.com/s-allius/tsun-gen3-proxy/issues/138)
 - improve the message handling, to avoid hangs
 - GEN3: allow long timeouts until we received first inverter data (not only device data)
