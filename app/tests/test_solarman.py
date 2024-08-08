@@ -101,8 +101,8 @@ class MemoryStream(SolarmanV5):
 
     def createClientStream(self, msg, chunks = (0,)):
         c = MemoryStream(msg, chunks, False)
-        self.remoteStream = c
-        c. remoteStream = self
+        self.remote_stream = c
+        c. remote_stream = self
         return c
 
     def _SolarmanV5__flush_recv_msg(self) -> None:
@@ -1345,7 +1345,6 @@ def test_AT_cmd_ind(config_tsun_inv1, at_command_ind_msg):
     assert m.msg_count == 1
     assert m.header_len==11
     assert m.snr == 2070233889
-    # assert m.unique_id == '2070233889'
     assert m.control == 0x4510
     assert str(m.seq) == '03:02'
     assert m.data_len == 39
@@ -1358,7 +1357,7 @@ def test_AT_cmd_ind(config_tsun_inv1, at_command_ind_msg):
     assert m.db.stat['proxy']['Modbus_Command'] == 0
     m.close()
 
-def test_AT_cmd_ind_block(config_tsun_inv1, at_command_ind_msg_block):
+def test_at_cmd_ind_block(config_tsun_inv1, at_command_ind_msg_block):
     config_tsun_inv1
     m = MemoryStream(at_command_ind_msg_block, (0,), False)
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
@@ -1370,7 +1369,6 @@ def test_AT_cmd_ind_block(config_tsun_inv1, at_command_ind_msg_block):
     assert m.msg_count == 1
     assert m.header_len==11
     assert m.snr == 2070233889
-    # assert m.unique_id == '2070233889'
     assert m.control == 0x4510
     assert str(m.seq) == '03:02'
     assert m.data_len == 23
@@ -1518,7 +1516,7 @@ def test_msg_modbus_rsp1(config_tsun_inv1, msg_modbus_rsp):
 
 def test_msg_modbus_rsp2(config_tsun_inv1, msg_modbus_rsp):
     '''Modbus response with a valid Modbus request must be forwarded'''
-    config_tsun_inv1
+    config_tsun_inv1  # setup config structure
     m = MemoryStream(msg_modbus_rsp)
 
     m.mb.rsp_handler = m._SolarmanV5__forward_msg
@@ -1528,7 +1526,6 @@ def test_msg_modbus_rsp2(config_tsun_inv1, msg_modbus_rsp):
     m.mb.last_reg = 0x3008
     m.mb.req_pend = True
     m.mb.err = 0
-    # assert m.db.db == {'inverter': {'Manufacturer': 'TSUN', 'Equipment_Model': 'TSOL-MSxx00'}}
     m.new_data['inverter'] = False
 
     m.read()         # read complete msg, and dispatch msg
@@ -1537,7 +1534,6 @@ def test_msg_modbus_rsp2(config_tsun_inv1, msg_modbus_rsp):
     assert m.msg_count == 1
     assert m._forward_buffer==msg_modbus_rsp
     assert m._send_buffer==b''
-    # assert m.db.db == {'inverter': {'Version': 'V5.1.09', 'Rated_Power': 300}, 'grid': {'Voltage': 225.9, 'Current': 0.41, 'Frequency': 49.99, 'Output_Power': 94.8}, 'env': {'Inverter_Temp': 22}, 'input': {'pv1': {'Voltage': 0.8, 'Current': 0.0, 'Power': 0.0}, 'pv2': {'Voltage': 34.5, 'Current': 2.89, 'Power': 99.8}, 'pv3': {'Voltage': 0.0, 'Current': 0.0, 'Power': 0.0}, 'pv4': {'Voltage': 0.0, 'Current': 0.0, 'Power': 0.0}}}
     assert m.db.get_db_value(Register.VERSION) == 'V4.0.10'
     assert m.new_data['inverter'] == True
     m.new_data['inverter'] = False
@@ -1551,7 +1547,6 @@ def test_msg_modbus_rsp2(config_tsun_inv1, msg_modbus_rsp):
     assert m.msg_count == 2
     assert m._forward_buffer==msg_modbus_rsp
     assert m._send_buffer==b''
-    # assert m.db.db == {'inverter': {'Version': 'V5.1.09', 'Rated_Power': 300}, 'grid': {'Voltage': 225.9, 'Current': 0.41, 'Frequency': 49.99, 'Output_Power': 94.8}, 'env': {'Inverter_Temp': 22}, 'input': {'pv1': {'Voltage': 0.8, 'Current': 0.0, 'Power': 0.0}, 'pv2': {'Voltage': 34.5, 'Current': 2.89, 'Power': 99.8}, 'pv3': {'Voltage': 0.0, 'Current': 0.0, 'Power': 0.0}, 'pv4': {'Voltage': 0.0, 'Current': 0.0, 'Power': 0.0}}}
     assert m.db.get_db_value(Register.VERSION) == 'V4.0.10'
     assert m.new_data['inverter'] == False
 
@@ -1569,7 +1564,6 @@ def test_msg_modbus_rsp3(config_tsun_inv1, msg_modbus_rsp):
     m.mb.last_reg = 0x3008
     m.mb.req_pend = True
     m.mb.err = 0
-    # assert m.db.db == {'inverter': {'Manufacturer': 'TSUN', 'Equipment_Model': 'TSOL-MSxx00'}}
     m.new_data['inverter'] = False
 
     m.read()         # read complete msg, and dispatch msg
@@ -1578,7 +1572,6 @@ def test_msg_modbus_rsp3(config_tsun_inv1, msg_modbus_rsp):
     assert m.msg_count == 1
     assert m._forward_buffer==msg_modbus_rsp
     assert m._send_buffer==b''
-    # assert m.db.db == {'inverter': {'Version': 'V5.1.09', 'Rated_Power': 300}, 'grid': {'Voltage': 225.9, 'Current': 0.41, 'Frequency': 49.99, 'Output_Power': 94.8}, 'env': {'Inverter_Temp': 22}, 'input': {'pv1': {'Voltage': 0.8, 'Current': 0.0, 'Power': 0.0}, 'pv2': {'Voltage': 34.5, 'Current': 2.89, 'Power': 99.8}, 'pv3': {'Voltage': 0.0, 'Current': 0.0, 'Power': 0.0}, 'pv4': {'Voltage': 0.0, 'Current': 0.0, 'Power': 0.0}}}
     assert m.db.get_db_value(Register.VERSION) == 'V4.0.10'
     assert m.new_data['inverter'] == True
     m.new_data['inverter'] = False
@@ -1591,7 +1584,6 @@ def test_msg_modbus_rsp3(config_tsun_inv1, msg_modbus_rsp):
     assert m.msg_count == 2
     assert m._forward_buffer==b''
     assert m._send_buffer==b''
-    # assert m.db.db == {'inverter': {'Version': 'V5.1.09', 'Rated_Power': 300}, 'grid': {'Voltage': 225.9, 'Current': 0.41, 'Frequency': 49.99, 'Output_Power': 94.8}, 'env': {'Inverter_Temp': 22}, 'input': {'pv1': {'Voltage': 0.8, 'Current': 0.0, 'Power': 0.0}, 'pv2': {'Voltage': 34.5, 'Current': 2.89, 'Power': 99.8}, 'pv3': {'Voltage': 0.0, 'Current': 0.0, 'Power': 0.0}, 'pv4': {'Voltage': 0.0, 'Current': 0.0, 'Power': 0.0}}}
     assert m.db.get_db_value(Register.VERSION) == 'V4.0.10'
     assert m.new_data['inverter'] == False
 
@@ -1667,7 +1659,6 @@ async def test_modbus_polling(config_tsun_inv1, heartbeat_ind_msg, heartbeat_rsp
     assert m.msg_count == 1
     assert m.header_len==11
     assert m.snr == 2070233889
-    # assert m.unique_id == '2070233889'
     assert m.control == 0x4710
     assert str(m.seq) == '84:11'  # value after sending response
     assert m.data_len == 0x01
@@ -1727,30 +1718,3 @@ async def test_start_client_mode(config_tsun_inv1):
     assert m._send_buffer==b''
     assert next(m.mb_timer.exp_count) == 3
     m.close()
-
-'''
-def test_zombie_conn(config_tsun_inv1, MsgInverterInd):
-    config_tsun_inv1
-    tracer.setLevel(logging.DEBUG)
-    m1 = MemoryStream(MsgInverterInd, (0,))
-    m2 = MemoryStream(MsgInverterInd, (0,))
-    m3 = MemoryStream(MsgInverterInd, (0,))
-    assert m1.state == m1.State.init
-    assert m2.state == m2.State.init
-    assert m3.state == m3.State.init
-    m1.read()         # read complete msg, and set unique_id
-    assert m1.state == m1.State.init
-    assert m2.state == m2.State.init
-    assert m3.state == m3.State.init
-    m2.read()         # read complete msg, and set unique_id
-    assert m1.state == m1.State.closed
-    assert m2.state == m2.State.init
-    assert m3.state == m3.State.init
-    m3.read()         # read complete msg, and set unique_id
-    assert m1.state == m1.State.closed
-    assert m2.state == m2.State.closed
-    assert m3.state == m3.State.init
-    m1.close()
-    m2.close()
-    m3.close()
-'''
