@@ -103,11 +103,10 @@ class Message(metaclass=IterRegistry):
 
     def _update_header(self, _forward_buffer):
         '''callback for updating the header of the forward buffer'''
-        return  # pragma: no cover
+        pass  # pragma: no cover
 
     def _set_mqtt_timestamp(self, key, ts: float | None):
-        if type(ts) is not None and \
-           key not in self.new_data or \
+        if key not in self.new_data or \
            not self.new_data[key]:
             if key == 'grid':
                 info_id = Register.TS_GRID
@@ -128,7 +127,7 @@ class Message(metaclass=IterRegistry):
         if self.mb:
             self.mb.close()
             self.mb = None
-        pass  # pragma: no cover
+        # pragma: no cover
 
     def inc_counter(self, counter: str) -> None:
         self.db.inc_counter(counter)
