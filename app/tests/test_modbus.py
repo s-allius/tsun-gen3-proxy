@@ -5,7 +5,6 @@ from app.src.modbus import Modbus
 from app.src.infos import Infos, Register
 
 pytest_plugins = ('pytest_asyncio',)
-# pytestmark = pytest.mark.asyncio(scope="module")
 
 class ModbusTestHelper(Modbus):
     def __init__(self):
@@ -76,8 +75,8 @@ def test_recv_resp_crc_err():
     mb.req_pend = True
     mb.last_addr = 1
     mb.last_fcode = 3   
-    mb.last_reg == 0x300e
-    mb.last_len == 2
+    mb.last_reg = 0x300e
+    mb.last_len = 2
     # check matching response, but with CRC error
     call = 0
     for key, update, val in mb.recv_resp(mb.db, b'\x01\x03\x04\x01\x2c\x00\x46\xbb\xf3', 'test'):
@@ -96,8 +95,8 @@ def test_recv_resp_invalid_addr():
     # simulate a transmitted request
     mb.last_addr = 1
     mb.last_fcode = 3   
-    mb.last_reg == 0x300e
-    mb.last_len == 2
+    mb.last_reg = 0x300e
+    mb.last_len = 2
 
     # check not matching response, with wrong server addr
     call = 0
@@ -298,7 +297,7 @@ def test_queue3():
     assert mb.pdu == b'\x01\x06\x20\x08\x00\x04\x02\x0b'
 
     for key, update, val in mb.recv_resp(mb.db, b'\x01\x06\x20\x08\x00\x04\x02\x0b', 'test'):
-        pass
+        pass  # no code in loop is OK; calling the generator is the purpose
     assert 0 == mb.err
     assert mb.recv_responses == 2
 
@@ -363,8 +362,6 @@ async def test_timeout():
     assert not mb.req_pend
     assert mb.retry_cnt == 0
     assert mb.send_calls == 4
-
-    # assert mb.counter == {}
 
 def test_recv_unknown_data():
     '''Receive a response with an unknwon register'''
