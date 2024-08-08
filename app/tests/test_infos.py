@@ -1,6 +1,6 @@
 # test_with_pytest.py
 import pytest
-import json
+import json, math
 import logging
 from app.src.infos import Register, ClrAtMidnight
 from app.src.infos import Infos
@@ -77,7 +77,7 @@ def test_table_definition():
 
 
     for d_json, comp, node_id, id in i.ha_proxy_confs(ha_prfx="tsun/", node_id = 'proxy/', snr = '456'):
-        pass
+        pass  # sideeffect is calling generator i.ha_proxy_confs()
 
     val = i.dev_value(Register.INTERNAL_ERROR)  # check internal error counter
     assert val == 0
@@ -222,24 +222,24 @@ def test_get_value():
 
     i.set_db_def_value(Register.PV2_VOLTAGE, 30.3) 
     assert 30 == i.get_db_value(Register.PV1_VOLTAGE, None)
-    assert 30.3 == i.get_db_value(Register.PV2_VOLTAGE, None)
+    assert math.isclose(30.3,i.get_db_value(Register.PV2_VOLTAGE, None), rel_tol=1e-09, abs_tol=1e-09)
 
 def test_update_value():
     i = Infos()
     assert None == i.get_db_value(Register.PV1_VOLTAGE, None)
 
     keys = i.info_defs[Register.PV1_VOLTAGE]['name']
-    name, update = i.update_db(keys, True, 30) 
+    _, update = i.update_db(keys, True, 30) 
     assert update == True
     assert 30 == i.get_db_value(Register.PV1_VOLTAGE, None)
 
     keys = i.info_defs[Register.PV1_VOLTAGE]['name']
-    name, update = i.update_db(keys, True, 30) 
+    _, update = i.update_db(keys, True, 30) 
     assert update == False
     assert 30 == i.get_db_value(Register.PV1_VOLTAGE, None)
 
     keys = i.info_defs[Register.PV1_VOLTAGE]['name']
-    name, update = i.update_db(keys, False, 29) 
+    _, update = i.update_db(keys, False, 29) 
     assert update == True
     assert 29 == i.get_db_value(Register.PV1_VOLTAGE, None)
 
