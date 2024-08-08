@@ -1587,11 +1587,11 @@ def test_modbus_no_polling(ConfigNoMbPoll, MsgGetTime):
     m.close()
 
 @pytest.mark.asyncio
-async def test_modbus_polling(ConfigTsunInv1, MsgGetTime):
+async def test_modbus_polling(ConfigTsunInv1, MsgInverterInd):
     ConfigTsunInv1
     assert asyncio.get_running_loop()
 
-    m = MemoryStream(MsgGetTime, (0,))
+    m = MemoryStream(MsgInverterInd, (0,))
     assert asyncio.get_running_loop() == m.mb_timer.loop
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
     assert m.mb_timer.tim == None
@@ -1601,16 +1601,16 @@ async def test_modbus_polling(ConfigTsunInv1, MsgGetTime):
     assert m.id_str == b"R170000000000001" 
     assert m.unique_id == 'R170000000000001'
     assert int(m.ctrl)==145
-    assert m.msg_id==34
+    assert m.msg_id==4
     assert m.header_len==23
     assert m.ts_offset==0
-    assert m.data_len==0
-    assert m._forward_buffer==MsgGetTime
-    assert m._send_buffer==b'\x00\x00\x00\x1b\x10R170000000000001\x91"\x00\x00\x01\x89\xc6,_\x00'
+    assert m.data_len==120
+    assert m._forward_buffer==MsgInverterInd
+    assert m._send_buffer==b'\x00\x00\x00\x14\x10R170000000000001\x99\x04\x01'
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
 
     m._send_buffer = bytearray(0) # clear send buffer for next test
-    m.state = State.up
+    #  m.state = State.up
     assert m.mb_timeout == 0.5
     assert next(m.mb_timer.exp_count) == 0
     

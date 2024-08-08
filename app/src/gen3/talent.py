@@ -45,7 +45,7 @@ class Talent(Message):
     MB_REGULAR_TIMEOUT = 60
 
     def __init__(self, server_side: bool, id_str=b''):
-        super().__init__(server_side, self.send_modbus_cb, mb_timeout=11)
+        super().__init__(server_side, self.send_modbus_cb, mb_timeout=15)
         self.await_conn_resp_cnt = 0
         self.id_str = id_str
         self.contact_name = b''
@@ -388,10 +388,6 @@ class Talent(Message):
             if self.data_len == 0:
                 if self.state == State.up:
                     self.state = State.pend     # block MODBUS cmds
-                if (self.modbus_polling):
-                    self.mb_timer.start(self.mb_start_timeout)
-                    self.db.set_db_def_value(Register.POLLING_INTERVAL,
-                                             self.mb_timeout)
 
                 ts = self._timestamp()
                 logger.debug(f'time: {ts:08x}')
@@ -455,6 +451,10 @@ class Talent(Message):
             self.__finish_send_msg()
             self.__process_data()
             self.state = State.up  # allow MODBUS cmds
+            if (self.modbus_polling):
+                self.mb_timer.start(self.mb_start_timeout)
+                self.db.set_db_def_value(Register.POLLING_INTERVAL,
+                                         self.mb_timeout)
 
         elif self.ctrl.is_resp():
             return  # ignore received response

@@ -17,10 +17,10 @@ class AsyncStream():
     '''maximum processing time for a received msg in sec'''
     MAX_START_TIME = 400
     '''maximum time without a received msg in sec'''
-    MAX_INV_IDLE_TIME = 90
+    MAX_INV_IDLE_TIME = 120
     '''maximum time without a received msg from the inverter in sec'''
-    MAX_CLOUD_IDLE_TIME = 360
-    '''maximum time without a received msg from cloud side in sec'''
+    MAX_DEF_IDLE_TIME = 360
+    '''maximum default time without a received msg in sec'''
 
     def __init__(self, reader: StreamReader, writer: StreamWriter,
                  addr) -> None:
@@ -37,11 +37,11 @@ class AsyncStream():
     def __timeout(self) -> int:
         if self.state == State.init or self.state == State.received:
             to = self.MAX_START_TIME
+        elif self.state == State.up and \
+                self.server_side and self.modbus_polling:
+            to = self.MAX_INV_IDLE_TIME
         else:
-            if self.server_side and self.modbus_polling:
-                to = self.MAX_INV_IDLE_TIME
-            else:
-                to = self.MAX_CLOUD_IDLE_TIME
+            to = self.MAX_DEF_IDLE_TIME
         return to
 
     async def publish_outstanding_mqtt(self):

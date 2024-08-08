@@ -106,6 +106,7 @@ class Modbus():
         self.loop = asyncio.get_event_loop()
         self.req_pend = False
         self.tim = None
+        self.node_id = ''
 
     def close(self):
         """free the queue and erase the callback handlers"""
@@ -180,6 +181,8 @@ class Modbus():
             5: No MODBUS request pending
         """
         # logging.info(f'recv_resp: first byte modbus:{buf[0]} len:{len(buf)}')
+        self.node_id = node_id
+
         if not self.req_pend:
             self.err = 5
             return
@@ -267,7 +270,10 @@ class Modbus():
             self.__start_timer()
             self.snd_handler(self.last_req, self.last_log_lvl, state='Retrans')
         else:
-            logger.info(f'Modbus timeout {self}')
+            logger.info(f'[{self.node_id}] Modbus timeout '
+                        f'(FCode: {self.last_fcode} '
+                        f'Reg: 0x{self.last_reg:04x}, '
+                        f'{self.last_len})')
             self.counter['timeouts'] += 1
             self.__send_next_from_que()
 
