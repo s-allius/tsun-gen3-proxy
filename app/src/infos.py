@@ -333,7 +333,7 @@ class Infos:
     def info_defs(self) -> dict:
         return self.__info_defs
 
-    def dev_value(self, idx: str | int) -> str | int | float | None:
+    def dev_value(self, idx: str | int) -> str | int | float | dict | None:
         '''returns the stored device value from our database
 
         idx:int ==> lookup the value in the database and return it as str,
