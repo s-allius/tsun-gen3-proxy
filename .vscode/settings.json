@@ -11,5 +11,9 @@
     "python.testing.pytestEnabled": true,
     "flake8.args": [
         "--extend-exclude=app/tests/*.py system_tests/*.py"   
-    ]
+    ],
+    "sonarlint.connectedMode.project": {
+        "connectionId": "s-allius",
+        "projectKey": "s-allius_tsun-gen3-proxy"
+    }
 }
