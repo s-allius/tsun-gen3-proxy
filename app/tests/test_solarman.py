@@ -953,7 +953,6 @@ def test_heartbeat_ind(config_tsun_inv1, heartbeat_ind_msg, heartbeat_rsp_msg):
     assert m.msg_count == 1
     assert m.header_len==11
     assert m.snr == 2070233889
-    # assert m.unique_id == '2070233889'
     assert m.control == 0x4710
     assert str(m.seq) == '84:11'  # value after sending response
     assert m.data_len == 0x01
@@ -972,7 +971,6 @@ def test_heartbeat_ind2(config_tsun_inv1, heartbeat_ind_msg, heartbeat_rsp_msg):
     assert m.msg_count == 1
     assert m.header_len==11
     assert m.snr == 2070233889
-    # assert m.unique_id == '2070233889'
     assert m.control == 0x4710
     assert str(m.seq) == '84:11'  # value after sending response
     assert m.data_len == 0x01
@@ -1008,7 +1006,6 @@ def test_sync_start_ind(config_tsun_inv1, sync_start_ind_msg, sync_start_rsp_msg
     assert m.msg_count == 1
     assert m.header_len==11
     assert m.snr == 2070233889
-    # assert m.unique_id == '2070233889'
     assert m.control == 0x4310
     assert str(m.seq) == '0d:0d'  # value after sending response
     assert m.data_len == 47
@@ -1050,7 +1047,6 @@ def test_sync_end_ind(config_tsun_inv1, sync_end_ind_msg, sync_end_rsp_msg):
     assert m.msg_count == 1
     assert m.header_len==11
     assert m.snr == 2070233889
-    # assert m.unique_id == '2070233889'
     assert m.control == 0x4810
     assert str(m.seq) == '07:07'  # value after sending response
     assert m.data_len == 60
@@ -1238,7 +1234,7 @@ async def test_msg_build_modbus_req(config_tsun_inv1, device_ind_msg, device_rsp
     m.close()
 
 @pytest.mark.asyncio
-async def test_AT_cmd(config_tsun_allow_all, device_ind_msg, device_rsp_msg, inverter_ind_msg, inverter_rsp_msg, at_command_ind_msg, at_command_rsp_msg):
+async def test_at_cmd(config_tsun_allow_all, device_ind_msg, device_rsp_msg, inverter_ind_msg, inverter_rsp_msg, at_command_ind_msg, at_command_rsp_msg):
     config_tsun_allow_all
     m = MemoryStream(device_ind_msg, (0,), True)
     m.read()   # read device ind
@@ -1295,7 +1291,7 @@ async def test_AT_cmd(config_tsun_allow_all, device_ind_msg, device_rsp_msg, inv
     m.close()
 
 @pytest.mark.asyncio
-async def test_AT_cmd_blocked(config_tsun_allow_all, device_ind_msg, device_rsp_msg, inverter_ind_msg, inverter_rsp_msg, at_command_ind_msg):
+async def test_at_cmd_blocked(config_tsun_allow_all, device_ind_msg, device_rsp_msg, inverter_ind_msg, inverter_rsp_msg, at_command_ind_msg):
     config_tsun_allow_all
     m = MemoryStream(device_ind_msg, (0,), True)
     m.read()
@@ -1333,7 +1329,7 @@ async def test_AT_cmd_blocked(config_tsun_allow_all, device_ind_msg, device_rsp_
     assert m.mqtt.data == "'AT+WEBU' is forbidden"
     m.close()
 
-def test_AT_cmd_ind(config_tsun_inv1, at_command_ind_msg):
+def test_at_cmd_ind(config_tsun_inv1, at_command_ind_msg):
     config_tsun_inv1
     m = MemoryStream(at_command_ind_msg, (0,), False)
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
