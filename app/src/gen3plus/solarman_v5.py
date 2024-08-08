@@ -1,5 +1,4 @@
 import struct
-# import json
 import logging
 import time
 import asyncio
@@ -19,7 +18,6 @@ else:  # pragma: no cover
     from my_timer import Timer
     from gen3plus.infos_g3p import InfosG3P
     from infos import Register
-# import traceback
 
 logger = logging.getLogger('msg')
 
@@ -258,7 +256,6 @@ class SolarmanV5(Message):
             logger.info(self.__flow_str(self.server_side, 'forwrd') +
                         f' Ctl: {int(self.control):#04x}'
                         f' Msg: {fnc.__name__!r}')
-        return
 
     def _init_new_client_conn(self) -> bool:
         return False
@@ -312,7 +309,6 @@ class SolarmanV5(Message):
             self._recv_buffer = bytearray()
             return
         self.header_valid = True
-        return
 
     def __trailer_is_ok(self, buf: bytes, buf_len: int) -> bool:
         crc = buf[self.data_len+11]
@@ -436,15 +432,15 @@ class SolarmanV5(Message):
         return not cmd.startswith(tuple(self.at_acl[connection]['allow'])) or \
                 cmd.startswith(tuple(self.at_acl[connection]['block']))
 
-    async def send_at_cmd(self, AT_cmd: str) -> None:
+    async def send_at_cmd(self, at_cmd: str) -> None:
         if self.state != State.up:
             logger.warning(f'[{self.node_id}] ignore AT+ cmd,'
                            ' as the state is not UP')
             return
-        AT_cmd = AT_cmd.strip()
+        at_cmd = at_cmd.strip()
 
-        if self.at_cmd_forbidden(cmd=AT_cmd, connection='mqtt'):
-            data_json = f'\'{AT_cmd}\' is forbidden'
+        if self.at_cmd_forbidden(cmd=at_cmd, connection='mqtt'):
+            data_json = f'\'{at_cmd}\' is forbidden'
             node_id = self.node_id
             key = 'at_resp'
             logger.info(f'{key}: {data_json}')
@@ -453,8 +449,8 @@ class SolarmanV5(Message):
 
         self.forward_at_cmd_resp = False
         self.__build_header(0x4510)
-        self._send_buffer += struct.pack(f'<BHLLL{len(AT_cmd)}sc', self.AT_CMD,
-                                         2, 0, 0, 0, AT_cmd.encode('utf-8'),
+        self._send_buffer += struct.pack(f'<BHLLL{len(at_cmd)}sc', self.AT_CMD,
+                                         2, 0, 0, 0, at_cmd.encode('utf-8'),
                                          b'\r')
         self.__finish_send_msg()
         try:
@@ -467,19 +463,19 @@ class SolarmanV5(Message):
 
     def __build_model_name(self):
         db = self.db
-        MaxPow = db.get_db_value(Register.MAX_DESIGNED_POWER, 0)
-        Rated = db.get_db_value(Register.RATED_POWER, 0)
-        Model = None
-        if MaxPow == 2000:
-            if Rated == 800 or Rated == 600:
-                Model = f'TSOL-MS{MaxPow}({Rated})'
+        max_pow = db.get_db_value(Register.MAX_DESIGNED_POWER, 0)
+        rated = db.get_db_value(Register.RATED_POWER, 0)
+        model = None
+        if max_pow == 2000:
+            if rated == 800 or rated == 600:
+                model = f'TSOL-MS{max_pow}({rated})'
             else:
-                Model = f'TSOL-MS{MaxPow}'
-        elif MaxPow == 1800 or MaxPow == 1600:
-            Model = f'TSOL-MS{MaxPow}'
-        if Model:
-            logger.info(f'Model: {Model}')
-            self.db.set_db_def_value(Register.EQUIPMENT_MODEL, Model)
+                model = f'TSOL-MS{max_pow}'
+        elif max_pow == 1800 or max_pow == 1600:
+            model = f'TSOL-MS{max_pow}'
+        if model:
+            logger.info(f'Model: {model}')
+            self.db.set_db_def_value(Register.EQUIPMENT_MODEL, model)
 
     def __process_data(self, ftype, ts):
         inv_update = False
@@ -564,17 +560,17 @@ class SolarmanV5(Message):
         result = struct.unpack_from('<B', data, 0)
         ftype = result[0]
         if ftype == self.AT_CMD:
-            AT_cmd = data[15:].decode()
-            if self.at_cmd_forbidden(cmd=AT_cmd, connection='tsun'):
+            at_cmd = data[15:].decode()
+            if self.at_cmd_forbidden(cmd=at_cmd, connection='tsun'):
                 self.inc_counter('AT_Command_Blocked')
                 return
             self.inc_counter('AT_Command')
             self.forward_at_cmd_resp = True
 
         elif ftype == self.MB_RTU_CMD:
-            if self.remoteStream.mb.recv_req(data[15:],
-                                             self.remoteStream.
-                                             __forward_msg):
+            if self.remote_stream.mb.recv_req(data[15:],
+                                              self.remote_stream.
+                                              __forward_msg):
                 self.inc_counter('Modbus_Command')
             else:
                 logger.error('Invalid Modbus Msg')
@@ -593,9 +589,9 @@ class SolarmanV5(Message):
             if self.forward_at_cmd_resp:
                 return logging.INFO
             return logging.DEBUG
-        elif ftype == self.MB_RTU_CMD:
-            if self.server_side:
-                return self.mb.last_log_lvl
+        elif ftype == self.MB_RTU_CMD \
+                and self.server_side:
+            return self.mb.last_log_lvl
 
         return logging.WARNING
 

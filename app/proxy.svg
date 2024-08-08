@@ -188,7 +188,7 @@
 <polygon fill="none" stroke="#000000" points="410.5,-330 410.5,-362 560.5,-362 560.5,-330 410.5,-330"/>
 <text text-anchor="start" x="453.5455" y="-343" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">ConnectionG3</text>
 <polygon fill="none" stroke="#000000" points="410.5,-298 410.5,-330 560.5,-330 560.5,-298 410.5,-298"/>
-<text text-anchor="start" x="420.487" y="-311" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">remoteStream:ConnectionG3</text>
+<text text-anchor="start" x="420.487" y="-311" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">remote_stream:ConnectionG3</text>
 <polygon fill="none" stroke="#000000" points="410.5,-254 410.5,-298 560.5,-298 560.5,-254 410.5,-254"/>
 <text text-anchor="start" x="466.054" y="-279" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">healthy()</text>
 <text text-anchor="start" x="470.5025" y="-267" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">close()</text>
@@ -213,7 +213,7 @@
 <polygon fill="none" stroke="#000000" points="125.5,-330 125.5,-362 281.5,-362 281.5,-330 125.5,-330"/>
 <text text-anchor="start" x="168.211" y="-343" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">ConnectionG3P</text>
 <polygon fill="none" stroke="#000000" points="125.5,-298 125.5,-330 281.5,-330 281.5,-298 125.5,-298"/>
-<text text-anchor="start" x="135.1525" y="-311" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">remoteStream:ConnectionG3P</text>
+<text text-anchor="start" x="135.1525" y="-311" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">remote_stream:ConnectionG3P</text>
 <polygon fill="none" stroke="#000000" points="125.5,-254 125.5,-298 281.5,-298 281.5,-254 125.5,-254"/>
 <text text-anchor="start" x="184.054" y="-279" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">healthy()</text>
 <text text-anchor="start" x="188.5025" y="-267" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">close()</text>

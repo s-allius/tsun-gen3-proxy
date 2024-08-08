@@ -130,16 +130,16 @@ class ClrAtMidnight:
             return
 
         prfx += f'{keys[0]}'
-        dict = cls.db
-        if prfx not in dict:
-            dict[prfx] = {}
-        dict = dict[prfx]
+        db_dict = cls.db
+        if prfx not in db_dict:
+            db_dict[prfx] = {}
+        db_dict = db_dict[prfx]
 
         for key in keys[1:-1]:
-            if key not in dict:
-                dict[key] = {}
-            dict = dict[key]
-        dict[keys[-1]] = 0
+            if key not in db_dict:
+                db_dict[key] = {}
+            db_dict = db_dict[key]
+        db_dict[keys[-1]] = 0
 
     @classmethod
     def elm(cls) -> Generator[tuple[str, dict], None, None]:
@@ -346,29 +346,29 @@ class Infos:
         elif idx in self.info_defs:
             row = self.info_defs[idx]
             if 'singleton' in row and row['singleton']:
-                dict = self.stat
+                db_dict = self.stat
             else:
-                dict = self.db
+                db_dict = self.db
 
             keys = row['name']
 
             for key in keys:
-                if key not in dict:
+                if key not in db_dict:
                     return None      # value not found in the database
-                dict = dict[key]
-            return dict              # value of the reqeusted entry
+                db_dict = db_dict[key]
+            return db_dict              # value of the reqeusted entry
 
         return None                  # unknwon idx, not in info_defs
 
     def inc_counter(self, counter: str) -> None:
         '''inc proxy statistic counter'''
-        dict = self.stat['proxy']
-        dict[counter] += 1
+        db_dict = self.stat['proxy']
+        db_dict[counter] += 1
 
     def dec_counter(self, counter: str) -> None:
         '''dec proxy statistic counter'''
-        dict = self.stat['proxy']
-        dict[counter] -= 1
+        db_dict = self.stat['proxy']
+        db_dict[counter] -= 1
 
     def ha_proxy_confs(self, ha_prfx: str, node_id: str, snr: str) \
             -> Generator[tuple[str, str, str, str], None, None]:
@@ -525,9 +525,8 @@ class Infos:
             return None
         row = self.info_defs[key]
 
-        if 'singleton' in row:
-            if row['singleton']:
-                return None
+        if 'singleton' in row and row['singleton']:
+            return None
 
         # check if we have details for home assistant
         if 'ha' in row:
@@ -542,7 +541,7 @@ class Infos:
             return json.dumps(attr), component, node_id, uniq_id
         return None
 
-    def _key_obj(self, id: Register) -> list:
+    def _key_obj(self, id: Register) -> tuple:
         d = self.info_defs.get(id, {'name': None, 'level': logging.DEBUG,
                                     'unit': ''})
         if 'ha' in d and 'must_incr' in d['ha']:
@@ -554,21 +553,21 @@ class Infos:
 
     def update_db(self, keys: list, must_incr: bool, result):
         name = ''
-        dict = self.db
+        db_dict = self.db
         for key in keys[:-1]:
-            if key not in dict:
-                dict[key] = {}
-            dict = dict[key]
+            if key not in db_dict:
+                db_dict[key] = {}
+            db_dict = db_dict[key]
             name += key + '.'
-        if keys[-1] not in dict:
+        if keys[-1] not in db_dict:
             update = (not must_incr or result > 0)
         else:
             if must_incr:
-                update = dict[keys[-1]] < result
+                update = db_dict[keys[-1]] < result
             else:
-                update = dict[keys[-1]] != result
+                update = db_dict[keys[-1]] != result
         if update:
-            dict[keys[-1]] = result
+            db_dict[keys[-1]] = result
         name += keys[-1]
         return name, update
 
@@ -622,13 +621,13 @@ class Infos:
                 return True
 
             if 'gte' in dep:
-                return not value >= dep['gte']
+                return value < dep['gte']
             elif 'less_eq' in dep:
-                return not value <= dep['less_eq']
+                return value > dep['less_eq']
         return True
 
     def set_pv_module_details(self, inv: dict) -> None:
-        map = {'pv1': {'manufacturer': Register.PV1_MANUFACTURER, 'model': Register.PV1_MODEL},  # noqa: E501
+        pvs = {'pv1': {'manufacturer': Register.PV1_MANUFACTURER, 'model': Register.PV1_MODEL},  # noqa: E501
                'pv2': {'manufacturer': Register.PV2_MANUFACTURER, 'model': Register.PV2_MODEL},  # noqa: E501
                'pv3': {'manufacturer': Register.PV3_MANUFACTURER, 'model': Register.PV3_MODEL},  # noqa: E501
                'pv4': {'manufacturer': Register.PV4_MANUFACTURER, 'model': Register.PV4_MODEL},  # noqa: E501
@@ -636,7 +635,7 @@ class Infos:
                'pv6': {'manufacturer': Register.PV6_MANUFACTURER, 'model': Register.PV6_MODEL}  # noqa: E501
                }
 
-        for key, reg in map.items():
+        for key, reg in pvs.items():
             if key in inv:
                 if 'manufacturer' in inv[key]:
                     self.set_db_def_value(reg['manufacturer'],

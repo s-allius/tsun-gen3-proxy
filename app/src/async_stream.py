@@ -67,18 +67,18 @@ class AsyncStream():
 
         # if the server connection closes, we also have to disconnect
         # the connection to te TSUN cloud
-        if self.remoteStream:
+        if self.remote_stream:
             logger.info(f'[{self.node_id}:{self.conn_no}] disc client '
-                        f'connection: [{self.remoteStream.node_id}:'
-                        f'{self.remoteStream.conn_no}]')
-            await self.remoteStream.disc()
+                        f'connection: [{self.remote_stream.node_id}:'
+                        f'{self.remote_stream.conn_no}]')
+            await self.remote_stream.disc()
 
-    async def client_loop(self, addr: str) -> None:
+    async def client_loop(self, _: str) -> None:
         '''Loop for receiving messages from the TSUN cloud (client-side)'''
-        clientStream = await self.remoteStream.loop()
-        logger.info(f'[{clientStream.node_id}:{clientStream.conn_no}] '
+        client_stream = await self.remote_stream.loop()
+        logger.info(f'[{client_stream.node_id}:{client_stream.conn_no}] '
                     'Client loop stopped for'
-                    f' l{clientStream.l_addr}')
+                    f' l{client_stream.l_addr}')
 
         # if the client connection closes, we don't touch the server
         # connection. Instead we erase the client connection stream,
@@ -86,13 +86,13 @@ class AsyncStream():
         # establish a new connection to the TSUN cloud
 
         # erase backlink to inverter
-        clientStream.remoteStream = None
+        client_stream.remote_stream = None
 
-        if self.remoteStream == clientStream:
-            # logging.debug(f'Client l{clientStream.l_addr} refs:'
-            #               f' {gc.get_referrers(clientStream)}')
+        if self.remote_stream == client_stream:
+            # logging.debug(f'Client l{client_stream.l_addr} refs:'
+            #               f' {gc.get_referrers(client_stream)}')
             # than erase client connection
-            self.remoteStream = None
+            self.remote_stream = None
 
     async def loop(self) -> Self:
         """Async loop handler for precessing all received messages"""
@@ -203,35 +203,35 @@ class AsyncStream():
         if not self._forward_buffer:
             return
         try:
-            if not self.remoteStream:
+            if not self.remote_stream:
                 await self.async_create_remote()
-                if self.remoteStream:
-                    if self.remoteStream._init_new_client_conn():
-                        await self.remoteStream.async_write()
+                if self.remote_stream:
+                    if self.remote_stream._init_new_client_conn():
+                        await self.remote_stream.async_write()
 
-            if self.remoteStream:
-                self.remoteStream._update_header(self._forward_buffer)
+            if self.remote_stream:
+                self.remote_stream._update_header(self._forward_buffer)
                 hex_dump_memory(logging.INFO,
-                                f'Forward to {self.remoteStream.addr}:',
+                                f'Forward to {self.remote_stream.addr}:',
                                 self._forward_buffer,
                                 len(self._forward_buffer))
-                self.remoteStream.writer.write(self._forward_buffer)
-                await self.remoteStream.writer.drain()
+                self.remote_stream.writer.write(self._forward_buffer)
+                await self.remote_stream.writer.drain()
                 self._forward_buffer = bytearray(0)
 
         except OSError as error:
-            if self.remoteStream:
-                rmt = self.remoteStream
-                self.remoteStream = None
+            if self.remote_stream:
+                rmt = self.remote_stream
+                self.remote_stream = None
                 logger.error(f'[{rmt.node_id}:{rmt.conn_no}] Fwd: {error} for '
                              f'l{rmt.l_addr} | r{rmt.r_addr}')
                 await rmt.disc()
                 rmt.close()
 
         except RuntimeError as error:
-            if self.remoteStream:
-                rmt = self.remoteStream
-                self.remoteStream = None
+            if self.remote_stream:
+                rmt = self.remote_stream
+                self.remote_stream = None
                 logger.info(f'[{rmt.node_id}:{rmt.conn_no}] '
                             f'Fwd: {error} for {rmt.l_addr}')
                 await rmt.disc()

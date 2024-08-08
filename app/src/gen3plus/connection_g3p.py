@@ -1,5 +1,4 @@
 import logging
-# import gc
 from asyncio import StreamReader, StreamWriter
 from async_stream import AsyncStream
 from gen3plus.solarman_v5 import SolarmanV5
@@ -16,7 +15,7 @@ class ConnectionG3P(AsyncStream, SolarmanV5):
         AsyncStream.__init__(self, reader, writer, addr)
         SolarmanV5.__init__(self, server_side, client_mode)
 
-        self.remoteStream: 'ConnectionG3P' = remote_stream
+        self.remote_stream: 'ConnectionG3P' = remote_stream
 
     '''
     Our puplic methods
@@ -27,10 +26,10 @@ class ConnectionG3P(AsyncStream, SolarmanV5):
         #  logger.info(f'AsyncStream refs: {gc.get_referrers(self)}')
 
     async def async_create_remote(self) -> None:
-        pass
+        pass  # virtual interface
 
     async def async_publ_mqtt(self) -> None:
-        pass
+        pass  # virtual interface
 
     def healthy(self) -> bool:
         logger.debug('ConnectionG3P healthy()')
