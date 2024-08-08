@@ -8,7 +8,7 @@ on:
     branches: [ "main", "dev-*", "*/issue*" ]
     paths-ignore:
     - '**.md' # Do no build on *.md changes
-    - '**.yml' # Do no build on *.yml changes
+    # - '**.yml' # Do no build on *.yml changes
     - '**.yaml' # Do no build on *.yaml changes
     - '**.yuml' # Do no build on *.yuml changes
     - '**.svg' # Do no build on *.svg changes
@@ -18,10 +18,11 @@ on:
     - '**.dockerfile' # Do no build on *.dockerfile changes
     - '**.sh' # Do no build on *.sh changes     
   pull_request:
-    branches: [ "main" ]
+    branches: [ "main", "dev-*" ]
 
 permissions:
   contents: read
+  pull-requests: read # allows SonarCloud to decorate PRs with analysis results
 
 jobs:
   build:
@@ -54,3 +55,20 @@ jobs:
     - name: Test with pytest
       run: |
         python -m pytest app
+    - name: Analyze with SonarCloud
+      # You can pin the exact commit or the version.
+      # uses: SonarSource/sonarcloud-github-action@v2.2.0
+      uses: SonarSource/sonarcloud-github-action@4006f663ecaf1f8093e8e4abb9227f6041f52216
+      env:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}   # Generate a token on Sonarcloud.io, add it to the secrets of this repo with the name SONAR_TOKEN (Settings > Secrets > Actions > add new repository secret)
+      with:
+        # Additional arguments for the SonarScanner CLI
+        args:
+          # Unique keys of your project and organization. You can find them in SonarCloud > Information (bottom-left menu)
+          # mandatory
+          -Dsonar.projectKey=s-allius_tsun-gen3-proxy
+          -Dsonar.organization=s-allius
+          # Adds more detail to both client and server-side analysis logs, activating DEBUG mode for the scanner, and adding client-side environment variables and system properties to the server-side log of analysis report processing.
+          #-Dsonar.verbose= # optional, default is false
+        # When you need the analysis to take place in a directory other than the one from which it was launched, default is .
+        projectBaseDir: .
