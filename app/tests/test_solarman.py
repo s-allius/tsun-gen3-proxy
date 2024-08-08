@@ -81,18 +81,18 @@ class MemoryStream(SolarmanV5):
         copied_bytes = 0
         try:    
             if (self.__offs < self.__msg_len):
-                len = self.__chunks[self.__chunk_idx]
+                chunk_len = self.__chunks[self.__chunk_idx]
                 self.__chunk_idx += 1
-                if len!=0:
-                    self._recv_buffer += self.__msg[self.__offs:len]
-                    copied_bytes = len - self.__offs
-                    self.__offs = len
+                if chunk_len!=0:
+                    self._recv_buffer += self.__msg[self.__offs:chunk_len]
+                    copied_bytes = chunk_len - self.__offs
+                    self.__offs = chunk_len
                 else:
                     self._recv_buffer += self.__msg[self.__offs:]
                     copied_bytes = self.__msg_len - self.__offs
                     self.__offs = self.__msg_len
         except:
-            pass     
+            pass   # ignore exceptions here
         return copied_bytes
     
     async def async_write(self, headline=''):
@@ -101,8 +101,8 @@ class MemoryStream(SolarmanV5):
 
     def createClientStream(self, msg, chunks = (0,)):
         c = MemoryStream(msg, chunks, False)
-        self.remoteStream = c
-        c. remoteStream = self
+        self.remote_stream = c
+        c. remote_stream = self
         return c
 
     def _SolarmanV5__flush_recv_msg(self) -> None:
@@ -115,7 +115,6 @@ class MemoryStream(SolarmanV5):
         )
         super()._SolarmanV5__flush_recv_msg()
         self.msg_count += 1
-        return
 
 
 def get_sn() -> bytes:
@@ -149,7 +148,7 @@ def incorrect_checksum(buf):
     return checksum.to_bytes(length=1)
 
 @pytest.fixture
-def DeviceIndMsg(): # 0x4110
+def device_ind_msg(): # 0x4110
     msg  = b'\xa5\xd4\x00\x10\x41\x00\x01' +get_sn()  +b'\x02\xba\xd2\x00\x00'
     msg += b'\x19\x00\x00\x00\x00\x00\x00\x00\x05\x3c\x78\x01\x64\x01\x4c\x53'
     msg += b'\x57\x35\x42\x4c\x45\x5f\x31\x37\x5f\x30\x32\x42\x30\x5f\x31\x2e'
@@ -169,7 +168,7 @@ def DeviceIndMsg(): # 0x4110
     return msg
 
 @pytest.fixture
-def DeviceRspMsg():  # 0x1110
+def device_rsp_msg():  # 0x1110
     msg  = b'\xa5\x0a\x00\x10\x11\x01\x01' +get_sn()  +b'\x02\x01'
     msg += total()  
     msg += hb()
@@ -178,7 +177,7 @@ def DeviceRspMsg():  # 0x1110
     return msg
 
 @pytest.fixture
-def InvalidStartByte(): # 0x4110
+def invalid_start_byte(): # 0x4110
     msg  = b'\xa4\xd4\x00\x10\x41\x00\x01' +get_sn()  +b'\x02\xba\xd2\x00\x00'
     msg += b'\x19\x00\x00\x00\x00\x00\x00\x00\x05\x3c\x78\x01\x64\x01\x4c\x53'
     msg += b'\x57\x35\x42\x4c\x45\x5f\x31\x37\x5f\x30\x32\x42\x30\x5f\x31\x2e'
@@ -198,7 +197,7 @@ def InvalidStartByte(): # 0x4110
     return msg
 
 @pytest.fixture
-def InvalidStopByte(): # 0x4110
+def invalid_stop_byte(): # 0x4110
     msg  = b'\xa5\xd4\x00\x10\x41\x00\x01' +get_sn()  +b'\x02\xba\xd2\x00\x00'
     msg += b'\x19\x00\x00\x00\x00\x00\x00\x00\x05\x3c\x78\x01\x64\x01\x4c\x53'
     msg += b'\x57\x35\x42\x4c\x45\x5f\x31\x37\x5f\x30\x32\x42\x30\x5f\x31\x2e'
@@ -218,7 +217,7 @@ def InvalidStopByte(): # 0x4110
     return msg
 
 @pytest.fixture
-def InvalidChecksum(): # 0x4110
+def invalid_checksum(): # 0x4110
     msg  = b'\xa5\xd4\x00\x10\x41\x00\x01' +get_sn()  +b'\x02\xba\xd2\x00\x00'
     msg += b'\x19\x00\x00\x00\x00\x00\x00\x00\x05\x3c\x78\x01\x64\x01\x4c\x53'
     msg += b'\x57\x35\x42\x4c\x45\x5f\x31\x37\x5f\x30\x32\x42\x30\x5f\x31\x2e'
@@ -238,7 +237,7 @@ def InvalidChecksum(): # 0x4110
     return msg
 
 @pytest.fixture
-def InverterIndMsg():  # 0x4210
+def inverter_ind_msg():  # 0x4210
     msg  = b'\xa5\x99\x01\x10\x42\x01\x02' +get_sn()  +b'\x01\xb0\x02\xbc\xc8'
     msg += b'\x24\x32\x6c\x1f\x00\x00\xa0\x47\xe4\x33\x01\x00\x03\x08\x00\x00'
     msg += b'\x59\x31\x37\x45\x37\x41\x30\x46\x30\x31\x30\x42\x30\x31\x33\x45'
@@ -271,7 +270,7 @@ def InverterIndMsg():  # 0x4210
     return msg
 
 @pytest.fixture
-def InverterIndMsg1600():  # 0x4210 rated Power 1600W 
+def inverter_ind_msg1600():  # 0x4210 rated Power 1600W 
     msg  = b'\xa5\x99\x01\x10\x42\xe6\x9e' +get_sn()  +b'\x01\xb0\x02\xbc\xc8'
     msg += b'\x24\x32\x6c\x1f\x00\x00\xa0\x47\xe4\x33\x01\x00\x03\x08\x00\x00'
     msg += b'\x59\x31\x37\x45\x37\x41\x30\x46\x30\x31\x30\x42\x30\x31\x33\x45'
@@ -304,7 +303,7 @@ def InverterIndMsg1600():  # 0x4210 rated Power 1600W
     return msg
 
 @pytest.fixture
-def InverterIndMsg1800():  # 0x4210 rated Power 1800W 
+def inverter_ind_msg1800():  # 0x4210 rated Power 1800W 
     msg  = b'\xa5\x99\x01\x10\x42\xe6\x9e' +get_sn()  +b'\x01\xb0\x02\xbc\xc8'
     msg += b'\x24\x32\x6c\x1f\x00\x00\xa0\x47\xe4\x33\x01\x00\x03\x08\x00\x00'
     msg += b'\x59\x31\x37\x45\x37\x41\x30\x46\x30\x31\x30\x42\x30\x31\x33\x45'
@@ -337,7 +336,7 @@ def InverterIndMsg1800():  # 0x4210 rated Power 1800W
     return msg
 
 @pytest.fixture
-def InverterIndMsg2000():  # 0x4210 rated Power 2000W 
+def inverter_ind_msg2000():  # 0x4210 rated Power 2000W 
     msg  = b'\xa5\x99\x01\x10\x42\xe6\x9e' +get_sn()  +b'\x01\xb0\x02\xbc\xc8'
     msg += b'\x24\x32\x6c\x1f\x00\x00\xa0\x47\xe4\x33\x01\x00\x03\x08\x00\x00'
     msg += b'\x59\x31\x37\x45\x37\x41\x30\x46\x30\x31\x30\x42\x30\x31\x33\x45'
@@ -370,7 +369,7 @@ def InverterIndMsg2000():  # 0x4210 rated Power 2000W
     return msg
 
 @pytest.fixture
-def InverterIndMsg800():  # 0x4210 rated Power 800W 
+def inverter_ind_msg800():  # 0x4210 rated Power 800W 
     msg  = b'\xa5\x99\x01\x10\x42\xe6\x9e' +get_sn()  +b'\x01\xb0\x02\xbc\xc8'
     msg += b'\x24\x32\x6c\x1f\x00\x00\xa0\x47\xe4\x33\x01\x00\x03\x08\x00\x00'
     msg += b'\x59\x31\x37\x45\x37\x41\x30\x46\x30\x31\x30\x42\x30\x31\x33\x45'
@@ -403,7 +402,7 @@ def InverterIndMsg800():  # 0x4210 rated Power 800W
     return msg
 
 @pytest.fixture
-def InverterIndMsg_81():  # 0x4210 fcode 0x81
+def inverter_ind_msg_81():  # 0x4210 fcode 0x81
     msg  = b'\xa5\x99\x01\x10\x42\x02\x03' +get_sn()  +b'\x81\xb0\x02\xbc\xc8'
     msg += b'\x24\x32\x6c\x1f\x00\x00\xa0\x07\x04\x03\x01\x00\x03\x08\x00\x00'
     msg += b'\x59\x31\x37\x45\x37\x41\x30\x46\x30\x31\x30\x42\x30\x31\x33\x45'
@@ -436,7 +435,7 @@ def InverterIndMsg_81():  # 0x4210 fcode 0x81
     return msg
 
 @pytest.fixture
-def InverterRspMsg():  # 0x1210
+def inverter_rsp_msg():  # 0x1210
     msg  = b'\xa5\x0a\x00\x10\x12\x02\02' +get_sn()  +b'\x01\x01'
     msg += total()  
     msg += hb()
@@ -445,7 +444,7 @@ def InverterRspMsg():  # 0x1210
     return msg
 
 @pytest.fixture
-def InverterRspMsg_81():  # 0x1210 fcode 0x81
+def inverter_rsp_msg_81():  # 0x1210 fcode 0x81
     msg  = b'\xa5\x0a\x00\x10\x12\x03\03' +get_sn()  +b'\x81\x01'
     msg += total()  
     msg += hb()
@@ -454,7 +453,7 @@ def InverterRspMsg_81():  # 0x1210 fcode 0x81
     return msg
 
 @pytest.fixture
-def UnknownMsg():  # 0x5110
+def unknown_msg():  # 0x5110
     msg  = b'\xa5\x0a\x00\x10\x51\x10\x84' +get_sn()  +b'\x01\x01\x69\x6f\x09'
     msg += b'\x66\x78\x00\x00\x00'               
     msg += correct_checksum(msg)
@@ -462,7 +461,7 @@ def UnknownMsg():  # 0x5110
     return msg
 
 @pytest.fixture
-def SyncStartIndMsg():  # 0x4310
+def sync_start_ind_msg():  # 0x4310
     msg  = b'\xa5\x2f\x00\x10\x43\x0c\x0d' +get_sn()  +b'\x81\x7a\x0b\x2e\x32'
     msg += b'\x39\x00\x00\x00\x00\x00\x00\x00\x0c\x00\x41\x6c\x6c\x69\x75\x73'
     msg += b'\x2d\x48\x6f\x6d\x65\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
@@ -472,7 +471,7 @@ def SyncStartIndMsg():  # 0x4310
     return msg
 
 @pytest.fixture
-def SyncStartRspMsg():  # 0x1310
+def sync_start_rsp_msg():  # 0x1310
     msg  = b'\xa5\x0a\x00\x10\x13\x0d\x0d' +get_sn()  +b'\x81\x01'
     msg += total()  
     msg += hb()
@@ -481,7 +480,7 @@ def SyncStartRspMsg():  # 0x1310
     return msg
 
 @pytest.fixture
-def SyncStartFwdMsg():  # 0x4310
+def sync_start_fwd_msg():  # 0x4310
     msg  = b'\xa5\x2f\x00\x10\x43\x0d\x0e' +get_sn()  +b'\x81\x7a\x0b\x2e\x32'
     msg += b'\x39\x00\x00\x00\x00\x00\x00\x00\x0c\x00\x41\x6c\x6c\x69\x75\x73'
     msg += b'\x2d\x48\x6f\x6d\x65\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
@@ -492,7 +491,7 @@ def SyncStartFwdMsg():  # 0x4310
 
 
 @pytest.fixture
-def AtCommandIndMsg():  # 0x4510
+def at_command_ind_msg():  # 0x4510
     msg  = b'\xa5\x27\x00\x10\x45\x03\x02' +get_sn() +b'\x01\x02\x00'
     msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'           
     msg += b'AT+TIME=214028,1,60,120\r'
@@ -501,7 +500,7 @@ def AtCommandIndMsg():  # 0x4510
     return msg
 
 @pytest.fixture
-def AtCommandIndMsgBlock():  # 0x4510
+def at_command_ind_msg_block():  # 0x4510
     msg  = b'\xa5\x17\x00\x10\x45\x03\x02' +get_sn() +b'\x01\x02\x00'
     msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'           
     msg += b'AT+WEBU\r'
@@ -510,7 +509,7 @@ def AtCommandIndMsgBlock():  # 0x4510
     return msg
 
 @pytest.fixture
-def AtCommandRspMsg():  # 0x1510
+def at_command_rsp_msg():  # 0x1510
     msg  = b'\xa5\x11\x00\x10\x15\x03\x03' +get_sn()  +b'\x01\x01'
     msg += total()  
     msg += hb()
@@ -520,7 +519,7 @@ def AtCommandRspMsg():  # 0x1510
     return msg
 
 @pytest.fixture
-def HeartbeatIndMsg():  # 0x4710
+def heartbeat_ind_msg():  # 0x4710
     msg  = b'\xa5\x01\x00\x10\x47\x10\x84' +get_sn()
     msg += b'\x00'               
     msg += correct_checksum(msg)
@@ -528,7 +527,7 @@ def HeartbeatIndMsg():  # 0x4710
     return msg
 
 @pytest.fixture
-def HeartbeatRspMsg():  # 0x1710
+def heartbeat_rsp_msg():  # 0x1710
     msg  = b'\xa5\x0a\x00\x10\x17\x11\x84' +get_sn()  +b'\x00\x01'
     msg += total()  
     msg += hb()
@@ -537,7 +536,7 @@ def HeartbeatRspMsg():  # 0x1710
     return msg
 
 @pytest.fixture
-def SyncEndIndMsg():  # 0x4810
+def sync_end_ind_msg():  # 0x4810
     msg  = b'\xa5\x3c\x00\x10\x48\x06\x07' +get_sn() +b'\x01\xa5\x3c\x2e\x32'
     msg += b'\x2c\x00\x00\x00\xc1\x01\xec\x33\x01\x05\x2c\xff\xff\xff\xff\xff'
     msg += b'\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff'
@@ -548,7 +547,7 @@ def SyncEndIndMsg():  # 0x4810
     return msg
 
 @pytest.fixture
-def SyncEndRspMsg():  # 0x1810
+def sync_end_rsp_msg():  # 0x1810
     msg  = b'\xa5\x0a\x00\x10\x18\x07\x07' +get_sn()  +b'\x01\x01'
     msg += total()  
     msg += hb()
@@ -557,7 +556,7 @@ def SyncEndRspMsg():  # 0x1810
     return msg
 
 @pytest.fixture
-def MsgModbusCmd():
+def msg_modbus_cmd():
     msg  = b'\xa5\x17\x00\x10\x45\x03\x02' +get_sn()  +b'\x02\xb0\x02'
     msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x06\x20\x08'
     msg += b'\x00\x00\x03\xc8'
@@ -566,7 +565,7 @@ def MsgModbusCmd():
     return msg
 
 @pytest.fixture
-def MsgModbusCmdFwd():
+def msg_modbus_cmd_fwd():
     msg  = b'\xa5\x17\x00\x10\x45\x01\x00' +get_sn()  +b'\x02\xb0\x02'
     msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x06\x20\x08'
     msg += b'\x00\x00\x03\xc8'
@@ -575,7 +574,7 @@ def MsgModbusCmdFwd():
     return msg
 
 @pytest.fixture
-def MsgModbusCmdCrcErr():
+def msg_modbus_cmd_crc_err():
     msg  = b'\xa5\x17\x00\x10\x45\x03\x02' +get_sn()  +b'\x02\xb0\x02'
     msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x06\x20\x08'
     msg += b'\x00\x00\x04\xc8'
@@ -584,7 +583,7 @@ def MsgModbusCmdCrcErr():
     return msg
 
 @pytest.fixture
-def MsgModbusRsp():  # 0x1510
+def msg_modbus_rsp():  # 0x1510
     msg  = b'\xa5\x3b\x00\x10\x15\x03\x03' +get_sn()  +b'\x02\x01'
     msg += total()  
     msg += hb()
@@ -597,7 +596,7 @@ def MsgModbusRsp():  # 0x1510
     return msg
 
 @pytest.fixture
-def MsgModbusInvalid():  # 0x1510
+def msg_modbus_invalid():  # 0x1510
     msg  = b'\xa5\x3b\x00\x10\x15\x03\x03' +get_sn()  +b'\x02\x00'
     msg += total()  
     msg += hb()
@@ -610,7 +609,7 @@ def MsgModbusInvalid():  # 0x1510
     return msg
 
 @pytest.fixture
-def MsgUnknownCmd():
+def msg_unknown_cmd():
     msg  = b'\xa5\x17\x00\x10\x45\x03\x02' +get_sn()  +b'\x03\xb0\x02'
     msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x06\x20\x08'
     msg += b'\x00\x00\x03\xc8'
@@ -619,7 +618,7 @@ def MsgUnknownCmd():
     return msg
 
 @pytest.fixture
-def MsgUnknownCmdRsp():  # 0x1510
+def msg_unknown_cmd_rsp():  # 0x1510
     msg  = b'\xa5\x3b\x00\x10\x15\x03\x03' +get_sn()  +b'\x03\x01'
     msg += total()  
     msg += hb()
@@ -632,19 +631,19 @@ def MsgUnknownCmdRsp():  # 0x1510
     return msg
 
 @pytest.fixture
-def ConfigTsunAllowAll():
+def config_tsun_allow_all():
     Config.config = {'solarman':{'enabled': True}, 'inverters':{'allow_all':True}}
 
 @pytest.fixture
-def ConfigNoTsunInv1():
+def config_no_tsun_inv1():
     Config.config = {'solarman':{'enabled': False},'inverters':{'Y170000000000001':{'monitor_sn': 2070233889, 'node_id':'inv1', 'modbus_polling': True, 'suggested_area':'roof'}}}
 
 @pytest.fixture
-def ConfigTsunInv1():
+def config_tsun_inv1():
     Config.config = {'solarman':{'enabled': True},'inverters':{'Y170000000000001':{'monitor_sn': 2070233889, 'node_id':'inv1', 'modbus_polling': True, 'suggested_area':'roof'}}}
 
-def test_read_message(DeviceIndMsg):
-    m = MemoryStream(DeviceIndMsg, (0,))
+def test_read_message(device_ind_msg):
+    m = MemoryStream(device_ind_msg, (0,))
     m.read()         # read complete msg, and dispatch msg
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
     assert m.msg_count == 1
@@ -660,12 +659,12 @@ def test_read_message(DeviceIndMsg):
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
     m.close()
 
-def test_invalid_start_byte(InvalidStartByte, DeviceIndMsg):
+def test_invalid_start_byte(invalid_start_byte, device_ind_msg):
     # received a message with wrong start byte plus an valid message
     # the complete receive buffer must be cleared to 
     # find the next valid message
-    m = MemoryStream(InvalidStartByte, (0,))
-    m.append_msg(DeviceIndMsg)
+    m = MemoryStream(invalid_start_byte, (0,))
+    m.append_msg(device_ind_msg)
     m.read()         # read complete msg, and dispatch msg
     assert not m.header_valid  # must be invalid, since start byte is wrong
     assert m.msg_count == 0
@@ -681,11 +680,11 @@ def test_invalid_start_byte(InvalidStartByte, DeviceIndMsg):
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 1
     m.close()
 
-def test_invalid_stop_byte(InvalidStopByte):
+def test_invalid_stop_byte(invalid_stop_byte):
     # received a message with wrong stop byte
     # the complete receive buffer must be cleared to 
     # find the next valid message
-    m = MemoryStream(InvalidStopByte, (0,))
+    m = MemoryStream(invalid_stop_byte, (0,))
     m.read()         # read complete msg, and dispatch msg
     assert not m.header_valid  # must be invalid, since start byte is wrong
     assert m.msg_count == 1     # msg flush was called
@@ -701,11 +700,11 @@ def test_invalid_stop_byte(InvalidStopByte):
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 1
     m.close()
 
-def test_invalid_stop_byte2(InvalidStopByte, DeviceIndMsg):
+def test_invalid_stop_byte2(invalid_stop_byte, device_ind_msg):
     # received a message with wrong stop byte plus an valid message
     # only the first message must be discarded
-    m = MemoryStream(InvalidStopByte, (0,))
-    m.append_msg(DeviceIndMsg)
+    m = MemoryStream(invalid_stop_byte, (0,))
+    m.append_msg(device_ind_msg)
 
     m.read()         # read complete msg, and dispatch msg
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
@@ -726,13 +725,13 @@ def test_invalid_stop_byte2(InvalidStopByte, DeviceIndMsg):
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 1
     m.close()
 
-def test_invalid_stop_start_byte(InvalidStopByte, InvalidStartByte):
+def test_invalid_stop_start_byte(invalid_stop_byte, invalid_start_byte):
     # received a message with wrong stop byte plus an invalid message
     # with fron start byte
     # the complete receive buffer must be cleared to 
     # find the next valid message
-    m = MemoryStream(InvalidStopByte, (0,))
-    m.append_msg(InvalidStartByte)
+    m = MemoryStream(invalid_stop_byte, (0,))
+    m.append_msg(invalid_start_byte)
     m.read()         # read complete msg, and dispatch msg
     assert not m.header_valid  # must be invalid, since start byte is wrong
     assert m.msg_count == 1     # msg flush was called
@@ -748,11 +747,11 @@ def test_invalid_stop_start_byte(InvalidStopByte, InvalidStartByte):
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 1
     m.close()
 
-def test_invalid_checksum(InvalidChecksum, DeviceIndMsg):
+def test_invalid_checksum(invalid_checksum, device_ind_msg):
     # received a message with wrong checksum plus an valid message
     # only the first message must be discarded
-    m = MemoryStream(InvalidChecksum, (0,))
-    m.append_msg(DeviceIndMsg)
+    m = MemoryStream(invalid_checksum, (0,))
+    m.append_msg(device_ind_msg)
 
     m.read()         # read complete msg, and dispatch msg
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
@@ -772,10 +771,10 @@ def test_invalid_checksum(InvalidChecksum, DeviceIndMsg):
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 1
     m.close()
 
-def test_read_message_twice(ConfigNoTsunInv1, DeviceIndMsg, DeviceRspMsg):
-    ConfigNoTsunInv1
-    m = MemoryStream(DeviceIndMsg, (0,))
-    m.append_msg(DeviceIndMsg)
+def test_read_message_twice(config_no_tsun_inv1, device_ind_msg, device_rsp_msg):
+    config_no_tsun_inv1
+    m = MemoryStream(device_ind_msg, (0,))
+    m.append_msg(device_ind_msg)
     m.read()         # read complete msg, and dispatch msg
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
     assert m.msg_count == 2
@@ -788,13 +787,13 @@ def test_read_message_twice(ConfigNoTsunInv1, DeviceIndMsg, DeviceRspMsg):
     assert m.msg_recvd[1]['control']==0x4110
     assert m.msg_recvd[1]['seq']=='01:01'
     assert m.msg_recvd[1]['data_len']==0xd4
-    assert m._send_buffer==DeviceRspMsg+DeviceRspMsg
+    assert m._send_buffer==device_rsp_msg+device_rsp_msg
     assert m._forward_buffer==b''
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
     m.close()
 
-def test_read_message_in_chunks(DeviceIndMsg):
-    m = MemoryStream(DeviceIndMsg, (4,11,0))
+def test_read_message_in_chunks(device_ind_msg):
+    m = MemoryStream(device_ind_msg, (4,11,0))
     m.read()        # read 4 bytes, header incomplere
     assert not m.header_valid  # must be invalid, since header not complete
     assert m.msg_count == 0
@@ -814,9 +813,9 @@ def test_read_message_in_chunks(DeviceIndMsg):
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
     m.close()
 
-def test_read_message_in_chunks2(ConfigTsunInv1, DeviceIndMsg):
-    ConfigTsunInv1
-    m = MemoryStream(DeviceIndMsg, (4,10,0))
+def test_read_message_in_chunks2(config_tsun_inv1, device_ind_msg):
+    config_tsun_inv1
+    m = MemoryStream(device_ind_msg, (4,10,0))
     m.read()        # read 4 bytes, header incomplere
     assert not m.header_valid
     assert m.msg_count == 0
@@ -839,10 +838,10 @@ def test_read_message_in_chunks2(ConfigTsunInv1, DeviceIndMsg):
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
     m.close()
 
-def test_read_two_messages(ConfigTsunAllowAll, DeviceIndMsg, DeviceRspMsg, InverterIndMsg, InverterRspMsg):
-    ConfigTsunAllowAll
-    m = MemoryStream(DeviceIndMsg, (0,))
-    m.append_msg(InverterIndMsg)
+def test_read_two_messages(config_tsun_allow_all, device_ind_msg, device_rsp_msg, inverter_ind_msg, inverter_rsp_msg):
+    config_tsun_allow_all
+    m = MemoryStream(device_ind_msg, (0,))
+    m.append_msg(inverter_ind_msg)
 
     m._init_new_client_conn()
     m.read()         # read complete msg, and dispatch msg
@@ -858,18 +857,18 @@ def test_read_two_messages(ConfigTsunAllowAll, DeviceIndMsg, DeviceRspMsg, Inver
     assert m.msg_recvd[1]['control']==0x4210
     assert m.msg_recvd[1]['seq']=='02:02'
     assert m.msg_recvd[1]['data_len']==0x199
-    assert m._forward_buffer==DeviceIndMsg+InverterIndMsg
-    assert m._send_buffer==DeviceRspMsg+InverterRspMsg
+    assert m._forward_buffer==device_ind_msg+inverter_ind_msg
+    assert m._send_buffer==device_rsp_msg+inverter_rsp_msg
 
     m._send_buffer = bytearray(0) # clear send buffer for next test    
     m._init_new_client_conn()
     assert m._send_buffer==b''
     m.close()
 
-def test_read_two_messages2(ConfigTsunAllowAll, InverterIndMsg, InverterIndMsg_81, InverterRspMsg, InverterRspMsg_81):
-    ConfigTsunAllowAll
-    m = MemoryStream(InverterIndMsg, (0,))
-    m.append_msg(InverterIndMsg_81)
+def test_read_two_messages2(config_tsun_allow_all, inverter_ind_msg, inverter_ind_msg_81, inverter_rsp_msg, inverter_rsp_msg_81):
+    config_tsun_allow_all
+    m = MemoryStream(inverter_ind_msg, (0,))
+    m.append_msg(inverter_ind_msg_81)
     m.read()         # read complete msg, and dispatch msg
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
@@ -884,17 +883,17 @@ def test_read_two_messages2(ConfigTsunAllowAll, InverterIndMsg, InverterIndMsg_8
     assert m.msg_recvd[1]['seq']=='03:03'
     assert m.msg_recvd[1]['data_len']==0x199
     assert m.time_ofs == 0x33e447a0
-    assert m._forward_buffer==InverterIndMsg+InverterIndMsg_81
-    assert m._send_buffer==InverterRspMsg+InverterRspMsg_81
+    assert m._forward_buffer==inverter_ind_msg+inverter_ind_msg_81
+    assert m._send_buffer==inverter_rsp_msg+inverter_rsp_msg_81
 
     m._send_buffer = bytearray(0) # clear send buffer for next test    
     m._init_new_client_conn()
     assert m._send_buffer==b''
     m.close()
 
-def test_unkown_message(ConfigTsunInv1, UnknownMsg):
-    ConfigTsunInv1
-    m = MemoryStream(UnknownMsg, (0,))
+def test_unkown_message(config_tsun_inv1, unknown_msg):
+    config_tsun_inv1
+    m = MemoryStream(unknown_msg, (0,))
     m.read()         # read complete msg, and dispatch msg
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
     assert m.msg_count == 1
@@ -906,13 +905,13 @@ def test_unkown_message(ConfigTsunInv1, UnknownMsg):
     assert m.data_len == 0x0a
     assert m._recv_buffer==b''
     assert m._send_buffer==b''
-    assert m._forward_buffer==UnknownMsg
+    assert m._forward_buffer==unknown_msg
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
     m.close()
 
-def test_device_rsp(ConfigTsunInv1, DeviceRspMsg):
-    ConfigTsunInv1
-    m = MemoryStream(DeviceRspMsg, (0,), False)
+def test_device_rsp(config_tsun_inv1, device_rsp_msg):
+    config_tsun_inv1
+    m = MemoryStream(device_rsp_msg, (0,), False)
     m.read()         # read complete msg, and dispatch msg
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
     assert m.msg_count == 1
@@ -928,9 +927,9 @@ def test_device_rsp(ConfigTsunInv1, DeviceRspMsg):
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
     m.close()
 
-def test_inverter_rsp(ConfigTsunInv1, InverterRspMsg):
-    ConfigTsunInv1
-    m = MemoryStream(InverterRspMsg, (0,), False)
+def test_inverter_rsp(config_tsun_inv1, inverter_rsp_msg):
+    config_tsun_inv1
+    m = MemoryStream(inverter_rsp_msg, (0,), False)
     m.read()         # read complete msg, and dispatch msg
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
     assert m.msg_count == 1
@@ -946,46 +945,44 @@ def test_inverter_rsp(ConfigTsunInv1, InverterRspMsg):
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
     m.close()
 
-def test_heartbeat_ind(ConfigTsunInv1, HeartbeatIndMsg, HeartbeatRspMsg):
-    ConfigTsunInv1
-    m = MemoryStream(HeartbeatIndMsg, (0,))
+def test_heartbeat_ind(config_tsun_inv1, heartbeat_ind_msg, heartbeat_rsp_msg):
+    config_tsun_inv1
+    m = MemoryStream(heartbeat_ind_msg, (0,))
     m.read()         # read complete msg, and dispatch msg
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
     assert m.msg_count == 1
     assert m.header_len==11
     assert m.snr == 2070233889
-    # assert m.unique_id == '2070233889'
     assert m.control == 0x4710
     assert str(m.seq) == '84:11'  # value after sending response
     assert m.data_len == 0x01
     assert m._recv_buffer==b''
-    assert m._send_buffer==HeartbeatRspMsg
-    assert m._forward_buffer==HeartbeatIndMsg
+    assert m._send_buffer==heartbeat_rsp_msg
+    assert m._forward_buffer==heartbeat_ind_msg
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
     m.close()
 
-def test_heartbeat_ind2(ConfigTsunInv1, HeartbeatIndMsg, HeartbeatRspMsg):
-    ConfigTsunInv1
-    m = MemoryStream(HeartbeatIndMsg, (0,))
+def test_heartbeat_ind2(config_tsun_inv1, heartbeat_ind_msg, heartbeat_rsp_msg):
+    config_tsun_inv1
+    m = MemoryStream(heartbeat_ind_msg, (0,))
     m.no_forwarding = True
     m.read()         # read complete msg, and dispatch msg
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
     assert m.msg_count == 1
     assert m.header_len==11
     assert m.snr == 2070233889
-    # assert m.unique_id == '2070233889'
     assert m.control == 0x4710
     assert str(m.seq) == '84:11'  # value after sending response
     assert m.data_len == 0x01
     assert m._recv_buffer==b''
-    assert m._send_buffer==HeartbeatRspMsg
+    assert m._send_buffer==heartbeat_rsp_msg
     assert m._forward_buffer==b''
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
     m.close()
 
-def test_heartbeat_rsp(ConfigTsunInv1, HeartbeatRspMsg):
-    ConfigTsunInv1
-    m = MemoryStream(HeartbeatRspMsg, (0,), False)
+def test_heartbeat_rsp(config_tsun_inv1, heartbeat_rsp_msg):
+    config_tsun_inv1
+    m = MemoryStream(heartbeat_rsp_msg, (0,), False)
     m.read()         # read complete msg, and dispatch msg
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
     assert m.msg_count == 1
@@ -1001,33 +998,32 @@ def test_heartbeat_rsp(ConfigTsunInv1, HeartbeatRspMsg):
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
     m.close()
 
-def test_sync_start_ind(ConfigTsunInv1, SyncStartIndMsg, SyncStartRspMsg, SyncStartFwdMsg):
-    ConfigTsunInv1
-    m = MemoryStream(SyncStartIndMsg, (0,))
+def test_sync_start_ind(config_tsun_inv1, sync_start_ind_msg, sync_start_rsp_msg, sync_start_fwd_msg):
+    config_tsun_inv1
+    m = MemoryStream(sync_start_ind_msg, (0,))
     m.read()         # read complete msg, and dispatch msg
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
     assert m.msg_count == 1
     assert m.header_len==11
     assert m.snr == 2070233889
-    # assert m.unique_id == '2070233889'
     assert m.control == 0x4310
     assert str(m.seq) == '0d:0d'  # value after sending response
     assert m.data_len == 47
     assert m._recv_buffer==b''
-    assert m._send_buffer==SyncStartRspMsg
-    assert m._forward_buffer==SyncStartIndMsg
+    assert m._send_buffer==sync_start_rsp_msg
+    assert m._forward_buffer==sync_start_ind_msg
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
 
     m.seq.server_side = False  # simulate forawding to TSUN cloud
     m._update_header(m._forward_buffer)
     assert str(m.seq) == '0d:0e'  # value after forwarding indication
-    assert m._forward_buffer==SyncStartFwdMsg
+    assert m._forward_buffer==sync_start_fwd_msg
 
     m.close()
 
-def test_sync_start_rsp(ConfigTsunInv1, SyncStartRspMsg):
-    ConfigTsunInv1
-    m = MemoryStream(SyncStartRspMsg, (0,), False)
+def test_sync_start_rsp(config_tsun_inv1, sync_start_rsp_msg):
+    config_tsun_inv1
+    m = MemoryStream(sync_start_rsp_msg, (0,), False)
     m.read()         # read complete msg, and dispatch msg
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
     assert m.msg_count == 1
@@ -1043,27 +1039,26 @@ def test_sync_start_rsp(ConfigTsunInv1, SyncStartRspMsg):
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
     m.close()
 
-def test_sync_end_ind(ConfigTsunInv1, SyncEndIndMsg, SyncEndRspMsg):
-    ConfigTsunInv1
-    m = MemoryStream(SyncEndIndMsg, (0,))
+def test_sync_end_ind(config_tsun_inv1, sync_end_ind_msg, sync_end_rsp_msg):
+    config_tsun_inv1
+    m = MemoryStream(sync_end_ind_msg, (0,))
     m.read()         # read complete msg, and dispatch msg
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
     assert m.msg_count == 1
     assert m.header_len==11
     assert m.snr == 2070233889
-    # assert m.unique_id == '2070233889'
     assert m.control == 0x4810
     assert str(m.seq) == '07:07'  # value after sending response
     assert m.data_len == 60
     assert m._recv_buffer==b''
-    assert m._send_buffer==SyncEndRspMsg
-    assert m._forward_buffer==SyncEndIndMsg
+    assert m._send_buffer==sync_end_rsp_msg
+    assert m._forward_buffer==sync_end_ind_msg
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
     m.close()
 
-def test_sync_end_rsp(ConfigTsunInv1, SyncEndRspMsg):
-    ConfigTsunInv1
-    m = MemoryStream(SyncEndRspMsg, (0,), False)
+def test_sync_end_rsp(config_tsun_inv1, sync_end_rsp_msg):
+    config_tsun_inv1
+    m = MemoryStream(sync_end_rsp_msg, (0,), False)
     m.read()         # read complete msg, and dispatch msg
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
     assert m.msg_count == 1
@@ -1079,9 +1074,9 @@ def test_sync_end_rsp(ConfigTsunInv1, SyncEndRspMsg):
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
     m.close()
 
-def test_build_modell_600(ConfigTsunAllowAll, InverterIndMsg):
-    ConfigTsunAllowAll
-    m = MemoryStream(InverterIndMsg, (0,))
+def test_build_modell_600(config_tsun_allow_all, inverter_ind_msg):
+    config_tsun_allow_all
+    m = MemoryStream(inverter_ind_msg, (0,))
     assert 0 == m.db.get_db_value(Register.MAX_DESIGNED_POWER, 0)
     assert None == m.db.get_db_value(Register.RATED_POWER, None)
     assert None == m.db.get_db_value(Register.INVERTER_TEMP, None)
@@ -1095,9 +1090,9 @@ def test_build_modell_600(ConfigTsunAllowAll, InverterIndMsg):
     assert m._send_buffer==b''
     m.close()
 
-def test_build_modell_1600(ConfigTsunAllowAll, InverterIndMsg1600):
-    ConfigTsunAllowAll
-    m = MemoryStream(InverterIndMsg1600, (0,))
+def test_build_modell_1600(config_tsun_allow_all, inverter_ind_msg1600):
+    config_tsun_allow_all
+    m = MemoryStream(inverter_ind_msg1600, (0,))
     assert 0 == m.db.get_db_value(Register.MAX_DESIGNED_POWER, 0)
     assert None == m.db.get_db_value(Register.RATED_POWER, None)
     assert None == m.db.get_db_value(Register.INVERTER_TEMP, None)
@@ -1107,9 +1102,9 @@ def test_build_modell_1600(ConfigTsunAllowAll, InverterIndMsg1600):
     assert 'TSOL-MS1600' == m.db.get_db_value(Register.EQUIPMENT_MODEL, 0)
     m.close()
 
-def test_build_modell_1800(ConfigTsunAllowAll, InverterIndMsg1800):
-    ConfigTsunAllowAll
-    m = MemoryStream(InverterIndMsg1800, (0,))
+def test_build_modell_1800(config_tsun_allow_all, inverter_ind_msg1800):
+    config_tsun_allow_all
+    m = MemoryStream(inverter_ind_msg1800, (0,))
     assert 0 == m.db.get_db_value(Register.MAX_DESIGNED_POWER, 0)
     assert None == m.db.get_db_value(Register.RATED_POWER, None)
     assert None == m.db.get_db_value(Register.INVERTER_TEMP, None)
@@ -1119,9 +1114,9 @@ def test_build_modell_1800(ConfigTsunAllowAll, InverterIndMsg1800):
     assert 'TSOL-MS1800' == m.db.get_db_value(Register.EQUIPMENT_MODEL, 0)
     m.close()
 
-def test_build_modell_2000(ConfigTsunAllowAll, InverterIndMsg2000):
-    ConfigTsunAllowAll
-    m = MemoryStream(InverterIndMsg2000, (0,))
+def test_build_modell_2000(config_tsun_allow_all, inverter_ind_msg2000):
+    config_tsun_allow_all
+    m = MemoryStream(inverter_ind_msg2000, (0,))
     assert 0 == m.db.get_db_value(Register.MAX_DESIGNED_POWER, 0)
     assert None == m.db.get_db_value(Register.RATED_POWER, None)
     assert None == m.db.get_db_value(Register.INVERTER_TEMP, None)
@@ -1131,9 +1126,9 @@ def test_build_modell_2000(ConfigTsunAllowAll, InverterIndMsg2000):
     assert 'TSOL-MS2000' == m.db.get_db_value(Register.EQUIPMENT_MODEL, 0)
     m.close()
 
-def test_build_modell_800(ConfigTsunAllowAll, InverterIndMsg800):
-    ConfigTsunAllowAll
-    m = MemoryStream(InverterIndMsg800, (0,))
+def test_build_modell_800(config_tsun_allow_all, inverter_ind_msg800):
+    config_tsun_allow_all
+    m = MemoryStream(inverter_ind_msg800, (0,))
     assert 0 == m.db.get_db_value(Register.MAX_DESIGNED_POWER, 0)
     assert None == m.db.get_db_value(Register.RATED_POWER, None)
     assert None == m.db.get_db_value(Register.INVERTER_TEMP, None)
@@ -1143,9 +1138,9 @@ def test_build_modell_800(ConfigTsunAllowAll, InverterIndMsg800):
     assert 'TSOL-MSxx00' == m.db.get_db_value(Register.EQUIPMENT_MODEL, 0)
     m.close()
 
-def test_build_logger_modell(ConfigTsunAllowAll, DeviceIndMsg):
-    ConfigTsunAllowAll
-    m = MemoryStream(DeviceIndMsg, (0,))
+def test_build_logger_modell(config_tsun_allow_all, device_ind_msg):
+    config_tsun_allow_all
+    m = MemoryStream(device_ind_msg, (0,))
     assert 0 == m.db.get_db_value(Register.COLLECTOR_FW_VERSION, 0)
     assert 'IGEN TECH' == m.db.get_db_value(Register.CHIP_TYPE, None)
     assert None == m.db.get_db_value(Register.CHIP_MODEL, None)
@@ -1193,14 +1188,14 @@ def test_proxy_counter():
     m.close()
 
 @pytest.mark.asyncio
-async def test_msg_build_modbus_req(ConfigTsunInv1, DeviceIndMsg, DeviceRspMsg, InverterIndMsg, InverterRspMsg, MsgModbusCmd):
-    ConfigTsunInv1
-    m = MemoryStream(DeviceIndMsg, (0,), True)
+async def test_msg_build_modbus_req(config_tsun_inv1, device_ind_msg, device_rsp_msg, inverter_ind_msg, inverter_rsp_msg, msg_modbus_cmd):
+    config_tsun_inv1
+    m = MemoryStream(device_ind_msg, (0,), True)
     m.read()
     assert m.control == 0x4110
     assert str(m.seq) == '01:01'
-    assert m._send_buffer==DeviceRspMsg
-    assert m._forward_buffer==DeviceIndMsg
+    assert m._send_buffer==device_rsp_msg
+    assert m._forward_buffer==device_ind_msg
 
     m._send_buffer = bytearray(0) # clear send buffer for next test    
     m._forward_buffer = bytearray(0) # clear send buffer for next test    
@@ -1210,7 +1205,7 @@ async def test_msg_build_modbus_req(ConfigTsunInv1, DeviceIndMsg, DeviceRspMsg, 
     assert m.writer.sent_pdu == b'' # modbus command must be ignore, cause connection is still not up
     assert m._send_buffer == b''    # modbus command must be ignore, cause connection is still not up
 
-    m.append_msg(InverterIndMsg)
+    m.append_msg(inverter_ind_msg)
     m.read()
     assert m.control == 0x4210
     assert str(m.seq) == '02:02'
@@ -1219,15 +1214,15 @@ async def test_msg_build_modbus_req(ConfigTsunInv1, DeviceIndMsg, DeviceRspMsg, 
     assert m.msg_recvd[1]['control']==0x4210
     assert m.msg_recvd[1]['seq']=='02:02'
     assert m._recv_buffer==b''
-    assert m._send_buffer==InverterRspMsg
-    assert m._forward_buffer==InverterIndMsg
+    assert m._send_buffer==inverter_rsp_msg
+    assert m._forward_buffer==inverter_ind_msg
 
     m._send_buffer = bytearray(0) # clear send buffer for next test    
     m._forward_buffer = bytearray(0) # clear send buffer for next test    
     await m.send_modbus_cmd(Modbus.WRITE_SINGLE_REG, 0x2008, 0, logging.DEBUG)
     assert 0 == m.send_msg_ofs
     assert m._forward_buffer == b''
-    assert m.writer.sent_pdu == MsgModbusCmd
+    assert m.writer.sent_pdu == msg_modbus_cmd
     assert m._send_buffer == b''
 
     m._send_buffer = bytearray(0) # clear send buffer for next test    
@@ -1239,14 +1234,14 @@ async def test_msg_build_modbus_req(ConfigTsunInv1, DeviceIndMsg, DeviceRspMsg, 
     m.close()
 
 @pytest.mark.asyncio
-async def test_AT_cmd(ConfigTsunAllowAll, DeviceIndMsg, DeviceRspMsg, InverterIndMsg, InverterRspMsg, AtCommandIndMsg, AtCommandRspMsg):
-    ConfigTsunAllowAll
-    m = MemoryStream(DeviceIndMsg, (0,), True)
+async def test_at_cmd(config_tsun_allow_all, device_ind_msg, device_rsp_msg, inverter_ind_msg, inverter_rsp_msg, at_command_ind_msg, at_command_rsp_msg):
+    config_tsun_allow_all
+    m = MemoryStream(device_ind_msg, (0,), True)
     m.read()   # read device ind
     assert m.control == 0x4110
     assert str(m.seq) == '01:01'
-    assert m._send_buffer==DeviceRspMsg
-    assert m._forward_buffer==DeviceIndMsg
+    assert m._send_buffer==device_rsp_msg
+    assert m._forward_buffer==device_ind_msg
 
     m._send_buffer = bytearray(0) # clear send buffer for next test    
     m._forward_buffer = bytearray(0) # clear send buffer for next test    
@@ -1257,24 +1252,24 @@ async def test_AT_cmd(ConfigTsunAllowAll, DeviceIndMsg, DeviceRspMsg, InverterIn
     assert m.mqtt.key == ''
     assert m.mqtt.data == ""
 
-    m.append_msg(InverterIndMsg)
+    m.append_msg(inverter_ind_msg)
     m.read() # read inverter ind
     assert m.control == 0x4210
     assert str(m.seq) == '02:02'
-    assert m._send_buffer==InverterRspMsg
-    assert m._forward_buffer==InverterIndMsg
+    assert m._send_buffer==inverter_rsp_msg
+    assert m._forward_buffer==inverter_ind_msg
     
     m._send_buffer = bytearray(0) # clear send buffer for next test    
     m._forward_buffer = bytearray(0) # clear send buffer for next test    
     await m.send_at_cmd('AT+TIME=214028,1,60,120')
-    assert m._send_buffer==AtCommandIndMsg
+    assert m._send_buffer==at_command_ind_msg
     assert m._forward_buffer==b''
     assert str(m.seq) == '02:03'
     assert m.mqtt.key == ''
     assert m.mqtt.data == ""
 
     m._send_buffer = bytearray(0) # clear send buffer for next test    
-    m.append_msg(AtCommandRspMsg)
+    m.append_msg(at_command_rsp_msg)
     m.read() # read at resp
     assert m.control == 0x1510
     assert str(m.seq) == '03:03'
@@ -1296,14 +1291,14 @@ async def test_AT_cmd(ConfigTsunAllowAll, DeviceIndMsg, DeviceRspMsg, InverterIn
     m.close()
 
 @pytest.mark.asyncio
-async def test_AT_cmd_blocked(ConfigTsunAllowAll, DeviceIndMsg, DeviceRspMsg, InverterIndMsg, InverterRspMsg, AtCommandIndMsg):
-    ConfigTsunAllowAll
-    m = MemoryStream(DeviceIndMsg, (0,), True)
+async def test_at_cmd_blocked(config_tsun_allow_all, device_ind_msg, device_rsp_msg, inverter_ind_msg, inverter_rsp_msg, at_command_ind_msg):
+    config_tsun_allow_all
+    m = MemoryStream(device_ind_msg, (0,), True)
     m.read()
     assert m.control == 0x4110
     assert str(m.seq) == '01:01'
-    assert m._send_buffer==DeviceRspMsg
-    assert m._forward_buffer==DeviceIndMsg
+    assert m._send_buffer==device_rsp_msg
+    assert m._forward_buffer==device_ind_msg
 
     m._send_buffer = bytearray(0) # clear send buffer for next test    
     m._forward_buffer = bytearray(0) # clear send buffer for next test    
@@ -1314,13 +1309,13 @@ async def test_AT_cmd_blocked(ConfigTsunAllowAll, DeviceIndMsg, DeviceRspMsg, In
     assert m.mqtt.key == ''
     assert m.mqtt.data == ""
 
-    m.append_msg(InverterIndMsg)
+    m.append_msg(inverter_ind_msg)
     m.read()
     assert m.control == 0x4210
     assert str(m.seq) == '02:02'
     assert m._recv_buffer==b''
-    assert m._send_buffer==InverterRspMsg
-    assert m._forward_buffer==InverterIndMsg
+    assert m._send_buffer==inverter_rsp_msg
+    assert m._forward_buffer==inverter_ind_msg
     
     m._send_buffer = bytearray(0) # clear send buffer for next test    
     m._forward_buffer = bytearray(0) # clear send buffer for next test    
@@ -1334,9 +1329,9 @@ async def test_AT_cmd_blocked(ConfigTsunAllowAll, DeviceIndMsg, DeviceRspMsg, In
     assert m.mqtt.data == "'AT+WEBU' is forbidden"
     m.close()
 
-def test_AT_cmd_ind(ConfigTsunInv1, AtCommandIndMsg):
-    ConfigTsunInv1
-    m = MemoryStream(AtCommandIndMsg, (0,), False)
+def test_at_cmd_ind(config_tsun_inv1, at_command_ind_msg):
+    config_tsun_inv1
+    m = MemoryStream(at_command_ind_msg, (0,), False)
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
     m.db.stat['proxy']['AT_Command'] = 0
     m.db.stat['proxy']['AT_Command_Blocked'] = 0
@@ -1346,22 +1341,21 @@ def test_AT_cmd_ind(ConfigTsunInv1, AtCommandIndMsg):
     assert m.msg_count == 1
     assert m.header_len==11
     assert m.snr == 2070233889
-    # assert m.unique_id == '2070233889'
     assert m.control == 0x4510
     assert str(m.seq) == '03:02'
     assert m.data_len == 39
     assert m._recv_buffer==b''
     assert m._send_buffer==b''
-    assert m._forward_buffer==AtCommandIndMsg
+    assert m._forward_buffer==at_command_ind_msg
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
     assert m.db.stat['proxy']['AT_Command'] == 1
     assert m.db.stat['proxy']['AT_Command_Blocked'] == 0
     assert m.db.stat['proxy']['Modbus_Command'] == 0
     m.close()
 
-def test_AT_cmd_ind_block(ConfigTsunInv1, AtCommandIndMsgBlock):
-    ConfigTsunInv1
-    m = MemoryStream(AtCommandIndMsgBlock, (0,), False)
+def test_at_cmd_ind_block(config_tsun_inv1, at_command_ind_msg_block):
+    config_tsun_inv1
+    m = MemoryStream(at_command_ind_msg_block, (0,), False)
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
     m.db.stat['proxy']['AT_Command'] = 0
     m.db.stat['proxy']['AT_Command_Blocked'] = 0
@@ -1371,7 +1365,6 @@ def test_AT_cmd_ind_block(ConfigTsunInv1, AtCommandIndMsgBlock):
     assert m.msg_count == 1
     assert m.header_len==11
     assert m.snr == 2070233889
-    # assert m.unique_id == '2070233889'
     assert m.control == 0x4510
     assert str(m.seq) == '03:02'
     assert m.data_len == 23
@@ -1384,9 +1377,9 @@ def test_AT_cmd_ind_block(ConfigTsunInv1, AtCommandIndMsgBlock):
     assert m.db.stat['proxy']['Modbus_Command'] == 0
     m.close()
 
-def test_msg_at_command_rsp1(ConfigTsunInv1, AtCommandRspMsg):
-    ConfigTsunInv1
-    m = MemoryStream(AtCommandRspMsg)
+def test_msg_at_command_rsp1(config_tsun_inv1, at_command_rsp_msg):
+    config_tsun_inv1
+    m = MemoryStream(at_command_rsp_msg)
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
     m.db.stat['proxy']['Modbus_Command'] = 0
     m.forward_at_cmd_resp = True
@@ -1397,15 +1390,15 @@ def test_msg_at_command_rsp1(ConfigTsunInv1, AtCommandRspMsg):
     assert str(m.seq) == '03:03'
     assert m.header_len==11
     assert m.data_len==17
-    assert m._forward_buffer==AtCommandRspMsg
+    assert m._forward_buffer==at_command_rsp_msg
     assert m._send_buffer==b''
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
     assert m.db.stat['proxy']['Modbus_Command'] == 0
     m.close()
 
-def test_msg_at_command_rsp2(ConfigTsunInv1, AtCommandRspMsg):
-    ConfigTsunInv1
-    m = MemoryStream(AtCommandRspMsg)
+def test_msg_at_command_rsp2(config_tsun_inv1, at_command_rsp_msg):
+    config_tsun_inv1
+    m = MemoryStream(at_command_rsp_msg)
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
     m.db.stat['proxy']['Modbus_Command'] = 0
     m.forward_at_cmd_resp = False
@@ -1422,12 +1415,12 @@ def test_msg_at_command_rsp2(ConfigTsunInv1, AtCommandRspMsg):
     assert m.db.stat['proxy']['Modbus_Command'] == 0
     m.close()
 
-def test_msg_modbus_req(ConfigTsunInv1, MsgModbusCmd, MsgModbusCmdFwd):
-    ConfigTsunInv1
+def test_msg_modbus_req(config_tsun_inv1, msg_modbus_cmd, msg_modbus_cmd_fwd):
+    config_tsun_inv1
     m = MemoryStream(b'')
     m.snr = get_sn_int()
     m.state = State.up
-    c = m.createClientStream(MsgModbusCmd)
+    c = m.createClientStream(msg_modbus_cmd)
 
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
     m.db.stat['proxy']['AT_Command'] = 0
@@ -1442,19 +1435,19 @@ def test_msg_modbus_req(ConfigTsunInv1, MsgModbusCmd, MsgModbusCmdFwd):
     assert c.data_len==23
     assert c._forward_buffer==b''
     assert c._send_buffer==b''
-    assert m.writer.sent_pdu == MsgModbusCmdFwd
+    assert m.writer.sent_pdu == msg_modbus_cmd_fwd
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
     assert m.db.stat['proxy']['AT_Command'] == 0
     assert m.db.stat['proxy']['Modbus_Command'] == 1
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
     m.close()
 
-def test_msg_modbus_req2(ConfigTsunInv1, MsgModbusCmdCrcErr):
-    ConfigTsunInv1
+def test_msg_modbus_req2(config_tsun_inv1, msg_modbus_cmd_crc_err):
+    config_tsun_inv1
     m = MemoryStream(b'')
     m.snr = get_sn_int()
     m.state = State.up
-    c = m.createClientStream(MsgModbusCmdCrcErr)
+    c = m.createClientStream(msg_modbus_cmd_crc_err)
 
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
     m.db.stat['proxy']['AT_Command'] = 0
@@ -1476,9 +1469,9 @@ def test_msg_modbus_req2(ConfigTsunInv1, MsgModbusCmdCrcErr):
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 1
     m.close()
 
-def test_msg_unknown_cmd_req(ConfigTsunInv1, MsgUnknownCmd):
-    ConfigTsunInv1
-    m = MemoryStream(MsgUnknownCmd, (0,), False)
+def test_msg_unknown_cmd_req(config_tsun_inv1, msg_unknown_cmd):
+    config_tsun_inv1
+    m = MemoryStream(msg_unknown_cmd, (0,), False)
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
     m.db.stat['proxy']['AT_Command'] = 0
     m.db.stat['proxy']['Modbus_Command'] = 0
@@ -1490,7 +1483,7 @@ def test_msg_unknown_cmd_req(ConfigTsunInv1, MsgUnknownCmd):
     assert str(m.seq) == '03:02'
     assert m.header_len==11
     assert m.data_len==23
-    assert m._forward_buffer==MsgUnknownCmd
+    assert m._forward_buffer==msg_unknown_cmd
     assert m._send_buffer==b''
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
     assert m.db.stat['proxy']['AT_Command'] == 0
@@ -1498,10 +1491,10 @@ def test_msg_unknown_cmd_req(ConfigTsunInv1, MsgUnknownCmd):
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
     m.close()
 
-def test_msg_modbus_rsp1(ConfigTsunInv1, MsgModbusRsp):
+def test_msg_modbus_rsp1(config_tsun_inv1, msg_modbus_rsp):
     '''Modbus response without a valid Modbus request must be dropped'''
-    ConfigTsunInv1
-    m = MemoryStream(MsgModbusRsp)
+    config_tsun_inv1
+    m = MemoryStream(msg_modbus_rsp)
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
     m.db.stat['proxy']['Modbus_Command'] = 0
     m.read()         # read complete msg, and dispatch msg
@@ -1517,10 +1510,10 @@ def test_msg_modbus_rsp1(ConfigTsunInv1, MsgModbusRsp):
     assert m.db.stat['proxy']['Modbus_Command'] == 0
     m.close()
 
-def test_msg_modbus_rsp2(ConfigTsunInv1, MsgModbusRsp):
+def test_msg_modbus_rsp2(config_tsun_inv1, msg_modbus_rsp):
     '''Modbus response with a valid Modbus request must be forwarded'''
-    ConfigTsunInv1
-    m = MemoryStream(MsgModbusRsp)
+    config_tsun_inv1  # setup config structure
+    m = MemoryStream(msg_modbus_rsp)
 
     m.mb.rsp_handler = m._SolarmanV5__forward_msg
     m.mb.last_addr = 1
@@ -1529,39 +1522,36 @@ def test_msg_modbus_rsp2(ConfigTsunInv1, MsgModbusRsp):
     m.mb.last_reg = 0x3008
     m.mb.req_pend = True
     m.mb.err = 0
-    # assert m.db.db == {'inverter': {'Manufacturer': 'TSUN', 'Equipment_Model': 'TSOL-MSxx00'}}
     m.new_data['inverter'] = False
 
     m.read()         # read complete msg, and dispatch msg
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
     assert m.mb.err == 0
     assert m.msg_count == 1
-    assert m._forward_buffer==MsgModbusRsp
+    assert m._forward_buffer==msg_modbus_rsp
     assert m._send_buffer==b''
-    # assert m.db.db == {'inverter': {'Version': 'V5.1.09', 'Rated_Power': 300}, 'grid': {'Voltage': 225.9, 'Current': 0.41, 'Frequency': 49.99, 'Output_Power': 94.8}, 'env': {'Inverter_Temp': 22}, 'input': {'pv1': {'Voltage': 0.8, 'Current': 0.0, 'Power': 0.0}, 'pv2': {'Voltage': 34.5, 'Current': 2.89, 'Power': 99.8}, 'pv3': {'Voltage': 0.0, 'Current': 0.0, 'Power': 0.0}, 'pv4': {'Voltage': 0.0, 'Current': 0.0, 'Power': 0.0}}}
     assert m.db.get_db_value(Register.VERSION) == 'V4.0.10'
     assert m.new_data['inverter'] == True
     m.new_data['inverter'] = False
 
     m.mb.req_pend = True
     m._forward_buffer = bytearray()
-    m.append_msg(MsgModbusRsp)
+    m.append_msg(msg_modbus_rsp)
     m.read()         # read complete msg, and dispatch msg
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
     assert m.mb.err == 0
     assert m.msg_count == 2
-    assert m._forward_buffer==MsgModbusRsp
+    assert m._forward_buffer==msg_modbus_rsp
     assert m._send_buffer==b''
-    # assert m.db.db == {'inverter': {'Version': 'V5.1.09', 'Rated_Power': 300}, 'grid': {'Voltage': 225.9, 'Current': 0.41, 'Frequency': 49.99, 'Output_Power': 94.8}, 'env': {'Inverter_Temp': 22}, 'input': {'pv1': {'Voltage': 0.8, 'Current': 0.0, 'Power': 0.0}, 'pv2': {'Voltage': 34.5, 'Current': 2.89, 'Power': 99.8}, 'pv3': {'Voltage': 0.0, 'Current': 0.0, 'Power': 0.0}, 'pv4': {'Voltage': 0.0, 'Current': 0.0, 'Power': 0.0}}}
     assert m.db.get_db_value(Register.VERSION) == 'V4.0.10'
     assert m.new_data['inverter'] == False
 
     m.close()
 
-def test_msg_modbus_rsp3(ConfigTsunInv1, MsgModbusRsp):
+def test_msg_modbus_rsp3(config_tsun_inv1, msg_modbus_rsp):
     '''Modbus response with a valid Modbus request must be forwarded'''
-    ConfigTsunInv1
-    m = MemoryStream(MsgModbusRsp)
+    config_tsun_inv1
+    m = MemoryStream(msg_modbus_rsp)
 
     m.mb.rsp_handler = m._SolarmanV5__forward_msg
     m.mb.last_addr = 1
@@ -1570,37 +1560,34 @@ def test_msg_modbus_rsp3(ConfigTsunInv1, MsgModbusRsp):
     m.mb.last_reg = 0x3008
     m.mb.req_pend = True
     m.mb.err = 0
-    # assert m.db.db == {'inverter': {'Manufacturer': 'TSUN', 'Equipment_Model': 'TSOL-MSxx00'}}
     m.new_data['inverter'] = False
 
     m.read()         # read complete msg, and dispatch msg
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
     assert m.mb.err == 0
     assert m.msg_count == 1
-    assert m._forward_buffer==MsgModbusRsp
+    assert m._forward_buffer==msg_modbus_rsp
     assert m._send_buffer==b''
-    # assert m.db.db == {'inverter': {'Version': 'V5.1.09', 'Rated_Power': 300}, 'grid': {'Voltage': 225.9, 'Current': 0.41, 'Frequency': 49.99, 'Output_Power': 94.8}, 'env': {'Inverter_Temp': 22}, 'input': {'pv1': {'Voltage': 0.8, 'Current': 0.0, 'Power': 0.0}, 'pv2': {'Voltage': 34.5, 'Current': 2.89, 'Power': 99.8}, 'pv3': {'Voltage': 0.0, 'Current': 0.0, 'Power': 0.0}, 'pv4': {'Voltage': 0.0, 'Current': 0.0, 'Power': 0.0}}}
     assert m.db.get_db_value(Register.VERSION) == 'V4.0.10'
     assert m.new_data['inverter'] == True
     m.new_data['inverter'] = False
 
     m._forward_buffer = bytearray()
-    m.append_msg(MsgModbusRsp)
+    m.append_msg(msg_modbus_rsp)
     m.read()         # read complete msg, and dispatch msg
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
     assert m.mb.err == 5
     assert m.msg_count == 2
     assert m._forward_buffer==b''
     assert m._send_buffer==b''
-    # assert m.db.db == {'inverter': {'Version': 'V5.1.09', 'Rated_Power': 300}, 'grid': {'Voltage': 225.9, 'Current': 0.41, 'Frequency': 49.99, 'Output_Power': 94.8}, 'env': {'Inverter_Temp': 22}, 'input': {'pv1': {'Voltage': 0.8, 'Current': 0.0, 'Power': 0.0}, 'pv2': {'Voltage': 34.5, 'Current': 2.89, 'Power': 99.8}, 'pv3': {'Voltage': 0.0, 'Current': 0.0, 'Power': 0.0}, 'pv4': {'Voltage': 0.0, 'Current': 0.0, 'Power': 0.0}}}
     assert m.db.get_db_value(Register.VERSION) == 'V4.0.10'
     assert m.new_data['inverter'] == False
 
     m.close()
 
-def test_msg_unknown_rsp(ConfigTsunInv1, MsgUnknownCmdRsp):
-    ConfigTsunInv1
-    m = MemoryStream(MsgUnknownCmdRsp)
+def test_msg_unknown_rsp(config_tsun_inv1, msg_unknown_cmd_rsp):
+    config_tsun_inv1
+    m = MemoryStream(msg_unknown_cmd_rsp)
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
     m.db.stat['proxy']['Modbus_Command'] = 0
     m.read()         # read complete msg, and dispatch msg
@@ -1610,15 +1597,15 @@ def test_msg_unknown_rsp(ConfigTsunInv1, MsgUnknownCmdRsp):
     assert str(m.seq) == '03:03'
     assert m.header_len==11
     assert m.data_len==59
-    assert m._forward_buffer==MsgUnknownCmdRsp
+    assert m._forward_buffer==msg_unknown_cmd_rsp
     assert m._send_buffer==b''
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
     assert m.db.stat['proxy']['Modbus_Command'] == 0
     m.close()
 
-def test_msg_modbus_invalid(ConfigTsunInv1, MsgModbusInvalid):
-    ConfigTsunInv1
-    m = MemoryStream(MsgModbusInvalid, (0,), False)
+def test_msg_modbus_invalid(config_tsun_inv1, msg_modbus_invalid):
+    config_tsun_inv1
+    m = MemoryStream(msg_modbus_invalid, (0,), False)
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
     m.db.stat['proxy']['Modbus_Command'] = 0
     m.read()         # read complete msg, and dispatch msg
@@ -1630,10 +1617,10 @@ def test_msg_modbus_invalid(ConfigTsunInv1, MsgModbusInvalid):
     assert m.db.stat['proxy']['Modbus_Command'] == 0
     m.close()
 
-def test_msg_modbus_fragment(ConfigTsunInv1, MsgModbusRsp):
-    ConfigTsunInv1
+def test_msg_modbus_fragment(config_tsun_inv1, msg_modbus_rsp):
+    config_tsun_inv1
     # receive more bytes than expected (7 bytes from the next msg)
-    m = MemoryStream(MsgModbusRsp+b'\x00\x00\x00\x45\x10\x52\x31', (0,))
+    m = MemoryStream(msg_modbus_rsp+b'\x00\x00\x00\x45\x10\x52\x31', (0,))
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
     m.db.stat['proxy']['Modbus_Command'] = 0
     m.mb.rsp_handler = m._SolarmanV5__forward_msg
@@ -1647,7 +1634,7 @@ def test_msg_modbus_fragment(ConfigTsunInv1, MsgModbusRsp):
     m.read()         # read complete msg, and dispatch msg
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
     assert m.msg_count == 1
-    assert m._forward_buffer==MsgModbusRsp
+    assert m._forward_buffer==msg_modbus_rsp
     assert m._send_buffer == b''
     assert m.mb.err == 0
     assert m.modbus_elms == 20-1  # register 0x300d is unknown, so one value can't be mapped
@@ -1656,10 +1643,10 @@ def test_msg_modbus_fragment(ConfigTsunInv1, MsgModbusRsp):
     m.close()
 
 @pytest.mark.asyncio
-async def test_modbus_polling(ConfigTsunInv1, HeartbeatIndMsg, HeartbeatRspMsg):
-    ConfigTsunInv1
+async def test_modbus_polling(config_tsun_inv1, heartbeat_ind_msg, heartbeat_rsp_msg):
+    config_tsun_inv1
     assert asyncio.get_running_loop()
-    m = MemoryStream(HeartbeatIndMsg, (0,))
+    m = MemoryStream(heartbeat_ind_msg, (0,))
     assert asyncio.get_running_loop() == m.mb_timer.loop
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
     assert m.mb_timer.tim == None
@@ -1668,13 +1655,12 @@ async def test_modbus_polling(ConfigTsunInv1, HeartbeatIndMsg, HeartbeatRspMsg):
     assert m.msg_count == 1
     assert m.header_len==11
     assert m.snr == 2070233889
-    # assert m.unique_id == '2070233889'
     assert m.control == 0x4710
     assert str(m.seq) == '84:11'  # value after sending response
     assert m.data_len == 0x01
     assert m._recv_buffer==b''
-    assert m._send_buffer==HeartbeatRspMsg
-    assert m._forward_buffer==HeartbeatIndMsg
+    assert m._send_buffer==heartbeat_rsp_msg
+    assert m._forward_buffer==heartbeat_ind_msg
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
 
     m._send_buffer = bytearray(0) # clear send buffer for next test
@@ -1698,8 +1684,8 @@ async def test_modbus_polling(ConfigTsunInv1, HeartbeatIndMsg, HeartbeatRspMsg):
     m.close()
 
 @pytest.mark.asyncio
-async def test_start_client_mode(ConfigTsunInv1):
-    ConfigTsunInv1
+async def test_start_client_mode(config_tsun_inv1):
+    config_tsun_inv1
     assert asyncio.get_running_loop()
     m = MemoryStream(b'')
     assert m.state == State.init
@@ -1728,30 +1714,3 @@ async def test_start_client_mode(ConfigTsunInv1):
     assert m._send_buffer==b''
     assert next(m.mb_timer.exp_count) == 3
     m.close()
-
-'''
-def test_zombie_conn(ConfigTsunInv1, MsgInverterInd):
-    ConfigTsunInv1
-    tracer.setLevel(logging.DEBUG)
-    m1 = MemoryStream(MsgInverterInd, (0,))
-    m2 = MemoryStream(MsgInverterInd, (0,))
-    m3 = MemoryStream(MsgInverterInd, (0,))
-    assert m1.state == m1.State.init
-    assert m2.state == m2.State.init
-    assert m3.state == m3.State.init
-    m1.read()         # read complete msg, and set unique_id
-    assert m1.state == m1.State.init
-    assert m2.state == m2.State.init
-    assert m3.state == m3.State.init
-    m2.read()         # read complete msg, and set unique_id
-    assert m1.state == m1.State.closed
-    assert m2.state == m2.State.init
-    assert m3.state == m3.State.init
-    m3.read()         # read complete msg, and set unique_id
-    assert m1.state == m1.State.closed
-    assert m2.state == m2.State.closed
-    assert m3.state == m3.State.init
-    m1.close()
-    m2.close()
-    m3.close()
-'''

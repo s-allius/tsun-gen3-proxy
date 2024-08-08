@@ -246,7 +246,7 @@ def test_queue2():
     assert mb.pdu == b'\x01\x06\x20\x08\x00\x04\x02\x0b'
 
     for key, update, val in mb.recv_resp(mb.db, b'\x01\x06\x20\x08\x00\x04\x02\x0b', 'test'):
-        pass
+        pass  # call generator mb.recv_resp()
 
     assert mb.que.qsize() == 0
     assert mb.send_calls == 3
