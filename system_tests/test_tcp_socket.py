@@ -166,7 +166,7 @@ def test_send_contact_info2(ClientConnection, MsgContactInfo2, MsgContactInfo, M
         s.sendall(MsgContactInfo2)
         data = s.recv(1024)
     except TimeoutError:
-        assert True
+        pass
     else: 
         assert False
 
@@ -198,7 +198,7 @@ def test_send_contact_resp(ClientConnection, MsgContactResp):
         s.sendall(MsgContactResp)
         data = s.recv(1024)
     except TimeoutError:
-        assert True
+        pass
     else:
         assert data == b''
 

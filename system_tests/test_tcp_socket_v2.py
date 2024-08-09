@@ -146,10 +146,9 @@ def tempClientConnection():
 def test_open_close():
     try:
         for s in tempClientConnection():
-            pass
+            pass  # test generator tempClientConnection()
     except:
         assert False
-    assert True
 
 def test_conn_msg(ClientConnection,MsgContactInfo, MsgContactResp):
     s = ClientConnection
