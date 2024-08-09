@@ -1,5 +1,4 @@
 import logging
-# import gc
 from asyncio import StreamReader, StreamWriter
 from async_stream import AsyncStream
 from gen3.talent import Talent
@@ -15,7 +14,7 @@ class ConnectionG3(AsyncStream, Talent):
         AsyncStream.__init__(self, reader, writer, addr)
         Talent.__init__(self, server_side, id_str)
 
-        self.remoteStream: 'ConnectionG3' = remote_stream
+        self.remote_stream: 'ConnectionG3' = remote_stream
 
     '''
     Our puplic methods
@@ -26,10 +25,10 @@ class ConnectionG3(AsyncStream, Talent):
         # logger.info(f'AsyncStream refs: {gc.get_referrers(self)}')
 
     async def async_create_remote(self) -> None:
-        pass
+        pass  # virtual interface
 
     async def async_publ_mqtt(self) -> None:
-        pass
+        pass  # virtual interface
 
     def healthy(self) -> bool:
         logger.debug('ConnectionG3 healthy()')

@@ -53,7 +53,12 @@ class Config():
                                                      Use(lambda s: s + '/'
                                                          if len(s) > 0 and
                                                          s[-1] != '/' else s)),
-
+                Optional('client_mode'): {
+                    'host': Use(str),
+                    Optional('port', default=8899):
+                        And(Use(int), lambda n: 1024 <= n <= 65535)
+                    },
+                Optional('modbus_polling', default=True): Use(bool),
                 Optional('suggested_area',  default=""): Use(str),
                 Optional('pv1'): {
                     Optional('type'): Use(str),

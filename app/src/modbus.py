@@ -41,8 +41,10 @@ class Modbus():
     __crc_tab = []
     map = {
         0x2007: {'reg': Register.MAX_DESIGNED_POWER,   'fmt': '!H', 'ratio':  1},  # noqa: E501
-        # 0x????: {'reg': Register.INVERTER_STATUS,      'fmt': '!H'},                 # noqa: E501
-        0x3008: {'reg': Register.VERSION,              'fmt': '!H', 'eval': "f'V{(result>>12)}.{(result>>8)&0xf}.{(result>>4)&0xf}{result&0xf}'"},  # noqa: E501
+        0x202c: {'reg': Register.OUTPUT_COEFFICIENT,   'fmt': '!H', 'ratio':  100/1024},  # noqa: E501
+
+        0x3000: {'reg': Register.INVERTER_STATUS,      'fmt': '!H'},                 # noqa: E501
+        0x3008: {'reg': Register.VERSION,              'fmt': '!H', 'eval': "f'V{(result>>12)}.{(result>>8)&0xf}.{(result>>4)&0xf}{result&0xf:1X}'"},  # noqa: E501
         0x3009: {'reg': Register.GRID_VOLTAGE,         'fmt': '!H', 'ratio':  0.1},  # noqa: E501
         0x300a: {'reg': Register.GRID_CURRENT,         'fmt': '!H', 'ratio': 0.01},  # noqa: E501
         0x300b: {'reg': Register.GRID_FREQUENCY,       'fmt': '!H', 'ratio': 0.01},  # noqa: E501
@@ -104,6 +106,7 @@ class Modbus():
         self.loop = asyncio.get_event_loop()
         self.req_pend = False
         self.tim = None
+        self.node_id = ''
 
     def close(self):
         """free the queue and erase the callback handlers"""
@@ -111,7 +114,7 @@ class Modbus():
         self.__stop_timer()
         self.rsp_handler = None
         self.snd_handler = None
-        while not self.que.empty:
+        while not self.que.empty():
             self.que.get_nowait()
 
     def __del__(self):
@@ -178,6 +181,8 @@ class Modbus():
             5: No MODBUS request pending
         """
         # logging.info(f'recv_resp: first byte modbus:{buf[0]} len:{len(buf)}')
+        self.node_id = node_id
+
         if not self.req_pend:
             self.err = 5
             return
@@ -265,7 +270,10 @@ class Modbus():
             self.__start_timer()
             self.snd_handler(self.last_req, self.last_log_lvl, state='Retrans')
         else:
-            logger.info(f'Modbus timeout {self}')
+            logger.info(f'[{self.node_id}] Modbus timeout '
+                        f'(FCode: {self.last_fcode} '
+                        f'Reg: 0x{self.last_reg:04x}, '
+                        f'{self.last_len})')
             self.counter['timeouts'] += 1
             self.__send_next_from_que()
 

@@ -1,12 +1,12 @@
 
 # test_with_pytest.py
-import pytest, json
+import pytest, json, math
 from app.src.infos import Register
 from app.src.gen3plus.infos_g3p import InfosG3P
 from app.src.gen3plus.infos_g3p import RegisterMap
 
 @pytest.fixture
-def DeviceData(): # 0x4110 ftype: 0x02
+def device_data(): # 0x4110 ftype: 0x02
     msg  = b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x02\xba\xd2\x00\x00'
     msg += b'\x19\x00\x00\x00\x00\x00\x00\x00\x05\x3c\x78\x01\x64\x01\x4c\x53'
     msg += b'\x57\x35\x42\x4c\x45\x5f\x31\x37\x5f\x30\x32\x42\x30\x5f\x31\x2e'
@@ -24,7 +24,7 @@ def DeviceData(): # 0x4110 ftype: 0x02
     return msg
 
 @pytest.fixture
-def InverterData():  # 0x4210 ftype: 0x01
+def inverter_data():  # 0x4210 ftype: 0x01
     msg  = b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\xb0\x02\xbc\xc8'
     msg += b'\x24\x32\x6c\x1f\x00\x00\xa0\x47\xe4\x33\x01\x00\x03\x08\x00\x00'
     msg += b'\x59\x31\x37\x45\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x45'
@@ -56,34 +56,34 @@ def InverterData():  # 0x4210 ftype: 0x01
 
 
 def test_default_db():
-    i = InfosG3P()
+    i = InfosG3P(client_mode=False)
     
     assert json.dumps(i.db) == json.dumps({
-        "inverter": {"Manufacturer": "TSUN", "Equipment_Model": "TSOL-MSxx00"}, 
+        "inverter": {"Manufacturer": "TSUN", "Equipment_Model": "TSOL-MSxx00", "No_Inputs": 4}, 
         "collector": {"Chip_Type": "IGEN TECH"},
         })
 
-def test_parse_4110(DeviceData: bytes):
-    i = InfosG3P()
+def test_parse_4110(device_data: bytes):
+    i = InfosG3P(client_mode=False)
     i.db.clear()
-    for key, update in i.parse (DeviceData, 0x41, 2):
-        pass
+    for key, update in i.parse (device_data, 0x41, 2):
+        pass  # side effect is calling generator i.parse()
 
     assert json.dumps(i.db) == json.dumps({
         'controller': {"Data_Up_Interval": 300, "Collect_Interval": 1, "Heartbeat_Interval": 120, "Signal_Strength": 100, "IP_Address": "192.168.80.49"},
         'collector': {"Chip_Model": "LSW5BLE_17_02B0_1.05", "Collector_Fw_Version": "V1.1.00.0B"},
         })
 
-def test_parse_4210(InverterData: bytes):
-    i = InfosG3P()
+def test_parse_4210(inverter_data: bytes):
+    i = InfosG3P(client_mode=False)
     i.db.clear()
     
-    for key, update in i.parse (InverterData, 0x42, 1):
-        pass
+    for key, update in i.parse (inverter_data, 0x42, 1):
+        pass  #  side effect is calling generator i.parse()
 
     assert json.dumps(i.db) == json.dumps({
          "controller": {"Power_On_Time": 2051}, 
-         "inverter": {"Serial_Number": "Y17E00000000000E", "Version": "V4.0.10", "Rated_Power": 600, "Max_Designed_Power": 2000, "No_Inputs": 4}, 
+         "inverter": {"Serial_Number": "Y17E00000000000E", "Version": "V4.0.10", "Rated_Power": 600, "Max_Designed_Power": 2000}, 
          "env": {"Inverter_Status": 1, "Inverter_Temp": 14}, 
          "grid": {"Voltage": 224.8, "Current": 0.73, "Frequency": 50.05, "Output_Power": 165.8}, 
          "input": {"pv1": {"Voltage": 35.3, "Current": 1.68, "Power": 59.6, "Daily_Generation": 0.04, "Total_Generation": 30.76}, 
@@ -94,7 +94,7 @@ def test_parse_4210(InverterData: bytes):
         })
     
 def test_build_ha_conf1():
-    i = InfosG3P()
+    i = InfosG3P(client_mode=False)
     i.static_init()                # initialize counter
 
     tests = 0
@@ -116,8 +116,19 @@ def test_build_ha_conf1():
             tests +=1
 
         elif id == 'power_pv2_123':
-            assert False    # if we haven't received and parsed a control data msg, we don't know the number of inputs. In this case we only register the first one!!
+            assert comp == 'sensor'
+            assert  d_json == json.dumps({"name": "Power", "stat_t": "tsun/garagendach/input", "dev_cla": "power", "stat_cla": "measurement", "uniq_id": "power_pv2_123", "val_tpl": "{{ (value_json['pv2']['Power'] | float)}}", "unit_of_meas": "W", "dev": {"name": "Module PV2", "sa": "Module PV2", "via_device": "inverter_123", "ids": ["input_pv2_123"]}, "o": {"name": "proxy", "sw": "unknown"}})
+            tests +=1
 
+        elif id == 'power_pv3_123':
+            assert comp == 'sensor'
+            assert  d_json == json.dumps({"name": "Power", "stat_t": "tsun/garagendach/input", "dev_cla": "power", "stat_cla": "measurement", "uniq_id": "power_pv3_123", "val_tpl": "{{ (value_json['pv3']['Power'] | float)}}", "unit_of_meas": "W", "dev": {"name": "Module PV3", "sa": "Module PV3", "via_device": "inverter_123", "ids": ["input_pv3_123"]}, "o": {"name": "proxy", "sw": "unknown"}})
+            tests +=1
+
+        elif id == 'power_pv4_123':
+            assert comp == 'sensor'
+            assert  d_json == json.dumps({"name": "Power", "stat_t": "tsun/garagendach/input", "dev_cla": "power", "stat_cla": "measurement", "uniq_id": "power_pv4_123", "val_tpl": "{{ (value_json['pv4']['Power'] | float)}}", "unit_of_meas": "W", "dev": {"name": "Module PV4", "sa": "Module PV4", "via_device": "inverter_123", "ids": ["input_pv4_123"]}, "o": {"name": "proxy", "sw": "unknown"}})
+            tests +=1
 
         elif id == 'signal_123':
             assert comp == 'sensor'
@@ -126,7 +137,7 @@ def test_build_ha_conf1():
         elif id == 'inv_count_456':
             assert False
 
-    assert tests==4
+    assert tests==7
 
 
     for d_json, comp, node_id, id in i.ha_proxy_confs(ha_prfx="tsun/", node_id = 'proxy/', snr = '456'):
@@ -138,8 +149,11 @@ def test_build_ha_conf1():
         elif id == 'power_pv1_123':
             assert False
         elif id == 'power_pv2_123':
-            assert False    # if we haven't received and parsed a control data msg, we don't know the number of inputs. In this case we only register the first one!!
-
+            assert False
+        elif id == 'power_pv3_123':
+            assert False
+        elif id == 'power_pv4_123':
+            assert False
         elif id == 'signal_123':
             assert False
         elif id == 'inv_count_456':
@@ -147,30 +161,99 @@ def test_build_ha_conf1():
             assert  d_json == json.dumps({"name": "Active Inverter Connections", "stat_t": "tsun/proxy/proxy", "dev_cla": None, "stat_cla": None, "uniq_id": "inv_count_456", "val_tpl": "{{value_json['Inverter_Cnt'] | int}}", "ic": "mdi:counter", "dev": {"name": "Proxy", "sa": "Proxy", "mdl": "proxy", "mf": "Stefan Allius", "sw": "unknown", "ids": ["proxy"]}, "o": {"name": "proxy", "sw": "unknown"}})
             tests +=1
 
-    assert tests==5
+    assert tests==8
 
-def test_exception_and_eval(InverterData: bytes):
+def test_build_ha_conf2():
+    i = InfosG3P(client_mode=True)
+    i.static_init()                # initialize counter
+
+    tests = 0
+    for d_json, comp, node_id, id in i.ha_confs(ha_prfx="tsun/", node_id="garagendach/", snr='123'):
+
+        if id == 'out_power_123':
+            assert comp == 'sensor'
+            assert  d_json == json.dumps({"name": "Power", "stat_t": "tsun/garagendach/grid", "dev_cla": "power", "stat_cla": "measurement", "uniq_id": "out_power_123", "val_tpl": "{{value_json['Output_Power'] | float}}", "unit_of_meas": "W", "dev": {"name": "Micro Inverter", "sa": "Micro Inverter", "via_device": "controller_123", "mdl": "TSOL-MSxx00", "mf": "TSUN", "ids": ["inverter_123"]}, "o": {"name": "proxy", "sw": "unknown"}})
+            tests +=1
+
+        elif id == 'daily_gen_123':
+            assert comp == 'sensor'
+            assert  d_json == json.dumps({"name": "Daily Generation", "stat_t": "tsun/garagendach/total", "dev_cla": "energy", "stat_cla": "total_increasing", "uniq_id": "daily_gen_123", "val_tpl": "{{value_json['Daily_Generation'] | float}}", "unit_of_meas": "kWh", "ic": "mdi:solar-power-variant", "dev": {"name": "Micro Inverter", "sa": "Micro Inverter", "via_device": "controller_123", "mdl": "TSOL-MSxx00", "mf": "TSUN", "ids": ["inverter_123"]}, "o": {"name": "proxy", "sw": "unknown"}})
+            tests +=1
+
+        elif id == 'power_pv1_123':
+            assert comp == 'sensor'
+            assert  d_json == json.dumps({"name": "Power", "stat_t": "tsun/garagendach/input", "dev_cla": "power", "stat_cla": "measurement", "uniq_id": "power_pv1_123", "val_tpl": "{{ (value_json['pv1']['Power'] | float)}}", "unit_of_meas": "W", "dev": {"name": "Module PV1", "sa": "Module PV1", "via_device": "inverter_123", "ids": ["input_pv1_123"]}, "o": {"name": "proxy", "sw": "unknown"}})
+            tests +=1
+
+        elif id == 'power_pv2_123':
+            assert comp == 'sensor'
+            assert  d_json == json.dumps({"name": "Power", "stat_t": "tsun/garagendach/input", "dev_cla": "power", "stat_cla": "measurement", "uniq_id": "power_pv2_123", "val_tpl": "{{ (value_json['pv2']['Power'] | float)}}", "unit_of_meas": "W", "dev": {"name": "Module PV2", "sa": "Module PV2", "via_device": "inverter_123", "ids": ["input_pv2_123"]}, "o": {"name": "proxy", "sw": "unknown"}})
+            tests +=1
+
+        elif id == 'power_pv3_123':
+            assert comp == 'sensor'
+            assert  d_json == json.dumps({"name": "Power", "stat_t": "tsun/garagendach/input", "dev_cla": "power", "stat_cla": "measurement", "uniq_id": "power_pv3_123", "val_tpl": "{{ (value_json['pv3']['Power'] | float)}}", "unit_of_meas": "W", "dev": {"name": "Module PV3", "sa": "Module PV3", "via_device": "inverter_123", "ids": ["input_pv3_123"]}, "o": {"name": "proxy", "sw": "unknown"}})
+            tests +=1
+
+        elif id == 'power_pv4_123':
+            assert comp == 'sensor'
+            assert  d_json == json.dumps({"name": "Power", "stat_t": "tsun/garagendach/input", "dev_cla": "power", "stat_cla": "measurement", "uniq_id": "power_pv4_123", "val_tpl": "{{ (value_json['pv4']['Power'] | float)}}", "unit_of_meas": "W", "dev": {"name": "Module PV4", "sa": "Module PV4", "via_device": "inverter_123", "ids": ["input_pv4_123"]}, "o": {"name": "proxy", "sw": "unknown"}})
+            tests +=1
+
+        elif id == 'signal_123':
+            assert comp == 'sensor'
+            assert  d_json == json.dumps({})
+            tests +=1
+        elif id == 'inv_count_456':
+            assert False
+
+    assert tests==7
+
+
+    for d_json, comp, node_id, id in i.ha_proxy_confs(ha_prfx="tsun/", node_id = 'proxy/', snr = '456'):
+
+        if id == 'out_power_123':
+            assert False
+        elif id == 'daily_gen_123':
+            assert False
+        elif id == 'power_pv1_123':
+            assert False
+        elif id == 'power_pv2_123':
+            assert False
+        elif id == 'power_pv3_123':
+            assert False
+        elif id == 'power_pv4_123':
+            assert False
+        elif id == 'signal_123':
+            assert False
+        elif id == 'inv_count_456':
+            assert comp == 'sensor'
+            assert  d_json == json.dumps({"name": "Active Inverter Connections", "stat_t": "tsun/proxy/proxy", "dev_cla": None, "stat_cla": None, "uniq_id": "inv_count_456", "val_tpl": "{{value_json['Inverter_Cnt'] | int}}", "ic": "mdi:counter", "dev": {"name": "Proxy", "sa": "Proxy", "mdl": "proxy", "mf": "Stefan Allius", "sw": "unknown", "ids": ["proxy"]}, "o": {"name": "proxy", "sw": "unknown"}})
+            tests +=1
+
+    assert tests==8
+
+def test_exception_and_eval(inverter_data: bytes):
 
     # add eval to convert temperature from °F to °C
     RegisterMap.map[0x420100d8]['eval'] =  '(result-32)/1.8'
     # map PV1_VOLTAGE to invalid register  
     RegisterMap.map[0x420100e0]['reg'] = Register.TEST_REG2
     # set invalid maping entry for OUTPUT_POWER (string instead of dict type) 
-    Backup = RegisterMap.map[0x420100de]
+    backup = RegisterMap.map[0x420100de]
     RegisterMap.map[0x420100de] = 'invalid_entry'
 
-    i = InfosG3P()
+    i = InfosG3P(client_mode=False)
     # i.db.clear()
     
-    for key, update in i.parse (InverterData, 0x42, 1):
-        pass
-    assert 12.2222 == round (i.get_db_value(Register.INVERTER_TEMP, 0),4)
-    
+    for key, update in i.parse (inverter_data, 0x42, 1):
+        pass  #  side effect is calling generator i.parse()
+    assert math.isclose(12.2222, round (i.get_db_value(Register.INVERTER_TEMP, 0),4), rel_tol=1e-09, abs_tol=1e-09)
     del RegisterMap.map[0x420100d8]['eval'] # remove eval
     RegisterMap.map[0x420100e0]['reg'] = Register.PV1_VOLTAGE # reset mapping
-    RegisterMap.map[0x420100de] = Backup # reset mapping
+    RegisterMap.map[0x420100de] = backup # reset mapping
     
-    for key, update in i.parse (InverterData, 0x42, 1):
-        pass
+    for key, update in i.parse (inverter_data, 0x42, 1):
+        pass  #  side effect is calling generator i.parse()
     assert 54 == i.get_db_value(Register.INVERTER_TEMP, 0)
  

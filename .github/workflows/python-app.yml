@@ -18,10 +18,11 @@ on:
     - '**.dockerfile' # Do no build on *.dockerfile changes
     - '**.sh' # Do no build on *.sh changes     
   pull_request:
-    branches: [ "main" ]
+    branches: [ "main", "dev-*" ]
 
 permissions:
   contents: read
+  pull-requests: read # allows SonarCloud to decorate PRs with analysis results
 
 jobs:
   build:
@@ -29,7 +30,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - name: Set timezone
+      uses: szenius/set-timezone@v2.0
+      with:
+        timezoneLinux: "Europe/Berlin"
+        timezoneMacos: "Europe/Berlin"
+        timezoneWindows: "Europe/Berlin"
     - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0           # Fetch all history for all tags and branches
     - name: Set up Python 3.12
       uses: actions/setup-python@v5
       with:
@@ -47,4 +56,19 @@ jobs:
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Test with pytest
       run: |
-        python -m pytest app
+        pip install pytest pytest-cov
+        #pytest app --doctest-modules --junitxml=junit/test-results.xml --cov=com --cov-report=xml --cov-report=html
+        python -m pytest app --cov=app/src --cov-report=xml
+    - name: Analyze with SonarCloud
+      uses: SonarSource/sonarcloud-github-action@v2.2.0
+      env:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      with:
+        projectBaseDir: .
+        args:
+          -Dsonar.projectKey=s-allius_tsun-gen3-proxy
+          -Dsonar.organization=s-allius
+          -Dsonar.python.version=3.12
+          -Dsonar.python.coverage.reportPaths=coverage.xml
+          -Dsonar.tests=system_tests,app/tests
+          -Dsonar.source=app/src

@@ -17,39 +17,56 @@ VERSION="${VERSION:1}"
 arr=(${VERSION//./ })
 MAJOR=${arr[0]}
 IMAGE=tsun-gen3-proxy
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+NC='\033[0m'
 
 if [[ $1 == debug ]] || [[ $1 == dev ]] ;then
 IMAGE=docker.io/sallius/${IMAGE}
-VERSION=${VERSION}-$1
-elif [[ $1 == rc ]] || [[ $1 == rel ]];then
+VERSION=${VERSION}+$1
+elif [[ $1 == rc ]] || [[ $1 == rel ]] || [[ $1 == preview ]] ;then
 IMAGE=ghcr.io/s-allius/${IMAGE}
 else
 echo argument missing!
-echo try: $0 '[debug|dev|rc|rel]'
+echo try: $0 '[debug|dev|preview|rc|rel]'
 exit 1
 fi
 
-echo version: $VERSION  build-date: $BUILD_DATE   image: $IMAGE
-if [[ $1 == debug ]];then
-docker build --build-arg "VERSION=${VERSION}" --build-arg environment=dev --build-arg "LOG_LVL=DEBUG" --label "org.opencontainers.image.created=${BUILD_DATE}" --label "org.opencontainers.image.version=${VERSION}" --label "org.opencontainers.image.revision=${BRANCH}" -t ${IMAGE}:debug app
-elif [[ $1 == dev ]];then
-docker build --build-arg "VERSION=${VERSION}" --build-arg environment=production --label "org.opencontainers.image.created=${BUILD_DATE}" --label "org.opencontainers.image.version=${VERSION}" --label "org.opencontainers.image.revision=${BRANCH}" -t ${IMAGE}:dev app
-
-elif [[ $1 == rc ]];then
-docker build --build-arg "VERSION=${VERSION}" --build-arg environment=production --label "org.opencontainers.image.created=${BUILD_DATE}" --label "org.opencontainers.image.version=${VERSION}" --label "org.opencontainers.image.revision=${BRANCH}" -t ${IMAGE}:rc -t ${IMAGE}:${VERSION} app
-echo 'login to ghcr.io'    
-echo $GHCR_TOKEN | docker login ghcr.io -u s-allius --password-stdin
-docker push -q ghcr.io/s-allius/tsun-gen3-proxy:rc
-docker push -q ghcr.io/s-allius/tsun-gen3-proxy:${VERSION}
-
-elif [[ $1 == rel ]];then
-docker build --no-cache --build-arg "VERSION=${VERSION}" --build-arg environment=production --label "org.opencontainers.image.created=${BUILD_DATE}" --label "org.opencontainers.image.version=${VERSION}" --label "org.opencontainers.image.revision=${BRANCH}" -t ${IMAGE}:latest -t ${IMAGE}:${MAJOR} -t ${IMAGE}:${VERSION} app
-echo 'login to ghcr.io'    
-echo $GHCR_TOKEN | docker login ghcr.io -u s-allius --password-stdin
-docker push -q ghcr.io/s-allius/tsun-gen3-proxy:latest
-docker push -q ghcr.io/s-allius/tsun-gen3-proxy:${MAJOR}
-docker push -q ghcr.io/s-allius/tsun-gen3-proxy:${VERSION}
+if [[ $1 == debug ]] ;then
+BUILD_ENV="dev"
+else
+BUILD_ENV="production"
 fi
 
-echo 'check docker-compose.yaml file'
+BUILD_CMD="buildx build --push --build-arg \"VERSION=${VERSION}\" --build-arg \"environment=${BUILD_ENV}\" --attest type=provenance,mode=max --attest type=sbom,generator=docker/scout-sbom-indexer:latest"
+ARCH="--platform linux/amd64,linux/arm64,linux/arm/v7"
+LABELS="--label \"org.opencontainers.image.created=${BUILD_DATE}\" --label \"org.opencontainers.image.version=${VERSION}\" --label \"org.opencontainers.image.revision=${BRANCH}\""
+
+echo version: $VERSION  build-date: $BUILD_DATE   image: $IMAGE
+if [[ $1 == debug ]];then
+docker ${BUILD_CMD} ${ARCH} ${LABELS} --build-arg "LOG_LVL=DEBUG" -t ${IMAGE}:debug  app
+
+elif [[ $1 == dev ]];then
+docker ${BUILD_CMD} ${ARCH} ${LABELS} -t ${IMAGE}:dev app
+
+elif [[ $1 == preview ]];then
+echo 'login to ghcr.io'    
+echo $GHCR_TOKEN | docker login ghcr.io -u s-allius --password-stdin
+docker ${BUILD_CMD} ${ARCH} ${LABELS} -t ${IMAGE}:preview -t ${IMAGE}:${VERSION} app
+
+elif [[ $1 == rc ]];then
+echo 'login to ghcr.io'    
+echo $GHCR_TOKEN | docker login ghcr.io -u s-allius --password-stdin
+docker ${BUILD_CMD} ${ARCH} ${LABELS} -t ${IMAGE}:rc -t ${IMAGE}:${VERSION} app
+
+elif [[ $1 == rel ]];then
+echo 'login to ghcr.io'    
+echo $GHCR_TOKEN | docker login ghcr.io -u s-allius --password-stdin
+docker ${BUILD_CMD} ${ARCH} ${LABELS} --no-cache -t ${IMAGE}:latest -t ${IMAGE}:${MAJOR} -t ${IMAGE}:${VERSION} app
+fi
+
+echo -e "${BLUE} => checking docker-compose.yaml file${NC}"
 docker-compose config -q
+echo
+echo -e "${GREEN}${BUILD_DATE} => Version: ${VERSION}${NC} finished"
+echo

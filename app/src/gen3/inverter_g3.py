@@ -9,9 +9,7 @@ from gen3.connection_g3 import ConnectionG3
 from aiomqtt import MqttCodeError
 from infos import Infos
 
-# import gc
 
-# logger = logging.getLogger('conn')
 logger_mqtt = logging.getLogger('mqtt')
 
 
@@ -60,10 +58,10 @@ class InverterG3(Inverter, ConnectionG3):
             logging.info(f'[{self.node_id}] Connect to {addr}')
             connect = asyncio.open_connection(host, port)
             reader, writer = await connect
-            self.remoteStream = ConnectionG3(reader, writer, addr, self,
-                                             False, self.id_str)
-            logging.info(f'[{self.remoteStream.node_id}:'
-                         f'{self.remoteStream.conn_no}] '
+            self.remote_stream = ConnectionG3(reader, writer, addr, self,
+                                              False, self.id_str)
+            logging.info(f'[{self.remote_stream.node_id}:'
+                         f'{self.remote_stream.conn_no}] '
                          f'Connected to {addr}')
             asyncio.create_task(self.client_loop(addr))
 

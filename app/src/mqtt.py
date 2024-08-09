@@ -38,7 +38,8 @@ class Mqtt(metaclass=Singleton):
         self.task.cancel()
         try:
             await self.task
-        except Exception as e:
+
+        except (asyncio.CancelledError, Exception) as e:
             logging.debug(f"Mqtt.close: exception: {e} ...")
 
     async def publish(self, topic: str, payload: str | bytes | bytearray
@@ -60,6 +61,7 @@ class Mqtt(metaclass=Singleton):
         interval = 5  # Seconds
         ha_status_topic = f"{ha['auto_conf_prefix']}/status"
         mb_rated_topic = "tsun/+/rated_load"  # fixme
+        mb_out_coeff_topic = "tsun/+/out_coeff"  # fixme
         mb_reads_topic = "tsun/+/modbus_read_regs"  # fixme
         mb_inputs_topic = "tsun/+/modbus_read_inputs"  # fixme
         mb_at_cmd_topic = "tsun/+/at_cmd"  # fixme
@@ -75,6 +77,7 @@ class Mqtt(metaclass=Singleton):
                     # async with self.__client.messages() as messages:
                     await self.__client.subscribe(ha_status_topic)
                     await self.__client.subscribe(mb_rated_topic)
+                    await self.__client.subscribe(mb_out_coeff_topic)
                     await self.__client.subscribe(mb_reads_topic)
                     await self.__client.subscribe(mb_inputs_topic)
                     await self.__client.subscribe(mb_at_cmd_topic)
@@ -92,6 +95,19 @@ class Mqtt(metaclass=Singleton):
                             await self.modbus_cmd(message,
                                                   Modbus.WRITE_SINGLE_REG,
                                                   1, 0x2008)
+
+                        if message.topic.matches(mb_out_coeff_topic):
+                            payload = message.payload.decode("UTF-8")
+                            val = round(float(payload) * 1024/100)
+
+                            if val < 0 or val > 1024:
+                                logger_mqtt.error('out_coeff: value must be in'
+                                                  'the range 0..100,'
+                                                  f' got: {payload}')
+                            else:
+                                await self.modbus_cmd(message,
+                                                      Modbus.WRITE_SINGLE_REG,
+                                                      0, 0x202c, val)
 
                         if message.topic.matches(mb_reads_topic):
                             await self.modbus_cmd(message,
@@ -154,7 +170,7 @@ class Mqtt(metaclass=Singleton):
                 logger_mqtt.debug(f'Found: {node_id}')
                 fnc = getattr(m, "send_modbus_cmd", None)
                 res = payload.split(',')
-                if params != len(res):
+                if params > 0 and params != len(res):
                     logger_mqtt.error(f'Parameter expected: {params}, '
                                       f'got: {len(res)}')
                     return

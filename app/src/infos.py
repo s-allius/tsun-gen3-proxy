@@ -5,6 +5,11 @@ from enum import Enum
 from typing import Generator
 
 
+class ProxyMode(Enum):
+    SERVER = 1
+    CLIENT = 2
+
+
 class Register(Enum):
     COLLECTOR_FW_VERSION = 1
     CHIP_TYPE = 2
@@ -18,6 +23,7 @@ class Register(Enum):
     EQUIPMENT_MODEL = 24
     NO_INPUTS = 25
     MAX_DESIGNED_POWER = 26
+    OUTPUT_COEFFICIENT = 27
     INVERTER_CNT = 50
     UNKNOWN_SNR = 51
     UNKNOWN_MSG = 52
@@ -89,6 +95,7 @@ class Register(Enum):
     CONNECT_COUNT = 405
     HEARTBEAT_INTERVAL = 406
     IP_ADDRESS = 407
+    POLLING_INTERVAL = 408
     EVENT_401 = 500
     EVENT_402 = 501
     EVENT_403 = 502
@@ -105,6 +112,9 @@ class Register(Enum):
     EVENT_414 = 513
     EVENT_415 = 514
     EVENT_416 = 515
+    TS_INPUT = 600
+    TS_GRID = 601
+    TS_TOTAL = 602
     VALUE_1 = 9000
     TEST_REG1 = 10000
     TEST_REG2 = 10001
@@ -120,16 +130,16 @@ class ClrAtMidnight:
             return
 
         prfx += f'{keys[0]}'
-        dict = cls.db
-        if prfx not in dict:
-            dict[prfx] = {}
-        dict = dict[prfx]
+        db_dict = cls.db
+        if prfx not in db_dict:
+            db_dict[prfx] = {}
+        db_dict = db_dict[prfx]
 
         for key in keys[1:-1]:
-            if key not in dict:
-                dict[key] = {}
-            dict = dict[key]
-        dict[keys[-1]] = 0
+            if key not in db_dict:
+                db_dict[key] = {}
+            db_dict = db_dict[key]
+        db_dict[keys[-1]] = 0
 
     @classmethod
     def elm(cls) -> Generator[tuple[str, dict], None, None]:
@@ -177,15 +187,29 @@ class Infos:
     }
 
     __comm_type_val_tpl = "{%set com_types = ['n/a','Wi-Fi', 'G4', 'G5', 'GPRS'] %}{{com_types[value_json['Communication_Type']|int(0)]|default(value_json['Communication_Type'])}}"    # noqa: E501
-    __status_type_val_tpl = "{%set inv_status = ['n/a', 'Online', 'Offline'] %}{{inv_status[value_json['Inverter_Status']|int(0)]|default(value_json['Inverter_Status'])}}"    # noqa: E501
+    __status_type_val_tpl = "{%set inv_status = ['Off-line', 'On-grid', 'Off-grid'] %}{{inv_status[value_json['Inverter_Status']|int(0)]|default(value_json['Inverter_Status'])}}"    # noqa: E501
+    __rated_power_val_tpl = "{% if 'Rated_Power' in value_json and value_json['Rated_Power'] != None %}{{value_json['Rated_Power']|string() +' W'}}{% else %}{{ this.state }}{% endif %}"  # noqa: E501
+    __designed_power_val_tpl = '''
+{% if 'Max_Designed_Power' in value_json and
+      value_json['Max_Designed_Power'] != None %}
+  {% if value_json['Max_Designed_Power'] | int(0xffff) < 0x8000 %}
+    {{value_json['Max_Designed_Power']|string() +' W'}}
+  {% else %}
+    n/a
+  {% endif %}
+{% else %}
+  {{ this.state }}
+{% endif %}
+'''
+    __output_coef_val_tpl = "{% if 'Output_Coefficient' in value_json and value_json['Output_Coefficient'] != None %}{{value_json['Output_Coefficient']|string() +' %'}}{% else %}{{ this.state }}{% endif %}"  # noqa: E501
 
     __info_defs = {
         # collector values used for device registration:
         Register.COLLECTOR_FW_VERSION:  {'name': ['collector', 'Collector_Fw_Version'],       'level': logging.INFO,  'unit': ''},  # noqa: E501
-        Register.CHIP_TYPE:  {'name': ['collector', 'Chip_Type'],                  'level': logging.DEBUG, 'unit': ''},  # noqa: E501
-        Register.CHIP_MODEL: {'name': ['collector', 'Chip_Model'],                 'level': logging.DEBUG, 'unit': ''},  # noqa: E501
-        Register.TRACE_URL:  {'name': ['collector', 'Trace_URL'],                  'level': logging.DEBUG, 'unit': ''},  # noqa: E501
-        Register.LOGGER_URL: {'name': ['collector', 'Logger_URL'],                 'level': logging.DEBUG, 'unit': ''},  # noqa: E501
+        Register.CHIP_TYPE:  {'name': ['collector', 'Chip_Type'],        'singleton': False,  'level': logging.DEBUG, 'unit': ''},  # noqa: E501
+        Register.CHIP_MODEL: {'name': ['collector', 'Chip_Model'],       'singleton': False,  'level': logging.DEBUG, 'unit': ''},  # noqa: E501
+        Register.TRACE_URL:  {'name': ['collector', 'Trace_URL'],        'singleton': False,  'level': logging.DEBUG, 'unit': ''},  # noqa: E501
+        Register.LOGGER_URL: {'name': ['collector', 'Logger_URL'],       'singleton': False,  'level': logging.DEBUG, 'unit': ''},  # noqa: E501
 
         # inverter values used for device registration:
         Register.PRODUCT_NAME:    {'name': ['inverter', 'Product_Name'],           'level': logging.DEBUG, 'unit': ''},  # noqa: E501
@@ -194,9 +218,9 @@ class Infos:
         Register.SERIAL_NUMBER:   {'name': ['inverter', 'Serial_Number'],          'level': logging.DEBUG, 'unit': ''},  # noqa: E501
         Register.EQUIPMENT_MODEL: {'name': ['inverter', 'Equipment_Model'],        'level': logging.DEBUG, 'unit': ''},  # noqa: E501
         Register.NO_INPUTS:       {'name': ['inverter', 'No_Inputs'],              'level': logging.DEBUG, 'unit': ''},  # noqa: E501
-        Register.MAX_DESIGNED_POWER: {'name': ['inverter',  'Max_Designed_Power'], 'level': logging.INFO, 'unit': 'W',    'ha': {'dev': 'inverter', 'dev_cla': None,          'stat_cla': None,          'id': 'designed_power_', 'fmt': '| string + " W"', 'name': 'Max Designed Power', 'icon': 'mdi:lightning-bolt', 'ent_cat': 'diagnostic'}},  # noqa: E501
-        Register.RATED_POWER:     {'name': ['inverter',  'Rated_Power'],           'level': logging.DEBUG, 'unit': 'W',    'ha': {'dev': 'inverter', 'dev_cla': None,          'stat_cla': None,          'id': 'rated_power_', 'fmt': '| string + " W"', 'name': 'Rated Power', 'icon': 'mdi:lightning-bolt', 'ent_cat': 'diagnostic'}},  # noqa: E501
-
+        Register.MAX_DESIGNED_POWER: {'name': ['inverter',  'Max_Designed_Power'], 'level': logging.INFO,  'unit': 'W',    'ha': {'dev': 'inverter', 'dev_cla': None, 'stat_cla': None, 'id': 'designed_power_', 'val_tpl': __designed_power_val_tpl, 'name': 'Max Designed Power', 'icon': 'mdi:lightning-bolt', 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.RATED_POWER:        {'name': ['inverter',  'Rated_Power'],        'level': logging.DEBUG, 'unit': 'W',    'ha': {'dev': 'inverter', 'dev_cla': None, 'stat_cla': None, 'id': 'rated_power_',    'val_tpl': __rated_power_val_tpl,    'name': 'Rated Power',        'icon': 'mdi:lightning-bolt', 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.OUTPUT_COEFFICIENT: {'name': ['inverter',  'Output_Coefficient'], 'level': logging.INFO,  'unit': '%',    'ha': {'dev': 'inverter', 'dev_cla': None, 'stat_cla': None, 'id': 'output_coef_',    'val_tpl': __output_coef_val_tpl,    'name': 'Output Coefficient', 'icon': 'mdi:lightning-bolt', 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.PV1_MANUFACTURER: {'name': ['inverter', 'PV1_Manufacturer'],      'level': logging.DEBUG, 'unit': ''},  # noqa: E501
         Register.PV1_MODEL:        {'name': ['inverter', 'PV1_Model'],             'level': logging.DEBUG, 'unit': ''},  # noqa: E501
         Register.PV2_MANUFACTURER: {'name': ['inverter', 'PV2_Manufacturer'],      'level': logging.DEBUG, 'unit': ''},  # noqa: E501
@@ -244,14 +268,16 @@ class Infos:
         Register.EVENT_416:  {'name': ['events', '416_'],                          'level': logging.DEBUG, 'unit': ''},  # noqa: E501
 
         # grid measures:
+        Register.TS_GRID:         {'name': ['grid', 'Timestamp'],                  'level': logging.INFO,  'unit': ''},  # noqa: E501
         Register.GRID_VOLTAGE:    {'name': ['grid', 'Voltage'],                    'level': logging.DEBUG, 'unit': 'V',    'ha': {'dev': 'inverter', 'dev_cla': 'voltage',     'stat_cla': 'measurement', 'id': 'out_volt_',  'fmt': '| float', 'name': 'Grid Voltage', 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.GRID_CURRENT:    {'name': ['grid', 'Current'],                    'level': logging.DEBUG, 'unit': 'A',    'ha': {'dev': 'inverter', 'dev_cla': 'current',     'stat_cla': 'measurement', 'id': 'out_cur_',   'fmt': '| float', 'name': 'Grid Current', 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.GRID_FREQUENCY:  {'name': ['grid', 'Frequency'],                  'level': logging.DEBUG, 'unit': 'Hz',   'ha': {'dev': 'inverter', 'dev_cla': 'frequency',   'stat_cla': 'measurement', 'id': 'out_freq_',  'fmt': '| float', 'name': 'Grid Frequency', 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.OUTPUT_POWER:    {'name': ['grid', 'Output_Power'],               'level': logging.INFO,  'unit': 'W',    'ha': {'dev': 'inverter', 'dev_cla': 'power',       'stat_cla': 'measurement', 'id': 'out_power_', 'fmt': '| float', 'name': 'Power'}},  # noqa: E501
         Register.INVERTER_TEMP:   {'name': ['env',  'Inverter_Temp'],              'level': logging.DEBUG, 'unit': '°C',   'ha': {'dev': 'inverter', 'dev_cla': 'temperature', 'stat_cla': 'measurement', 'id': 'temp_',       'fmt': '| int', 'name': 'Temperature'}},  # noqa: E501
-        Register.INVERTER_STATUS: {'name': ['env',  'Inverter_Status'],            'level': logging.INFO,  'unit': '',     'ha': {'dev': 'inverter', 'comp': 'sensor', 'dev_cla': None, 'stat_cla': None, 'id': 'inv_status_', 'name': 'Inverter Status', 'val_tpl': __status_type_val_tpl,          'icon': 'mdi:counter'}},  # noqa: E501
+        Register.INVERTER_STATUS: {'name': ['env',  'Inverter_Status'],            'level': logging.INFO,  'unit': '',     'ha': {'dev': 'inverter', 'comp': 'sensor', 'dev_cla': None, 'stat_cla': None, 'id': 'inv_status_', 'name': 'Inverter Status', 'val_tpl': __status_type_val_tpl,          'icon': 'mdi:power'}},  # noqa: E501
 
         # input measures:
+        Register.TS_INPUT:     {'name': ['input', 'Timestamp'],                    'level': logging.INFO,  'unit': ''},  # noqa: E501
         Register.PV1_VOLTAGE:  {'name': ['input', 'pv1', 'Voltage'],               'level': logging.DEBUG, 'unit': 'V',    'ha': {'dev': 'input_pv1', 'dev_cla': 'voltage', 'stat_cla': 'measurement', 'id': 'volt_pv1_',  'val_tpl': "{{ (value_json['pv1']['Voltage'] | float)}}", 'icon': 'mdi:gauge', 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.PV1_CURRENT:  {'name': ['input', 'pv1', 'Current'],               'level': logging.DEBUG, 'unit': 'A',    'ha': {'dev': 'input_pv1', 'dev_cla': 'current', 'stat_cla': 'measurement', 'id': 'cur_pv1_',   'val_tpl': "{{ (value_json['pv1']['Current'] | float)}}", 'icon': 'mdi:gauge', 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.PV1_POWER:    {'name': ['input', 'pv1', 'Power'],                 'level': logging.DEBUG, 'unit': 'W',    'ha': {'dev': 'input_pv1', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'power_pv1_', 'val_tpl': "{{ (value_json['pv1']['Power'] | float)}}"}},  # noqa: E501
@@ -283,6 +309,7 @@ class Infos:
         Register.PV6_DAILY_GENERATION:  {'name': ['input', 'pv6', 'Daily_Generation'],        'level': logging.DEBUG, 'unit': 'kWh',  'ha': {'dev': 'input_pv6', 'dev_cla': 'energy', 'stat_cla': 'total_increasing', 'id': 'daily_gen_pv6_', 'name': 'Daily Generation', 'val_tpl': "{{ (value_json['pv6']['Daily_Generation'] | float)}}", 'icon': 'mdi:solar-power-variant', 'must_incr': True}},  # noqa: E501
         Register.PV6_TOTAL_GENERATION:  {'name': ['input', 'pv6', 'Total_Generation'],        'level': logging.DEBUG, 'unit': 'kWh',  'ha': {'dev': 'input_pv6', 'dev_cla': 'energy', 'stat_cla': 'total',            'id': 'total_gen_pv6_', 'name': 'Total Generation', 'val_tpl': "{{ (value_json['pv6']['Total_Generation'] | float)}}", 'icon': 'mdi:solar-power', 'must_incr': True}},  # noqa: E501
         # total:
+        Register.TS_TOTAL:          {'name': ['total', 'Timestamp'],               'level': logging.INFO,  'unit': ''},  # noqa: E501
         Register.DAILY_GENERATION:  {'name': ['total', 'Daily_Generation'],        'level': logging.INFO,  'unit': 'kWh',  'ha': {'dev': 'inverter', 'dev_cla': 'energy', 'stat_cla': 'total_increasing', 'id': 'daily_gen_', 'fmt': '| float', 'name': 'Daily Generation', 'icon': 'mdi:solar-power-variant', 'must_incr': True}},  # noqa: E501
         Register.TOTAL_GENERATION:  {'name': ['total', 'Total_Generation'],        'level': logging.INFO,  'unit': 'kWh',  'ha': {'dev': 'inverter', 'dev_cla': 'energy', 'stat_cla': 'total',            'id': 'total_gen_', 'fmt': '| float', 'name': 'Total Generation', 'icon': 'mdi:solar-power', 'must_incr': True}},  # noqa: E501
 
@@ -295,6 +322,7 @@ class Infos:
         Register.DATA_UP_INTERVAL:   {'name': ['controller', 'Data_Up_Interval'],   'level': logging.DEBUG, 'unit': 's',    'ha': {'dev': 'controller', 'dev_cla': None,       'stat_cla': None,          'id': 'data_up_intval_', 'fmt': '| string + " s"', 'name': 'Data Up Interval', 'icon': 'mdi:update', 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.HEARTBEAT_INTERVAL: {'name': ['controller', 'Heartbeat_Interval'], 'level': logging.DEBUG, 'unit': 's',    'ha': {'dev': 'controller', 'dev_cla': None,       'stat_cla': None,          'id': 'heartbeat_intval_',    'fmt': '| string + " s"', 'name': 'Heartbeat Interval', 'icon': 'mdi:update', 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.IP_ADDRESS:         {'name': ['controller', 'IP_Address'],         'level': logging.DEBUG, 'unit': '',     'ha': {'dev': 'controller', 'dev_cla': None,       'stat_cla': None,          'id': 'ip_address_',           'fmt': '| string',        'name': 'IP Address', 'icon': 'mdi:wifi', 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.POLLING_INTERVAL:   {'name': ['controller', 'Polling_Interval'],   'level': logging.DEBUG, 'unit': 's',    'ha': {'dev': 'controller', 'dev_cla': None,       'stat_cla': None,          'id': 'polling_intval_', 'fmt': '| string + " s"', 'name': 'Polling Interval', 'icon': 'mdi:update', 'ent_cat': 'diagnostic'}},  # noqa: E501
     }
 
     @property
@@ -305,7 +333,7 @@ class Infos:
     def info_defs(self) -> dict:
         return self.__info_defs
 
-    def dev_value(self, idx: str | int) -> str | int | float | None:
+    def dev_value(self, idx: str | int) -> str | int | float | dict | None:
         '''returns the stored device value from our database
 
         idx:int ==> lookup the value in the database and return it as str,
@@ -318,29 +346,29 @@ class Infos:
         elif idx in self.info_defs:
             row = self.info_defs[idx]
             if 'singleton' in row and row['singleton']:
-                dict = self.stat
+                db_dict = self.stat
             else:
-                dict = self.db
+                db_dict = self.db
 
             keys = row['name']
 
             for key in keys:
-                if key not in dict:
+                if key not in db_dict:
                     return None      # value not found in the database
-                dict = dict[key]
-            return dict              # value of the reqeusted entry
+                db_dict = db_dict[key]
+            return db_dict              # value of the reqeusted entry
 
         return None                  # unknwon idx, not in info_defs
 
     def inc_counter(self, counter: str) -> None:
         '''inc proxy statistic counter'''
-        dict = self.stat['proxy']
-        dict[counter] += 1
+        db_dict = self.stat['proxy']
+        db_dict[counter] += 1
 
     def dec_counter(self, counter: str) -> None:
         '''dec proxy statistic counter'''
-        dict = self.stat['proxy']
-        dict[counter] -= 1
+        db_dict = self.stat['proxy']
+        db_dict[counter] -= 1
 
     def ha_proxy_confs(self, ha_prfx: str, node_id: str, snr: str) \
             -> Generator[tuple[str, str, str, str], None, None]:
@@ -363,6 +391,20 @@ class Infos:
 
     def ha_conf(self, key, ha_prfx, node_id, snr,  singleton: bool,
                 sug_area: str = '') -> tuple[str, str, str, str] | None:
+        '''Method to build json register struct for home-assistant
+        auto configuration and the unique entity string, for all proxy
+        registers
+
+        arguments:
+        key          ==> index of info_defs dict which reference the topic
+        ha_prfx:str  ==> MQTT prefix for the home assistant 'stat_t string
+        node_id:str  ==> node id of the inverter, used to build unique entity
+        snr:str      ==> serial number of the inverter, used to build unique
+                         entity strings
+        singleton    ==> bool to allow/disaalow proxy topics which are common
+                         for all invters
+        sug_area     ==> area name for home assistant
+        '''
         if key not in self.info_defs:
             return None
         row = self.info_defs[key]
@@ -466,7 +508,40 @@ class Infos:
             return json.dumps(attr), component, node_id, attr['uniq_id']
         return None
 
-    def _key_obj(self, id: Register) -> list:
+    def ha_remove(self, key, node_id, snr) -> tuple[str, str, str, str] | None:
+        '''Method to build json unregister struct for home-assistant
+        to remove topics per auto configuration. Only for inverer topics.
+
+        arguments:
+        key          ==> index of info_defs dict which reference the topic
+        node_id:str  ==> node id of the inverter, used to build unique entity
+        snr:str      ==> serial number of the inverter, used to build unique
+                         entity strings
+
+        hint:
+        the returned tuple must have the same format as self.ha_conf()
+        '''
+        if key not in self.info_defs:
+            return None
+        row = self.info_defs[key]
+
+        if 'singleton' in row and row['singleton']:
+            return None
+
+        # check if we have details for home assistant
+        if 'ha' in row:
+            ha = row['ha']
+            if 'comp' in ha:
+                component = ha['comp']
+            else:
+                component = 'sensor'
+            attr = {}
+            uniq_id = ha['id']+snr
+
+            return json.dumps(attr), component, node_id, uniq_id
+        return None
+
+    def _key_obj(self, id: Register) -> tuple:
         d = self.info_defs.get(id, {'name': None, 'level': logging.DEBUG,
                                     'unit': ''})
         if 'ha' in d and 'must_incr' in d['ha']:
@@ -478,21 +553,21 @@ class Infos:
 
     def update_db(self, keys: list, must_incr: bool, result):
         name = ''
-        dict = self.db
+        db_dict = self.db
         for key in keys[:-1]:
-            if key not in dict:
-                dict[key] = {}
-            dict = dict[key]
+            if key not in db_dict:
+                db_dict[key] = {}
+            db_dict = db_dict[key]
             name += key + '.'
-        if keys[-1] not in dict:
+        if keys[-1] not in db_dict:
             update = (not must_incr or result > 0)
         else:
             if must_incr:
-                update = dict[keys[-1]] < result
+                update = db_dict[keys[-1]] < result
             else:
-                update = dict[keys[-1]] != result
+                update = db_dict[keys[-1]] != result
         if update:
-            dict[keys[-1]] = result
+            db_dict[keys[-1]] = result
         name += keys[-1]
         return name, update
 
@@ -546,13 +621,13 @@ class Infos:
                 return True
 
             if 'gte' in dep:
-                return not value >= dep['gte']
+                return value < dep['gte']
             elif 'less_eq' in dep:
-                return not value <= dep['less_eq']
+                return value > dep['less_eq']
         return True
 
     def set_pv_module_details(self, inv: dict) -> None:
-        map = {'pv1': {'manufacturer': Register.PV1_MANUFACTURER, 'model': Register.PV1_MODEL},  # noqa: E501
+        pvs = {'pv1': {'manufacturer': Register.PV1_MANUFACTURER, 'model': Register.PV1_MODEL},  # noqa: E501
                'pv2': {'manufacturer': Register.PV2_MANUFACTURER, 'model': Register.PV2_MODEL},  # noqa: E501
                'pv3': {'manufacturer': Register.PV3_MANUFACTURER, 'model': Register.PV3_MODEL},  # noqa: E501
                'pv4': {'manufacturer': Register.PV4_MANUFACTURER, 'model': Register.PV4_MODEL},  # noqa: E501
@@ -560,7 +635,7 @@ class Infos:
                'pv6': {'manufacturer': Register.PV6_MANUFACTURER, 'model': Register.PV6_MODEL}  # noqa: E501
                }
 
-        for key, reg in map.items():
+        for key, reg in pvs.items():
             if key in inv:
                 if 'manufacturer' in inv[key]:
                     self.set_db_def_value(reg['manufacturer'],

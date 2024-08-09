@@ -5,7 +5,6 @@ from app.src.modbus import Modbus
 from app.src.infos import Infos, Register
 
 pytest_plugins = ('pytest_asyncio',)
-# pytestmark = pytest.mark.asyncio(scope="module")
 
 class ModbusTestHelper(Modbus):
     def __init__(self):
@@ -32,7 +31,12 @@ def test_modbus_crc():
     assert mb._Modbus__check_crc(b'\x01\x06\x20\x08\x00\x00\x03\xc8')
 
     assert 0x5c75 == mb._Modbus__calc_crc(b'\x01\x03\x08\x01\x2c\x00\x2c\x02\x2c\x2c\x46')
-    
+    msg = b'\x01\x03\x28\x51'
+    msg += b'\x0e\x08\xd3\x00\x29\x13\x87\x00\x3e\x00\x00\x01\x2c\x03\xb4\x00'
+    msg += b'\x08\x00\x00\x00\x00\x01\x59\x01\x21\x03\xe6\x00\x00\x00\x00\x00'
+    msg += b'\x00\x00\x00\x00\x00\x00\x00\xe6\xef'
+    assert 0 == mb._Modbus__calc_crc(msg)
+
 def test_build_modbus_pdu():
     '''Check building and sending a MODBUS RTU'''
     mb = ModbusTestHelper()
@@ -71,8 +75,8 @@ def test_recv_resp_crc_err():
     mb.req_pend = True
     mb.last_addr = 1
     mb.last_fcode = 3   
-    mb.last_reg == 0x300e
-    mb.last_len == 2
+    mb.last_reg = 0x300e
+    mb.last_len = 2
     # check matching response, but with CRC error
     call = 0
     for key, update, val in mb.recv_resp(mb.db, b'\x01\x03\x04\x01\x2c\x00\x46\xbb\xf3', 'test'):
@@ -91,8 +95,8 @@ def test_recv_resp_invalid_addr():
     # simulate a transmitted request
     mb.last_addr = 1
     mb.last_fcode = 3   
-    mb.last_reg == 0x300e
-    mb.last_len == 2
+    mb.last_reg = 0x300e
+    mb.last_len = 2
 
     # check not matching response, with wrong server addr
     call = 0
@@ -173,7 +177,7 @@ def test_parse_resp():
     assert mb.req_pend
 
     call = 0
-    exp_result = ['V0.0.212', 4.4, 0.7, 0.7, 30]
+    exp_result = ['V0.0.2C', 4.4, 0.7, 0.7, 30]
     for key, update, val in mb.recv_resp(mb.db, b'\x01\x03\x0c\x01\x2c\x00\x2c\x00\x2c\x00\x46\x00\x46\x00\x46\x32\xc8', 'test'):
         if key == 'grid':
             assert update == True
@@ -222,7 +226,7 @@ def test_queue2():
     assert mb.send_calls == 1
     assert mb.pdu == b'\x01\x030\x07\x00\x06{\t'
     call = 0
-    exp_result = ['V0.0.212', 4.4, 0.7, 0.7, 30]
+    exp_result = ['V0.0.2C', 4.4, 0.7, 0.7, 30]
     for key, update, val in mb.recv_resp(mb.db, b'\x01\x03\x0c\x01\x2c\x00\x2c\x00\x2c\x00\x46\x00\x46\x00\x46\x32\xc8', 'test'):
         if key == 'grid':
             assert update == True
@@ -242,7 +246,7 @@ def test_queue2():
     assert mb.pdu == b'\x01\x06\x20\x08\x00\x04\x02\x0b'
 
     for key, update, val in mb.recv_resp(mb.db, b'\x01\x06\x20\x08\x00\x04\x02\x0b', 'test'):
-        pass
+        pass  # call generator mb.recv_resp()
 
     assert mb.que.qsize() == 0
     assert mb.send_calls == 3
@@ -272,7 +276,7 @@ def test_queue3():
     assert mb.recv_responses == 0
 
     call = 0
-    exp_result = ['V0.0.212', 4.4, 0.7, 0.7, 30]
+    exp_result = ['V0.0.2C', 4.4, 0.7, 0.7, 30]
     for key, update, val in mb.recv_resp(mb.db, b'\x01\x03\x0c\x01\x2c\x00\x2c\x00\x2c\x00\x46\x00\x46\x00\x46\x32\xc8', 'test'):
         if key == 'grid':
             assert update == True
@@ -293,7 +297,7 @@ def test_queue3():
     assert mb.pdu == b'\x01\x06\x20\x08\x00\x04\x02\x0b'
 
     for key, update, val in mb.recv_resp(mb.db, b'\x01\x06\x20\x08\x00\x04\x02\x0b', 'test'):
-        pass
+        pass  # no code in loop is OK; calling the generator is the purpose
     assert 0 == mb.err
     assert mb.recv_responses == 2
 
@@ -359,8 +363,6 @@ async def test_timeout():
     assert mb.retry_cnt == 0
     assert mb.send_calls == 4
 
-    # assert mb.counter == {}
-
 def test_recv_unknown_data():
     '''Receive a response with an unknwon register'''
     mb = ModbusTestHelper()
@@ -378,3 +380,16 @@ def test_recv_unknown_data():
     assert not mb.req_pend
 
     del mb.map[0x9000]
+
+def test_close():
+    '''Check queue handling for build_msg() calls'''
+    mb = ModbusTestHelper()
+    mb.build_msg(1,3,0x3007,6)
+    mb.build_msg(1,6,0x2008,4)
+    assert mb.que.qsize() == 1
+    mb.build_msg(1,3,0x3007,6)
+    assert mb.que.qsize() == 2
+    assert mb.que.empty() == False 
+    mb.close()
+    assert mb.que.qsize() == 0
+    assert mb.que.empty() == True 

@@ -1,7 +1,8 @@
 import struct
 import logging
-import time
+import pytz
 from datetime import datetime
+from tzlocal import get_localzone
 
 if __name__ == "app.src.gen3.talent":
     from app.src.messages import hex_dump_memory, Message, State
@@ -9,12 +10,14 @@ if __name__ == "app.src.gen3.talent":
     from app.src.my_timer import Timer
     from app.src.config import Config
     from app.src.gen3.infos_g3 import InfosG3
+    from app.src.infos import Register
 else:  # pragma: no cover
     from messages import hex_dump_memory, Message, State
     from modbus import Modbus
     from my_timer import Timer
     from config import Config
     from gen3.infos_g3 import InfosG3
+    from infos import Register
 
 logger = logging.getLogger('msg')
 
@@ -41,7 +44,7 @@ class Talent(Message):
     MB_REGULAR_TIMEOUT = 60
 
     def __init__(self, server_side: bool, id_str=b''):
-        super().__init__(server_side, self.send_modbus_cb, mb_timeout=11)
+        super().__init__(server_side, self.send_modbus_cb, mb_timeout=15)
         self.await_conn_resp_cnt = 0
         self.id_str = id_str
         self.contact_name = b''
@@ -71,12 +74,23 @@ class Talent(Message):
         self.modbus_elms = 0    # for unit tests
         self.node_id = 'G3'     # will be overwritten in __set_serial_no
         self.mb_timer = Timer(self.mb_timout_cb, self.node_id)
+        self.mb_timeout = self.MB_REGULAR_TIMEOUT
+        self.mb_start_timeout = self.MB_START_TIMEOUT
+        self.modbus_polling = False
 
     '''
     Our puplic methods
     '''
     def close(self) -> None:
         logging.debug('Talent.close()')
+        if self.server_side:
+            # set inverter state to offline, if output power is very low
+            logging.debug('close power: '
+                          f'{self.db.get_db_value(Register.OUTPUT_POWER, -1)}')
+            if self.db.get_db_value(Register.OUTPUT_POWER, 999) < 2:
+                self.db.set_db_def_value(Register.INVERTER_STATUS, 0)
+                self.new_data['env'] = True
+
         # we have references to methods of this class in self.switch
         # so we have to erase self.switch, otherwise this instance can't be
         # deallocated by the garbage collector ==> we get a memory leak
@@ -98,6 +112,7 @@ class Talent(Message):
                 inv = inverters[serial_no]
                 self.node_id = inv['node_id']
                 self.sug_area = inv['suggested_area']
+                self.modbus_polling = inv['modbus_polling']
                 logger.debug(f'SerialNo {serial_no} allowed! area:{self.sug_area}')  # noqa: E501
                 self.db.set_pv_module_details(inv)
             else:
@@ -113,41 +128,46 @@ class Talent(Message):
             self.unique_id = serial_no
 
     def read(self) -> float:
+        '''process all received messages in the _recv_buffer'''
         self._read()
+        while True:
+            if not self.header_valid:
+                self.__parse_header(self._recv_buffer, len(self._recv_buffer))
 
-        if not self.header_valid:
-            self.__parse_header(self._recv_buffer, len(self._recv_buffer))
+            if self.header_valid and \
+               len(self._recv_buffer) >= (self.header_len + self.data_len):
+                if self.state == State.init:
+                    self.state = State.received     # received 1st package
 
-        if self.header_valid and len(self._recv_buffer) >= (self.header_len +
-                                                            self.data_len):
-            if self.state == State.init:
-                self.state = State.received     # received 1st package
+                log_lvl = self.log_lvl.get(self.msg_id, logging.WARNING)
+                if callable(log_lvl):
+                    log_lvl = log_lvl()
 
-            log_lvl = self.log_lvl.get(self.msg_id, logging.WARNING)
-            if callable(log_lvl):
-                log_lvl = log_lvl()
+                hex_dump_memory(log_lvl, f'Received from {self.addr}:'
+                                f' BufLen: {len(self._recv_buffer)}'
+                                f' HdrLen: {self.header_len}'
+                                f' DtaLen: {self.data_len}',
+                                self._recv_buffer, len(self._recv_buffer))
 
-            hex_dump_memory(log_lvl, f'Received from {self.addr}:',
-                            self._recv_buffer, self.header_len+self.data_len)
+                self.__set_serial_no(self.id_str.decode("utf-8"))
+                self.__dispatch_msg()
+                self.__flush_recv_msg()
+            else:
+                return 0  # don not wait before sending a response
 
-            self.__set_serial_no(self.id_str.decode("utf-8"))
-            self.__dispatch_msg()
-            self.__flush_recv_msg()
-        return 0.5  # wait 500ms before sending a response
-
-    def forward(self, buffer, buflen) -> None:
+    def forward(self) -> None:
+        '''add the actual receive msg to the forwarding queue'''
         tsun = Config.get('tsun')
         if tsun['enabled']:
-            self._forward_buffer = buffer[:buflen]
+            buffer = self._recv_buffer
+            buflen = self.header_len+self.data_len
+            self._forward_buffer += buffer[:buflen]
             hex_dump_memory(logging.DEBUG, 'Store for forwarding:',
                             buffer, buflen)
 
-            self.__parse_header(self._forward_buffer,
-                                len(self._forward_buffer))
             fnc = self.switch.get(self.msg_id, self.msg_unknown)
             logger.info(self.__flow_str(self.server_side, 'forwrd') +
                         f' Ctl: {int(self.ctrl):#02x} Msg: {fnc.__name__!r}')
-        return
 
     def send_modbus_cb(self, modbus_pdu: bytearray, log_lvl: int, state: str):
         if self.state != State.up:
@@ -177,13 +197,13 @@ class Talent(Message):
         self._send_modbus_cmd(func, addr, val, log_lvl)
 
     def mb_timout_cb(self, exp_cnt):
-        self.mb_timer.start(self.MB_REGULAR_TIMEOUT)
+        self.mb_timer.start(self.mb_timeout)
 
-        if 0 == (exp_cnt % 30):
+        if 2 == (exp_cnt % 30):
             # logging.info("Regular Modbus Status request")
-            self._send_modbus_cmd(Modbus.READ_REGS, 0x2007, 2, logging.DEBUG)
+            self._send_modbus_cmd(Modbus.READ_REGS, 0x2000, 96, logging.DEBUG)
         else:
-            self._send_modbus_cmd(Modbus.READ_REGS, 0x3008, 21, logging.DEBUG)
+            self._send_modbus_cmd(Modbus.READ_REGS, 0x3000, 48, logging.DEBUG)
 
     def _init_new_client_conn(self) -> bool:
         contact_name = self.contact_name
@@ -218,31 +238,43 @@ class Talent(Message):
         return switch.get(type, '???')
 
     def _timestamp(self):   # pragma: no cover
-        if False:
-            # utc as epoche
-            ts = time.time()
-        else:
-            # convert localtime in epoche
-            ts = (datetime.now() - datetime(1970, 1, 1)).total_seconds()
+        '''returns timestamp fo the inverter as localtime
+        since 1.1.1970 in msec'''
+        # convert localtime in epoche
+        ts = (datetime.now() - datetime(1970, 1, 1)).total_seconds()
         return round(ts*1000)
+
+    def _utcfromts(self, ts: float):
+        '''converts inverter timestamp into unix time (epoche)'''
+        dt = datetime.fromtimestamp(ts/1000, pytz.UTC). \
+            replace(tzinfo=get_localzone())
+        return dt.timestamp()
+
+    def _utc(self):   # pragma: no cover
+        '''returns unix time (epoche)'''
+        return datetime.now().timestamp()
 
     def _update_header(self, _forward_buffer):
         '''update header for message before forwarding,
         add time offset to timestamp'''
         _len = len(_forward_buffer)
-        result = struct.unpack_from('!lB', _forward_buffer, 0)
-        id_len = result[1]    # len of variable id string
-        if _len < 2*id_len + 21:
-            return
+        ofs = 0
+        while ofs < _len:
+            result = struct.unpack_from('!lB', _forward_buffer, 0)
+            msg_len = 4 + result[0]
+            id_len = result[1]    # len of variable id string
+            if _len < 2*id_len + 21:
+                return
 
-        result = struct.unpack_from('!B', _forward_buffer, id_len+6)
-        msg_code = result[0]
-        if msg_code == 0x71 or msg_code == 0x04:
-            result = struct.unpack_from('!q', _forward_buffer, 13+2*id_len)
-            ts = result[0] + self.ts_offset
-            logger.debug(f'offset: {self.ts_offset:08x}'
-                         f'  proxy-time: {ts:08x}')
-            struct.pack_into('!q', _forward_buffer, 13+2*id_len, ts)
+            result = struct.unpack_from('!B', _forward_buffer, id_len+6)
+            msg_code = result[0]
+            if msg_code == 0x71 or msg_code == 0x04:
+                result = struct.unpack_from('!q', _forward_buffer, 13+2*id_len)
+                ts = result[0] + self.ts_offset
+                logger.debug(f'offset: {self.ts_offset:08x}'
+                             f'  proxy-time: {ts:08x}')
+                struct.pack_into('!q', _forward_buffer, 13+2*id_len, ts)
+            ofs += msg_len
 
     # check if there is a complete header in the buffer, parse it
     # and set
@@ -259,7 +291,7 @@ class Talent(Message):
         if (buf_len < 5):      # enough bytes to read len and id_len?
             return
         result = struct.unpack_from('!lB', buf, 0)
-        len = result[0]    # len of complete message
+        msg_len = result[0]    # len of complete message
         id_len = result[1]    # len of variable id string
 
         hdr_len = 5+id_len+2
@@ -273,10 +305,9 @@ class Talent(Message):
         self.id_str = result[0]
         self.ctrl = Control(result[1])
         self.msg_id = result[2]
-        self.data_len = len-id_len-3
+        self.data_len = msg_len-id_len-3
         self.header_len = hdr_len
         self.header_valid = True
-        return
 
     def __build_header(self, ctrl, msg_id=None) -> None:
         if not msg_id:
@@ -321,12 +352,11 @@ class Talent(Message):
             elif self.await_conn_resp_cnt > 0:
                 self.await_conn_resp_cnt -= 1
             else:
-                self.forward(self._recv_buffer, self.header_len+self.data_len)
-            return
+                self.forward()
         else:
             logger.warning('Unknown Ctrl')
             self.inc_counter('Unknown_Ctrl')
-            self.forward(self._recv_buffer, self.header_len+self.data_len)
+            self.forward()
 
     def __process_contact_info(self) -> bool:
         result = struct.unpack_from('!B', self._recv_buffer, self.header_len)
@@ -348,8 +378,9 @@ class Talent(Message):
     def msg_get_time(self):
         if self.ctrl.is_ind():
             if self.data_len == 0:
-                self.state = State.pend     # block MODBUS cmds
-                self.mb_timer.start(self.MB_START_TIMEOUT)
+                if self.state == State.up:
+                    self.state = State.pend     # block MODBUS cmds
+
                 ts = self._timestamp()
                 logger.debug(f'time: {ts:08x}')
                 self.__build_header(0x91)
@@ -369,7 +400,7 @@ class Talent(Message):
             logger.warning('Unknown Ctrl')
             self.inc_counter('Unknown_Ctrl')
 
-        self.forward(self._recv_buffer, self.header_len+self.data_len)
+        self.forward()
 
     def parse_msg_header(self):
         result = struct.unpack_from('!lB', self._recv_buffer, self.header_len)
@@ -383,11 +414,12 @@ class Talent(Message):
         result = struct.unpack_from(f'!{id_len+1}pBq', self._recv_buffer,
                                     self.header_len + 4)
 
+        timestamp = result[2]
         logger.debug(f'ID: {result[0]}  B: {result[1]}')
-        logger.debug(f'time: {result[2]:08x}')
+        logger.debug(f'time: {timestamp:08x}')
         # logger.info(f'time: {datetime.utcfromtimestamp(result[2]).strftime(
         # "%Y-%m-%d %H:%M:%S")}')
-        return msg_hdr_len
+        return msg_hdr_len, timestamp
 
     def msg_collector_data(self):
         if self.ctrl.is_ind():
@@ -402,7 +434,7 @@ class Talent(Message):
             logger.warning('Unknown Ctrl')
             self.inc_counter('Unknown_Ctrl')
 
-        self.forward(self._recv_buffer, self.header_len+self.data_len)
+        self.forward()
 
     def msg_inverter_data(self):
         if self.ctrl.is_ind():
@@ -411,6 +443,10 @@ class Talent(Message):
             self.__finish_send_msg()
             self.__process_data()
             self.state = State.up  # allow MODBUS cmds
+            if (self.modbus_polling):
+                self.mb_timer.start(self.mb_start_timeout)
+                self.db.set_db_def_value(Register.POLLING_INTERVAL,
+                                         self.mb_timeout)
 
         elif self.ctrl.is_resp():
             return  # ignore received response
@@ -418,25 +454,26 @@ class Talent(Message):
             logger.warning('Unknown Ctrl')
             self.inc_counter('Unknown_Ctrl')
 
-        self.forward(self._recv_buffer, self.header_len+self.data_len)
+        self.forward()
 
     def __process_data(self):
-        msg_hdr_len = self.parse_msg_header()
+        msg_hdr_len, ts = self.parse_msg_header()
 
         for key, update in self.db.parse(self._recv_buffer, self.header_len
                                          + msg_hdr_len, self.node_id):
             if update:
+                self._set_mqtt_timestamp(key, self._utcfromts(ts))
                 self.new_data[key] = True
 
     def msg_ota_update(self):
         if self.ctrl.is_req():
             self.inc_counter('OTA_Start_Msg')
         elif self.ctrl.is_ind():
-            pass
+            pass  # Ok, nothing to do
         else:
             logger.warning('Unknown Ctrl')
             self.inc_counter('Unknown_Ctrl')
-        self.forward(self._recv_buffer, self.header_len+self.data_len)
+        self.forward()
 
     def parse_modbus_header(self):
 
@@ -445,27 +482,24 @@ class Talent(Message):
         result = struct.unpack_from('!lBB', self._recv_buffer,
                                     self.header_len)
         modbus_len = result[1]
-        # logger.debug(f'Ref: {result[0]}')
-        # logger.debug(f'Modbus MsgLen: {modbus_len} Func:{result[2]}')
         return msg_hdr_len, modbus_len
 
     def get_modbus_log_lvl(self) -> int:
         if self.ctrl.is_req():
             return logging.INFO
-        elif self.ctrl.is_ind():
-            if self.server_side:
-                return self.mb.last_log_lvl
+        elif self.ctrl.is_ind() and self.server_side:
+            return self.mb.last_log_lvl
         return logging.WARNING
 
     def msg_modbus(self):
-        hdr_len, modbus_len = self.parse_modbus_header()
+        hdr_len, _ = self.parse_modbus_header()
         data = self._recv_buffer[self.header_len:
                                  self.header_len+self.data_len]
 
         if self.ctrl.is_req():
-            if self.remoteStream.mb.recv_req(data[hdr_len:],
-                                             self.remoteStream.
-                                             msg_forward):
+            if self.remote_stream.mb.recv_req(data[hdr_len:],
+                                              self.remote_stream.
+                                              msg_forward):
                 self.inc_counter('Modbus_Command')
             else:
                 self.inc_counter('Invalid_Msg_Format')
@@ -481,17 +515,18 @@ class Talent(Message):
                     hdr_len:],
                     self.node_id):
                 if update:
+                    self._set_mqtt_timestamp(key, self._utc())
                     self.new_data[key] = True
                 self.modbus_elms += 1          # count for unit tests
         else:
             logger.warning('Unknown Ctrl')
             self.inc_counter('Unknown_Ctrl')
-            self.forward(self._recv_buffer, self.header_len+self.data_len)
+            self.forward()
 
     def msg_forward(self):
-        self.forward(self._recv_buffer, self.header_len+self.data_len)
+        self.forward()
 
     def msg_unknown(self):
         logger.warning(f"Unknow Msg: ID:{self.msg_id}")
         self.inc_counter('Unknown_Msg')
-        self.forward(self._recv_buffer, self.header_len+self.data_len)
+        self.forward()

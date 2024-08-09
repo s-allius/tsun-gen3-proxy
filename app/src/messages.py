@@ -5,16 +5,16 @@ from enum import Enum
 
 
 if __name__ == "app.src.messages":
-    from app.src.infos import Infos
+    from app.src.infos import Infos, Register
     from app.src.modbus import Modbus
 else:  # pragma: no cover
-    from infos import Infos
+    from infos import Infos, Register
     from modbus import Modbus
 
 logger = logging.getLogger('msg')
 
 
-def hex_dump_memory(level, info, data, num):
+def hex_dump_memory(level, info, data, data_len):
     n = 0
     lines = []
     lines.append(info)
@@ -22,20 +22,20 @@ def hex_dump_memory(level, info, data, num):
     if not tracer.isEnabledFor(level):
         return
 
-    for i in range(0, num, 16):
+    for i in range(0, data_len, 16):
         line = '  '
         line += '%04x | ' % (i)
         n += 16
 
         for j in range(n-16, n):
-            if j >= len(data):
+            if j >= data_len:
                 break
             line += '%02x ' % abs(data[j])
 
         line += ' ' * (3 * 16 + 9 - len(line)) + ' | '
 
         for j in range(n-16, n):
-            if j >= len(data):
+            if j >= data_len:
                 break
             c = data[j] if not (data[j] < 0x20 or data[j] > 0x7e) else '.'
             line += '%c' % c
@@ -91,6 +91,7 @@ class Message(metaclass=IterRegistry):
         self._forward_buffer = bytearray(0)
         self.new_data = {}
         self.state = State.init
+        self.shutdown_started = False
 
     '''
     Empty methods, that have to be implemented in any child class which
@@ -102,7 +103,22 @@ class Message(metaclass=IterRegistry):
 
     def _update_header(self, _forward_buffer):
         '''callback for updating the header of the forward buffer'''
-        return  # pragma: no cover
+        pass  # pragma: no cover
+
+    def _set_mqtt_timestamp(self, key, ts: float | None):
+        if key not in self.new_data or \
+           not self.new_data[key]:
+            if key == 'grid':
+                info_id = Register.TS_GRID
+            elif key == 'input':
+                info_id = Register.TS_INPUT
+            elif key == 'total':
+                info_id = Register.TS_TOTAL
+            else:
+                return
+            # tstr = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(ts))
+            # logger.info(f'update: key: {key} ts:{tstr}'
+            self.db.set_db_def_value(info_id, round(ts))
 
     '''
     Our puplic methods
@@ -111,7 +127,7 @@ class Message(metaclass=IterRegistry):
         if self.mb:
             self.mb.close()
             self.mb = None
-        pass  # pragma: no cover
+        # pragma: no cover
 
     def inc_counter(self, counter: str) -> None:
         self.db.inc_counter(counter)

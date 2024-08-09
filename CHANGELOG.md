@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+## [0.10.0] - 2024-08-09
+
+- bump aiohttp to version 3.10.2
+- add SonarQube and code coverage support
+- don't send MODBUS request when state is note up; adapt timeouts [#141](https://github.com/s-allius/tsun-gen3-proxy/issues/141)
+- build multi arch images with sboms [#144](https://github.com/s-allius/tsun-gen3-proxy/issues/144)
+- add timestamp to MQTT topics [#138](https://github.com/s-allius/tsun-gen3-proxy/issues/138)
+- improve the message handling, to avoid hangs
+- GEN3: allow long timeouts until we received first inverter data (not only device data)
+- bump aiomqtt to version 2.2.0
+- bump schema to version 0.7.7
+- Home Assistant: improve inverter status value texts
+- GEN3: add inverter status
+- fix flapping registers [#128](https://github.com/s-allius/tsun-gen3-proxy/issues/128)
+- register OUTPUT_COEFFICIENT at HA
+- GEN3: INVERTER_STATUS,
+- add config option to disable the MODBUS polling [#120](https://github.com/s-allius/tsun-gen3-proxy/issues/120)
+- make the maximum output coefficient configurable [#123](https://github.com/s-allius/tsun-gen3-proxy/issues/123)
+- cleanup shutdown
+- add preview build
+- MODBUS: the last digit of the inverter version is a hexadecimal number [#119](https://github.com/s-allius/tsun-gen3-proxy/issues/119)
+- GEN3PLUS: add client_mode connection on port 8899 [#117](https://github.com/s-allius/tsun-gen3-proxy/issues/117)
+
 ## [0.9.0] - 2024-07-01
 
 - fix exception in MODBUS timeout callback
