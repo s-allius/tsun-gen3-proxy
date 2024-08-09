@@ -59,7 +59,7 @@ class MemoryStream(Talent):
                     self._recv_buffer += self.__msg[self.__offs:]
                     copied_bytes = self.__msg_len - self.__offs
                     self.__offs = self.__msg_len
-        except:
+        except Exception:
             pass   # ignore exceptions here
         return copied_bytes
     
