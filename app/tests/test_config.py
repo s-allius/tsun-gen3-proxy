@@ -20,7 +20,7 @@ def test_empty_config():
         Config.conf_schema.validate(cnf)
         assert False
     except SchemaMissingKeyError:
-        assert True
+        pass
 
 def test_default_config():
     with open("app/config/default_config.toml", "rb") as f:

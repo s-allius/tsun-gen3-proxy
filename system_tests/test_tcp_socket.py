@@ -1,8 +1,6 @@
 # test_with_pytest.py and scapy
 #
 import pytest, socket, time
-#from scapy.all import *
-#from scapy.layers.inet import IP, TCP, TCP_client
 
 def get_sn() -> bytes:
     return b'R170000000000001'
@@ -120,9 +118,7 @@ def MsgOtaUpdateReq(): # Over the air update request from talent cloud
 
 @pytest.fixture(scope="session")
 def ClientConnection():
-    #host = '172.16.30.7'
     host = 'logger.talent-monitoring.com'
-    #host = '127.0.0.1'
     port = 5005
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.connect((host, port))
@@ -132,9 +128,7 @@ def ClientConnection():
         s.close()
 
 def tempClientConnection():
-    #host = '172.16.30.7'
     host = 'logger.talent-monitoring.com'
-    #host = '127.0.0.1'
     port = 5005
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.connect((host, port))
@@ -148,7 +142,6 @@ def test_open_close():
             pass
     except:
         assert False
-    assert True
 
 def test_send_contact_info1(ClientConnection, MsgContactInfo, MsgContactResp):
     s = ClientConnection
