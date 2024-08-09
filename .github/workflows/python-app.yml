@@ -37,6 +37,8 @@ jobs:
         timezoneMacos: "Europe/Berlin"
         timezoneWindows: "Europe/Berlin"
     - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0           # Fetch all history for all tags and branches
     - name: Set up Python 3.12
       uses: actions/setup-python@v5
       with:
