@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+## [0.10.0] - 2024-08-09
+
 - add SonarQube and code coverage support
 - don't send MODBUS request when state is note up; adapt timeouts [#141](https://github.com/s-allius/tsun-gen3-proxy/issues/141)
 - build multi arch images with sboms [#144](https://github.com/s-allius/tsun-gen3-proxy/issues/144)
