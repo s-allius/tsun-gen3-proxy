@@ -3,9 +3,6 @@
 import pytest, socket, time, os
 from dotenv import load_dotenv
 
-#from scapy.all import *
-#from scapy.layers.inet import IP, TCP, TCP_client
-
 load_dotenv()
 
 SOLARMAN_SNR = os.getenv('SOLARMAN_SNR', '00000080')
@@ -111,10 +108,7 @@ def MsgInvalidInfo(): # Contact Info message wrong start byte
 
 @pytest.fixture(scope="session")
 def ClientConnection():
-    #host = '172.16.30.7'
     host = 'logger.talent-monitoring.com'
-    #host = 'iot.talent-monitoring.com'
-    #host = '127.0.0.1'
     port = 10000
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.connect((host, port))
@@ -131,10 +125,7 @@ def checkResponse(data, Msg):
 
 
 def tempClientConnection():
-    #host = '172.16.30.7'
     host = 'logger.talent-monitoring.com'
-    #host = 'iot.talent-monitoring.com'
-    #host = '127.0.0.1'
     port = 10000
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.connect((host, port))
@@ -145,11 +136,10 @@ def tempClientConnection():
 
 def test_open_close():
     try:
-        for s in tempClientConnection():
-            pass
+        for _ in tempClientConnection():
+            pass  # test generator tempClientConnection()
     except:
         assert False
-    assert True
 
 def test_conn_msg(ClientConnection,MsgContactInfo, MsgContactResp):
     s = ClientConnection
