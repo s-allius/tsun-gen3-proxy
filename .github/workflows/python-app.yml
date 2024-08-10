@@ -38,7 +38,7 @@ jobs:
         timezoneWindows: "Europe/Berlin"
     - uses: actions/checkout@v4
       with:
-        fetch-depth: 0           # Fetch all history for all tags and branches
+        fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
     - name: Set up Python 3.12
       uses: actions/setup-python@v5
       with:
@@ -63,13 +63,7 @@ jobs:
     - name: Analyze with SonarCloud
       uses: SonarSource/sonarcloud-github-action@v2.2.0
       env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       with:
         projectBaseDir: .
-        args:
-          -Dsonar.projectKey=s-allius_tsun-gen3-proxy
-          -Dsonar.organization=s-allius
-          -Dsonar.python.version=3.12
-          -Dsonar.python.coverage.reportPaths=coverage.xml
-          -Dsonar.tests=system_tests,app/tests
-          -Dsonar.source=app/src
