@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+## [0.10.1] - 2024-08-10
+
+- fix displaying the version string at startup and in HA [#153](https://github.com/s-allius/tsun-gen3-proxy/issues/153)
+
 ## [0.10.0] - 2024-08-09
 
 - bump aiohttp to version 3.10.2
