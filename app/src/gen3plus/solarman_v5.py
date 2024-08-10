@@ -57,6 +57,8 @@ class SolarmanV5(Message):
     '''regular Modbus polling time in server mode'''
     MB_CLIENT_DATA_UP = 30
     '''Data up time in client mode'''
+    HDR_FMT = '<BLLL'
+    '''format string for packing of the header'''
 
     def __init__(self, server_side: bool, client_mode: bool):
         super().__init__(server_side, self.send_modbus_cb, mb_timeout=5)
@@ -502,7 +504,7 @@ class SolarmanV5(Message):
 
     def msg_dev_ind(self):
         data = self._recv_buffer[self.header_len:]
-        result = struct.unpack_from('<BLLL', data, 0)
+        result = struct.unpack_from(self.HDR_FMT, data, 0)
         ftype = result[0]  # always 2
         total = result[1]
         tim = result[2]
@@ -545,7 +547,7 @@ class SolarmanV5(Message):
 
     def msg_sync_start(self):
         data = self._recv_buffer[self.header_len:]
-        result = struct.unpack_from('<BLLL', data, 0)
+        result = struct.unpack_from(self.HDR_FMT, data, 0)
         ftype = result[0]
         total = result[1]
         self.time_ofs = result[3]
@@ -645,7 +647,7 @@ class SolarmanV5(Message):
 
     def msg_sync_end(self):
         data = self._recv_buffer[self.header_len:]
-        result = struct.unpack_from('<BLLL', data, 0)
+        result = struct.unpack_from(self.HDR_FMT, data, 0)
         ftype = result[0]
         total = result[1]
         self.time_ofs = result[3]
