@@ -15,5 +15,8 @@
     "sonarlint.connectedMode.project": {
         "connectionId": "s-allius",
         "projectKey": "s-allius_tsun-gen3-proxy"
+    },
+    "files.exclude": {
+        "**/*.pyi": true
     }
 }
