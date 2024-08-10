@@ -38,9 +38,9 @@ else
 BUILD_ENV="production"
 fi
 
-BUILD_CMD="buildx build --push --build-arg \"VERSION=${VERSION}\" --build-arg \"environment=${BUILD_ENV}\" --attest type=provenance,mode=max --attest type=sbom,generator=docker/scout-sbom-indexer:latest"
+BUILD_CMD="buildx build --push --build-arg VERSION=${VERSION} --build-arg environment=${BUILD_ENV} --attest type=provenance,mode=max --attest type=sbom,generator=docker/scout-sbom-indexer:latest"
 ARCH="--platform linux/amd64,linux/arm64,linux/arm/v7"
-LABELS="--label \"org.opencontainers.image.created=${BUILD_DATE}\" --label \"org.opencontainers.image.version=${VERSION}\" --label \"org.opencontainers.image.revision=${BRANCH}\""
+LABELS="--label org.opencontainers.image.created=${BUILD_DATE} --label org.opencontainers.image.version=${VERSION} --label org.opencontainers.image.revision=${BRANCH}"
 
 echo version: $VERSION  build-date: $BUILD_DATE   image: $IMAGE
 if [[ $1 == debug ]];then
