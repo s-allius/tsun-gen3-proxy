@@ -1,6 +1,6 @@
 import struct
 import logging
-import pytz
+from zoneinfo import ZoneInfo
 from datetime import datetime
 from tzlocal import get_localzone
 
@@ -247,7 +247,7 @@ class Talent(Message):
 
     def _utcfromts(self, ts: float):
         '''converts inverter timestamp into unix time (epoche)'''
-        dt = datetime.fromtimestamp(ts/1000, pytz.UTC). \
+        dt = datetime.fromtimestamp(ts/1000, tz=ZoneInfo("UTC")). \
             replace(tzinfo=get_localzone())
         return dt.timestamp()
 
