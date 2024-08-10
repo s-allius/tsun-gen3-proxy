@@ -27,7 +27,7 @@ class MemoryStream(Talent):
         super().__init__(server_side)
         if server_side:
             self.mb.timeout = 0.4   # overwrite for faster testing
-        self.mb_start_timeout = 0.5
+        self.mb_first_timeout = 0.5
         self.mb_timeout = 0.5
         self.writer = Writer()
         self.__msg = msg

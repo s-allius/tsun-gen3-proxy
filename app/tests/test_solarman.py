@@ -41,7 +41,7 @@ class MemoryStream(SolarmanV5):
         super().__init__(server_side, client_mode=False)
         if server_side:
             self.mb.timeout = 0.4   # overwrite for faster testing
-        self.mb_start_timeout = 0.5
+        self.mb_first_timeout = 0.5
         self.mb_timeout = 0.5
         self.writer = Writer()
         self.mqtt = Mqtt()
@@ -1692,7 +1692,7 @@ async def test_start_client_mode(config_tsun_inv1):
     assert m.no_forwarding == False
     assert m.mb_timer.tim == None
     assert asyncio.get_running_loop() == m.mb_timer.loop
-    await m.send_start_cmd(get_sn_int(), '192.168.1.1', m.mb_start_timeout)
+    await m.send_start_cmd(get_sn_int(), '192.168.1.1', m.mb_first_timeout)
     assert m.writer.sent_pdu==bytearray(b'\xa5\x17\x00\x10E\x01\x00!Ce{\x02\xb0\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x030\x00\x000J\xde\xf1\x15')
     assert m.db.get_db_value(Register.IP_ADDRESS) == '192.168.1.1'
     assert m.db.get_db_value(Register.POLLING_INTERVAL) == 0.5

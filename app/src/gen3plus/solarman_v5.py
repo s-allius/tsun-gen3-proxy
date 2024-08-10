@@ -133,7 +133,7 @@ class SolarmanV5(Message):
         self.node_id = 'G3P'  # will be overwritten in __set_serial_no
         self.mb_timer = Timer(self.mb_timout_cb, self.node_id)
         self.mb_timeout = self.MB_REGULAR_TIMEOUT
-        self.mb_start_timeout = self.MB_START_TIMEOUT
+        self.mb_first_timeout = self.MB_START_TIMEOUT
         '''timer value for next Modbus polling request'''
         self.modbus_polling = False
 
@@ -180,7 +180,7 @@ class SolarmanV5(Message):
         if self.state is not State.up:
             self.state = State.up
             if (self.modbus_polling):
-                self.mb_timer.start(self.mb_start_timeout)
+                self.mb_timer.start(self.mb_first_timeout)
                 self.db.set_db_def_value(Register.POLLING_INTERVAL,
                                          self.mb_timeout)
 
