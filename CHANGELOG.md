@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+- Reading the version string from the image updates it even if the image is re-pulled without re-deployment
+  
 ## [0.10.1] - 2024-08-10
 
 - fix displaying the version string at startup and in HA [#153](https://github.com/s-allius/tsun-gen3-proxy/issues/153)

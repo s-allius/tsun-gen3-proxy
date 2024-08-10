@@ -34,7 +34,6 @@ ARG GID
 ARG LOG_LVL
 ARG environment
 
-ENV VERSION=$VERSION
 ENV SERVICE_NAME=$SERVICE_NAME
 ENV UID=$UID
 ENV GID=$GID 
@@ -63,6 +62,7 @@ RUN python -m pip install --no-cache --no-index /root/wheels/* && \
 COPY --chmod=0700 entrypoint.sh /root/entrypoint.sh
 COPY config .
 COPY src .
+RUN echo ${VERSION} > /proxy-version.txt
 RUN date > /build-date.txt
 EXPOSE 5005 8127 10000
 
