@@ -38,7 +38,7 @@ jobs:
         timezoneWindows: "Europe/Berlin"
     - uses: actions/checkout@v4
       with:
-        fetch-depth: 0           # Fetch all history for all tags and branches
+        fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
     - name: Set up Python 3.12
       uses: actions/setup-python@v5
       with:
@@ -46,7 +46,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install flake8 pytest pytest-asyncio
+        pip install flake8 pytest pytest-asyncio pytest-cov coverage
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
     - name: Lint with flake8
       run: |
@@ -56,19 +56,13 @@ jobs:
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Test with pytest
       run: |
-        pip install pytest pytest-cov
         #pytest app --doctest-modules --junitxml=junit/test-results.xml --cov=com --cov-report=xml --cov-report=html
         python -m pytest app --cov=app/src --cov-report=xml
+        coverage report
     - name: Analyze with SonarCloud
       uses: SonarSource/sonarcloud-github-action@v2.2.0
       env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       with:
         projectBaseDir: .
-        args:
-          -Dsonar.projectKey=s-allius_tsun-gen3-proxy
-          -Dsonar.organization=s-allius
-          -Dsonar.python.version=3.12
-          -Dsonar.python.coverage.reportPaths=coverage.xml
-          -Dsonar.tests=system_tests,app/tests
-          -Dsonar.source=app/src

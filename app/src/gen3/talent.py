@@ -1,6 +1,6 @@
 import struct
 import logging
-import pytz
+from zoneinfo import ZoneInfo
 from datetime import datetime
 from tzlocal import get_localzone
 
@@ -42,6 +42,7 @@ class Control:
 class Talent(Message):
     MB_START_TIMEOUT = 40
     MB_REGULAR_TIMEOUT = 60
+    TXT_UNKNOWN_CTRL = 'Unknown Ctrl'
 
     def __init__(self, server_side: bool, id_str=b''):
         super().__init__(server_side, self.send_modbus_cb, mb_timeout=15)
@@ -75,7 +76,7 @@ class Talent(Message):
         self.node_id = 'G3'     # will be overwritten in __set_serial_no
         self.mb_timer = Timer(self.mb_timout_cb, self.node_id)
         self.mb_timeout = self.MB_REGULAR_TIMEOUT
-        self.mb_start_timeout = self.MB_START_TIMEOUT
+        self.mb_first_timeout = self.MB_START_TIMEOUT
         self.modbus_polling = False
 
     '''
@@ -246,7 +247,7 @@ class Talent(Message):
 
     def _utcfromts(self, ts: float):
         '''converts inverter timestamp into unix time (epoche)'''
-        dt = datetime.fromtimestamp(ts/1000, pytz.UTC). \
+        dt = datetime.fromtimestamp(ts/1000, tz=ZoneInfo("UTC")). \
             replace(tzinfo=get_localzone())
         return dt.timestamp()
 
@@ -354,7 +355,7 @@ class Talent(Message):
             else:
                 self.forward()
         else:
-            logger.warning('Unknown Ctrl')
+            logger.warning(self.TXT_UNKNOWN_CTRL)
             self.inc_counter('Unknown_Ctrl')
             self.forward()
 
@@ -397,7 +398,7 @@ class Talent(Message):
                              f'  offset: {self.ts_offset}')
                 return  # ignore received response
         else:
-            logger.warning('Unknown Ctrl')
+            logger.warning(self.TXT_UNKNOWN_CTRL)
             self.inc_counter('Unknown_Ctrl')
 
         self.forward()
@@ -431,7 +432,7 @@ class Talent(Message):
         elif self.ctrl.is_resp():
             return  # ignore received response
         else:
-            logger.warning('Unknown Ctrl')
+            logger.warning(self.TXT_UNKNOWN_CTRL)
             self.inc_counter('Unknown_Ctrl')
 
         self.forward()
@@ -444,14 +445,14 @@ class Talent(Message):
             self.__process_data()
             self.state = State.up  # allow MODBUS cmds
             if (self.modbus_polling):
-                self.mb_timer.start(self.mb_start_timeout)
+                self.mb_timer.start(self.mb_first_timeout)
                 self.db.set_db_def_value(Register.POLLING_INTERVAL,
                                          self.mb_timeout)
 
         elif self.ctrl.is_resp():
             return  # ignore received response
         else:
-            logger.warning('Unknown Ctrl')
+            logger.warning(self.TXT_UNKNOWN_CTRL)
             self.inc_counter('Unknown_Ctrl')
 
         self.forward()
@@ -471,7 +472,7 @@ class Talent(Message):
         elif self.ctrl.is_ind():
             pass  # Ok, nothing to do
         else:
-            logger.warning('Unknown Ctrl')
+            logger.warning(self.TXT_UNKNOWN_CTRL)
             self.inc_counter('Unknown_Ctrl')
         self.forward()
 
@@ -519,7 +520,7 @@ class Talent(Message):
                     self.new_data[key] = True
                 self.modbus_elms += 1          # count for unit tests
         else:
-            logger.warning('Unknown Ctrl')
+            logger.warning(self.TXT_UNKNOWN_CTRL)
             self.inc_counter('Unknown_Ctrl')
             self.forward()
 
