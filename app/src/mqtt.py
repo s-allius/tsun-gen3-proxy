@@ -12,12 +12,12 @@ logger_mqtt = logging.getLogger('mqtt')
 
 class Mqtt(metaclass=Singleton):
     __client = None
-    __cb_MqttIsUp = None
+    __cb_mqtt_is_up = None
 
-    def __init__(self, cb_MqttIsUp):
+    def __init__(self, cb_mqtt_is_up):
         logger_mqtt.debug('MQTT: __init__')
-        if cb_MqttIsUp:
-            self.__cb_MqttIsUp = cb_MqttIsUp
+        if cb_mqtt_is_up:
+            self.__cb_mqtt_is_up = cb_mqtt_is_up
         loop = asyncio.get_event_loop()
         self.task = loop.create_task(self.__loop())
         self.ha_restarts = 0
@@ -71,8 +71,8 @@ class Mqtt(metaclass=Singleton):
                 async with self.__client:
                     logger_mqtt.info('MQTT broker connection established')
 
-                    if self.__cb_MqttIsUp:
-                        await self.__cb_MqttIsUp()
+                    if self.__cb_mqtt_is_up:
+                        await self.__cb_mqtt_is_up()
 
                     # async with self.__client.messages() as messages:
                     await self.__client.subscribe(ha_status_topic)
@@ -89,7 +89,7 @@ class Mqtt(metaclass=Singleton):
                                              f' {status}')
                             if status == 'online':
                                 self.ha_restarts += 1
-                                await self.__cb_MqttIsUp()
+                                await self.__cb_mqtt_is_up()
 
                         if message.topic.matches(mb_rated_topic):
                             await self.modbus_cmd(message,
