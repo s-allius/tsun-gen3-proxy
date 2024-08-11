@@ -1,5 +1,6 @@
 # test_with_pytest.py
 import pytest, logging, asyncio
+from math import isclose
 from app.src.gen3.talent import Talent, Control
 from app.src.config import Config
 from app.src.infos import Infos, Register
@@ -1023,7 +1024,7 @@ def test_msg_inv_ind3(config_tsun_inv1, msg_inverter_ind_0w, msg_inverter_ack):
     assert m._forward_buffer==msg_inverter_ind_0w
     assert m._send_buffer==msg_inverter_ack
     assert m.db.get_db_value(Register.INVERTER_STATUS) == None
-    assert m.db.db['grid']['Output_Power'] == 0.5
+    assert isclose(m.db.db['grid']['Output_Power'], 0.5)
     m.close()
     assert m.db.get_db_value(Register.INVERTER_STATUS) == 0
 
@@ -1206,15 +1207,15 @@ def test_timestamp_cnv():
     m = MemoryStream(b'')
     ts = 1722645998453    # Saturday, 3. August 2024 00:46:38.453 (GMT+2:00)
     utc =1722638798.453   # GMT: Friday, 2. August 2024 22:46:38.453
-    assert utc == m._utcfromts(ts)
+    assert isclose(utc, m._utcfromts(ts))
 
     ts = 1691246944000    # Saturday, 5. August 2023 14:49:04 (GMT+2:00)
     utc =1691239744.0     # GMT: Saturday, 5. August 2023 12:49:04
-    assert utc == m._utcfromts(ts)
+    assert isclose(utc, m._utcfromts(ts))
 
     ts = 1704152544000    # Monday, 1. January 2024 23:42:24 (GMT+1:00)
     utc =1704148944.0     # GMT: Monday, 1. January 2024 22:42:24
-    assert utc == m._utcfromts(ts)
+    assert isclose(utc, m._utcfromts(ts))
 
     m.close()
 
@@ -1581,7 +1582,7 @@ async def test_modbus_polling(config_tsun_inv1, msg_inverter_ind):
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
 
     m._send_buffer = bytearray(0) # clear send buffer for next test
-    assert m.mb_timeout == 0.5
+    assert isclose(m.mb_timeout, 0.5)
     assert next(m.mb_timer.exp_count) == 0
     
     await asyncio.sleep(0.5)

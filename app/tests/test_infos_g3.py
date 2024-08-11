@@ -4,7 +4,7 @@ from app.src.infos import Register, ClrAtMidnight
 from app.src.gen3.infos_g3 import InfosG3
 
 @pytest.fixture
-def ContrDataSeq(): # Get Time Request message
+def contr_data_seq(): # Get Time Request message
     msg =   b'\x00\x00\x00\x15\x00\x09\x2b\xa8\x54\x10\x52\x53\x57\x5f\x34\x30\x30\x5f\x56\x31\x2e\x30\x30\x2e\x30\x36\x00\x09\x27\xc0\x54\x06\x52\x61\x79\x6d\x6f'
     msg +=  b'\x6e\x00\x09\x2f\x90\x54\x0b\x52\x53\x57\x2d\x31\x2d\x31\x30\x30\x30\x31\x00\x09\x5a\x88\x54\x0f\x74\x2e\x72\x61\x79\x6d\x6f\x6e\x69\x6f\x74\x2e\x63\x6f\x6d\x00\x09\x5a\xec\x54'
     msg +=  b'\x1c\x6c\x6f\x67\x67\x65\x72\x2e\x74\x61\x6c\x65\x6e\x74\x2d\x6d\x6f\x6e\x69\x74\x6f\x72\x69\x6e\x67\x2e\x63\x6f\x6d\x00\x0d\x00\x20\x49\x00\x00\x00\x01\x00\x0c\x35\x00\x49\x00'
@@ -14,7 +14,7 @@ def ContrDataSeq(): # Get Time Request message
     return msg
 
 @pytest.fixture
-def Contr2DataSeq(): # Get Time Request message
+def contr2_data_seq(): # Get Time Request message
     msg  =  b'\x00\x00\x00\x39\x00\x09\x2b\xa8\x54\x10\x52'
     msg +=  b'\x53\x57\x5f\x34\x30\x30\x5f\x56\x31\x2e\x30\x30\x2e\x32\x30\x00'
     msg +=  b'\x09\x27\xc0\x54\x06\x52\x61\x79\x6d\x6f\x6e\x00\x09\x2f\x90\x54'
@@ -94,19 +94,19 @@ def Contr2DataSeq(): # Get Time Request message
     return msg
 
 @pytest.fixture
-def InvDataSeq(): # Data indication from the controller
+def inv_data_seq(): # Data indication from the controller
     msg =   b'\x00\x00\x00\x06\x00\x00\x00\x0a\x54\x08\x4d\x69\x63\x72\x6f\x69\x6e\x76\x00\x00\x00\x14\x54\x04\x54\x53\x55\x4e\x00\x00\x00\x1E\x54\x07\x56\x35\x2e\x30\x2e\x31\x31\x00\x00\x00\x28'
     msg +=  b'\x54\x10T170000000000001\x00\x00\x00\x32\x54\x0a\x54\x53\x4f\x4c\x2d\x4d\x53\x36\x30\x30\x00\x00\x00\x3c\x54\x05\x41\x2c\x42\x2c\x43'
     return msg
 
 @pytest.fixture
-def InvalidDataSeq(): # Data indication from the controller
+def invalid_data_seq(): # Data indication from the controller
     msg =   b'\x00\x00\x00\x06\x00\x00\x00\x0a\x54\x08\x4d\x69\x63\x72\x6f\x69\x6e\x76\x00\x00\x00\x14\x64\x04\x54\x53\x55\x4e\x00\x00\x00\x1E\x54\x07\x56\x35\x2e\x30\x2e\x31\x31\x00\x00\x00\x28'
     msg +=  b'\x54\x10T170000000000001\x00\x00\x00\x32\x54\x0a\x54\x53\x4f\x4c\x2d\x4d\x53\x36\x30\x30\x00\x00\x00\x3c\x54\x05\x41\x2c\x42\x2c\x43'
     return msg
 
 @pytest.fixture
-def InvDataSeq2(): # Data indication from the controller
+def inv_data_seq2(): # Data indication from the controller
     msg =   b'\x00\x00\x00\xa3\x00\x00\x00\x64\x53\x00\x01\x00\x00\x00\xc8\x53\x00\x02\x00\x00\x01\x2c\x53\x00\x00\x00\x00\x01\x90\x49\x00\x00\x00\x00\x00\x00\x01\x91\x53\x00\x00'
     msg +=  b'\x00\x00\x01\x92\x53\x00\x00\x00\x00\x01\x93\x53\x00\x00\x00\x00\x01\x94\x53\x00\x00\x00\x00\x01\x95\x53\x00\x00\x00\x00\x01\x96\x53\x00\x00\x00\x00\x01\x97\x53\x00'
     msg +=  b'\x00\x00\x00\x01\x98\x53\x00\x00\x00\x00\x01\x99\x53\x00\x00\x00\x00\x01\x9a\x53\x00\x00\x00\x00\x01\x9b\x53\x00\x00\x00\x00\x01\x9c\x53\x00\x00\x00\x00\x01\x9d\x53'
@@ -141,7 +141,7 @@ def InvDataSeq2(): # Data indication from the controller
     return msg
 
 @pytest.fixture
-def InvDataNew(): # Data indication from DSP V5.0.17
+def inv_data_new(): # Data indication from DSP V5.0.17
     msg  = b'\x00\x00\x00\xa3\x00\x00\x00\x00\x53\x00\x00'
     msg += b'\x00\x00\x00\x80\x53\x00\x00\x00\x00\x01\x04\x53\x00\x00\x00\x00'
     msg += b'\x01\x90\x41\x00\x00\x01\x91\x53\x00\x00\x00\x00\x01\x90\x53\x00'
@@ -217,7 +217,7 @@ def InvDataNew(): # Data indication from DSP V5.0.17
     return msg
 
 @pytest.fixture
-def InvDataSeq2_Zero(): # Data indication from the controller
+def inv_data_seq2_zero(): # Data indication from the controller
     msg =   b'\x00\x00\x00\xa3\x00\x00\x00\x64\x53\x00\x01\x00\x00\x00\xc8\x53\x00\x02\x00\x00\x01\x2c\x53\x00\x00\x00\x00\x01\x90\x49\x00\x00\x00\x00\x00\x00\x01\x91\x53\x00\x00'
     msg +=  b'\x00\x00\x01\x92\x53\x00\x00\x00\x00\x01\x93\x53\x00\x00\x00\x00\x01\x94\x53\x00\x00\x00\x00\x01\x95\x53\x00\x00\x00\x00\x01\x96\x53\x00\x00\x00\x00\x01\x97\x53\x00'
     msg +=  b'\x00\x00\x00\x01\x98\x53\x00\x00\x00\x00\x01\x99\x53\x00\x00\x00\x00\x01\x9a\x53\x00\x00\x00\x00\x01\x9b\x53\x00\x00\x00\x00\x01\x9c\x53\x00\x00\x00\x00\x01\x9d\x53'
@@ -252,37 +252,37 @@ def InvDataSeq2_Zero(): # Data indication from the controller
     return msg
 
 
-def test_parse_control(ContrDataSeq):
+def test_parse_control(contr_data_seq):
     i = InfosG3()
-    for key, result in i.parse (ContrDataSeq):
-        pass
+    for key, result in i.parse (contr_data_seq):
+        pass  # side effect in calling i.parse()
 
     assert json.dumps(i.db) == json.dumps(
 {"collector": {"Collector_Fw_Version": "RSW_400_V1.00.06", "Chip_Type": "Raymon", "Chip_Model": "RSW-1-10001", "Trace_URL": "t.raymoniot.com", "Logger_URL": "logger.talent-monitoring.com"}, "controller": {"Collect_Interval": 1, "Signal_Strength": 100, "Power_On_Time": 29, "Communication_Type": 1, "Connect_Count": 1, "Data_Up_Interval": 300}})        
 
-def test_parse_control2(Contr2DataSeq):
+def test_parse_control2(contr2_data_seq):
     i = InfosG3()
-    for key, result in i.parse (Contr2DataSeq):
-        pass
+    for key, result in i.parse (contr2_data_seq):
+        pass  # side effect in calling i.parse()
 
     assert json.dumps(i.db) == json.dumps(
 {"collector": {"Collector_Fw_Version": "RSW_400_V1.00.20", "Chip_Type": "Raymon", "Chip_Model": "RSW-1-10001", "Trace_URL": "t.raymoniot.com", "Logger_URL": "logger.talent-monitoring.com"}, "controller": {"Collect_Interval": 1, "Signal_Strength": 16, "Power_On_Time": 334, "Communication_Type": 1, "Connect_Count": 1, "Data_Up_Interval": 300}})
 
-def test_parse_inverter(InvDataSeq):
+def test_parse_inverter(inv_data_seq):
     i = InfosG3()
-    for key, result in i.parse (InvDataSeq):
-        pass
+    for key, result in i.parse (inv_data_seq):
+        pass  # side effect in calling i.parse()
 
     assert json.dumps(i.db) == json.dumps(
 {"inverter": {"Product_Name": "Microinv", "Manufacturer": "TSUN", "Version": "V5.0.11", "Serial_Number": "T170000000000001", "Equipment_Model": "TSOL-MS600"}})
 
-def test_parse_cont_and_invert(ContrDataSeq, InvDataSeq):
+def test_parse_cont_and_invert(contr_data_seq, inv_data_seq):
     i = InfosG3()
-    for key, result in i.parse (ContrDataSeq):
-        pass
+    for key, result in i.parse (contr_data_seq):
+        pass  # side effect in calling i.parse()
 
-    for key, result in i.parse (InvDataSeq):
-        pass
+    for key, result in i.parse (inv_data_seq):
+        pass  # side effect in calling i.parse()
 
     assert json.dumps(i.db) == json.dumps(
     {
@@ -290,7 +290,7 @@ def test_parse_cont_and_invert(ContrDataSeq, InvDataSeq):
 "inverter": {"Product_Name": "Microinv", "Manufacturer": "TSUN", "Version": "V5.0.11", "Serial_Number": "T170000000000001", "Equipment_Model": "TSOL-MS600"}})
 
 
-def test_build_ha_conf1(ContrDataSeq):
+def test_build_ha_conf1(contr_data_seq):
     i = InfosG3()
     i.static_init()                # initialize counter
 
@@ -346,14 +346,14 @@ def test_build_ha_conf1(ContrDataSeq):
 
     assert tests==5
 
-def test_build_ha_conf2(ContrDataSeq, InvDataSeq, InvDataSeq2):
+def test_build_ha_conf2(contr_data_seq, inv_data_seq, inv_data_seq2):
     i = InfosG3()
-    for key, result in i.parse (ContrDataSeq):
-        pass
-    for key, result in i.parse (InvDataSeq):
-        pass
-    for key, result in i.parse (InvDataSeq2):
-        pass
+    for key, result in i.parse (contr_data_seq):
+        pass  # side effect in calling i.parse()
+    for key, result in i.parse (inv_data_seq):
+        pass  # side effect in calling i.parse()
+    for key, result in i.parse (inv_data_seq2):
+        pass  # side effect in calling i.parse()
 
     tests = 0
     for d_json, comp, node_id, id in i.ha_confs(ha_prfx="tsun/", node_id="garagendach/", snr='123', sug_area = 'roof'):
@@ -384,10 +384,10 @@ def test_build_ha_conf2(ContrDataSeq, InvDataSeq, InvDataSeq2):
             tests +=1
     assert tests==5
 
-def test_must_incr_total(InvDataSeq2, InvDataSeq2_Zero):
+def test_must_incr_total(inv_data_seq2, inv_data_seq2_zero):
     i = InfosG3()
     tests = 0
-    for key, update in i.parse (InvDataSeq2):
+    for key, update in i.parse (inv_data_seq2):
         if key == 'total' or key == 'inverter' or key == 'env':
             assert update == True
             tests +=1   
@@ -396,7 +396,7 @@ def test_must_incr_total(InvDataSeq2, InvDataSeq2_Zero):
     assert json.dumps(i.db['input']) == json.dumps({"pv1": {"Voltage": 33.6, "Current": 1.91, "Power": 64.5, "Daily_Generation": 1.08, "Total_Generation": 9.74}, "pv2": {"Voltage": 33.5, "Current": 1.36, "Power": 45.7, "Daily_Generation": 0.62, "Total_Generation": 7.62}, "pv3": {"Voltage": 0.0, "Current": 0.0, "Power": 0.0}, "pv4": {"Voltage": 0.0, "Current": 0.0, "Power": 0.0}})
     assert json.dumps(i.db['env']) == json.dumps({"Inverter_Temp": 23})
     tests = 0
-    for key, update in i.parse (InvDataSeq2):
+    for key, update in i.parse (inv_data_seq2):
         if key == 'total':
             assert update == False
             tests +=1   
@@ -411,7 +411,7 @@ def test_must_incr_total(InvDataSeq2, InvDataSeq2_Zero):
     assert json.dumps(i.db['inverter']) == json.dumps({"Rated_Power": 600, "No_Inputs": 2})
         
     tests = 0
-    for key, update in i.parse (InvDataSeq2_Zero):
+    for key, update in i.parse (inv_data_seq2_zero):
         if key == 'total':
             assert update == False
             tests +=1   
@@ -424,10 +424,10 @@ def test_must_incr_total(InvDataSeq2, InvDataSeq2_Zero):
     assert json.dumps(i.db['input']) == json.dumps({"pv1": {"Voltage": 33.6, "Current": 1.91, "Power": 0.0, "Daily_Generation": 1.08, "Total_Generation": 9.74}, "pv2": {"Voltage": 33.5, "Current": 1.36, "Power": 0.0, "Daily_Generation": 0.62, "Total_Generation": 7.62}, "pv3": {"Voltage": 0.0, "Current": 0.0, "Power": 0.0}, "pv4": {"Voltage": 0.0, "Current": 0.0, "Power": 0.0}})
     assert json.dumps(i.db['env']) == json.dumps({"Inverter_Temp": 0})
 
-def test_must_incr_total2(InvDataSeq2, InvDataSeq2_Zero):
+def test_must_incr_total2(inv_data_seq2, inv_data_seq2_zero):
     i = InfosG3()
     tests = 0
-    for key, update in i.parse (InvDataSeq2_Zero):
+    for key, update in i.parse (inv_data_seq2_zero):
         if key == 'total':
             assert update == False
             tests +=1   
@@ -441,7 +441,7 @@ def test_must_incr_total2(InvDataSeq2, InvDataSeq2_Zero):
     assert json.dumps(i.db['env']) == json.dumps({"Inverter_Temp": 0})
     
     tests = 0
-    for key, update in i.parse (InvDataSeq2_Zero):
+    for key, update in i.parse (inv_data_seq2_zero):
         if key == 'total':
             assert update == False
             tests +=1   
@@ -455,7 +455,7 @@ def test_must_incr_total2(InvDataSeq2, InvDataSeq2_Zero):
     assert json.dumps(i.db['env']) == json.dumps({"Inverter_Temp": 0})
 
     tests = 0
-    for key, update in i.parse (InvDataSeq2):
+    for key, update in i.parse (inv_data_seq2):
         if key == 'total':
             assert update == True
             tests +=1   
@@ -467,10 +467,10 @@ def test_must_incr_total2(InvDataSeq2, InvDataSeq2_Zero):
     assert json.dumps(i.db['total']) == json.dumps({'Daily_Generation': 1.7, 'Total_Generation': 17.36})
     assert json.dumps(i.db['input']) == json.dumps({"pv1": {"Voltage": 33.6, "Current": 1.91, "Power": 64.5, "Daily_Generation": 1.08, "Total_Generation": 9.74}, "pv2": {"Voltage": 33.5, "Current": 1.36, "Power": 45.7, "Daily_Generation": 0.62, "Total_Generation": 7.62}, "pv3": {"Voltage": 0.0, "Current": 0.0, "Power": 0.0}, "pv4": {"Voltage": 0.0, "Current": 0.0, "Power": 0.0}})
    
-def test_new_data_types(InvDataNew):
+def test_new_data_types(inv_data_new):
     i = InfosG3()
     tests = 0
-    for key, update in i.parse (InvDataNew):
+    for key, update in i.parse (inv_data_new):
         if key == 'events':
             tests +=1
         elif key == 'inverter':
@@ -487,7 +487,7 @@ def test_new_data_types(InvDataNew):
     assert json.dumps(i.db['input']) == json.dumps({"pv1": {}})
     assert json.dumps(i.db['events']) == json.dumps({"401_": 0, "404_": 0, "405_": 0, "408_": 0, "409_No_Utility": 0, "406_": 0, "416_": 0})
 
-def test_invalid_data_type(InvalidDataSeq):
+def test_invalid_data_type(invalid_data_seq):
     i = InfosG3()
     i.static_init()                # initialize counter
 
@@ -495,8 +495,8 @@ def test_invalid_data_type(InvalidDataSeq):
     assert val == 0
 
 
-    for key, result in i.parse (InvalidDataSeq):
-        pass
+    for key, result in i.parse (invalid_data_seq):
+        pass  # side effect in calling i.parse()
     assert json.dumps(i.db) == json.dumps({"inverter": {"Product_Name": "Microinv"}})
 
     val = i.dev_value(Register.INVALID_DATA_TYPE)  # check invalid data type counter

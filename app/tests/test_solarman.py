@@ -3,6 +3,7 @@ import struct
 import time
 import asyncio
 import logging
+from math import isclose
 from app.src.gen3plus.solarman_v5 import SolarmanV5
 from app.src.config import Config
 from app.src.infos import Infos, Register
@@ -1665,7 +1666,7 @@ async def test_modbus_polling(config_tsun_inv1, heartbeat_ind_msg, heartbeat_rsp
 
     m._send_buffer = bytearray(0) # clear send buffer for next test
     assert m.state == State.up
-    assert m.mb_timeout == 0.5
+    assert isclose(m.mb_timeout, 0.5)
     assert next(m.mb_timer.exp_count) == 0
     
     await asyncio.sleep(0.5)
@@ -1695,14 +1696,14 @@ async def test_start_client_mode(config_tsun_inv1):
     await m.send_start_cmd(get_sn_int(), '192.168.1.1', m.mb_first_timeout)
     assert m.writer.sent_pdu==bytearray(b'\xa5\x17\x00\x10E\x01\x00!Ce{\x02\xb0\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x030\x00\x000J\xde\xf1\x15')
     assert m.db.get_db_value(Register.IP_ADDRESS) == '192.168.1.1'
-    assert m.db.get_db_value(Register.POLLING_INTERVAL) == 0.5
+    assert isclose(m.db.get_db_value(Register.POLLING_INTERVAL), 0.5)
     assert m.db.get_db_value(Register.HEARTBEAT_INTERVAL) == 120
 
     assert m.state == State.up
     assert m.no_forwarding == True
 
     assert m._send_buffer==b''
-    assert m.mb_timeout == 0.5
+    assert isclose(m.mb_timeout, 0.5)
     assert next(m.mb_timer.exp_count) == 0
     
     await asyncio.sleep(0.5)
