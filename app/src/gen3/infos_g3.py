@@ -139,7 +139,6 @@ class InfosG3(Infos):
                 i = elms  # abort the loop
 
             elif data_type == 0x41:  # 'A' -> Nop ??
-                # result = struct.unpack_from('!l', buf, ind)[0]
                 ind += 0
                 i += 1
                 continue
@@ -171,17 +170,17 @@ class InfosG3(Infos):
                               " not supported")
                 return
 
-            keys, level, unit, must_incr = self._key_obj(info_id)
-
-            if keys:
-                name, update = self.update_db(keys, must_incr, result)
-                yield keys[0], update
-            else:
-                update = False
-                name = str(f'info-id.0x{addr:x}')
-
-            if update:
-                self.tracer.log(level, f'[{node_id}] GEN3: {name} :'
-                                       f' {result}{unit}')
-
+            yield from self.__store_result(addr, result, info_id)
             i += 1
+
+    def __store_result(self, addr, result, info_id):
+        keys, level, unit, must_incr = self._key_obj(info_id)
+        if keys:
+            name, update = self.update_db(keys, must_incr, result)
+            yield keys[0], update
+        else:
+            update = False
+            name = str(f'info-id.0x{addr:x}')
+        if update:
+            self.tracer.log(level, f'[{self.node_id}] GEN3: {name} :'
+                                   f' {result}{unit}')
