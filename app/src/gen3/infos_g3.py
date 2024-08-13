@@ -170,10 +170,10 @@ class InfosG3(Infos):
                               " not supported")
                 return
 
-            yield from self.__store_result(addr, result, info_id)
+            yield from self.__store_result(addr, result, info_id, node_id)
             i += 1
 
-    def __store_result(self, addr, result, info_id):
+    def __store_result(self, addr, result, info_id, node_id):
         keys, level, unit, must_incr = self._key_obj(info_id)
         if keys:
             name, update = self.update_db(keys, must_incr, result)
@@ -182,5 +182,5 @@ class InfosG3(Infos):
             update = False
             name = str(f'info-id.0x{addr:x}')
         if update:
-            self.tracer.log(level, f'[{self.node_id}] GEN3: {name} :'
+            self.tracer.log(level, f'[{node_id}] GEN3: {name} :'
                                    f' {result}{unit}')
