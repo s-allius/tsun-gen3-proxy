@@ -118,15 +118,7 @@ class InfosG3P(Infos):
             if not isinstance(row, dict):
                 continue
             info_id = row['reg']
-            fmt = row['fmt']
-            res = struct.unpack_from(fmt, buf, addr)
-            result = res[0]
-            if isinstance(result, (bytearray, bytes)):
-                result = result.decode().split('\x00')[0]
-            if 'eval' in row:
-                result = eval(row['eval'])
-            if 'ratio' in row:
-                result = round(result * row['ratio'], 2)
+            result = self.__get_value(buf, addr, row)
 
             keys, level, unit, must_incr = self._key_obj(info_id)
 
@@ -140,3 +132,16 @@ class InfosG3P(Infos):
             if update:
                 self.tracer.log(level, f'[{node_id}] GEN3PLUS: {name}'
                                        f' : {result}{unit}')
+
+    def __get_value(self, buf, idx, row):
+        '''Get a value from buf and interpret as in row'''
+        fmt = row['fmt']
+        res = struct.unpack_from(fmt, buf, idx)
+        result = res[0]
+        if isinstance(result, (bytearray, bytes)):
+            result = result.decode().split('\x00')[0]
+        if 'eval' in row:
+            result = eval(row['eval'])
+        if 'ratio' in row:
+            result = round(result * row['ratio'], 2)
+        return result
