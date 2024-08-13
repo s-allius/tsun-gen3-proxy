@@ -7,11 +7,11 @@ class TstConfig(Config):
 
     @classmethod
     def set(cls, cnf):
-        cls.config = cnf
+        cls.act_config = cnf
 
     @classmethod
     def _read_config_file(cls) -> dict:
-        return cls.config
+        return cls.act_config
 
 
 def test_empty_config():

@@ -12,7 +12,7 @@ class Config():
     Read config.toml file and sanitize it with read().
     Get named parts of the config with get()'''
 
-    config = {}
+    act_config = {}
     def_config = {}
     conf_schema = Schema({
         'tsun': {
@@ -146,17 +146,17 @@ class Config():
                     config[key] |= usr_config[key]
 
             try:
-                cls.config = cls.conf_schema.validate(config)
+                cls.act_config = cls.conf_schema.validate(config)
             except Exception as error:
                 err = f'Config.read: {error}'
                 logging.error(err)
 
-            # logging.debug(f'Readed config: "{cls.config}" ')
+            # logging.debug(f'Readed config: "{cls.act_config}" ')
 
         except Exception as error:
             err = f'Config.read: {error}'
             logger.error(err)
-            cls.config = {}
+            cls.act_config = {}
 
         return err
 
@@ -166,12 +166,12 @@ class Config():
           None it returns the complete config dict'''
 
         if member:
-            return cls.config.get(member, {})
+            return cls.act_config.get(member, {})
         else:
-            return cls.config
+            return cls.act_config
 
     @classmethod
     def is_default(cls, member: str) -> bool:
         '''Check if the member is the default value'''
 
-        return cls.config.get(member) == cls.def_config.get(member)
+        return cls.act_config.get(member) == cls.def_config.get(member)

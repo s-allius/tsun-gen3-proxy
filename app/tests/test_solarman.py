@@ -633,15 +633,15 @@ def msg_unknown_cmd_rsp():  # 0x1510
 
 @pytest.fixture
 def config_tsun_allow_all():
-    Config.config = {'solarman':{'enabled': True}, 'inverters':{'allow_all':True}}
+    Config.act_config = {'solarman':{'enabled': True}, 'inverters':{'allow_all':True}}
 
 @pytest.fixture
 def config_no_tsun_inv1():
-    Config.config = {'solarman':{'enabled': False},'inverters':{'Y170000000000001':{'monitor_sn': 2070233889, 'node_id':'inv1', 'modbus_polling': True, 'suggested_area':'roof'}}}
+    Config.act_config = {'solarman':{'enabled': False},'inverters':{'Y170000000000001':{'monitor_sn': 2070233889, 'node_id':'inv1', 'modbus_polling': True, 'suggested_area':'roof'}}}
 
 @pytest.fixture
 def config_tsun_inv1():
-    Config.config = {'solarman':{'enabled': True},'inverters':{'Y170000000000001':{'monitor_sn': 2070233889, 'node_id':'inv1', 'modbus_polling': True, 'suggested_area':'roof'}}}
+    Config.act_config = {'solarman':{'enabled': True},'inverters':{'Y170000000000001':{'monitor_sn': 2070233889, 'node_id':'inv1', 'modbus_polling': True, 'suggested_area':'roof'}}}
 
 def test_read_message(device_ind_msg):
     m = MemoryStream(device_ind_msg, (0,))

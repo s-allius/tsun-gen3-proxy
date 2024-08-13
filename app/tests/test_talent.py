@@ -98,12 +98,12 @@ class MemoryStream(Talent):
 
 @pytest.fixture
 def msg_contact_info(): # Contact Info message
-    Config.config = {'tsun':{'enabled': True}}
+    Config.act_config = {'tsun':{'enabled': True}}
     return b'\x00\x00\x00\x2c\x10R170000000000001\x91\x00\x08solarhub\x0fsolarhub\x40123456'
 
 @pytest.fixture
 def msg_contact_info_long_id():  # Contact Info message with longer ID
-    Config.config = {'tsun':{'enabled': True}}
+    Config.act_config = {'tsun':{'enabled': True}}
     return b'\x00\x00\x00\x2d\x11R1700000000000011\x91\x00\x08solarhub\x0fsolarhub\x40123456'
 
 @pytest.fixture
@@ -353,19 +353,19 @@ def msg_unknown(): # Get Time Request message
 
 @pytest.fixture
 def config_tsun_allow_all():
-    Config.config = {'tsun':{'enabled': True}, 'inverters':{'allow_all':True}}
+    Config.act_config = {'tsun':{'enabled': True}, 'inverters':{'allow_all':True}}
 
 @pytest.fixture
 def config_no_tsun_inv1():
-    Config.config = {'tsun':{'enabled': False},'inverters':{'R170000000000001':{'node_id':'inv1', 'modbus_polling': True, 'suggested_area':'roof'}}}
+    Config.act_config = {'tsun':{'enabled': False},'inverters':{'R170000000000001':{'node_id':'inv1', 'modbus_polling': True, 'suggested_area':'roof'}}}
 
 @pytest.fixture
 def config_tsun_inv1():
-    Config.config = {'tsun':{'enabled': True},'inverters':{'R170000000000001':{'node_id':'inv1', 'modbus_polling': True, 'suggested_area':'roof'}}}
+    Config.act_config = {'tsun':{'enabled': True},'inverters':{'R170000000000001':{'node_id':'inv1', 'modbus_polling': True, 'suggested_area':'roof'}}}
 
 @pytest.fixture
 def config_no_modbus_poll():
-    Config.config = {'tsun':{'enabled': True},'inverters':{'R170000000000001':{'node_id':'inv1', 'modbus_polling': False, 'suggested_area':'roof'}}}
+    Config.act_config = {'tsun':{'enabled': True},'inverters':{'R170000000000001':{'node_id':'inv1', 'modbus_polling': False, 'suggested_area':'roof'}}}
 
 @pytest.fixture
 def msg_ota_req(): # Over the air update request from tsun cloud
