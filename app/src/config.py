@@ -43,7 +43,7 @@ class Config():
                 Or('mqtt', 'tsun'): {
                     'allow': [str],
                     Optional('block', default=[]): [str]
-                    }
+                }
             }
         },
         'inverters': {
