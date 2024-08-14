@@ -44,22 +44,23 @@ class Config():
                     'allow': [str],
                     Optional('block', default=[]): [str]
                     }
-                }
+            }
         },
         'inverters': {
             'allow_all': Use(bool), And(Use(str), lambda s: len(s) == 16): {
                 Optional('monitor_sn', default=0): Use(int),
                 Optional('node_id', default=""): And(Use(str),
                                                      Use(lambda s: s + '/'
-                                                         if len(s) > 0 and
-                                                         s[-1] != '/' else s)),
+                                                         if len(s) > 0
+                                                         and s[-1] != '/'
+                                                         else s)),
                 Optional('client_mode'): {
                     'host': Use(str),
                     Optional('port', default=8899):
                         And(Use(int), lambda n: 1024 <= n <= 65535)
                 },
                 Optional('modbus_polling', default=True): Use(bool),
-                Optional('suggested_area',  default=""): Use(str),
+                Optional('suggested_area', default=""): Use(str),
                 Optional('pv1'): {
                     Optional('type'): Use(str),
                     Optional('manufacturer'): Use(str),
