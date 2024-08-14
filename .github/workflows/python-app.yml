@@ -8,7 +8,7 @@ on:
     branches: [ "main", "dev-*", "*/issue*" ]
     paths-ignore:
     - '**.md' # Do no build on *.md changes
-    - '**.yml' # Do no build on *.yml changes
+    # - '**.yml' # Do no build on *.yml changes
     - '**.yaml' # Do no build on *.yaml changes
     - '**.yuml' # Do no build on *.yuml changes
     - '**.svg' # Do no build on *.svg changes
@@ -54,6 +54,8 @@ jobs:
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+        flake8 --format=pylint --output-file=output_flake.txt ./
+        cat output_flake.txt
     - name: Test with pytest
       run: |
         #pytest app --doctest-modules --junitxml=junit/test-results.xml --cov=com --cov-report=xml --cov-report=html
@@ -66,3 +68,9 @@ jobs:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       with:
         projectBaseDir: .
+        args:
+          -Dsonar.projectKey=s-allius_tsun-gen3-proxy
+          -Dsonar.python.coverage.reportPaths=coverage.xml
+          -Dsonar.python.flake8.reportPaths=output_flake.txt
+          # -Dsonar.docker.hadolint.reportPaths=
+  
