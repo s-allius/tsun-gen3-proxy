@@ -53,12 +53,9 @@ jobs:
         # stop the build if there are Python syntax errors or undefined names
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
         flake8 --exit-zero --ignore=C901 --format=pylint --output-file=output_flake.txt --exclude=*.pyc app/src/
-        cat output_flake.txt
     - name: Test with pytest
       run: |
-        #pytest app --doctest-modules --junitxml=junit/test-results.xml --cov=com --cov-report=xml --cov-report=html
         python -m pytest app --cov=app/src --cov-report=xml
         coverage report
     - name: Analyze with SonarCloud
