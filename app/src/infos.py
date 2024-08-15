@@ -96,6 +96,7 @@ class Register(Enum):
     HEARTBEAT_INTERVAL = 406
     IP_ADDRESS = 407
     POLLING_INTERVAL = 408
+    SENSOR_LIST = 409
     EVENT_401 = 500
     EVENT_402 = 501
     EVENT_403 = 502
@@ -323,6 +324,7 @@ class Infos:
         Register.HEARTBEAT_INTERVAL: {'name': ['controller', 'Heartbeat_Interval'], 'level': logging.DEBUG, 'unit': 's',    'ha': {'dev': 'controller', 'dev_cla': None,       'stat_cla': None,          'id': 'heartbeat_intval_',    'fmt': '| string + " s"', 'name': 'Heartbeat Interval', 'icon': 'mdi:update', 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.IP_ADDRESS:         {'name': ['controller', 'IP_Address'],         'level': logging.DEBUG, 'unit': '',     'ha': {'dev': 'controller', 'dev_cla': None,       'stat_cla': None,          'id': 'ip_address_',           'fmt': '| string',        'name': 'IP Address', 'icon': 'mdi:wifi', 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.POLLING_INTERVAL:   {'name': ['controller', 'Polling_Interval'],   'level': logging.DEBUG, 'unit': 's',    'ha': {'dev': 'controller', 'dev_cla': None,       'stat_cla': None,          'id': 'polling_intval_', 'fmt': '| string + " s"', 'name': 'Polling Interval', 'icon': 'mdi:update', 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.SENSOR_LIST:        {'name': ['controller', 'Sensor_List'],        'level': logging.INFO,  'unit': ''},  # noqa: E501
     }
 
     @property
