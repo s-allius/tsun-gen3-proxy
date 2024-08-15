@@ -70,7 +70,7 @@ def test_parse_4110(device_data: bytes):
         pass  # side effect is calling generator i.parse()
 
     assert json.dumps(i.db) == json.dumps({
-        'controller': {"Data_Up_Interval": 300, "Collect_Interval": 1, "Heartbeat_Interval": 120, "Signal_Strength": 100, "IP_Address": "192.168.80.49"},
+        'controller': {"Data_Up_Interval": 300, "Collect_Interval": 1, "Heartbeat_Interval": 120, "Signal_Strength": 100, "IP_Address": "192.168.80.49", "Sensor_List": "02b0"},
         'collector': {"Chip_Model": "LSW5BLE_17_02B0_1.05", "Collector_Fw_Version": "V1.1.00.0B"},
         })
 
@@ -82,7 +82,7 @@ def test_parse_4210(inverter_data: bytes):
         pass  #  side effect is calling generator i.parse()
 
     assert json.dumps(i.db) == json.dumps({
-         "controller": {"Power_On_Time": 2051}, 
+         "controller": {"Sensor_List": "02b0", "Power_On_Time": 2051}, 
          "inverter": {"Serial_Number": "Y17E00000000000E", "Version": "V4.0.10", "Rated_Power": 600, "Max_Designed_Power": 2000}, 
          "env": {"Inverter_Status": 1, "Inverter_Temp": 14}, 
          "grid": {"Voltage": 224.8, "Current": 0.73, "Frequency": 50.05, "Output_Power": 165.8}, 
