@@ -20,9 +20,11 @@ class RegisterMap:
         0x4102001c: {'reg': Register.SIGNAL_STRENGTH,      'fmt': '<B', 'ratio':    1, 'dep': ProxyMode.SERVER},  # noqa: E501
         0x4102001e: {'reg': Register.CHIP_MODEL,           'fmt': '!40s'},               # noqa: E501
         0x4102004c: {'reg': Register.IP_ADDRESS,           'fmt': '!16s'},               # noqa: E501
+        0x4102005f: {'reg': Register.SENSOR_LIST,          'fmt': '<H', 'eval': "f'{result:04x}'"},                 # noqa: E501
         0x41020064: {'reg': Register.COLLECTOR_FW_VERSION, 'fmt': '!40s'},               # noqa: E501
 
-        0x4201001c: {'reg': Register.POWER_ON_TIME,        'fmt': '<H', 'ratio':    1, 'dep': ProxyMode.SERVER},  # noqa: E501
+        0x4201000c: {'reg': Register.SENSOR_LIST,          'fmt': '<H', 'eval': "f'{result:04x}'"},                 # noqa: E501
+        0x4201001c: {'reg': Register.POWER_ON_TIME,        'fmt': '<H', 'ratio':    1, 'dep': ProxyMode.SERVER},  # noqa: E501, or packet number
         0x42010020: {'reg': Register.SERIAL_NUMBER,        'fmt': '!16s'},               # noqa: E501
         0x420100c0: {'reg': Register.INVERTER_STATUS,      'fmt': '!H'},                 # noqa: E501
         0x420100d0: {'reg': Register.VERSION,              'fmt': '!H', 'eval': "f'V{(result>>12)}.{(result>>8)&0xf}.{(result>>4)&0xf}{result&0xf}'"},  # noqa: E501

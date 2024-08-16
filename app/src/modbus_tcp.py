@@ -3,7 +3,6 @@ import traceback
 import asyncio
 from config import Config
 
-# import gc
 from gen3plus.inverter_g3p import InverterG3P
 
 logger = logging.getLogger('conn')
@@ -66,11 +65,14 @@ class ModbusTcp():
                 logging.debug(f'Inv-conn:{error}')
 
             except OSError as error:
-                logging.info(f'os-error: {error}')
+                if error.errno == 113:
+                    logging.debug(f'os-error:{error}')
+                else:
+                    logging.info(f'os-error: {error}')
 
             except Exception:
                 logging.error(
-                    f"ModbusTcpCreate: Exception for {(host,port)}:\n"
+                    f"ModbusTcpCreate: Exception for {(host, port)}:\n"
                     f"{traceback.format_exc()}")
 
             await asyncio.sleep(10)

@@ -633,15 +633,15 @@ def msg_unknown_cmd_rsp():  # 0x1510
 
 @pytest.fixture
 def config_tsun_allow_all():
-    Config.config = {'solarman':{'enabled': True}, 'inverters':{'allow_all':True}}
+    Config.act_config = {'solarman':{'enabled': True}, 'inverters':{'allow_all':True}}
 
 @pytest.fixture
 def config_no_tsun_inv1():
-    Config.config = {'solarman':{'enabled': False},'inverters':{'Y170000000000001':{'monitor_sn': 2070233889, 'node_id':'inv1', 'modbus_polling': True, 'suggested_area':'roof'}}}
+    Config.act_config = {'solarman':{'enabled': False},'inverters':{'Y170000000000001':{'monitor_sn': 2070233889, 'node_id':'inv1', 'modbus_polling': True, 'suggested_area':'roof', 'sensor_list': 688}}}
 
 @pytest.fixture
 def config_tsun_inv1():
-    Config.config = {'solarman':{'enabled': True},'inverters':{'Y170000000000001':{'monitor_sn': 2070233889, 'node_id':'inv1', 'modbus_polling': True, 'suggested_area':'roof'}}}
+    Config.act_config = {'solarman':{'enabled': True},'inverters':{'Y170000000000001':{'monitor_sn': 2070233889, 'node_id':'inv1', 'modbus_polling': True, 'suggested_area':'roof', 'sensor_list': 688}}}
 
 def test_read_message(device_ind_msg):
     m = MemoryStream(device_ind_msg, (0,))
@@ -843,7 +843,7 @@ def test_read_two_messages(config_tsun_allow_all, device_ind_msg, device_rsp_msg
     config_tsun_allow_all
     m = MemoryStream(device_ind_msg, (0,))
     m.append_msg(inverter_ind_msg)
-
+    assert 0 == m.sensor_list
     m._init_new_client_conn()
     m.read()         # read complete msg, and dispatch msg
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
@@ -858,6 +858,8 @@ def test_read_two_messages(config_tsun_allow_all, device_ind_msg, device_rsp_msg
     assert m.msg_recvd[1]['control']==0x4210
     assert m.msg_recvd[1]['seq']=='02:02'
     assert m.msg_recvd[1]['data_len']==0x199
+    assert '02b0' == m.db.get_db_value(Register.SENSOR_LIST, None)
+    assert 0x02b0 == m.sensor_list
     assert m._forward_buffer==device_ind_msg+inverter_ind_msg
     assert m._send_buffer==device_rsp_msg+inverter_rsp_msg
 
@@ -1078,6 +1080,7 @@ def test_sync_end_rsp(config_tsun_inv1, sync_end_rsp_msg):
 def test_build_modell_600(config_tsun_allow_all, inverter_ind_msg):
     config_tsun_allow_all
     m = MemoryStream(inverter_ind_msg, (0,))
+    assert 0 == m.sensor_list
     assert 0 == m.db.get_db_value(Register.MAX_DESIGNED_POWER, 0)
     assert None == m.db.get_db_value(Register.RATED_POWER, None)
     assert None == m.db.get_db_value(Register.INVERTER_TEMP, None)
@@ -1085,6 +1088,8 @@ def test_build_modell_600(config_tsun_allow_all, inverter_ind_msg):
     assert 2000 == m.db.get_db_value(Register.MAX_DESIGNED_POWER, 0)
     assert 600 == m.db.get_db_value(Register.RATED_POWER, 0)
     assert 'TSOL-MS2000(600)' == m.db.get_db_value(Register.EQUIPMENT_MODEL, 0)
+    assert '02b0' == m.db.get_db_value(Register.SENSOR_LIST, None)
+    assert 0 == m.sensor_list   # must not been set by an inverter data ind
 
     m._send_buffer = bytearray(0) # clear send buffer for next test    
     m._init_new_client_conn()
@@ -1420,6 +1425,7 @@ def test_msg_modbus_req(config_tsun_inv1, msg_modbus_cmd, msg_modbus_cmd_fwd):
     config_tsun_inv1
     m = MemoryStream(b'')
     m.snr = get_sn_int()
+    m.sensor_list = 0x2b0
     m.state = State.up
     c = m.createClientStream(msg_modbus_cmd)
 
