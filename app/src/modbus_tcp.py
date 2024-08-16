@@ -72,7 +72,7 @@ class ModbusTcp():
 
             except Exception:
                 logging.error(
-                    f"ModbusTcpCreate: Exception for {(host,port)}:\n"
+                    f"ModbusTcpCreate: Exception for {(host, port)}:\n"
                     f"{traceback.format_exc()}")
 
             await asyncio.sleep(10)
