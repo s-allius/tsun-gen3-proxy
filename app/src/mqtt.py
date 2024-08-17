@@ -60,11 +60,11 @@ class Mqtt(metaclass=Singleton):
 
         interval = 5  # Seconds
         ha_status_topic = f"{ha['auto_conf_prefix']}/status"
-        mb_rated_topic = "tsun/+/rated_load"  # fixme
-        mb_out_coeff_topic = "tsun/+/out_coeff"  # fixme
-        mb_reads_topic = "tsun/+/modbus_read_regs"  # fixme
-        mb_inputs_topic = "tsun/+/modbus_read_inputs"  # fixme
-        mb_at_cmd_topic = "tsun/+/at_cmd"  # fixme
+        mb_rated_topic = f"{ha['entity_prefix']}/+/rated_load"
+        mb_out_coeff_topic = f"{ha['entity_prefix']}/+/out_coeff"
+        mb_reads_topic = f"{ha['entity_prefix']}/+/modbus_read_regs"
+        mb_inputs_topic = f"{ha['entity_prefix']}/+/modbus_read_inputs"
+        mb_at_cmd_topic = f"{ha['entity_prefix']}/+/at_cmd"
 
         while True:
             try:
@@ -74,7 +74,6 @@ class Mqtt(metaclass=Singleton):
                     if self.__cb_mqtt_is_up:
                         await self.__cb_mqtt_is_up()
 
-                    # async with self.__client.messages() as messages:
                     await self.__client.subscribe(ha_status_topic)
                     await self.__client.subscribe(mb_rated_topic)
                     await self.__client.subscribe(mb_out_coeff_topic)
@@ -145,43 +144,33 @@ class Mqtt(metaclass=Singleton):
     def each_inverter(self, message, func_name: str):
         topic = str(message.topic)
         node_id = topic.split('/')[1] + '/'
-        found = False
         for m in Message:
             if m.server_side and (m.node_id == node_id):
-                found = True
                 logger_mqtt.debug(f'Found: {node_id}')
                 fnc = getattr(m, func_name, None)
                 if callable(fnc):
                     yield fnc
                 else:
                     logger_mqtt.warning(f'Cmd not supported by: {node_id}')
+                break
 
-        if not found:
+        else:
             logger_mqtt.warning(f'Node_id: {node_id} not found')
 
     async def modbus_cmd(self, message, func, params=0, addr=0, val=0):
-        topic = str(message.topic)
-        node_id = topic.split('/')[1] + '/'
-        # refactor into a loop over a table
         payload = message.payload.decode("UTF-8")
-        logger_mqtt.info(f'MODBUS via MQTT: {topic} = {payload}')
-        for m in Message:
-            if m.server_side and (m.node_id == node_id):
-                logger_mqtt.debug(f'Found: {node_id}')
-                fnc = getattr(m, "send_modbus_cmd", None)
-                res = payload.split(',')
-                if params > 0 and params != len(res):
-                    logger_mqtt.error(f'Parameter expected: {params}, '
-                                      f'got: {len(res)}')
-                    return
-
-                if callable(fnc):
-                    if params == 1:
-                        val = int(payload)
-                    elif params == 2:
-                        addr = int(res[0], base=16)
-                        val = int(res[1])  # lenght
-                    await fnc(func, addr, val, logging.INFO)
+        for fnc in self.each_inverter(message, "send_modbus_cmd"):
+            res = payload.split(',')
+            if params > 0 and params != len(res):
+                logger_mqtt.error(f'Parameter expected: {params}, '
+                                  f'got: {len(res)}')
+                return
+            if params == 1:
+                val = int(payload)
+            elif params == 2:
+                addr = int(res[0], base=16)
+                val = int(res[1])  # lenght
+            await fnc(func, addr, val, logging.INFO)
 
     async def at_cmd(self, message):
         payload = message.payload.decode("UTF-8")
