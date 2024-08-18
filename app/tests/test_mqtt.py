@@ -16,9 +16,9 @@ def test_port():
 
 @pytest.fixture(scope="module")
 def test_hostname():
-    if getenv("GITHUB_ACTIONS") == "true":
-        return 'mqtt'
-    else:
+    # if getenv("GITHUB_ACTIONS") == "true":
+    #     return 'mqtt'
+    # else:
         return 'test.mosquitto.org'
 
 @pytest.fixture
