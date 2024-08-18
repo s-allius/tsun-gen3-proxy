@@ -2,10 +2,16 @@ import asyncio
 import logging
 import aiomqtt
 import traceback
-from modbus import Modbus
-from messages import Message
-from config import Config
-from singleton import Singleton
+if __name__ == "app.src.mqtt":
+    from app.src.modbus import Modbus
+    from app.src.messages import Message
+    from app.src.config import Config
+    from app.src.singleton import Singleton
+else:  # pragma: no cover
+    from modbus import Modbus
+    from messages import Message
+    from config import Config
+    from singleton import Singleton
 
 logger_mqtt = logging.getLogger('mqtt')
 
