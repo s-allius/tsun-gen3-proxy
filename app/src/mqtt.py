@@ -27,6 +27,7 @@ class Mqtt(metaclass=Singleton):
         loop = asyncio.get_event_loop()
         self.task = loop.create_task(self.__loop())
         self.ha_restarts = 0
+
         ha = Config.get('ha')
         self.ha_status_topic = f"{ha['auto_conf_prefix']}/status"
         self.mb_rated_topic = f"{ha['entity_prefix']}/+/rated_load"
