@@ -177,7 +177,7 @@ class Talent(Message):
             return
 
         self.__build_header(0x70, 0x77)
-        self._send_buffer += b'\x00\x01\xa3\x28'   # fixme
+        self._send_buffer += b'\x00\x01\xa3\x28'   # magic ?
         self._send_buffer += struct.pack('!B', len(modbus_pdu))
         self._send_buffer += modbus_pdu
         self.__finish_send_msg()

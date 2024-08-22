@@ -541,7 +541,7 @@ def test_read_message(msg_contact_info):
     m.close()
 
 def test_read_message_twice(config_no_tsun_inv1, msg_inverter_ind):
-    config_no_tsun_inv1
+    _ = config_no_tsun_inv1
     m = MemoryStream(msg_inverter_ind, (0,))
     m.append_msg(msg_inverter_ind)
     m.read()         # read complete msg, and dispatch msg
@@ -622,7 +622,7 @@ def test_read_message_in_chunks2(msg_contact_info):
     m.close()
 
 def test_read_two_messages(config_tsun_allow_all, msg2_contact_info,msg_contact_rsp,msg_contact_rsp2):
-    config_tsun_allow_all
+    _ = config_tsun_allow_all
     m = MemoryStream(msg2_contact_info, (0,))
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
     m.read()         # read complete msg, and dispatch msg
@@ -652,7 +652,7 @@ def test_read_two_messages(config_tsun_allow_all, msg2_contact_info,msg_contact_
     m.close()
 
 def test_msg_contact_resp(config_tsun_inv1, msg_contact_rsp):
-    config_tsun_inv1
+    _ = config_tsun_inv1
     m = MemoryStream(msg_contact_rsp, (0,), False)
     m.await_conn_resp_cnt = 1
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
@@ -672,7 +672,7 @@ def test_msg_contact_resp(config_tsun_inv1, msg_contact_rsp):
     m.close()
 
 def test_msg_contact_resp_2(config_tsun_inv1, msg_contact_rsp):
-    config_tsun_inv1
+    _ = config_tsun_inv1
     m = MemoryStream(msg_contact_rsp, (0,), False)
     m.await_conn_resp_cnt = 0
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
@@ -692,7 +692,7 @@ def test_msg_contact_resp_2(config_tsun_inv1, msg_contact_rsp):
     m.close()
 
 def test_msg_contact_resp_3(config_tsun_inv1, msg_contact_rsp):
-    config_tsun_inv1
+    _ = config_tsun_inv1
     m = MemoryStream(msg_contact_rsp, (0,), True)
     m.await_conn_resp_cnt = 0
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
@@ -712,7 +712,7 @@ def test_msg_contact_resp_3(config_tsun_inv1, msg_contact_rsp):
     m.close()
 
 def test_msg_contact_invalid(config_tsun_inv1, msg_contact_invalid):
-    config_tsun_inv1
+    _ = config_tsun_inv1
     m = MemoryStream(msg_contact_invalid, (0,))
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
     m.read()         # read complete msg, and dispatch msg
@@ -730,7 +730,7 @@ def test_msg_contact_invalid(config_tsun_inv1, msg_contact_invalid):
     m.close()
 
 def test_msg_get_time(config_tsun_inv1, msg_get_time):
-    config_tsun_inv1
+    _ = config_tsun_inv1
     m = MemoryStream(msg_get_time, (0,))
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
     m.read()         # read complete msg, and dispatch msg
@@ -749,7 +749,7 @@ def test_msg_get_time(config_tsun_inv1, msg_get_time):
     m.close()
 
 def test_msg_get_time_autark(config_no_tsun_inv1, msg_get_time):
-    config_no_tsun_inv1
+    _ = config_no_tsun_inv1
     m = MemoryStream(msg_get_time, (0,))
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
     m.read()         # read complete msg, and dispatch msg
@@ -768,7 +768,7 @@ def test_msg_get_time_autark(config_no_tsun_inv1, msg_get_time):
     m.close()
 
 def test_msg_time_resp(config_tsun_inv1, msg_time_rsp):
-    config_tsun_inv1
+    _ = config_tsun_inv1
     m = MemoryStream(msg_time_rsp, (0,), False)
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
     m.read()         # read complete msg, and dispatch msg
@@ -787,7 +787,7 @@ def test_msg_time_resp(config_tsun_inv1, msg_time_rsp):
     m.close()
 
 def test_msg_time_resp_autark(config_no_tsun_inv1, msg_time_rsp):
-    config_no_tsun_inv1
+    _ = config_no_tsun_inv1
     m = MemoryStream(msg_time_rsp, (0,), False)
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
     m.read()         # read complete msg, and dispatch msg
@@ -806,7 +806,7 @@ def test_msg_time_resp_autark(config_no_tsun_inv1, msg_time_rsp):
     m.close()
 
 def test_msg_time_inv_resp(config_tsun_inv1, msg_time_rsp_inv):
-    config_tsun_inv1
+    _ = config_tsun_inv1
     m = MemoryStream(msg_time_rsp_inv, (0,), False)
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
     m.read()         # read complete msg, and dispatch msg
@@ -825,7 +825,7 @@ def test_msg_time_inv_resp(config_tsun_inv1, msg_time_rsp_inv):
     m.close()
 
 def test_msg_time_invalid(config_tsun_inv1, msg_time_invalid):
-    config_tsun_inv1
+    _ = config_tsun_inv1
     m = MemoryStream(msg_time_invalid, (0,), False)
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
     m.read()         # read complete msg, and dispatch msg
@@ -844,7 +844,7 @@ def test_msg_time_invalid(config_tsun_inv1, msg_time_invalid):
     m.close()
 
 def test_msg_time_invalid_autark(config_no_tsun_inv1, msg_time_invalid):
-    config_no_tsun_inv1
+    _ = config_no_tsun_inv1
     m = MemoryStream(msg_time_invalid, (0,), False)
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
     m.read()         # read complete msg, and dispatch msg
@@ -863,7 +863,7 @@ def test_msg_time_invalid_autark(config_no_tsun_inv1, msg_time_invalid):
     m.close()
 
 def test_msg_cntrl_ind(config_tsun_inv1, msg_controller_ind, msg_controller_ind_ts_offs, msg_controller_ack):
-    config_tsun_inv1
+    _ = config_tsun_inv1
     m = MemoryStream(msg_controller_ind, (0,))
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
     m.read()         # read complete msg, and dispatch msg
@@ -886,7 +886,7 @@ def test_msg_cntrl_ind(config_tsun_inv1, msg_controller_ind, msg_controller_ind_
     m.close()
 
 def test_msg_cntrl_ack(config_tsun_inv1, msg_controller_ack):
-    config_tsun_inv1
+    _ = config_tsun_inv1
     m = MemoryStream(msg_controller_ack, (0,), False)
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
     m.read()         # read complete msg, and dispatch msg
@@ -904,7 +904,7 @@ def test_msg_cntrl_ack(config_tsun_inv1, msg_controller_ack):
     m.close()
 
 def test_msg_cntrl_invalid(config_tsun_inv1, msg_controller_invalid):
-    config_tsun_inv1
+    _ = config_tsun_inv1
     m = MemoryStream(msg_controller_invalid, (0,))
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
     m.read()         # read complete msg, and dispatch msg
@@ -927,7 +927,7 @@ def test_msg_cntrl_invalid(config_tsun_inv1, msg_controller_invalid):
     m.close()
 
 def test_msg_inv_ind(config_tsun_inv1, msg_inverter_ind, msg_inverter_ind_ts_offs, msg_inverter_ack):
-    config_tsun_inv1
+    _ = config_tsun_inv1
     tracer.setLevel(logging.DEBUG)
     m = MemoryStream(msg_inverter_ind, (0,))
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
@@ -951,7 +951,7 @@ def test_msg_inv_ind(config_tsun_inv1, msg_inverter_ind, msg_inverter_ind_ts_off
     m.close()
 
 def test_msg_inv_ind1(config_tsun_inv1, msg_inverter_ind2, msg_inverter_ind_ts_offs, msg_inverter_ack):
-    config_tsun_inv1
+    _ = config_tsun_inv1
     tracer.setLevel(logging.DEBUG)
     m = MemoryStream(msg_inverter_ind2, (0,))
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
@@ -975,7 +975,7 @@ def test_msg_inv_ind1(config_tsun_inv1, msg_inverter_ind2, msg_inverter_ind_ts_o
     m.close()
 
 def test_msg_inv_ind2(config_tsun_inv1, msg_inverter_ind_new, msg_inverter_ind_ts_offs, msg_inverter_ack):
-    config_tsun_inv1
+    _ = config_tsun_inv1
     tracer.setLevel(logging.DEBUG)
     m = MemoryStream(msg_inverter_ind_new, (0,))
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
@@ -1003,7 +1003,7 @@ def test_msg_inv_ind2(config_tsun_inv1, msg_inverter_ind_new, msg_inverter_ind_t
 
 def test_msg_inv_ind3(config_tsun_inv1, msg_inverter_ind_0w, msg_inverter_ack):
     '''test that after close the invert_status will be resetted if the grid power is <2W'''
-    config_tsun_inv1
+    _ = config_tsun_inv1
     tracer.setLevel(logging.DEBUG)
     m = MemoryStream(msg_inverter_ind_0w, (0,))
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
@@ -1030,7 +1030,7 @@ def test_msg_inv_ind3(config_tsun_inv1, msg_inverter_ind_0w, msg_inverter_ack):
 
 
 def test_msg_inv_ack(config_tsun_inv1, msg_inverter_ack):
-    config_tsun_inv1
+    _ = config_tsun_inv1
     tracer.setLevel(logging.ERROR)
 
     m = MemoryStream(msg_inverter_ack, (0,), False)
@@ -1050,7 +1050,7 @@ def test_msg_inv_ack(config_tsun_inv1, msg_inverter_ack):
     m.close()
 
 def test_msg_inv_invalid(config_tsun_inv1, msg_inverter_invalid):
-    config_tsun_inv1
+    _ = config_tsun_inv1
     m = MemoryStream(msg_inverter_invalid, (0,), False)
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
     m.read()         # read complete msg, and dispatch msg
@@ -1073,7 +1073,7 @@ def test_msg_inv_invalid(config_tsun_inv1, msg_inverter_invalid):
     m.close()
 
 def test_msg_ota_req(config_tsun_inv1, msg_ota_req):
-    config_tsun_inv1
+    _ = config_tsun_inv1
     m = MemoryStream(msg_ota_req, (0,), False)
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
     m.db.stat['proxy']['OTA_Start_Msg'] = 0
@@ -1098,7 +1098,7 @@ def test_msg_ota_req(config_tsun_inv1, msg_ota_req):
     m.close()
 
 def test_msg_ota_ack(config_tsun_inv1, msg_ota_ack):
-    config_tsun_inv1
+    _ = config_tsun_inv1
     tracer.setLevel(logging.ERROR)
 
     m = MemoryStream(msg_ota_ack, (0,), False)
@@ -1125,7 +1125,7 @@ def test_msg_ota_ack(config_tsun_inv1, msg_ota_ack):
     m.close()
 
 def test_msg_ota_invalid(config_tsun_inv1, msg_ota_invalid):
-    config_tsun_inv1
+    _ = config_tsun_inv1
     m = MemoryStream(msg_ota_invalid, (0,), False)
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
     m.db.stat['proxy']['OTA_Start_Msg'] = 0
@@ -1268,7 +1268,7 @@ def test_proxy_counter():
     m.close()
 
 def test_msg_modbus_req(config_tsun_inv1, msg_modbus_cmd):
-    config_tsun_inv1
+    _ = config_tsun_inv1
     m = MemoryStream(b'')
     m.id_str = b"R170000000000001" 
     m.state = State.up
@@ -1299,7 +1299,7 @@ def test_msg_modbus_req(config_tsun_inv1, msg_modbus_cmd):
     m.close()
 
 def test_msg_modbus_req2(config_tsun_inv1, msg_modbus_cmd):
-    config_tsun_inv1
+    _ = config_tsun_inv1
     m = MemoryStream(b'')
     m.id_str = b"R170000000000001" 
 
@@ -1329,7 +1329,7 @@ def test_msg_modbus_req2(config_tsun_inv1, msg_modbus_cmd):
     m.close()
 
 def test_msg_modbus_req3(config_tsun_inv1, msg_modbus_cmd_crc_err):
-    config_tsun_inv1
+    _ = config_tsun_inv1
     m = MemoryStream(b'')
     m.id_str = b"R170000000000001" 
     c = m.createClientStream(msg_modbus_cmd_crc_err)
@@ -1358,7 +1358,7 @@ def test_msg_modbus_req3(config_tsun_inv1, msg_modbus_cmd_crc_err):
 
 def test_msg_modbus_rsp1(config_tsun_inv1, msg_modbus_rsp):
     '''Modbus response without a valid Modbus request must be dropped'''
-    config_tsun_inv1
+    _ = config_tsun_inv1
     m = MemoryStream(msg_modbus_rsp)
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
     m.db.stat['proxy']['Modbus_Command'] = 0
@@ -1379,7 +1379,7 @@ def test_msg_modbus_rsp1(config_tsun_inv1, msg_modbus_rsp):
 
 def test_msg_modbus_cloud_rsp(config_tsun_inv1, msg_modbus_rsp):
     '''Modbus response from TSUN without a valid Modbus request must be dropped'''
-    config_tsun_inv1
+    _ = config_tsun_inv1
     m = MemoryStream(msg_modbus_rsp, (0,), False)
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
     m.db.stat['proxy']['Unknown_Msg'] = 0
@@ -1402,7 +1402,7 @@ def test_msg_modbus_cloud_rsp(config_tsun_inv1, msg_modbus_rsp):
 
 def test_msg_modbus_rsp2(config_tsun_inv1, msg_modbus_rsp20):
     '''Modbus response with a valid Modbus request must be forwarded'''
-    config_tsun_inv1
+    _ = config_tsun_inv1
     m = MemoryStream(msg_modbus_rsp20)
     m.append_msg(msg_modbus_rsp20)
 
@@ -1432,7 +1432,7 @@ def test_msg_modbus_rsp2(config_tsun_inv1, msg_modbus_rsp20):
 
 def test_msg_modbus_rsp3(config_tsun_inv1, msg_modbus_rsp21):
     '''Modbus response with a valid Modbus request must be forwarded'''
-    config_tsun_inv1
+    _ = config_tsun_inv1
     m = MemoryStream(msg_modbus_rsp21)
     m.append_msg(msg_modbus_rsp21)
 
@@ -1461,7 +1461,7 @@ def test_msg_modbus_rsp3(config_tsun_inv1, msg_modbus_rsp21):
     m.close()
 
 def test_msg_modbus_invalid(config_tsun_inv1, msg_modbus_inv):
-    config_tsun_inv1
+    _ = config_tsun_inv1
     m = MemoryStream(msg_modbus_inv, (0,), False)
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
     m.db.stat['proxy']['Modbus_Command'] = 0
@@ -1481,7 +1481,7 @@ def test_msg_modbus_invalid(config_tsun_inv1, msg_modbus_inv):
     m.close()
 
 def test_msg_modbus_fragment(config_tsun_inv1, msg_modbus_rsp20):
-    config_tsun_inv1
+    _ = config_tsun_inv1
     # receive more bytes than expected (7 bytes from the next msg)
     m = MemoryStream(msg_modbus_rsp20+b'\x00\x00\x00\x45\x10\x52\x31', (0,))
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
@@ -1513,7 +1513,7 @@ def test_msg_modbus_fragment(config_tsun_inv1, msg_modbus_rsp20):
 
 @pytest.mark.asyncio
 async def test_msg_build_modbus_req(config_tsun_inv1, msg_modbus_cmd):
-    config_tsun_inv1
+    _ = config_tsun_inv1
     m = MemoryStream(b'', (0,), True)
     m.id_str = b"R170000000000001" 
     await m.send_modbus_cmd(Modbus.WRITE_SINGLE_REG, 0x2008, 0, logging.DEBUG)
@@ -1539,7 +1539,7 @@ async def test_msg_build_modbus_req(config_tsun_inv1, msg_modbus_cmd):
     m.close()
 
 def test_modbus_no_polling(config_no_modbus_poll, msg_get_time):
-    config_no_modbus_poll
+    _ = config_no_modbus_poll
     m = MemoryStream(msg_get_time, (0,))
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
     m.modbus_polling = False
@@ -1560,7 +1560,7 @@ def test_modbus_no_polling(config_no_modbus_poll, msg_get_time):
 
 @pytest.mark.asyncio
 async def test_modbus_polling(config_tsun_inv1, msg_inverter_ind):
-    config_tsun_inv1
+    _ = config_tsun_inv1
     assert asyncio.get_running_loop()
 
     m = MemoryStream(msg_inverter_ind, (0,))
@@ -1600,7 +1600,7 @@ async def test_modbus_polling(config_tsun_inv1, msg_inverter_ind):
     m.close()
 
 def test_broken_recv_buf(config_tsun_allow_all, broken_recv_buf):
-    config_tsun_allow_all
+    _ = config_tsun_allow_all
     m = MemoryStream(broken_recv_buf, (0,))
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
     assert m.db.stat['proxy']['Invalid_Data_Type'] == 0
