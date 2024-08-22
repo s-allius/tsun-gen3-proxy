@@ -121,7 +121,6 @@ async def test_mqtt_connection(config_mqtt_conn):
         # await asyncio.sleep(1)
         assert 0 == m.ha_restarts
         await m.publish('homeassistant/status', 'online')
-        # assert 1 == m.ha_restarts
     except TimeoutError:
         assert False
     finally:
