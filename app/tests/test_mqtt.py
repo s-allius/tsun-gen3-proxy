@@ -1,16 +1,15 @@
 # test_with_pytest.py
 import pytest
-from pytest_mock import MockerFixture
 import asyncio
 import aiomqtt
 import logging
 
-from unittest.mock import Mock
+from mock import patch, Mock
 from app.src.mqtt import Mqtt
 from app.src.modbus import Modbus
 from app.src.gen3plus.solarman_v5 import SolarmanV5
 from app.src.config import Config
-from os import getenv
+
 
 pytest_plugins = ('pytest_asyncio',)
 
@@ -40,24 +39,27 @@ def config_no_conn(test_port):
                         }
 
 @pytest.fixture
-def spy_at_cmd(mocker):
+def spy_at_cmd():
     conn = SolarmanV5(server_side=True, client_mode= False)
     conn.node_id = 'inv_2/'
-    yield mocker.spy(conn, "send_at_cmd")
+    with patch.object(conn, 'send_at_cmd', wraps=conn.send_at_cmd) as wrapped_conn:
+        yield wrapped_conn
     conn.close()
 
 @pytest.fixture
-def spy_modbus_cmd(mocker):
+def spy_modbus_cmd():
     conn = SolarmanV5(server_side=True, client_mode= False)
     conn.node_id = 'inv_1/'
-    yield mocker.spy(conn, "send_modbus_cmd")
+    with patch.object(conn, 'send_modbus_cmd', wraps=conn.send_modbus_cmd) as wrapped_conn:
+        yield wrapped_conn
     conn.close()
 
 @pytest.fixture
-def spy_modbus_cmd_client(mocker):
+def spy_modbus_cmd_client():
     conn = SolarmanV5(server_side=False, client_mode= False)
     conn.node_id = 'inv_1/'
-    yield mocker.spy(conn, "send_modbus_cmd")
+    with patch.object(conn, 'send_modbus_cmd', wraps=conn.send_modbus_cmd) as wrapped_conn:
+        yield wrapped_conn
     conn.close()
 
 def test_native_client(test_hostname, test_port):

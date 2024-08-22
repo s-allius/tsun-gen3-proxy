@@ -8,7 +8,7 @@ from app.src.gen3plus.solarman_v5 import SolarmanV5
 from app.src.config import Config
 from app.src.infos import Infos, Register
 from app.src.modbus import Modbus
-from app.src.messages import State
+from app.src.messages import State, Message
 
 
 pytest_plugins = ('pytest_asyncio',)
@@ -1156,6 +1156,7 @@ def test_build_logger_modell(config_tsun_allow_all, device_ind_msg):
     m.close()
 
 def test_msg_iterator():
+    Message._registry.clear()
     m1 = SolarmanV5(server_side=True, client_mode=False)
     m2 = SolarmanV5(server_side=True, client_mode=False)
     m3 = SolarmanV5(server_side=True, client_mode=False)
