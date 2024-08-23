@@ -57,9 +57,11 @@ class SolarmanV5(Message):
     '''regular Modbus polling time in server mode'''
     MB_CLIENT_DATA_UP = 30
     '''Data up time in client mode'''
+    HDR_FMT = '<BLLL'
+    '''format string for packing of the header'''
 
     def __init__(self, server_side: bool, client_mode: bool):
-        super().__init__(server_side, self.send_modbus_cb, mb_timeout=5)
+        super().__init__(server_side, self.send_modbus_cb, mb_timeout=8)
 
         self.header_len = 11  # overwrite construcor in class Message
         self.control = 0
@@ -133,9 +135,10 @@ class SolarmanV5(Message):
         self.node_id = 'G3P'  # will be overwritten in __set_serial_no
         self.mb_timer = Timer(self.mb_timout_cb, self.node_id)
         self.mb_timeout = self.MB_REGULAR_TIMEOUT
-        self.mb_start_timeout = self.MB_START_TIMEOUT
+        self.mb_first_timeout = self.MB_START_TIMEOUT
         '''timer value for next Modbus polling request'''
         self.modbus_polling = False
+        self.sensor_list = 0x0000
 
     '''
     Our puplic methods
@@ -180,16 +183,23 @@ class SolarmanV5(Message):
         if self.state is not State.up:
             self.state = State.up
             if (self.modbus_polling):
-                self.mb_timer.start(self.mb_start_timeout)
+                self.mb_timer.start(self.mb_first_timeout)
                 self.db.set_db_def_value(Register.POLLING_INTERVAL,
                                          self.mb_timeout)
 
+    def __set_config_parms(self, inv: dict):
+        '''init connection with params from the configuration'''
+        self.node_id = inv['node_id']
+        self.sug_area = inv['suggested_area']
+        self.modbus_polling = inv['modbus_polling']
+        self.sensor_list = inv['sensor_list']
+
     def __set_serial_no(self, snr: int):
+        '''check the serial number and configure the inverter connection'''
         serial_no = str(snr)
         if self.unique_id == serial_no:
             logger.debug(f'SerialNo: {serial_no}')
         else:
-            found = False
             inverters = Config.get('inverters')
             # logger.debug(f'Inverters: {inverters}')
 
@@ -197,14 +207,11 @@ class SolarmanV5(Message):
                 # logger.debug(f'key: {key} -> {inv}')
                 if (type(inv) is dict and 'monitor_sn' in inv
                    and inv['monitor_sn'] == snr):
-                    found = True
-                    self.node_id = inv['node_id']
-                    self.sug_area = inv['suggested_area']
-                    self.modbus_polling = inv['modbus_polling']
-                    logger.debug(f'SerialNo {serial_no} allowed! area:{self.sug_area}')  # noqa: E501
+                    self.__set_config_parms(inv)
                     self.db.set_pv_module_details(inv)
-
-            if not found:
+                    logger.debug(f'SerialNo {serial_no} allowed! area:{self.sug_area}')  # noqa: E501
+                    break
+            else:
                 self.node_id = ''
                 self.sug_area = ''
                 if 'allow_all' not in inverters or not inverters['allow_all']:
@@ -212,7 +219,7 @@ class SolarmanV5(Message):
                     self.unique_id = None
                     logger.warning(f'ignore message from unknow inverter! (SerialNo: {serial_no})')  # noqa: E501
                     return
-                logger.debug(f'SerialNo {serial_no} not known but accepted!')
+                logger.warning(f'SerialNo {serial_no} not known but accepted!')
 
             self.unique_id = serial_no
 
@@ -225,22 +232,24 @@ class SolarmanV5(Message):
 
             if self.header_valid and len(self._recv_buffer) >= \
                (self.header_len + self.data_len+2):
-                log_lvl = self.log_lvl.get(self.control, logging.WARNING)
-                if callable(log_lvl):
-                    log_lvl = log_lvl()
-                hex_dump_memory(log_lvl, f'Received from {self.addr}:',
-                                self._recv_buffer, self.header_len +
-                                self.data_len+2)
-                if self.__trailer_is_ok(self._recv_buffer, self.header_len
-                                        + self.data_len + 2):
-                    if self.state == State.init:
-                        self.state = State.received
-
-                    self.__set_serial_no(self.snr)
-                    self.__dispatch_msg()
+                self.__process_complete_received_msg()
                 self.__flush_recv_msg()
             else:
                 return 0  # wait 0s before sending a response
+
+    def __process_complete_received_msg(self):
+        log_lvl = self.log_lvl.get(self.control, logging.WARNING)
+        if callable(log_lvl):
+            log_lvl = log_lvl()
+        hex_dump_memory(log_lvl, f'Received from {self.addr}:',
+                        self._recv_buffer, self.header_len +
+                        self.data_len+2)
+        if self.__trailer_is_ok(self._recv_buffer, self.header_len
+                                + self.data_len + 2):
+            if self.state == State.init:
+                self.state = State.received
+            self.__set_serial_no(self.snr)
+            self.__dispatch_msg()
 
     def forward(self, buffer, buflen) -> None:
         '''add the actual receive msg to the forwarding queue'''
@@ -401,7 +410,7 @@ class SolarmanV5(Message):
             return
         self.__build_header(0x4510)
         self._send_buffer += struct.pack('<BHLLL', self.MB_RTU_CMD,
-                                         0x2b0, 0, 0, 0)
+                                         self.sensor_list, 0, 0, 0)
         self._send_buffer += pdu
         self.__finish_send_msg()
         hex_dump_memory(log_lvl, f'Send Modbus {state}:{self.addr}:',
@@ -450,8 +459,8 @@ class SolarmanV5(Message):
         self.forward_at_cmd_resp = False
         self.__build_header(0x4510)
         self._send_buffer += struct.pack(f'<BHLLL{len(at_cmd)}sc', self.AT_CMD,
-                                         2, 0, 0, 0, at_cmd.encode('utf-8'),
-                                         b'\r')
+                                         0x0002, 0, 0, 0,
+                                         at_cmd.encode('utf-8'), b'\r')
         self.__finish_send_msg()
         try:
             await self.async_write('Send AT Command:')
@@ -500,7 +509,7 @@ class SolarmanV5(Message):
 
     def msg_dev_ind(self):
         data = self._recv_buffer[self.header_len:]
-        result = struct.unpack_from('<BLLL', data, 0)
+        result = struct.unpack_from(self.HDR_FMT, data, 0)
         ftype = result[0]  # always 2
         total = result[1]
         tim = result[2]
@@ -514,6 +523,8 @@ class SolarmanV5(Message):
         else:
             ts = None
         self.__process_data(ftype, ts)
+        self.sensor_list = int(self.db.get_db_value(Register.SENSOR_LIST, 0),
+                               16)
         self.__forward_msg()
         self.__send_ack_rsp(0x1110, ftype)
 
@@ -521,12 +532,16 @@ class SolarmanV5(Message):
         data = self._recv_buffer
         result = struct.unpack_from('<BHLLLHL', data, self.header_len)
         ftype = result[0]  # 1 or 0x81
+        sensor = result[1]
         total = result[2]
         tim = result[3]
         if 1 == ftype:
             self.time_ofs = result[4]
         unkn = result[5]
         cnt = result[6]
+        if sensor != self.sensor_list:
+            logger.warning(f'Unexpected Sensor-List:{sensor:04x}'
+                           f' (!={self.sensor_list:04x})')
         logger.info(f'ftype:{ftype:02x} timer:{tim:08x}s'
                     f' ??: {unkn:04x} cnt:{cnt}')
         if self.time_ofs:
@@ -543,7 +558,7 @@ class SolarmanV5(Message):
 
     def msg_sync_start(self):
         data = self._recv_buffer[self.header_len:]
-        result = struct.unpack_from('<BLLL', data, 0)
+        result = struct.unpack_from(self.HDR_FMT, data, 0)
         ftype = result[0]
         total = result[1]
         self.time_ofs = result[3]
@@ -608,27 +623,29 @@ class SolarmanV5(Message):
                 self.publish_mqtt(f'{self.entity_prfx}{node_id}{key}', data_json)  # noqa: E501
                 return
         elif ftype == self.MB_RTU_CMD:
-            valid = data[1]
-            modbus_msg_len = self.data_len - 14
-            # logger.debug(f'modbus_len:{modbus_msg_len} accepted:{valid}')
-            if valid == 1 and modbus_msg_len > 4:
-                # logger.info(f'first byte modbus:{data[14]}')
-                inv_update = False
-                self.modbus_elms = 0
-
-                for key, update, _ in self.mb.recv_resp(self.db, data[14:],
-                                                        self.node_id):
-                    self.modbus_elms += 1
-                    if update:
-                        if key == 'inverter':
-                            inv_update = True
-                        self._set_mqtt_timestamp(key, self._timestamp())
-                        self.new_data[key] = True
-
-                if inv_update:
-                    self.__build_model_name()
+            self.__modbus_command_rsp(data)
             return
         self.__forward_msg()
+
+    def __modbus_command_rsp(self, data):
+        '''precess MODBUS RTU response'''
+        valid = data[1]
+        modbus_msg_len = self.data_len - 14
+        # logger.debug(f'modbus_len:{modbus_msg_len} accepted:{valid}')
+        if valid == 1 and modbus_msg_len > 4:
+            # logger.info(f'first byte modbus:{data[14]}')
+            inv_update = False
+            self.modbus_elms = 0
+            for key, update, _ in self.mb.recv_resp(self.db, data[14:],
+                                                    self.node_id):
+                self.modbus_elms += 1
+                if update:
+                    if key == 'inverter':
+                        inv_update = True
+                    self._set_mqtt_timestamp(key, self._timestamp())
+                    self.new_data[key] = True
+            if inv_update:
+                self.__build_model_name()
 
     def msg_hbeat_ind(self):
         data = self._recv_buffer[self.header_len:]
@@ -641,7 +658,7 @@ class SolarmanV5(Message):
 
     def msg_sync_end(self):
         data = self._recv_buffer[self.header_len:]
-        result = struct.unpack_from('<BLLL', data, 0)
+        result = struct.unpack_from(self.HDR_FMT, data, 0)
         ftype = result[0]
         total = result[1]
         self.time_ofs = result[3]

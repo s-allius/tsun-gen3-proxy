@@ -36,9 +36,18 @@ jobs:
         timezoneLinux: "Europe/Berlin"
         timezoneMacos: "Europe/Berlin"
         timezoneWindows: "Europe/Berlin"
+    # - name: Start Mosquitto
+    #  uses: namoshek/mosquitto-github-action@v1
+    #  with:
+    #    version: '1.6'
+    #    ports: '1883:1883 8883:8883'
+        # certificates: ${{ github.workspace }}/.ci/tls-certificates
+        # config: ${{ github.workspace }}/.ci/mosquitto.conf
+        # password-file: ${{ github.workspace}}/.ci/mosquitto.passwd
+    #    container-name: 'mqtt'
     - uses: actions/checkout@v4
       with:
-        fetch-depth: 0           # Fetch all history for all tags and branches
+        fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
     - name: Set up Python 3.12
       uses: actions/setup-python@v5
       with:
@@ -46,29 +55,28 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install flake8 pytest pytest-asyncio
+        if [ -f requirements-test.txt ]; then pip install -r requirements-test.txt; fi
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
     - name: Lint with flake8
       run: |
         # stop the build if there are Python syntax errors or undefined names
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+        flake8 --exit-zero --ignore=C901,E121,E123,E126,E133,E226,E241,E242,E704,W503,W504,W505 --format=pylint --output-file=output_flake.txt --exclude=*.pyc app/src/
     - name: Test with pytest
       run: |
-        pip install pytest pytest-cov
-        #pytest app --doctest-modules --junitxml=junit/test-results.xml --cov=com --cov-report=xml --cov-report=html
         python -m pytest app --cov=app/src --cov-report=xml
+        coverage report
     - name: Analyze with SonarCloud
       uses: SonarSource/sonarcloud-github-action@v2.2.0
       env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       with:
         projectBaseDir: .
         args:
           -Dsonar.projectKey=s-allius_tsun-gen3-proxy
-          -Dsonar.organization=s-allius
-          -Dsonar.python.version=3.12
           -Dsonar.python.coverage.reportPaths=coverage.xml
-          -Dsonar.tests=system_tests,app/tests
-          -Dsonar.source=app/src
+          -Dsonar.python.flake8.reportPaths=output_flake.txt
+          # -Dsonar.docker.hadolint.reportPaths=
+  

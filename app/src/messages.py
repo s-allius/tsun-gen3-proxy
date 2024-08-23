@@ -14,6 +14,25 @@ else:  # pragma: no cover
 logger = logging.getLogger('msg')
 
 
+def __hex_val(n, data, data_len):
+    line = ''
+    for j in range(n-16, n):
+        if j >= data_len:
+            break
+        line += '%02x ' % abs(data[j])
+    return line
+
+
+def __asc_val(n, data, data_len):
+    line = ''
+    for j in range(n-16, n):
+        if j >= data_len:
+            break
+        c = data[j] if not (data[j] < 0x20 or data[j] > 0x7e) else '.'
+        line += '%c' % c
+    return line
+
+
 def hex_dump_memory(level, info, data, data_len):
     n = 0
     lines = []
@@ -26,20 +45,9 @@ def hex_dump_memory(level, info, data, data_len):
         line = '  '
         line += '%04x | ' % (i)
         n += 16
-
-        for j in range(n-16, n):
-            if j >= data_len:
-                break
-            line += '%02x ' % abs(data[j])
-
+        line += __hex_val(n, data, data_len)
         line += ' ' * (3 * 16 + 9 - len(line)) + ' | '
-
-        for j in range(n-16, n):
-            if j >= data_len:
-                break
-            c = data[j] if not (data[j] < 0x20 or data[j] > 0x7e) else '.'
-            line += '%c' % c
-
+        line += __asc_val(n, data, data_len)
         lines.append(line)
 
     tracer.log(level, '\n'.join(lines))

@@ -366,8 +366,8 @@ async def test_timeout():
 def test_recv_unknown_data():
     '''Receive a response with an unknwon register'''
     mb = ModbusTestHelper()
-    assert 0x9000 not in mb.map
-    mb.map[0x9000] = {'reg': Register.TEST_REG1,   'fmt': '!H', 'ratio':  1}
+    assert 0x9000 not in mb.mb_reg_mapping
+    mb.mb_reg_mapping[0x9000] = {'reg': Register.TEST_REG1,   'fmt': '!H', 'ratio':  1}
 
     mb.build_msg(1,3,0x9000,2)
 
@@ -379,7 +379,7 @@ def test_recv_unknown_data():
     assert 0 == call
     assert not mb.req_pend
 
-    del mb.map[0x9000]
+    del mb.mb_reg_mapping[0x9000]
 
 def test_close():
     '''Check queue handling for build_msg() calls'''

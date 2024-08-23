@@ -2,6 +2,8 @@
 set -e
 
 user="$(id -u)"
+export VERSION=$(cat /proxy-version.txt)
+
 echo "######################################################"
 echo "# prepare: '$SERVICE_NAME' Version:$VERSION"
 echo "# for running with UserID:$UID, GroupID:$GID"
