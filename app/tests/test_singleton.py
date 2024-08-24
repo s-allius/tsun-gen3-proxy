@@ -7,6 +7,7 @@ class Test(metaclass=Singleton):
         pass  # is a dummy test class
 
 def test_singleton_metaclass():
+    Singleton._instances.clear()
     a = Test()
     assert 1 == len(Singleton._instances)
     b = Test()

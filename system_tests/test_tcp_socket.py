@@ -138,9 +138,9 @@ def tempClientConnection():
 
 def test_open_close():
     try:
-        for s in tempClientConnection():
+        for _ in tempClientConnection():
             pass
-    except:
+    except Exception:
         assert False
 
 def test_send_contact_info1(ClientConnection, MsgContactInfo, MsgContactResp):
@@ -199,14 +199,14 @@ def test_send_ctrl_data(ClientConnection, MsgTimeStampReq, MsgTimeStampResp, Msg
     s = ClientConnection  
     try:
         s.sendall(MsgTimeStampReq)
-        data = s.recv(1024)
+        _ = s.recv(1024)
     except TimeoutError:
         pass
   #  time.sleep(2.5)
   #  assert data == MsgTimeStampResp
     try:
         s.sendall(MsgContollerInd)
-        data = s.recv(1024)
+        _ = s.recv(1024)
     except TimeoutError:
         pass
 
@@ -214,16 +214,16 @@ def test_send_inv_data(ClientConnection, MsgTimeStampReq, MsgTimeStampResp, MsgI
     s = ClientConnection  
     try:
         s.sendall(MsgTimeStampReq)
-        data = s.recv(1024)
+        _ = s.recv(1024)
     except TimeoutError:
         pass
   #  time.sleep(32.5)
   #  assert data == MsgTimeStampResp
     try:
         s.sendall(MsgInvData)
-        data = s.recv(1024)
+        _ = s.recv(1024)
         s.sendall(MsgInverterInd)
-        data = s.recv(1024)
+        _ = s.recv(1024)
     except TimeoutError:
         pass
 
@@ -231,6 +231,6 @@ def test_ota_req(ClientConnection, MsgOtaUpdateReq):
     s = ClientConnection  
     try:
         s.sendall(MsgOtaUpdateReq)
-        data = s.recv(1024)
+        _ = s.recv(1024)
     except TimeoutError:
         pass

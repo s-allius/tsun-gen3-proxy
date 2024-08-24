@@ -5,6 +5,7 @@ import aiomqtt
 import logging
 
 from mock import patch, Mock
+from app.src.singleton import Singleton
 from app.src.mqtt import Mqtt
 from app.src.modbus import Modbus
 from app.src.gen3plus.solarman_v5 import SolarmanV5
@@ -13,7 +14,10 @@ from app.src.config import Config
 
 pytest_plugins = ('pytest_asyncio',)
 
-
+@pytest.fixture(scope="module", autouse=True)
+def module_init():
+    Singleton._instances.clear()
+    yield
 
 @pytest.fixture(scope="module")
 def test_port():
