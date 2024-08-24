@@ -1,11 +1,15 @@
 import asyncio
 import logging
 import json
-from config import Config
-from mqtt import Mqtt
-from infos import Infos
+if __name__ == "app.src.inverter":
+    from app.src.config import Config
+    from app.src.mqtt import Mqtt
+    from app.src.infos import Infos
+else:  # pragma: no cover
+    from config import Config
+    from mqtt import Mqtt
+    from infos import Infos
 
-# logger = logging.getLogger('conn')
 logger_mqtt = logging.getLogger('mqtt')
 
 
@@ -24,6 +28,7 @@ class Inverter():
         cls.proxy_unique_id = ha['proxy_unique_id']
 
         # call Mqtt singleton to establisch the connection to the mqtt broker
+        print('call Mqtt.init')
         cls.mqtt = Mqtt(cls._cb_mqtt_is_up)
 
         # register all counters which should be reset at midnight.
@@ -72,7 +77,7 @@ class Inverter():
             Infos.new_stat_data[key] = False
 
     @classmethod
-    def class_close(cls, loop) -> None:
+    def class_close(cls, loop) -> None:   # pragma: no cover
         logging.debug('Inverter.class_close')
         logging.info('Close MQTT Task')
         loop.run_until_complete(cls.mqtt.close())
