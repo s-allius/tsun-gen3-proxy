@@ -1150,7 +1150,7 @@ def test_msg_ota_invalid(config_tsun_inv1, msg_ota_invalid):
     m.close()
 
 def test_msg_unknown(config_tsun_inv1, msg_unknown):
-    config_tsun_inv1
+    _ = config_tsun_inv1
     m = MemoryStream(msg_unknown, (0,), False)
     m.db.stat['proxy']['Unknown_Msg'] = 0
     m.read()         # read complete msg, and dispatch msg
