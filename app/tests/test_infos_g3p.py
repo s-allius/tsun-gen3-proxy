@@ -139,7 +139,11 @@ def test_build_ha_conf1():
 
     assert tests==7
 
+def test_build_ha_conf2():
+    i = InfosG3P(client_mode=False)
+    i.static_init()                # initialize counter
 
+    tests = 0
     for d_json, comp, node_id, id in i.ha_proxy_confs(ha_prfx="tsun/", node_id = 'proxy/', snr = '456'):
 
         if id == 'out_power_123':
@@ -161,9 +165,9 @@ def test_build_ha_conf1():
             assert  d_json == json.dumps({"name": "Active Inverter Connections", "stat_t": "tsun/proxy/proxy", "dev_cla": None, "stat_cla": None, "uniq_id": "inv_count_456", "val_tpl": "{{value_json['Inverter_Cnt'] | int}}", "ic": "mdi:counter", "dev": {"name": "Proxy", "sa": "Proxy", "mdl": "proxy", "mf": "Stefan Allius", "sw": "unknown", "ids": ["proxy"]}, "o": {"name": "proxy", "sw": "unknown"}})
             tests +=1
 
-    assert tests==8
+    assert tests==1
 
-def test_build_ha_conf2():
+def test_build_ha_conf3():
     i = InfosG3P(client_mode=True)
     i.static_init()                # initialize counter
 
@@ -209,7 +213,11 @@ def test_build_ha_conf2():
 
     assert tests==7
 
+def test_build_ha_conf4():
+    i = InfosG3P(client_mode=True)
+    i.static_init()                # initialize counter
 
+    tests = 0
     for d_json, comp, node_id, id in i.ha_proxy_confs(ha_prfx="tsun/", node_id = 'proxy/', snr = '456'):
 
         if id == 'out_power_123':
@@ -231,7 +239,7 @@ def test_build_ha_conf2():
             assert  d_json == json.dumps({"name": "Active Inverter Connections", "stat_t": "tsun/proxy/proxy", "dev_cla": None, "stat_cla": None, "uniq_id": "inv_count_456", "val_tpl": "{{value_json['Inverter_Cnt'] | int}}", "ic": "mdi:counter", "dev": {"name": "Proxy", "sa": "Proxy", "mdl": "proxy", "mf": "Stefan Allius", "sw": "unknown", "ids": ["proxy"]}, "o": {"name": "proxy", "sw": "unknown"}})
             tests +=1
 
-    assert tests==8
+    assert tests==1
 
 def test_exception_and_eval(inverter_data: bytes):
 
