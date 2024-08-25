@@ -47,7 +47,7 @@ target "_common" {
     "org.opencontainers.image.description" = "${DESCRIPTION}"
     "org.opencontainers.image.licenses" = "BSD-3-Clause"
     "org.opencontainers.image.source" = "https://github.com/s-allius/tsun-gen3-proxy"
-}
+  }
   output = [
     "type=image,push=true"
   ]
@@ -88,7 +88,6 @@ target "rc" {
 
 target "rel" {
   inherits = ["_common", "_prod"]
-
   tags = ["${IMAGE}:latest", "${IMAGE}:${MAJOR}", "${IMAGE}:${VERSION}"]
   no-cache = true
 }
