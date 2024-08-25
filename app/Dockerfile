@@ -62,18 +62,10 @@ RUN python -m pip install --no-cache --no-index /root/wheels/* && \
 COPY --chmod=0700 entrypoint.sh /root/entrypoint.sh
 COPY config .
 COPY src .
-RUN echo ${VERSION} > /proxy-version.txt
-RUN date > /build-date.txt
+RUN echo ${VERSION} > /proxy-version.txt \
+  && date > /build-date.txt
 EXPOSE 5005 8127 10000
 
 # command to run on container start
 ENTRYPOINT ["/root/entrypoint.sh"]
 CMD [ "python3", "./server.py" ]
-
-
-LABEL org.opencontainers.image.title="TSUN Gen3 Proxy"
-LABEL org.opencontainers.image.authors="Stefan Allius"
-LABEL org.opencontainers.image.source=https://github.com/s-allius/tsun-gen3-proxy
-LABEL org.opencontainers.image.description='This proxy enables a reliable connection between TSUN third generation inverters (eg. TSOL MS600, MS800, MS2000) and an MQTT broker to integrate the inverter into typical home automations.'
-LABEL org.opencontainers.image.licenses="BSD-3-Clause"
-LABEL org.opencontainers.image.vendor="Stefan Allius"
