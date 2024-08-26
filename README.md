@@ -194,7 +194,7 @@ The standard web interface of the inverter can be accessed at `http://<ip-adress
 
 For our purpose, the hidden URL `http://<ip-adress>/config_hide.html` should be called. There you can see and modify the parameters for accessing the cloud. Here we enter the IP address of our proxy and the IP port `10000` for the `Server A Setting` and for `Optional Server Setting`. The second entry is used as a backup in the event of connection problems.
 
-❗If the IP port is set to 10443 in the inverter configuration, you probably have a firmware with SSL support. In this case, you must use the client-mode configuration.
+❗If the IP port is set to 10443 in the inverter configuration, you probably have a firmware with SSL support. In this case, you MUST NOT change the port or the host address, as this may cause the inverter to hang and require a complete reset. Use the configuration in client mode instead.
 
 If access to the web interface does not work, it can also be redirected via DNS redirection, as is necessary for the GEN3 inverters.
 
