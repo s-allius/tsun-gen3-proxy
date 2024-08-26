@@ -9,7 +9,13 @@
     <a href="https://www.python.org/downloads/release/python-3120/"><img alt="Supported Python versions" src="https://img.shields.io/badge/python-3.12-blue.svg"></a>
     <a href="https://sbtinstruments.github.io/aiomqtt/introduction.html"><img alt="Supported aiomqtt versions" src="https://img.shields.io/badge/aiomqtt-2.2.0-lightblue.svg"></a>
     <a href="https://libraries.io/pypi/aiocron"><img alt="Supported aiocron versions" src="https://img.shields.io/badge/aiocron-1.8-lightblue.svg"></a>
-    <a href="https://toml.io/en/v1.0.0"><img alt="Supported toml versions" src="https://img.shields.io/badge/toml-1.0.0-lightblue.svg"></a>
+    <a href="https://toml.io/en/v1.0.0"><img alt="Supported toml versions" src="https://img.shields.io/badge/toml-1.0.0-lightblue.svg"></a>   
+    <br>
+    <a href="https://sonarcloud.io/component_measures?id=s-allius_tsun-gen3-proxy&metric=alert_status"><img src=https://sonarcloud.io/api/project_badges/measure?project=s-allius_tsun-gen3-proxy&metric=alert_status></a>
+    <a href="https://sonarcloud.io/component_measures?id=s-allius_tsun-gen3-proxy&metric=bugs"><img src=https://sonarcloud.io/api/project_badges/measure?project=s-allius_tsun-gen3-proxy&metric=bugs></a>
+    <a href="https://sonarcloud.io/component_measures?id=s-allius_tsun-gen3-proxy&metric=code_smells"><img src=https://sonarcloud.io/api/project_badges/measure?project=s-allius_tsun-gen3-proxy&metric=code_smells></a>
+    <br>
+    <a href="https://sonarcloud.io/component_measures?id=s-allius_tsun-gen3-proxy&metric=coverage"><img src=https://sonarcloud.io/api/project_badges/measure?project=s-allius_tsun-gen3-proxy&metric=coverage></a>
 </p>
 
 # Overview
