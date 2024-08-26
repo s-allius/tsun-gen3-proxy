@@ -172,7 +172,7 @@ class SolarmanV5(Message):
         self.db.set_db_def_value(Register.POLLING_INTERVAL,
                                  self.mb_timeout)
         self.db.set_db_def_value(Register.HEARTBEAT_INTERVAL,
-                                 120)  # fixme
+                                 120)
         self.new_data['controller'] = True
 
         self.state = State.up

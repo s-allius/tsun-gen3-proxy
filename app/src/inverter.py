@@ -1,11 +1,15 @@
 import asyncio
 import logging
 import json
-from config import Config
-from mqtt import Mqtt
-from infos import Infos
+if __name__ == "app.src.inverter":
+    from app.src.config import Config
+    from app.src.mqtt import Mqtt
+    from app.src.infos import Infos
+else:  # pragma: no cover
+    from config import Config
+    from mqtt import Mqtt
+    from infos import Infos
 
-# logger = logging.getLogger('conn')
 logger_mqtt = logging.getLogger('mqtt')
 
 
@@ -72,7 +76,7 @@ class Inverter():
             Infos.new_stat_data[key] = False
 
     @classmethod
-    def class_close(cls, loop) -> None:
+    def class_close(cls, loop) -> None:   # pragma: no cover
         logging.debug('Inverter.class_close')
         logging.info('Close MQTT Task')
         loop.run_until_complete(cls.mqtt.close())

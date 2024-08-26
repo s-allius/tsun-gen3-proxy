@@ -325,7 +325,11 @@ def test_build_ha_conf1(contr_data_seq):
 
     assert tests==4
 
+def test_build_ha_conf2(contr_data_seq):
+    i = InfosG3()
+    i.static_init()                # initialize counter
 
+    tests = 0
     for d_json, comp, node_id, id in i.ha_proxy_confs(ha_prfx="tsun/", node_id = 'proxy/', snr = '456'):
 
         if id == 'out_power_123':
@@ -344,9 +348,9 @@ def test_build_ha_conf1(contr_data_seq):
             assert  d_json == json.dumps({"name": "Active Inverter Connections", "stat_t": "tsun/proxy/proxy", "dev_cla": None, "stat_cla": None, "uniq_id": "inv_count_456", "val_tpl": "{{value_json['Inverter_Cnt'] | int}}", "ic": "mdi:counter", "dev": {"name": "Proxy", "sa": "Proxy", "mdl": "proxy", "mf": "Stefan Allius", "sw": "unknown", "ids": ["proxy"]}, "o": {"name": "proxy", "sw": "unknown"}})
             tests +=1
 
-    assert tests==5
+    assert tests==1
 
-def test_build_ha_conf2(contr_data_seq, inv_data_seq, inv_data_seq2):
+def test_build_ha_conf3(contr_data_seq, inv_data_seq, inv_data_seq2):
     i = InfosG3()
     for key, result in i.parse (contr_data_seq):
         pass  # side effect in calling i.parse()
@@ -397,12 +401,9 @@ def test_must_incr_total(inv_data_seq2, inv_data_seq2_zero):
     assert json.dumps(i.db['env']) == json.dumps({"Inverter_Temp": 23})
     tests = 0
     for key, update in i.parse (inv_data_seq2):
-        if key == 'total':
+        if key == 'total' or key == 'env':
             assert update == False
             tests +=1   
-        elif key == 'env':
-            assert update == False
-            tests +=1
 
     assert tests==3
     assert json.dumps(i.db['total']) == json.dumps({'Daily_Generation': 1.7, 'Total_Generation': 17.36})
@@ -442,12 +443,9 @@ def test_must_incr_total2(inv_data_seq2, inv_data_seq2_zero):
     
     tests = 0
     for key, update in i.parse (inv_data_seq2_zero):
-        if key == 'total':
+        if key == 'total' or key == 'env':
             assert update == False
             tests +=1   
-        elif key == 'env':
-            assert update == False
-            tests +=1
 
     assert tests==3
     assert json.dumps(i.db['total']) == json.dumps({})
@@ -456,12 +454,9 @@ def test_must_incr_total2(inv_data_seq2, inv_data_seq2_zero):
 
     tests = 0
     for key, update in i.parse (inv_data_seq2):
-        if key == 'total':
+        if key == 'total' or key == 'env':
             assert update == True
             tests +=1   
-        elif key == 'env':
-            assert update == True
-            tests +=1
 
     assert tests==3
     assert json.dumps(i.db['total']) == json.dumps({'Daily_Generation': 1.7, 'Total_Generation': 17.36})

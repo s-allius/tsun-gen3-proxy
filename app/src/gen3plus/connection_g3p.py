@@ -1,7 +1,12 @@
 import logging
 from asyncio import StreamReader, StreamWriter
-from async_stream import AsyncStream
-from gen3plus.solarman_v5 import SolarmanV5
+
+if __name__ == "app.src.gen3plus.connection_g3p":
+    from app.src.async_stream import AsyncStream
+    from app.src.gen3plus.solarman_v5 import SolarmanV5
+else:  # pragma: no cover
+    from async_stream import AsyncStream
+    from gen3plus.solarman_v5 import SolarmanV5
 
 logger = logging.getLogger('conn')
 

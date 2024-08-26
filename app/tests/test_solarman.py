@@ -3,6 +3,7 @@ import struct
 import time
 import asyncio
 import logging
+import random
 from math import isclose
 from app.src.gen3plus.solarman_v5 import SolarmanV5
 from app.src.config import Config
@@ -147,6 +148,12 @@ def correct_checksum(buf):
 def incorrect_checksum(buf):
     checksum = (sum(buf[1:])+1) & 0xff
     return checksum.to_bytes(length=1)
+
+@pytest.fixture(scope="session")
+def str_test_ip():
+    ip =  ".".join(str(random.randint(1, 254)) for _ in range(4))
+    print(f'random_ip: {ip}')
+    return ip
 
 @pytest.fixture
 def device_ind_msg(): # 0x4110
@@ -1692,7 +1699,7 @@ async def test_modbus_polling(config_tsun_inv1, heartbeat_ind_msg, heartbeat_rsp
     m.close()
 
 @pytest.mark.asyncio
-async def test_start_client_mode(config_tsun_inv1):
+async def test_start_client_mode(config_tsun_inv1, str_test_ip):
     _ = config_tsun_inv1
     assert asyncio.get_running_loop()
     m = MemoryStream(b'')
@@ -1700,9 +1707,9 @@ async def test_start_client_mode(config_tsun_inv1):
     assert m.no_forwarding == False
     assert m.mb_timer.tim == None
     assert asyncio.get_running_loop() == m.mb_timer.loop
-    await m.send_start_cmd(get_sn_int(), '192.168.1.1', m.mb_first_timeout)
+    await m.send_start_cmd(get_sn_int(), str_test_ip, m.mb_first_timeout)
     assert m.writer.sent_pdu==bytearray(b'\xa5\x17\x00\x10E\x01\x00!Ce{\x02\xb0\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x030\x00\x000J\xde\xf1\x15')
-    assert m.db.get_db_value(Register.IP_ADDRESS) == '192.168.1.1'
+    assert m.db.get_db_value(Register.IP_ADDRESS) == str_test_ip
     assert isclose(m.db.get_db_value(Register.POLLING_INTERVAL), 0.5)
     assert m.db.get_db_value(Register.HEARTBEAT_INTERVAL) == 120
 

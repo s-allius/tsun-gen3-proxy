@@ -13,31 +13,31 @@ def get_invalid_sn():
 
 
 @pytest.fixture
-def MsgContactInfo(): # Contact Info message
+def msg_contact_info(): # Contact Info message
     return b'\x00\x00\x00\x2c\x10'+get_sn()+b'\x91\x00\x08solarhub\x0fsolarhub\x40123456'
 
 @pytest.fixture
-def MsgContactResp(): # Contact Response message
+def msg_contact_resp(): # Contact Response message
     return b'\x00\x00\x00\x14\x10'+get_sn()+b'\x91\x00\x01'
 
 @pytest.fixture
-def MsgContactInfo2(): # Contact Info message
+def msg_contact_info2(): # Contact Info message
     return b'\x00\x00\x00\x2c\x10'+get_invalid_sn()+b'\x91\x00\x08solarhub\x0fsolarhub\x40123456'
 
 @pytest.fixture
-def MsgContactResp2(): # Contact Response message
+def msg_contact_resp2(): # Contact Response message
     return b'\x00\x00\x00\x14\x10'+get_invalid_sn()+b'\x91\x00\x01'
 
 @pytest.fixture
-def MsgTimeStampReq(): # Get Time Request message
+def msg_timestamp_req(): # Get Time Request message
     return b'\x00\x00\x00\x13\x10'+get_sn()+b'\x91\x22'           
 
 @pytest.fixture
-def MsgTimeStampResp(): # Get Time Resonse message
+def msg_timestamp_resp(): # Get Time Resonse message
     return b'\x00\x00\x00\x1b\x10'+get_sn()+b'\x99\x22\x00\x00\x01\x89\xc6\x63\x4d\x80'
 
 @pytest.fixture
-def MsgContollerInd(): # Data indication from the controller
+def msg_controller_ind(): # Data indication from the controller
     msg  =  b'\x00\x00\x01\x2f\x10'+ get_sn() + b'\x91\x71\x0e\x10\x00\x00\x10'+get_sn()
     msg +=  b'\x01\x00\x00\x01\x89\xc6\x63\x55\x50'
     msg +=  b'\x00\x00\x00\x15\x00\x09\x2b\xa8\x54\x10\x52\x53\x57\x5f\x34\x30\x30\x5f\x56\x31\x2e\x30\x30\x2e\x30\x36\x00\x09\x27\xc0\x54\x06\x52\x61\x79\x6d\x6f'
@@ -49,7 +49,7 @@ def MsgContollerInd(): # Data indication from the controller
     return msg
 
 @pytest.fixture
-def MsgInvData(): # Data indication from the controller
+def msg_inv_data(): # Data indication from the controller
     msg  =  b'\x00\x00\x00\x8b\x10'+ get_sn() + b'\x91\x04\x01\x90\x00\x01\x10'+get_inv_no()
     msg +=  b'\x01\x00\x00\x01\x89\xc6\x63\x61\x08'
     msg +=  b'\x00\x00\x00\x06\x00\x00\x00\x0a\x54\x08\x4d\x69\x63\x72\x6f\x69\x6e\x76\x00\x00\x00\x14\x54\x04\x54\x53\x55\x4e\x00\x00\x00\x1E\x54\x07\x56\x35\x2e\x30\x2e\x31\x31\x00\x00\x00\x28'
@@ -57,7 +57,7 @@ def MsgInvData(): # Data indication from the controller
     return msg
 
 @pytest.fixture
-def MsgInverterInd(): # Data indication from the inverter
+def msg_inverter_ind(): # Data indication from the inverter
     msg  = b'\x00\x00\x05\x02\x10'+ get_sn() + b'\x91\x04\x01\x90\x00\x01\x10'+get_inv_no()
     msg +=  b'\x01\x00\x00\x01\x89\xc6\x63\x61\x08'
     msg +=  b'\x00\x00\x00\xa3\x00\x00\x00\x64\x53\x00\x01\x00\x00\x00\xc8\x53\x00\x02\x00\x00\x01\x2c\x53\x00\x00\x00\x00\x01\x90\x49\x00\x00\x00\x00\x00\x00\x01\x91\x53\x00\x00'
@@ -94,7 +94,7 @@ def MsgInverterInd(): # Data indication from the inverter
     return msg
 
 @pytest.fixture
-def MsgOtaUpdateReq(): # Over the air update request from talent cloud
+def msg_ota_update_req(): # Over the air update request from talent cloud
     msg  = b'\x00\x00\x01\x16\x10'+ get_sn() + b'\x70\x13\x01\x02\x76\x35'
     msg += b'\x70\x68\x74\x74\x70'
     msg += b'\x3a\x2f\x2f\x77\x77\x77\x2e\x74\x61\x6c\x65\x6e\x74\x2d\x6d\x6f'
@@ -117,7 +117,7 @@ def MsgOtaUpdateReq(): # Over the air update request from talent cloud
 
 
 @pytest.fixture(scope="session")
-def ClientConnection():
+def client_connection():
     host = 'logger.talent-monitoring.com'
     port = 5005
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -127,7 +127,7 @@ def ClientConnection():
         time.sleep(2.5)
         s.close()
 
-def tempClientConnection():
+def tempclient_connection():
     host = 'logger.talent-monitoring.com'
     port = 5005
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -138,25 +138,25 @@ def tempClientConnection():
 
 def test_open_close():
     try:
-        for s in tempClientConnection():
-            pass
-    except:
+        for _ in tempclient_connection():
+            pass  # test side effect of generator 
+    except Exception:
         assert False
 
-def test_send_contact_info1(ClientConnection, MsgContactInfo, MsgContactResp):
-    s = ClientConnection
+def test_send_contact_info1(client_connection, msg_contact_info, msg_contact_resp):
+    s = client_connection
     try:
-        s.sendall(MsgContactInfo)
+        s.sendall(msg_contact_info)
         data = s.recv(1024)
     except TimeoutError:
         pass
-    assert data == MsgContactResp
+    assert data == msg_contact_resp
 
 
-def test_send_contact_info2(ClientConnection, MsgContactInfo2, MsgContactInfo, MsgContactResp):
-    s = ClientConnection  
+def test_send_contact_info2(client_connection, msg_contact_info2, msg_contact_info, msg_contact_resp):
+    s = client_connection  
     try:
-        s.sendall(MsgContactInfo2)
+        s.sendall(msg_contact_info2)
         data = s.recv(1024)
     except TimeoutError:
         pass
@@ -164,73 +164,73 @@ def test_send_contact_info2(ClientConnection, MsgContactInfo2, MsgContactInfo, M
         assert False
 
     try:
-        s.sendall(MsgContactInfo)
+        s.sendall(msg_contact_info)
         data = s.recv(1024)
     except TimeoutError:
         pass
-    assert data == MsgContactResp
+    assert data == msg_contact_resp
 
-def test_send_contact_info3(ClientConnection, MsgContactInfo, MsgContactResp, MsgTimeStampReq):
-    s = ClientConnection
+def test_send_contact_info3(client_connection, msg_contact_info, msg_contact_resp, msg_timestamp_req):
+    s = client_connection
     try:
-        s.sendall(MsgContactInfo)
+        s.sendall(msg_contact_info)
         data = s.recv(1024)
     except TimeoutError:
         pass
-    assert data == MsgContactResp
+    assert data == msg_contact_resp
     try:
-        s.sendall(MsgTimeStampReq)
+        s.sendall(msg_timestamp_req)
         data = s.recv(1024)
     except TimeoutError:
         pass
  
 
-def test_send_contact_resp(ClientConnection, MsgContactResp):
-    s = ClientConnection  
+def test_send_contact_resp(client_connection, msg_contact_resp):
+    s = client_connection  
     try:
-        s.sendall(MsgContactResp)
+        s.sendall(msg_contact_resp)
         data = s.recv(1024)
     except TimeoutError:
         pass
     else:
         assert data == b''
 
-def test_send_ctrl_data(ClientConnection, MsgTimeStampReq, MsgTimeStampResp, MsgContollerInd):
-    s = ClientConnection  
+def test_send_ctrl_data(client_connection, msg_timestamp_req, msg_timestamp_resp, msg_controller_ind):
+    s = client_connection  
     try:
-        s.sendall(MsgTimeStampReq)
-        data = s.recv(1024)
+        s.sendall(msg_timestamp_req)
+        _ = s.recv(1024)
     except TimeoutError:
         pass
   #  time.sleep(2.5)
-  #  assert data == MsgTimeStampResp
+  #  assert data == msg_timestamp_resp
     try:
-        s.sendall(MsgContollerInd)
-        data = s.recv(1024)
+        s.sendall(msg_controller_ind)
+        _ = s.recv(1024)
     except TimeoutError:
         pass
 
-def test_send_inv_data(ClientConnection, MsgTimeStampReq, MsgTimeStampResp, MsgInvData, MsgInverterInd):
-    s = ClientConnection  
+def test_send_inv_data(client_connection, msg_timestamp_req, msg_timestamp_resp, msg_inv_data, msg_inverter_ind):
+    s = client_connection  
     try:
-        s.sendall(MsgTimeStampReq)
-        data = s.recv(1024)
+        s.sendall(msg_timestamp_req)
+        _ = s.recv(1024)
     except TimeoutError:
         pass
   #  time.sleep(32.5)
-  #  assert data == MsgTimeStampResp
+  #  assert data == msg_timestamp_resp
     try:
-        s.sendall(MsgInvData)
-        data = s.recv(1024)
-        s.sendall(MsgInverterInd)
-        data = s.recv(1024)
+        s.sendall(msg_inv_data)
+        _ = s.recv(1024)
+        s.sendall(msg_inverter_ind)
+        _ = s.recv(1024)
     except TimeoutError:
         pass
 
-def test_ota_req(ClientConnection, MsgOtaUpdateReq):
-    s = ClientConnection  
+def test_ota_req(client_connection, msg_ota_update_req):
+    s = client_connection  
     try:
-        s.sendall(MsgOtaUpdateReq)
-        data = s.recv(1024)
+        s.sendall(msg_ota_update_req)
+        _ = s.recv(1024)
     except TimeoutError:
         pass

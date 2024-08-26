@@ -1,18 +1,33 @@
 
 # test_with_pytest.py
-import pytest, json, math
+import pytest, json, math, random
 from app.src.infos import Register
 from app.src.gen3plus.infos_g3p import InfosG3P
 from app.src.gen3plus.infos_g3p import RegisterMap
 
+@pytest.fixture(scope="session")
+def str_test_ip():
+    ip =  ".".join(str(random.randint(1, 254)) for _ in range(4))
+    print(f'random_ip: {ip}')
+    return ip
+
+@pytest.fixture(scope="session")
+def bytes_test_ip(str_test_ip):
+    ip =  bytes(str.encode(str_test_ip))
+    l = len(ip)
+    if l < 16:
+        ip = ip + bytearray(16-l)
+    print(f'random_ip: {ip}')
+    return ip
+
 @pytest.fixture
-def device_data(): # 0x4110 ftype: 0x02
+def device_data(bytes_test_ip): # 0x4110 ftype: 0x02
     msg  = b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x02\xba\xd2\x00\x00'
     msg += b'\x19\x00\x00\x00\x00\x00\x00\x00\x05\x3c\x78\x01\x64\x01\x4c\x53'
     msg += b'\x57\x35\x42\x4c\x45\x5f\x31\x37\x5f\x30\x32\x42\x30\x5f\x31\x2e'
     msg += b'\x30\x35\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
-    msg += b'\x00\x00\x00\x00\x00\x00\x40\x2a\x8f\x4f\x51\x54\x31\x39\x32\x2e'
-    msg += b'\x31\x36\x38\x2e\x38\x30\x2e\x34\x39\x00\x00\x00\x0f\x00\x01\xb0'
+    msg += b'\x00\x00\x00\x00\x00\x00\x40\x2a\x8f\x4f\x51\x54' + bytes_test_ip
+    msg += b'\x0f\x00\x01\xb0'
     msg += b'\x02\x0f\x00\xff\x56\x31\x2e\x31\x2e\x30\x30\x2e\x30\x42\x00\x00'
     msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
     msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xfe\xfe\x00\x00'
@@ -63,14 +78,14 @@ def test_default_db():
         "collector": {"Chip_Type": "IGEN TECH"},
         })
 
-def test_parse_4110(device_data: bytes):
+def test_parse_4110(str_test_ip, device_data: bytes):
     i = InfosG3P(client_mode=False)
     i.db.clear()
     for key, update in i.parse (device_data, 0x41, 2):
         pass  # side effect is calling generator i.parse()
 
     assert json.dumps(i.db) == json.dumps({
-        'controller': {"Data_Up_Interval": 300, "Collect_Interval": 1, "Heartbeat_Interval": 120, "Signal_Strength": 100, "IP_Address": "192.168.80.49", "Sensor_List": "02b0"},
+        'controller': {"Data_Up_Interval": 300, "Collect_Interval": 1, "Heartbeat_Interval": 120, "Signal_Strength": 100, "IP_Address": str_test_ip, "Sensor_List": "02b0"},
         'collector': {"Chip_Model": "LSW5BLE_17_02B0_1.05", "Collector_Fw_Version": "V1.1.00.0B"},
         })
 
@@ -139,7 +154,11 @@ def test_build_ha_conf1():
 
     assert tests==7
 
+def test_build_ha_conf2():
+    i = InfosG3P(client_mode=False)
+    i.static_init()                # initialize counter
 
+    tests = 0
     for d_json, comp, node_id, id in i.ha_proxy_confs(ha_prfx="tsun/", node_id = 'proxy/', snr = '456'):
 
         if id == 'out_power_123':
@@ -161,9 +180,9 @@ def test_build_ha_conf1():
             assert  d_json == json.dumps({"name": "Active Inverter Connections", "stat_t": "tsun/proxy/proxy", "dev_cla": None, "stat_cla": None, "uniq_id": "inv_count_456", "val_tpl": "{{value_json['Inverter_Cnt'] | int}}", "ic": "mdi:counter", "dev": {"name": "Proxy", "sa": "Proxy", "mdl": "proxy", "mf": "Stefan Allius", "sw": "unknown", "ids": ["proxy"]}, "o": {"name": "proxy", "sw": "unknown"}})
             tests +=1
 
-    assert tests==8
+    assert tests==1
 
-def test_build_ha_conf2():
+def test_build_ha_conf3():
     i = InfosG3P(client_mode=True)
     i.static_init()                # initialize counter
 
@@ -209,7 +228,11 @@ def test_build_ha_conf2():
 
     assert tests==7
 
+def test_build_ha_conf4():
+    i = InfosG3P(client_mode=True)
+    i.static_init()                # initialize counter
 
+    tests = 0
     for d_json, comp, node_id, id in i.ha_proxy_confs(ha_prfx="tsun/", node_id = 'proxy/', snr = '456'):
 
         if id == 'out_power_123':
@@ -231,7 +254,7 @@ def test_build_ha_conf2():
             assert  d_json == json.dumps({"name": "Active Inverter Connections", "stat_t": "tsun/proxy/proxy", "dev_cla": None, "stat_cla": None, "uniq_id": "inv_count_456", "val_tpl": "{{value_json['Inverter_Cnt'] | int}}", "ic": "mdi:counter", "dev": {"name": "Proxy", "sa": "Proxy", "mdl": "proxy", "mf": "Stefan Allius", "sw": "unknown", "ids": ["proxy"]}, "o": {"name": "proxy", "sw": "unknown"}})
             tests +=1
 
-    assert tests==8
+    assert tests==1
 
 def test_exception_and_eval(inverter_data: bytes):
 
