@@ -3,9 +3,14 @@ import logging
 import traceback
 import time
 from asyncio import StreamReader, StreamWriter
-from messages import hex_dump_memory, State
 from typing import Self
 from itertools import count
+
+if __name__ == "app.src.async_stream":
+    from app.src.messages import hex_dump_memory, State
+else:  # pragma: no cover
+    from messages import hex_dump_memory, State
+
 
 import gc
 logger = logging.getLogger('conn')
