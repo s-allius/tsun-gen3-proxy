@@ -28,7 +28,6 @@ class Inverter():
         cls.proxy_unique_id = ha['proxy_unique_id']
 
         # call Mqtt singleton to establisch the connection to the mqtt broker
-        print('call Mqtt.init')
         cls.mqtt = Mqtt(cls._cb_mqtt_is_up)
 
         # register all counters which should be reset at midnight.

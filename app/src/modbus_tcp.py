@@ -1,9 +1,13 @@
 import logging
 import traceback
 import asyncio
-from config import Config
 
-from gen3plus.inverter_g3p import InverterG3P
+if __name__ == "app.src.modbus_tcp":
+    from app.src.config import Config
+    from app.src.gen3plus.inverter_g3p import InverterG3P
+else:  # pragma: no cover
+    from config import Config
+    from gen3plus.inverter_g3p import InverterG3P
 
 logger = logging.getLogger('conn')
 
