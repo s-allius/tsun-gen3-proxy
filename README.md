@@ -9,7 +9,13 @@
     <a href="https://www.python.org/downloads/release/python-3120/"><img alt="Supported Python versions" src="https://img.shields.io/badge/python-3.12-blue.svg"></a>
     <a href="https://sbtinstruments.github.io/aiomqtt/introduction.html"><img alt="Supported aiomqtt versions" src="https://img.shields.io/badge/aiomqtt-2.2.0-lightblue.svg"></a>
     <a href="https://libraries.io/pypi/aiocron"><img alt="Supported aiocron versions" src="https://img.shields.io/badge/aiocron-1.8-lightblue.svg"></a>
-    <a href="https://toml.io/en/v1.0.0"><img alt="Supported toml versions" src="https://img.shields.io/badge/toml-1.0.0-lightblue.svg"></a>
+    <a href="https://toml.io/en/v1.0.0"><img alt="Supported toml versions" src="https://img.shields.io/badge/toml-1.0.0-lightblue.svg"></a>   
+    <br>
+    <a href="https://sonarcloud.io/component_measures?id=s-allius_tsun-gen3-proxy&metric=alert_status"><img src="https://sonarcloud.io/api/project_badges/measure?project=s-allius_tsun-gen3-proxy&metric=alert_status"></a>
+    <a href="https://sonarcloud.io/component_measures?id=s-allius_tsun-gen3-proxy&metric=bugs"><img src="https://sonarcloud.io/api/project_badges/measure?project=s-allius_tsun-gen3-proxy&metric=bugs"></a>
+    <a href="https://sonarcloud.io/component_measures?id=s-allius_tsun-gen3-proxy&metric=code_smells"><img src="https://sonarcloud.io/api/project_badges/measure?project=s-allius_tsun-gen3-proxy&metric=code_smells"></a>
+    <br>
+    <a href="https://sonarcloud.io/component_measures?id=s-allius_tsun-gen3-proxy&metric=coverage"><img src="https://sonarcloud.io/api/project_badges/measure?project=s-allius_tsun-gen3-proxy&metric=coverage"></a>
 </p>
 
 # Overview
@@ -194,7 +200,12 @@ The standard web interface of the inverter can be accessed at `http://<ip-adress
 
 For our purpose, the hidden URL `http://<ip-adress>/config_hide.html` should be called. There you can see and modify the parameters for accessing the cloud. Here we enter the IP address of our proxy and the IP port `10000` for the `Server A Setting` and for `Optional Server Setting`. The second entry is used as a backup in the event of connection problems.
 
-❗If the IP port is set to 10443 in the inverter configuration, you probably have a firmware with SSL support. In this case, you must use the client-mode configuration.
+```txt
+❗If the IP port is set to 10443 in the inverter configuration, you probably have a firmware with SSL support.
+In this case, you MUST NOT change the port or the host address, as this may cause the inverter to hang and
+require a complete reset. Use the configuration in client mode instead.
+```
+
 
 If access to the web interface does not work, it can also be redirected via DNS redirection, as is necessary for the GEN3 inverters.
 
