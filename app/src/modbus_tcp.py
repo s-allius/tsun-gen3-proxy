@@ -38,7 +38,9 @@ class ModbusConn():
 
 class ModbusTcp():
 
-    def __init__(self, loop) -> None:
+    def __init__(self, loop, tim_restart=10) -> None:
+        self.tim_restart = tim_restart
+
         inverters = Config.get('inverters')
         # logging.info(f'Inverters: {inverters}')
 
@@ -79,4 +81,4 @@ class ModbusTcp():
                     f"ModbusTcpCreate: Exception for {(host, port)}:\n"
                     f"{traceback.format_exc()}")
 
-            await asyncio.sleep(10)
+            await asyncio.sleep(self.tim_restart)
