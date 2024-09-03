@@ -294,6 +294,13 @@ class Talent(Message):
         result = struct.unpack_from('!lB', buf, 0)
         msg_len = result[0]    # len of complete message
         id_len = result[1]    # len of variable id string
+        if id_len > 17:
+            logger.warning(f'len of ID string must == 16 but is {id_len}')
+            self.inc_counter('Invalid_Msg_Format')
+
+            # erase broken recv buffer
+            self._recv_buffer = bytearray()
+            return
 
         hdr_len = 5+id_len+2
 
