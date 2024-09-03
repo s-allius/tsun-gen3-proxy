@@ -4,9 +4,14 @@ import asyncio
 
 from mock import patch
 from enum import Enum
+from enum import Enum
 from app.src.singleton import Singleton
 from app.src.config import Config
 from app.src.infos import Infos
+from app.src.mqtt import Mqtt
+from app.src.messages import Message, State
+from app.src.inverter import Inverter
+from app.src.modbus_tcp import ModbusConn, ModbusTcp
 from app.src.mqtt import Mqtt
 from app.src.messages import Message, State
 from app.src.inverter import Inverter
@@ -76,8 +81,59 @@ class TestType(Enum):
 
 
 test  = TestType.RD_TEST_0_BYTES
+def config_conn(test_hostname, test_port):
+    Config.act_config = {
+                        'mqtt':{
+                            'host': test_hostname,
+                            'port': test_port,
+                            'user': '',
+                            'passwd': ''
+                        },
+                        'ha':{
+                            'auto_conf_prefix': 'homeassistant',
+                            'discovery_prefix': 'homeassistant', 
+                            'entity_prefix': 'tsun',
+                            'proxy_node_id': 'test_1',
+                            'proxy_unique_id': ''
+                        },
+                        'inverters':{
+                            'allow_all': True,
+                            "R170000000000001":{
+                                'node_id': 'inv_1'
+                            },
+                            "Y170000000000001":{
+                                'node_id': 'inv_2',
+                                'monitor_sn': 2000000000,
+                                'modbus_polling': True,
+                                'suggested_area': "",
+                                'sensor_list': 0x2b0,
+                                'client_mode':{
+                                    'host': '192.168.0.1', 
+                                    'port': 8899
+                                }  
+                            }
+                        }
+    }
+
+
+class TestType(Enum):
+    RD_TEST_0_BYTES = 1
+    RD_TEST_TIMEOUT = 2
+
+
+test  = TestType.RD_TEST_0_BYTES
 
 class FakeReader():
+    def __init__(self):
+        self.on_recv =  asyncio.Event()
+    async def read(self, max_len: int):
+        await self.on_recv.wait()
+        if test == TestType.RD_TEST_0_BYTES:
+            return b''
+        elif test == TestType.RD_TEST_TIMEOUT:
+            raise TimeoutError
+    def feed_eof(self):
+        return
     def __init__(self):
         self.on_recv =  asyncio.Event()
     async def read(self, max_len: int):
@@ -105,6 +161,20 @@ class FakeWriter():
         return
     async def wait_closed(self):
         return
+    def write(self, buf: bytes):
+        return
+    def get_extra_info(self, sel: str):
+        if sel == 'peername':
+            return 'remote.intern'
+        elif sel == 'sockname':
+            return 'sock:1234'
+        assert False
+    def is_closing(self):
+        return False
+    def close(self):
+        return
+    async def wait_closed(self):
+        return
 
 
 @pytest.fixture
@@ -117,9 +187,17 @@ def patch_open():
         global test
         if test == TestType.RD_TEST_TIMEOUT:
             raise TimeoutError
+        global test
+        if test == TestType.RD_TEST_TIMEOUT:
+            raise TimeoutError
         return new_conn(None)
 
     with patch.object(asyncio, 'open_connection', new_open) as conn:
+        yield conn
+
+@pytest.fixture
+def patch_no_mqtt():
+    with patch.object(Mqtt, 'publish') as conn:
         yield conn
 
 @pytest.fixture
