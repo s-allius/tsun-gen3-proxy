@@ -147,6 +147,7 @@ class AsyncStream():
                 logger.error(
                     f"Exception for {self.addr}:\n"
                     f"{traceback.format_exc()}")
+            await asyncio.sleep(0)  # be cooperative to other task
 
     async def async_write(self, headline: str = 'Transmit to ') -> None:
         """Async write handler to transmit the send_buffer"""

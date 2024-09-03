@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+- GEN3: don't crash on overwritten msg in the receive buffer
 - Reading the version string from the image updates it even if the image is re-pulled without re-deployment
   
 ## [0.10.1] - 2024-08-10

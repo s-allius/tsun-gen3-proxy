@@ -31,10 +31,10 @@ class ConnectionG3P(AsyncStream, SolarmanV5):
         #  logger.info(f'AsyncStream refs: {gc.get_referrers(self)}')
 
     async def async_create_remote(self) -> None:
-        pass  # virtual interface
+        pass  # virtual interface # pragma: no cover
 
     async def async_publ_mqtt(self) -> None:
-        pass  # virtual interface
+        pass  # virtual interface # pragma: no cover
 
     def healthy(self) -> bool:
         logger.debug('ConnectionG3P healthy()')
