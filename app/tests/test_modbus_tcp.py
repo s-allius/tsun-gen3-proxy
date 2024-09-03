@@ -253,7 +253,6 @@ async def test_modbus_cnf2(config_conn, patch_no_mqtt, patch_open):
         if (m.node_id == 'inv_2'):
             assert False
 
-
 @pytest.mark.asyncio
 async def test_modbus_cnf3(config_conn, patch_no_mqtt, patch_open):
     _ = config_conn
