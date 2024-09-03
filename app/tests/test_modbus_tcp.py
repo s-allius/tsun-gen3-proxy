@@ -81,47 +81,7 @@ class TestType(Enum):
 
 
 test  = TestType.RD_TEST_0_BYTES
-def config_conn(test_hostname, test_port):
-    Config.act_config = {
-                        'mqtt':{
-                            'host': test_hostname,
-                            'port': test_port,
-                            'user': '',
-                            'passwd': ''
-                        },
-                        'ha':{
-                            'auto_conf_prefix': 'homeassistant',
-                            'discovery_prefix': 'homeassistant', 
-                            'entity_prefix': 'tsun',
-                            'proxy_node_id': 'test_1',
-                            'proxy_unique_id': ''
-                        },
-                        'inverters':{
-                            'allow_all': True,
-                            "R170000000000001":{
-                                'node_id': 'inv_1'
-                            },
-                            "Y170000000000001":{
-                                'node_id': 'inv_2',
-                                'monitor_sn': 2000000000,
-                                'modbus_polling': True,
-                                'suggested_area': "",
-                                'sensor_list': 0x2b0,
-                                'client_mode':{
-                                    'host': '192.168.0.1', 
-                                    'port': 8899
-                                }  
-                            }
-                        }
-    }
 
-
-class TestType(Enum):
-    RD_TEST_0_BYTES = 1
-    RD_TEST_TIMEOUT = 2
-
-
-test  = TestType.RD_TEST_0_BYTES
 
 class FakeReader():
     def __init__(self):
@@ -160,9 +120,6 @@ def patch_open():
         return FakeReader(), FakeWriter()
     
     def new_open(host: str, port: int):
-        global test
-        if test == TestType.RD_TEST_TIMEOUT:
-            raise TimeoutError
         global test
         if test == TestType.RD_TEST_TIMEOUT:
             raise TimeoutError
