@@ -134,33 +134,9 @@ class FakeReader():
             raise TimeoutError
     def feed_eof(self):
         return
-    def __init__(self):
-        self.on_recv =  asyncio.Event()
-    async def read(self, max_len: int):
-        await self.on_recv.wait()
-        if test == TestType.RD_TEST_0_BYTES:
-            return b''
-        elif test == TestType.RD_TEST_TIMEOUT:
-            raise TimeoutError
-    def feed_eof(self):
-        return
 
 
 class FakeWriter():
-    def write(self, buf: bytes):
-        return
-    def get_extra_info(self, sel: str):
-        if sel == 'peername':
-            return 'remote.intern'
-        elif sel == 'sockname':
-            return 'sock:1234'
-        assert False
-    def is_closing(self):
-        return False
-    def close(self):
-        return
-    async def wait_closed(self):
-        return
     def write(self, buf: bytes):
         return
     def get_extra_info(self, sel: str):
