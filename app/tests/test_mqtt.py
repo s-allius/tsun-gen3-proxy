@@ -97,7 +97,7 @@ async def test_mqtt_no_config(config_no_conn):
     try:
         m = Mqtt(cb)
         assert m.task
-        await asyncio.sleep(1)
+        await asyncio.sleep(0)
         assert not on_connect.is_set()
         try:
             await m.publish('homeassistant/status', 'online')
