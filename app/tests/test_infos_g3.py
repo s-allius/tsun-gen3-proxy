@@ -364,12 +364,12 @@ def test_build_ha_conf3(contr_data_seq, inv_data_seq, inv_data_seq2):
 
         if id == 'out_power_123':
             assert comp == 'sensor'
-            assert  d_json == json.dumps({"name": "Power", "stat_t": "tsun/garagendach/grid", "dev_cla": "power", "stat_cla": "measurement", "uniq_id": "out_power_123", "val_tpl": "{{value_json['Output_Power'] | float}}", "unit_of_meas": "W", "dev": {"name": "Micro Inverter - roof", "sa": "Micro Inverter - roof", "via_device": "controller_123", "mdl": "TSOL-MS600", "mf": "TSUN", "sw": "V5.0.11", "ids": ["inverter_123"]}, "o": {"name": "proxy", "sw": "unknown"}})
+            assert  d_json == json.dumps({"name": "Power", "stat_t": "tsun/garagendach/grid", "dev_cla": "power", "stat_cla": "measurement", "uniq_id": "out_power_123", "val_tpl": "{{value_json['Output_Power'] | float}}", "unit_of_meas": "W", "dev": {"name": "Micro Inverter - roof", "sa": "Micro Inverter - roof", "via_device": "controller_123", "mdl": "TSOL-MS600", "mf": "TSUN", "sw": "V5.0.11", "sn": "T170000000000001", "ids": ["inverter_123"]}, "o": {"name": "proxy", "sw": "unknown"}})
             tests +=1
 
         if id == 'daily_gen_123':
             assert comp == 'sensor'
-            assert  d_json == json.dumps({"name": "Daily Generation", "stat_t": "tsun/garagendach/total", "dev_cla": "energy", "stat_cla": "total_increasing", "uniq_id": "daily_gen_123", "val_tpl": "{{value_json['Daily_Generation'] | float}}", "unit_of_meas": "kWh", "ic": "mdi:solar-power-variant", "dev": {"name": "Micro Inverter - roof", "sa": "Micro Inverter - roof", "via_device": "controller_123", "mdl": "TSOL-MS600", "mf": "TSUN", "sw": "V5.0.11", "ids": ["inverter_123"]}, "o": {"name": "proxy", "sw": "unknown"}})
+            assert  d_json == json.dumps({"name": "Daily Generation", "stat_t": "tsun/garagendach/total", "dev_cla": "energy", "stat_cla": "total_increasing", "uniq_id": "daily_gen_123", "val_tpl": "{{value_json['Daily_Generation'] | float}}", "unit_of_meas": "kWh", "ic": "mdi:solar-power-variant", "dev": {"name": "Micro Inverter - roof", "sa": "Micro Inverter - roof", "via_device": "controller_123", "mdl": "TSOL-MS600", "mf": "TSUN", "sw": "V5.0.11", "sn": "T170000000000001", "ids": ["inverter_123"]}, "o": {"name": "proxy", "sw": "unknown"}})
             tests +=1
 
         elif id == 'power_pv1_123':
@@ -387,6 +387,32 @@ def test_build_ha_conf3(contr_data_seq, inv_data_seq, inv_data_seq2):
             assert  d_json == json.dumps({"name": "Signal Strength", "stat_t": "tsun/garagendach/controller", "dev_cla": None, "stat_cla": "measurement", "uniq_id": "signal_123", "val_tpl": "{{value_json[\'Signal_Strength\'] | int}}", "unit_of_meas": "%", "ic": "mdi:wifi", "dev": {"name": "Controller - roof", "sa": "Controller - roof", "via_device": "proxy", "mdl": "RSW-1-10001", "mf": "Raymon", "sw": "RSW_400_V1.00.06", "ids": ["controller_123"]}, "o": {"name": "proxy", "sw": "unknown"}})
             tests +=1
     assert tests==5
+
+def test_build_ha_conf4(contr_data_seq, inv_data_seq):
+    i = InfosG3()
+    for key, result in i.parse (contr_data_seq):
+        pass  # side effect in calling i.parse()
+    for key, result in i.parse (inv_data_seq):
+        pass  # side effect in calling i.parse()
+    i.set_db_def_value(Register.MAC_ADDR, "00a057123456")
+
+    tests = 0
+    for d_json, comp, node_id, id in i.ha_confs(ha_prfx="tsun/", node_id="garagendach/", snr='123', sug_area = 'roof'):
+        if id == 'signal_123':
+            assert comp == 'sensor'
+            assert  d_json == json.dumps({"name": "Signal Strength", "stat_t": "tsun/garagendach/controller", "dev_cla": None, "stat_cla": "measurement", "uniq_id": "signal_123", "val_tpl": "{{value_json[\'Signal_Strength\'] | int}}", "unit_of_meas": "%", "ic": "mdi:wifi", "dev": {"name": "Controller - roof", "sa": "Controller - roof", "via_device": "proxy", "mdl": "RSW-1-10001", "mf": "Raymon", "sw": "RSW_400_V1.00.06", "ids": ["controller_123"], "cns": [["mac", "00:a0:57:12:34:56"]]}, "o": {"name": "proxy", "sw": "unknown"}})
+            tests +=1
+    assert tests==1
+
+    i.set_db_def_value(Register.MAC_ADDR, "00:a0:57:12:34:57")
+
+    tests = 0
+    for d_json, comp, node_id, id in i.ha_confs(ha_prfx="tsun/", node_id="garagendach/", snr='123', sug_area = 'roof'):
+        if id == 'signal_123':
+            assert comp == 'sensor'
+            assert  d_json == json.dumps({"name": "Signal Strength", "stat_t": "tsun/garagendach/controller", "dev_cla": None, "stat_cla": "measurement", "uniq_id": "signal_123", "val_tpl": "{{value_json[\'Signal_Strength\'] | int}}", "unit_of_meas": "%", "ic": "mdi:wifi", "dev": {"name": "Controller - roof", "sa": "Controller - roof", "via_device": "proxy", "mdl": "RSW-1-10001", "mf": "Raymon", "sw": "RSW_400_V1.00.06", "ids": ["controller_123"], "cns": [["mac", "00:a0:57:12:34:57"]]}, "o": {"name": "proxy", "sw": "unknown"}})
+            tests +=1
+    assert tests==1
 
 def test_must_incr_total(inv_data_seq2, inv_data_seq2_zero):
     i = InfosG3()
