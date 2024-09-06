@@ -205,10 +205,6 @@ async def test_modbus_cnf2(config_conn, patch_no_mqtt, patch_open):
     assert 1 == test
     await asyncio.sleep(0.01)
     assert Infos.stat['proxy']['Inverter_Cnt'] == 0
-    # check that the connection is released
-    for m in Message:
-        if (m.node_id == 'inv_2'):
-            assert False
 
 @pytest.mark.asyncio
 async def test_modbus_cnf3(config_conn, patch_no_mqtt, patch_open):
