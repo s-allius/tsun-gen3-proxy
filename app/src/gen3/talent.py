@@ -56,20 +56,24 @@ class Talent(Message):
             0x00: self.msg_contact_info,
             0x13: self.msg_ota_update,
             0x22: self.msg_get_time,
+            0x99: self.msg_act_time,
             0x71: self.msg_collector_data,
             # 0x76:
             0x77: self.msg_modbus,
             # 0x78:
+            0x87: self.msg_modbus2,
             0x04: self.msg_inverter_data,
         }
         self.log_lvl = {
             0x00: logging.INFO,
             0x13: logging.INFO,
             0x22: logging.INFO,
+            0x99: logging.INFO,
             0x71: logging.INFO,
             # 0x76:
             0x77: self.get_modbus_log_lvl,
             # 0x78:
+            0x87: self.get_modbus_log_lvl,
             0x04: logging.INFO,
         }
         self.modbus_elms = 0    # for unit tests
@@ -127,6 +131,7 @@ class Talent(Message):
                 logger.debug(f'SerialNo {serial_no} not known but accepted!')
 
             self.unique_id = serial_no
+            self.db.set_db_def_value(Register.COLLECTOR_SNR, serial_no)
 
     def read(self) -> float:
         '''process all received messages in the _recv_buffer'''
@@ -169,6 +174,25 @@ class Talent(Message):
             fnc = self.switch.get(self.msg_id, self.msg_unknown)
             logger.info(self.__flow_str(self.server_side, 'forwrd') +
                         f' Ctl: {int(self.ctrl):#02x} Msg: {fnc.__name__!r}')
+
+    def forward_snd(self) -> None:
+        '''add the actual receive msg to the forwarding queue'''
+        tsun = Config.get('tsun')
+        if tsun['enabled']:
+            _len = len(self._send_buffer) - self.send_msg_ofs
+            struct.pack_into('!l', self._send_buffer, self.send_msg_ofs,
+                             _len-4)
+
+            buffer = self._send_buffer[self.send_msg_ofs:]
+            buflen = _len
+            self._forward_buffer += buffer[:buflen]
+            hex_dump_memory(logging.INFO, 'Store for forwarding:',
+                            buffer, buflen)
+
+            fnc = self.switch.get(self.msg_id, self.msg_unknown)
+            logger.info(self.__flow_str(self.server_side, 'forwrd') +
+                        f' Ctl: {int(self.ctrl):#02x} Msg: {fnc.__name__!r}')
+        self._send_buffer = self._send_buffer[:self.send_msg_ofs]
 
     def send_modbus_cb(self, modbus_pdu: bytearray, log_lvl: int, state: str):
         if self.state != State.up:
@@ -400,10 +424,49 @@ class Talent(Message):
                 result = struct.unpack_from('!q', self._recv_buffer,
                                             self.header_len)
                 self.ts_offset = result[0]-ts
+                if self.remote_stream:
+                    self.remote_stream.ts_offset = self.ts_offset
                 logger.debug(f'tsun-time: {int(result[0]):08x}'
                              f'  proxy-time: {ts:08x}'
                              f'  offset: {self.ts_offset}')
                 return  # ignore received response
+        else:
+            logger.warning(self.TXT_UNKNOWN_CTRL)
+            self.inc_counter('Unknown_Ctrl')
+
+        self.forward()
+
+    def msg_act_time(self):
+        if self.ctrl.is_ind():
+            if self.data_len == 9:
+                self.state = State.up  # allow MODBUS cmds
+                if (self.modbus_polling):
+                    self.mb_timer.start(self.mb_first_timeout)
+                    self.db.set_db_def_value(Register.POLLING_INTERVAL,
+                                             self.mb_timeout)
+                self.__build_header(0x99)
+                self._send_buffer += b'\x02'
+                self.__finish_send_msg()
+
+                result = struct.unpack_from('!Bq', self._recv_buffer,
+                                            self.header_len)
+                resp_code = result[0]
+                ts = result[1]+self.ts_offset
+                logger.debug(f'inv-time: {int(result[1]):08x}'
+                             f'  tsun-time: {ts:08x}'
+                             f'  offset: {self.ts_offset}')
+                self.__build_header(0x91)
+                self._send_buffer += struct.pack('!Bq', resp_code, ts)
+                self.forward_snd()
+                return
+        elif self.ctrl.is_resp():
+            result = struct.unpack_from('!B', self._recv_buffer,
+                                        self.header_len)
+            resp_code = result[0]
+            if resp_code != 2:
+                logging.warning(f'TimeActRespCode: {resp_code}')
+
+            return
         else:
             logger.warning(self.TXT_UNKNOWN_CTRL)
             self.inc_counter('Unknown_Ctrl')
@@ -492,6 +555,15 @@ class Talent(Message):
         modbus_len = result[1]
         return msg_hdr_len, modbus_len
 
+    def parse_modbus_header2(self):
+
+        msg_hdr_len = 6
+
+        result = struct.unpack_from('!lBBB', self._recv_buffer,
+                                    self.header_len)
+        modbus_len = result[2]
+        return msg_hdr_len, modbus_len
+
     def get_modbus_log_lvl(self) -> int:
         if self.ctrl.is_req():
             return logging.INFO
@@ -501,6 +573,13 @@ class Talent(Message):
 
     def msg_modbus(self):
         hdr_len, _ = self.parse_modbus_header()
+        self.__msg_modbus(hdr_len)
+
+    def msg_modbus2(self):
+        hdr_len, _ = self.parse_modbus_header2()
+        self.__msg_modbus(hdr_len)
+
+    def __msg_modbus(self, hdr_len):
         data = self._recv_buffer[self.header_len:
                                  self.header_len+self.data_len]
 
