@@ -3,11 +3,17 @@ import traceback
 import json
 import asyncio
 from asyncio import StreamReader, StreamWriter
-from config import Config
-from inverter import Inverter
-from gen3.connection_g3 import ConnectionG3
 from aiomqtt import MqttCodeError
-from infos import Infos
+
+if __name__ == "app.src.gen3.inverter_g3":
+    from app.src.config import Config
+    from app.src.inverter import Inverter
+    from app.src.gen3.connection_g3 import ConnectionG3
+else:  # pragma: no cover
+    from config import Config
+    from inverter import Inverter
+    from gen3.connection_g3 import ConnectionG3
+    from infos import Infos
 
 
 logger_mqtt = logging.getLogger('mqtt')
