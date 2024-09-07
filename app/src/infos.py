@@ -523,14 +523,16 @@ class Infos:
             dev['ids'] = [f"{ha['dev']}"]
         else:
             dev['ids'] = [f"{ha['dev']}_{snr}"]
+        self.__add_connection(dev, device)
+        return dev
+
+    def __add_connection(self, dev, device):
         if 'mac' in device:
             mac_str = self.dev_value(device['mac'])
             if mac_str is not None:
                 if 12 == len(mac_str):
                     mac_str = ':'.join(mac_str[i:i+2] for i in range(0, 12, 2))
                 dev['cns'] = [["mac", f"{mac_str}"]]
-
-        return dev
 
     def __add_via_dev(self, dev, device, key, snr):
         if 'via' in device:  # add the link to the parent device
