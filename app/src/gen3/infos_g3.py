@@ -14,6 +14,7 @@ class RegisterMap:
         0x00092ba8: Register.COLLECTOR_FW_VERSION,
         0x000927c0: Register.CHIP_TYPE,
         0x00092f90: Register.CHIP_MODEL,
+        0x00094ae8: Register.MAC_ADDR,
         0x00095a88: Register.TRACE_URL,
         0x00095aec: Register.LOGGER_URL,
         0x0000000a: Register.PRODUCT_NAME,

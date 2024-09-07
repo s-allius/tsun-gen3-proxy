@@ -16,6 +16,8 @@ class Register(Enum):
     CHIP_MODEL = 3
     TRACE_URL = 4
     LOGGER_URL = 5
+    MAC_ADDR = 6
+    COLLECTOR_SNR = 7
     PRODUCT_NAME = 20
     MANUFACTURER = 21
     VERSION = 22
@@ -188,8 +190,8 @@ class Infos:
 
     __info_devs = {
         'proxy':      {'singleton': True,   'name': 'Proxy', 'mf': 'Stefan Allius'},  # noqa: E501
-        'controller': {'via': 'proxy',      'name': 'Controller',     'mdl': Register.CHIP_MODEL, 'mf': Register.CHIP_TYPE, 'sw': Register.COLLECTOR_FW_VERSION},  # noqa: E501
-        'inverter':   {'via': 'controller', 'name': 'Micro Inverter', 'mdl': Register.EQUIPMENT_MODEL, 'mf': Register.MANUFACTURER, 'sw': Register.VERSION},  # noqa: E501
+        'controller': {'via': 'proxy',      'name': 'Controller',     'mdl': Register.CHIP_MODEL, 'mf': Register.CHIP_TYPE, 'sw': Register.COLLECTOR_FW_VERSION, 'mac': Register.MAC_ADDR, 'sn': Register.COLLECTOR_SNR},  # noqa: E501
+        'inverter':   {'via': 'controller', 'name': 'Micro Inverter', 'mdl': Register.EQUIPMENT_MODEL, 'mf': Register.MANUFACTURER, 'sw': Register.VERSION, 'sn': Register.SERIAL_NUMBER},  # noqa: E501
         'input_pv1':  {'via': 'inverter',   'name': 'Module PV1', 'mdl': Register.PV1_MODEL, 'mf': Register.PV1_MANUFACTURER},  # noqa: E501
         'input_pv2':  {'via': 'inverter',   'name': 'Module PV2', 'mdl': Register.PV2_MODEL, 'mf': Register.PV2_MANUFACTURER, 'dep': {'reg': Register.NO_INPUTS, 'gte': 2}},  # noqa: E501
         'input_pv3':  {'via': 'inverter',   'name': 'Module PV3', 'mdl': Register.PV3_MODEL, 'mf': Register.PV3_MANUFACTURER, 'dep': {'reg': Register.NO_INPUTS, 'gte': 3}},  # noqa: E501
@@ -222,6 +224,9 @@ class Infos:
         Register.CHIP_MODEL: {'name': ['collector', 'Chip_Model'],       'singleton': False,  'level': logging.DEBUG, 'unit': ''},  # noqa: E501
         Register.TRACE_URL:  {'name': ['collector', 'Trace_URL'],        'singleton': False,  'level': logging.DEBUG, 'unit': ''},  # noqa: E501
         Register.LOGGER_URL: {'name': ['collector', 'Logger_URL'],       'singleton': False,  'level': logging.DEBUG, 'unit': ''},  # noqa: E501
+        Register.MAC_ADDR:   {'name': ['collector', 'MAC-Addr'],         'singleton': False,  'level': logging.INFO,  'unit': ''},  # noqa: E501
+        Register.COLLECTOR_SNR: {'name': ['collector', 'Serial_Number'], 'singleton': False,  'level': logging.INFO,  'unit': ''},  # noqa: E501
+
 
         # inverter values used for device registration:
         Register.PRODUCT_NAME:    {'name': ['inverter', 'Product_Name'],           'level': logging.DEBUG, 'unit': ''},  # noqa: E501
@@ -507,7 +512,7 @@ class Infos:
             dev['name'] = device['name']+' - '+sug_area
             dev['sa'] = device['name']+' - '+sug_area
         self.__add_via_dev(dev, device, key, snr)
-        for key in ('mdl', 'mf', 'sw', 'hw'):      # add optional
+        for key in ('mdl', 'mf', 'sw', 'hw', 'sn'):      # add optional
             # values fpr 'modell', 'manufacturer', 'sw version' and
             # 'hw version'
             if key in device:
@@ -518,7 +523,16 @@ class Infos:
             dev['ids'] = [f"{ha['dev']}"]
         else:
             dev['ids'] = [f"{ha['dev']}_{snr}"]
+        self.__add_connection(dev, device)
         return dev
+
+    def __add_connection(self, dev, device):
+        if 'mac' in device:
+            mac_str = self.dev_value(device['mac'])
+            if mac_str is not None:
+                if 12 == len(mac_str):
+                    mac_str = ':'.join(mac_str[i:i+2] for i in range(0, 12, 2))
+                dev['cns'] = [["mac", f"{mac_str}"]]
 
     def __add_via_dev(self, dev, device, key, snr):
         if 'via' in device:  # add the link to the parent device

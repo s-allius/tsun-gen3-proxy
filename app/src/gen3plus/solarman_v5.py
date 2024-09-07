@@ -203,13 +203,15 @@ class SolarmanV5(Message):
             inverters = Config.get('inverters')
             # logger.debug(f'Inverters: {inverters}')
 
-            for inv in inverters.values():
+            for key, inv in inverters.items():
                 # logger.debug(f'key: {key} -> {inv}')
                 if (type(inv) is dict and 'monitor_sn' in inv
                    and inv['monitor_sn'] == snr):
                     self.__set_config_parms(inv)
                     self.db.set_pv_module_details(inv)
                     logger.debug(f'SerialNo {serial_no} allowed! area:{self.sug_area}')  # noqa: E501
+
+                    self.db.set_db_def_value(Register.COLLECTOR_SNR, key)
                     break
             else:
                 self.node_id = ''

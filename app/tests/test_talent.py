@@ -41,6 +41,7 @@ class MemoryStream(Talent):
         self.send_msg_ofs = 0
         self.test_exception_async_write = False
         self.msg_recvd = []
+        self.remote_stream = None
 
     def append_msg(self, msg):
         self.__msg += msg
@@ -137,6 +138,26 @@ def msg_time_rsp_inv(): # Get Time Resonse message
 @pytest.fixture
 def msg_time_invalid(): # Get Time Request message
     return b'\x00\x00\x00\x13\x10R170000000000001\x94\x22'           
+
+@pytest.fixture
+def msg_act_time(): # Act Time Indication message
+    return b'\x00\x00\x00\x1c\x10R170000000000001\x91\x99\x01\x00\x00\x01\x89\xc6\x53\x4d\x80'           
+
+@pytest.fixture
+def msg_act_time_ofs(): # Act Time Indication message withoffset 3600
+    return b'\x00\x00\x00\x1c\x10R170000000000001\x91\x99\x01\x00\x00\x01\x89\xc6\x53\x5b\x90'           
+
+@pytest.fixture
+def msg_act_time_ack(): # Act Time Response message
+    return b'\x00\x00\x00\x14\x10R170000000000001\x99\x99\x02'
+
+@pytest.fixture
+def msg_act_time_cmd(): # Act Time Response message
+    return b'\x00\x00\x00\x14\x10R170000000000001\x70\x99\x02'
+
+@pytest.fixture
+def msg_act_time_inv(): # Act Time Indication message withoffset 3600
+    return b'\x00\x00\x00\x1b\x10R170000000000001\x91\x99\x00\x00\x01\x89\xc6\x53\x5b\x90'           
 
 @pytest.fixture
 def msg_controller_ind(): # Data indication from the controller
@@ -440,6 +461,26 @@ def msg_modbus_rsp21():
     msg += b'\x0e\x08\xd3\x00\x29\x13\x87\x00\x3e\x00\x00\x01\x2c\x03\xb4\x00'
     msg += b'\x08\x00\x00\x00\x00\x01\x59\x01\x21\x03\xe6\x00\x00\x00\x00\x00'
     msg += b'\x00\x00\x00\x00\x00\x00\x00\xe6\xef'
+    return msg
+
+@pytest.fixture
+def msg_modbus_cmd_new():
+    msg  = b'\x00\x00\x00\x20\x10R170000000000001'
+    msg += b'\x70\x77\x00\x01\xa3\x28\x08\x01\x03\x30\x00'
+    msg += b'\x00\x30\x4a\xde'
+    return msg
+
+@pytest.fixture
+def msg_modbus_rsp20_new():
+    msg  = b'\x00\x00\x00\x7e\x10R170000000000001'
+    msg += b'\x91\x87\x00\x01\xa3\x28\x00\x65\x01\x03\x60'
+    msg += b'\x00\x01\x00\x00\x00\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+    msg += b'\x51\x09\x09\x17\x00\x17\x13\x88\x00\x40\x00\x00\x02\x58\x02\x23'
+    msg += b'\x00\x07\x00\x00\x00\x00\x01\x4f\x00\xab\x02\x40\x00\x00\x00\x00'
+    msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x08\x00\x00\xc0\x93\x00\x00'
+    msg += b'\x00\x00\x33\xad\x00\x09\x00\x00\x98\x1c\x00\x00\x00\x00\x00\x00'
+    msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+    msg += b'\xa7\xab'
     return msg
 
 @pytest.fixture
@@ -892,6 +933,7 @@ def test_msg_contact_invalid(config_tsun_inv1, msg_contact_invalid):
 def test_msg_get_time(config_tsun_inv1, msg_get_time):
     _ = config_tsun_inv1
     m = MemoryStream(msg_get_time, (0,))
+    m.state = State.up
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
     m.read()         # read complete msg, and dispatch msg
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
@@ -903,6 +945,7 @@ def test_msg_get_time(config_tsun_inv1, msg_get_time):
     assert m.header_len==23
     assert m.ts_offset==0
     assert m.data_len==0
+    assert m.state==State.pend
     assert m._forward_buffer==msg_get_time
     assert m._send_buffer==b'\x00\x00\x00\x1b\x10R170000000000001\x91"\x00\x00\x01\x89\xc6,_\x00'
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
@@ -911,6 +954,7 @@ def test_msg_get_time(config_tsun_inv1, msg_get_time):
 def test_msg_get_time_autark(config_no_tsun_inv1, msg_get_time):
     _ = config_no_tsun_inv1
     m = MemoryStream(msg_get_time, (0,))
+    m.state = State.received
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
     m.read()         # read complete msg, and dispatch msg
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
@@ -922,14 +966,19 @@ def test_msg_get_time_autark(config_no_tsun_inv1, msg_get_time):
     assert m.header_len==23
     assert m.ts_offset==0
     assert m.data_len==0
+    assert m.state==State.received
     assert m._forward_buffer==b''
     assert m._send_buffer==bytearray(b'\x00\x00\x00\x1b\x10R170000000000001\x91"\x00\x00\x01\x89\xc6,_\x00')
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
     m.close()
 
 def test_msg_time_resp(config_tsun_inv1, msg_time_rsp):
+    # test if ts_offset will be set on client and server side
     _ = config_tsun_inv1
     m = MemoryStream(msg_time_rsp, (0,), False)
+    s = MemoryStream(b'', (0,), True)
+    assert s.ts_offset==0
+    m.remote_stream = s
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
     m.read()         # read complete msg, and dispatch msg
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
@@ -940,10 +989,13 @@ def test_msg_time_resp(config_tsun_inv1, msg_time_rsp):
     assert m.msg_id==34
     assert m.header_len==23
     assert m.ts_offset==3600000
+    assert s.ts_offset==3600000
     assert m.data_len==8
     assert m._forward_buffer==b''
     assert m._send_buffer==b''
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
+    m.remote_stream = None
+    s.close()
     m.close()
 
 def test_msg_time_resp_autark(config_no_tsun_inv1, msg_time_rsp):
@@ -1020,6 +1072,169 @@ def test_msg_time_invalid_autark(config_no_tsun_inv1, msg_time_invalid):
     assert m._forward_buffer==b''
     assert m._send_buffer==b''
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 1
+    m.close()
+
+def test_msg_act_time(config_no_modbus_poll, msg_act_time, msg_act_time_ack):
+    _ = config_no_modbus_poll
+    m = MemoryStream(msg_act_time, (0,))
+    m.ts_offset=0
+    m.mb_timeout = 124
+    m.db.set_db_def_value(Register.POLLING_INTERVAL, 125)
+    m.state = State.received
+    m.db.stat['proxy']['Unknown_Ctrl'] = 0
+    m.read()         # read complete msg, and dispatch msg
+    assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
+    assert m.msg_count == 1
+    assert m.id_str == b"R170000000000001" 
+    assert m.unique_id == 'R170000000000001'
+    assert int(m.ctrl)==145
+    assert m.msg_id==153
+    assert m.ts_offset==0
+    assert m.header_len==23
+    assert m.data_len==9
+    assert m.state == State.up
+    assert m._forward_buffer==msg_act_time
+    assert m._send_buffer==msg_act_time_ack
+    assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
+    assert 125 == m.db.get_db_value(Register.POLLING_INTERVAL, 0)
+    m.close()
+
+def test_msg_act_time2(config_tsun_inv1, msg_act_time, msg_act_time_ack):
+    _ = config_tsun_inv1
+    m = MemoryStream(msg_act_time, (0,))
+    m.ts_offset=0
+    m.modbus_polling = True
+    m.mb_timeout = 123
+    m.db.set_db_def_value(Register.POLLING_INTERVAL, 125)
+    m.db.stat['proxy']['Unknown_Ctrl'] = 0
+    m.read()         # read complete msg, and dispatch msg
+    assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
+    assert m.msg_count == 1
+    assert m.id_str == b"R170000000000001" 
+    assert m.unique_id == 'R170000000000001'
+    assert int(m.ctrl)==145
+    assert m.msg_id==153
+    assert m.ts_offset==0
+    assert m.header_len==23
+    assert m.data_len==9
+    assert m._forward_buffer==msg_act_time
+    assert m._send_buffer==msg_act_time_ack
+    assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
+    assert 123 == m.db.get_db_value(Register.POLLING_INTERVAL, 0)
+    m.close()
+
+def test_msg_act_time_ofs(config_tsun_inv1, msg_act_time, msg_act_time_ofs, msg_act_time_ack):
+    _ = config_tsun_inv1
+    m = MemoryStream(msg_act_time, (0,))
+    m.ts_offset=3600
+    m.db.stat['proxy']['Unknown_Ctrl'] = 0
+    m.read()         # read complete msg, and dispatch msg
+    assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
+    assert m.msg_count == 1
+    assert m.id_str == b"R170000000000001" 
+    assert m.unique_id == 'R170000000000001'
+    assert int(m.ctrl)==145
+    assert m.msg_id==153
+    assert m.ts_offset==3600
+    assert m.header_len==23
+    assert m.data_len==9
+    assert m._forward_buffer==msg_act_time_ofs
+    assert m._send_buffer==msg_act_time_ack
+    assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
+    m.close()
+
+def test_msg_act_time_ofs2(config_tsun_inv1, msg_act_time, msg_act_time_ofs, msg_act_time_ack):
+    _ = config_tsun_inv1
+    m = MemoryStream(msg_act_time_ofs, (0,))
+    m.ts_offset=-3600
+    m.db.stat['proxy']['Unknown_Ctrl'] = 0
+    m.read()         # read complete msg, and dispatch msg
+    assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
+    assert m.msg_count == 1
+    assert m.id_str == b"R170000000000001" 
+    assert m.unique_id == 'R170000000000001'
+    assert int(m.ctrl)==145
+    assert m.msg_id==153
+    assert m.ts_offset==-3600
+    assert m.header_len==23
+    assert m.data_len==9
+    assert m._forward_buffer==msg_act_time
+    assert m._send_buffer==msg_act_time_ack
+    assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
+    m.close()
+
+def test_msg_act_time_autark(config_no_tsun_inv1, msg_act_time, msg_act_time_ack):
+    _ = config_no_tsun_inv1
+    m = MemoryStream(msg_act_time, (0,))
+    m.ts_offset=0
+    m.db.stat['proxy']['Unknown_Ctrl'] = 0
+    m.read()         # read complete msg, and dispatch msg
+    assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
+    assert m.msg_count == 1
+    assert m.id_str == b"R170000000000001" 
+    assert m.unique_id == 'R170000000000001'
+    assert int(m.ctrl)==145
+    assert m.msg_id==153
+    assert m.ts_offset==0
+    assert m.header_len==23
+    assert m.data_len==9
+    assert m._forward_buffer==b''
+    assert m._send_buffer==msg_act_time_ack
+    assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
+    m.close()
+
+def test_msg_act_time_ack(config_tsun_inv1, msg_act_time_ack):
+    _ = config_tsun_inv1
+    m = MemoryStream(msg_act_time_ack, (0,))
+    m.db.stat['proxy']['Unknown_Ctrl'] = 0
+    m.read()         # read complete msg, and dispatch msg
+    assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
+    assert m.msg_count == 1
+    assert m.id_str == b"R170000000000001" 
+    assert m.unique_id == 'R170000000000001'
+    assert int(m.ctrl)==153
+    assert m.msg_id==153
+    assert m.header_len==23
+    assert m.data_len==1
+    assert m._forward_buffer==b''
+    assert m._send_buffer==b''
+    assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
+    m.close()
+
+def test_msg_act_time_cmd(config_tsun_inv1, msg_act_time_cmd):
+    _ = config_tsun_inv1
+    m = MemoryStream(msg_act_time_cmd, (0,))
+    m.db.stat['proxy']['Unknown_Ctrl'] = 0
+    m.read()         # read complete msg, and dispatch msg
+    assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
+    assert m.msg_count == 1
+    assert m.id_str == b"R170000000000001" 
+    assert m.unique_id == 'R170000000000001'
+    assert int(m.ctrl)==112
+    assert m.msg_id==153
+    assert m.header_len==23
+    assert m.data_len==1
+    assert m._forward_buffer==msg_act_time_cmd
+    assert m._send_buffer==b''
+    assert m.db.stat['proxy']['Unknown_Ctrl'] == 1
+    m.close()
+
+def test_msg_act_time_inv(config_tsun_inv1, msg_act_time_inv):
+    _ = config_tsun_inv1
+    m = MemoryStream(msg_act_time_inv, (0,))
+    m.db.stat['proxy']['Unknown_Ctrl'] = 0
+    m.read()         # read complete msg, and dispatch msg
+    assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
+    assert m.msg_count == 1
+    assert m.id_str == b"R170000000000001" 
+    assert m.unique_id == 'R170000000000001'
+    assert int(m.ctrl)==145
+    assert m.msg_id==153
+    assert m.header_len==23
+    assert m.data_len==8
+    assert m._forward_buffer==msg_act_time_inv
+    assert m._send_buffer==b''
+    assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
     m.close()
 
 def test_msg_cntrl_ind(config_tsun_inv1, msg_controller_ind, msg_controller_ind_ts_offs, msg_controller_ack):
@@ -1583,7 +1798,7 @@ def test_msg_modbus_rsp2(config_tsun_inv1, msg_modbus_rsp20):
     assert m.msg_count == 2
     assert m._forward_buffer==msg_modbus_rsp20
     assert m._send_buffer==b''
-    assert m.db.db == {'inverter': {'Version': 'V5.1.09', 'Rated_Power': 300}, 'grid': {'Timestamp': m._utc(), 'Voltage': 225.9, 'Current': 0.41, 'Frequency': 49.99, 'Output_Power': 94.8}, 'env': {'Inverter_Temp': 22}, 'input': {'Timestamp': m._utc(), 'pv1': {'Voltage': 0.8, 'Current': 0.0, 'Power': 0.0}, 'pv2': {'Voltage': 34.5, 'Current': 2.89, 'Power': 99.8}, 'pv3': {'Voltage': 0.0, 'Current': 0.0, 'Power': 0.0}, 'pv4': {'Voltage': 0.0, 'Current': 0.0, 'Power': 0.0}}}
+    assert m.db.db == {'collector': {'Serial_Number': 'R170000000000001'}, 'inverter': {'Version': 'V5.1.09', 'Rated_Power': 300}, 'grid': {'Timestamp': m._utc(), 'Voltage': 225.9, 'Current': 0.41, 'Frequency': 49.99, 'Output_Power': 94.8}, 'env': {'Inverter_Temp': 22}, 'input': {'Timestamp': m._utc(), 'pv1': {'Voltage': 0.8, 'Current': 0.0, 'Power': 0.0}, 'pv2': {'Voltage': 34.5, 'Current': 2.89, 'Power': 99.8}, 'pv3': {'Voltage': 0.0, 'Current': 0.0, 'Power': 0.0}, 'pv4': {'Voltage': 0.0, 'Current': 0.0, 'Power': 0.0}}}
     assert m.db.get_db_value(Register.VERSION) == 'V5.1.09'
     assert m.db.get_db_value(Register.TS_GRID) == m._utc()
     assert m.new_data['inverter'] == True
@@ -1613,11 +1828,62 @@ def test_msg_modbus_rsp3(config_tsun_inv1, msg_modbus_rsp21):
     assert m.msg_count == 2
     assert m._forward_buffer==msg_modbus_rsp21
     assert m._send_buffer==b''
-    assert m.db.db == {'inverter': {'Version': 'V5.1.0E', 'Rated_Power': 300}, 'grid': {'Timestamp': m._utc(), 'Voltage': 225.9, 'Current': 0.41, 'Frequency': 49.99, 'Output_Power': 94.8}, 'env': {'Inverter_Temp': 22}, 'input': {'Timestamp': m._utc(), 'pv1': {'Voltage': 0.8, 'Current': 0.0, 'Power': 0.0}, 'pv2': {'Voltage': 34.5, 'Current': 2.89, 'Power': 99.8}, 'pv3': {'Voltage': 0.0, 'Current': 0.0, 'Power': 0.0}, 'pv4': {'Voltage': 0.0, 'Current': 0.0, 'Power': 0.0}}}
+    assert m.db.db == {'collector': {'Serial_Number': 'R170000000000001'}, 'inverter': {'Version': 'V5.1.0E', 'Rated_Power': 300}, 'grid': {'Timestamp': m._utc(), 'Voltage': 225.9, 'Current': 0.41, 'Frequency': 49.99, 'Output_Power': 94.8}, 'env': {'Inverter_Temp': 22}, 'input': {'Timestamp': m._utc(), 'pv1': {'Voltage': 0.8, 'Current': 0.0, 'Power': 0.0}, 'pv2': {'Voltage': 34.5, 'Current': 2.89, 'Power': 99.8}, 'pv3': {'Voltage': 0.0, 'Current': 0.0, 'Power': 0.0}, 'pv4': {'Voltage': 0.0, 'Current': 0.0, 'Power': 0.0}}}
     assert m.db.get_db_value(Register.VERSION) == 'V5.1.0E'
     assert m.db.get_db_value(Register.TS_GRID) == m._utc()
     assert m.new_data['inverter'] == True
 
+    m.close()
+
+def test_msg_modbus_rsp4(config_tsun_inv1, msg_modbus_rsp21):
+    '''Modbus response with a valid Modbus but no new values request must be forwarded'''
+    _ = config_tsun_inv1
+    m = MemoryStream(msg_modbus_rsp21)
+ 
+    m.mb.rsp_handler = m.msg_forward
+    m.mb.last_addr = 1
+    m.mb.last_fcode = 3
+    m.mb.last_len = 20
+    m.mb.last_reg = 0x3008
+    m.mb.req_pend = True
+    m.mb.err = 0
+    db_values = {'collector': {'Serial_Number': 'R170000000000001'}, 'inverter': {'Version': 'V5.1.0E', 'Rated_Power': 300}, 'grid': {'Timestamp': m._utc(), 'Voltage': 225.9, 'Current': 0.41, 'Frequency': 49.99, 'Output_Power': 94.8}, 'env': {'Inverter_Temp': 22}, 'input': {'Timestamp': m._utc(), 'pv1': {'Voltage': 0.8, 'Current': 0.0, 'Power': 0.0}, 'pv2': {'Voltage': 34.5, 'Current': 2.89, 'Power': 99.8}, 'pv3': {'Voltage': 0.0, 'Current': 0.0, 'Power': 0.0}, 'pv4': {'Voltage': 0.0, 'Current': 0.0, 'Power': 0.0}}}
+    m.db.db  = db_values
+    m.new_data['inverter'] = False
+
+    m.read()         # read complete msg, and dispatch msg
+    assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
+    assert m.mb.err == 0
+    assert m.msg_count == 1
+    assert m._forward_buffer==msg_modbus_rsp21
+    assert m.modbus_elms == 19
+    assert m._send_buffer==b''
+    assert m.db.db == db_values
+    assert m.db.get_db_value(Register.VERSION) == 'V5.1.0E'
+    assert m.db.get_db_value(Register.TS_GRID) == m._utc()
+    assert m.new_data['inverter'] == False
+
+    m.close()
+
+def test_msg_modbus_rsp_new(config_tsun_inv1, msg_modbus_rsp20_new):
+    '''Modbus response in new format with a valid Modbus request must be forwarded'''
+    _ = config_tsun_inv1
+    m = MemoryStream(msg_modbus_rsp20_new)
+    m.db.stat['proxy']['Unknown_Ctrl'] = 0
+    m.db.stat['proxy']['Modbus_Command'] = 0
+    m.read()         # read complete msg, and dispatch msg
+    assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
+    assert m.msg_count == 1
+    assert m.id_str == b"R170000000000001" 
+    assert m.unique_id == 'R170000000000001'
+    assert int(m.ctrl)==145
+    assert m.msg_id==135
+    assert m.header_len==23
+    assert m.data_len==107
+    assert m._forward_buffer==b''
+    assert m._send_buffer==b''
+    assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
+    assert m.db.stat['proxy']['Modbus_Command'] == 0
     m.close()
 
 def test_msg_modbus_invalid(config_tsun_inv1, msg_modbus_inv):
