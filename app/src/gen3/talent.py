@@ -463,9 +463,7 @@ class Talent(Message):
             result = struct.unpack_from('!B', self._recv_buffer,
                                         self.header_len)
             resp_code = result[0]
-            if resp_code != 2:
-                logging.warning(f'TimeActRespCode: {resp_code}')
-
+            logging.debug(f'TimeActRespCode: {resp_code}')
             return
         else:
             logger.warning(self.TXT_UNKNOWN_CTRL)
