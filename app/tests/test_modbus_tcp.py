@@ -4,7 +4,6 @@ import asyncio
 
 from mock import patch
 from enum import Enum
-from enum import Enum
 from app.src.singleton import Singleton
 from app.src.config import Config
 from app.src.infos import Infos
@@ -132,12 +131,6 @@ def patch_open():
 def patch_no_mqtt():
     with patch.object(Mqtt, 'publish') as conn:
         yield conn
-
-@pytest.fixture
-def patch_no_mqtt():
-    with patch.object(Mqtt, 'publish') as conn:
-        yield conn
-
 
 @pytest.mark.asyncio
 async def test_modbus_conn(patch_open):
