@@ -1398,7 +1398,7 @@ def test_msg_inv_ind3(config_tsun_inv1, msg_inverter_ind_0w, msg_inverter_ack):
     m._update_header(m._forward_buffer)
     assert m._forward_buffer==msg_inverter_ind_0w
     assert m._send_buffer==msg_inverter_ack
-    assert m.db.get_db_value(Register.INVERTER_STATUS) == None
+    assert m.db.get_db_value(Register.INVERTER_STATUS) == 1
     assert isclose(m.db.db['grid']['Output_Power'], 0.5)
     m.close()
     assert m.db.get_db_value(Register.INVERTER_STATUS) == 0
