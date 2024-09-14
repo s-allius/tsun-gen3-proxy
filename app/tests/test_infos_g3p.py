@@ -86,7 +86,7 @@ def test_parse_4110(str_test_ip, device_data: bytes):
 
     assert json.dumps(i.db) == json.dumps({
         'controller': {"Data_Up_Interval": 300, "Collect_Interval": 1, "Heartbeat_Interval": 120, "Signal_Strength": 100, "IP_Address": str_test_ip, "Sensor_List": "02b0"},
-        'collector': {"Chip_Model": "LSW5BLE_17_02B0_1.05", "Collector_Fw_Version": "V1.1.00.0B", "MAC-Addr": "40:2a:8f:4f:51:54"},
+        'collector': {"Chip_Model": "LSW5BLE_17_02B0_1.05", "MAC-Addr": "40:2a:8f:4f:51:54", "Collector_Fw_Version": "V1.1.00.0B"},
         })
 
 def test_parse_4210(inverter_data: bytes):
