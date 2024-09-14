@@ -86,7 +86,7 @@ def test_parse_4110(str_test_ip, device_data: bytes):
 
     assert json.dumps(i.db) == json.dumps({
         'controller': {"Data_Up_Interval": 300, "Collect_Interval": 1, "Heartbeat_Interval": 120, "Signal_Strength": 100, "IP_Address": str_test_ip, "Sensor_List": "02b0"},
-        'collector': {"Chip_Model": "LSW5BLE_17_02B0_1.05", "Collector_Fw_Version": "V1.1.00.0B"},
+        'collector': {"Chip_Model": "LSW5BLE_17_02B0_1.05", "Collector_Fw_Version": "V1.1.00.0B", "MAC-Addr": "40:2a:8f:4f:51:54"},
         })
 
 def test_parse_4210(inverter_data: bytes):
@@ -98,7 +98,7 @@ def test_parse_4210(inverter_data: bytes):
 
     assert json.dumps(i.db) == json.dumps({
          "controller": {"Sensor_List": "02b0", "Power_On_Time": 2051}, 
-         "inverter": {"Serial_Number": "Y17E00000000000E", "Version": "V4.0.10", "Rated_Power": 600, "Max_Designed_Power": 2000}, 
+         "inverter": {"Serial_Number": "Y17E00000000000E", "Version": "V4.0.10", "Rated_Power": 600, "Max_Designed_Power": 2000, "Output_Coefficient": 100.0}, 
          "env": {"Inverter_Status": 1, "Inverter_Temp": 14}, 
          "grid": {"Voltage": 224.8, "Current": 0.73, "Frequency": 50.05, "Output_Power": 165.8}, 
          "input": {"pv1": {"Voltage": 35.3, "Current": 1.68, "Power": 59.6, "Daily_Generation": 0.04, "Total_Generation": 30.76}, 
