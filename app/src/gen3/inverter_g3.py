@@ -9,6 +9,7 @@ if __name__ == "app.src.gen3.inverter_g3":
     from app.src.config import Config
     from app.src.inverter import Inverter
     from app.src.gen3.connection_g3 import ConnectionG3
+    from app.src.infos import Infos
 else:  # pragma: no cover
     from config import Config
     from inverter import Inverter

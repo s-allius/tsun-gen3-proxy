@@ -34,6 +34,8 @@ inverters.allow_all = true   # allow inverters, even if we have no inverter mapp
 modbus_polling = false        # Disable optional MODBUS polling
 #pv1 = {type = 'RSM40-8-395M', manufacturer = 'Risen'}   # Optional, PV module descr
 #pv2 = {type = 'RSM40-8-395M', manufacturer = 'Risen'}   # Optional, PV module descr
+# end of block [inverters."R170000000000001"]
+
 
 #[inverters."R17xxxxxxxxxxxx2"]
 #node_id = ''                 # Optional, MQTT replacement for inverters serial number  
@@ -41,6 +43,8 @@ modbus_polling = false        # Disable optional MODBUS polling
 #modbus_polling = false        # Disable optional MODBUS polling
 #pv1 = {type = 'RSM40-8-405M', manufacturer = 'Risen'}   # Optional, PV module descr
 #pv2 = {type = 'RSM40-8-405M', manufacturer = 'Risen'}   # Optional, PV module descr
+# end of block [inverters."R170000000000002"]
+
 
 [inverters."Y170000000000001"]
 monitor_sn = 2000000000       # The "Monitoring SN:" can be found on a sticker enclosed with the inverter
@@ -56,9 +60,12 @@ modbus_polling = true         # Enable optional MODBUS polling
 #pv2 = {type = 'RSM40-8-410M', manufacturer = 'Risen'}   # Optional, PV module descr
 #pv3 = {type = 'RSM40-8-410M', manufacturer = 'Risen'}   # Optional, PV module descr
 #pv4 = {type = 'RSM40-8-410M', manufacturer = 'Risen'}   # Optional, PV module descr
+# end of block [inverters."Y170000000000001"]
+
 
 [gen3plus.at_acl]
 tsun.allow = ['AT+Z', 'AT+UPURL', 'AT+SUPDATE']
 tsun.block = []
 mqtt.allow = ['AT+']
 mqtt.block = []
+# end of block [gen3plus.at_acl]
