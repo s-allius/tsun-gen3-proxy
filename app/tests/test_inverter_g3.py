@@ -8,11 +8,10 @@ from app.src.infos import Infos
 from app.src.config import Config
 from app.src.inverter import Inverter
 from app.src.singleton import Singleton
-from app.src.gen3plus.connection_g3p import ConnectionG3P
-from app.src.gen3plus.inverter_g3p import InverterG3P
+from app.src.gen3.connection_g3 import ConnectionG3
+from app.src.gen3.inverter_g3 import InverterG3
 
 from app.tests.test_modbus_tcp import patch_mqtt_err, patch_mqtt_except, test_port, test_hostname
-
 
 pytest_plugins = ('pytest_asyncio',)
 
@@ -35,7 +34,7 @@ def config_conn():
             'proxy_node_id': 'test_1',
             'proxy_unique_id': ''
         },
-        'solarman':{'enabled': True, 'host': 'test_cloud.local', 'port': 1234}, 'inverters':{'allow_all':True}
+        'tsun':{'enabled': True, 'host': 'test_cloud.local', 'port': 1234}, 'inverters':{'allow_all':True}
     }
 
 @pytest.fixture(scope="module", autouse=True)
@@ -45,12 +44,12 @@ def module_init():
 
 @pytest.fixture
 def patch_conn_init():
-    with patch.object(ConnectionG3P, '__init__', return_value= None) as conn:
+    with patch.object(ConnectionG3, '__init__', return_value= None) as conn:
         yield conn
 
 @pytest.fixture
 def patch_conn_close():
-    with patch.object(ConnectionG3P, 'close') as conn:
+    with patch.object(ConnectionG3, 'close') as conn:
         yield conn
 
 class FakeReader():
@@ -111,12 +110,12 @@ def test_method_calls(patch_conn_init, patch_conn_close):
     reader = FakeReader()
     writer =  FakeWriter()
     addr = ('proxy.local', 10000)
-    inverter = InverterG3P(reader, writer, addr, client_mode=False)
+    inverter = InverterG3(reader, writer, addr)
     inverter.l_addr = ''
     inverter.r_addr = ''
 
     spy1.assert_called_once()
-    spy1.assert_called_once_with(reader, writer, addr, None, server_side=True, client_mode=False)
+    spy1.assert_called_once_with(reader, writer, addr, None, True)
 
     inverter.close()
     spy2.assert_called_once()
@@ -129,7 +128,7 @@ async def test_remote_conn(config_conn, patch_open_connection, patch_conn_close)
 
     spy1 = patch_conn_close
 
-    inverter = InverterG3P(FakeReader(), FakeWriter(), ('proxy.local', 10000), client_mode=False)
+    inverter = InverterG3(FakeReader(), FakeWriter(), ('proxy.local', 10000))
     
     await inverter.async_create_remote()
     await asyncio.sleep(0)
@@ -148,7 +147,7 @@ async def test_remote_except(config_conn, patch_open_connection, patch_conn_clos
     global test
     test  = TestType.RD_TEST_TIMEOUT
 
-    inverter = InverterG3P(FakeReader(), FakeWriter(), ('proxy.local', 10000), client_mode=False)
+    inverter = InverterG3(FakeReader(), FakeWriter(), ('proxy.local', 10000))
 
     await inverter.async_create_remote()
     await asyncio.sleep(0)
@@ -171,8 +170,8 @@ async def test_mqtt_publish(config_conn, patch_open_connection, patch_conn_close
     
     Inverter.class_init()
 
-    inverter = InverterG3P(FakeReader(), FakeWriter(), ('proxy.local', 10000), client_mode=False)
-    inverter._SolarmanV5__set_serial_no(snr= 123344)
+    inverter = InverterG3(FakeReader(), FakeWriter(), ('proxy.local', 10000))
+    inverter._Talent__set_serial_no(serial_no= "123344")
     
     inverter.new_data['inverter'] = True
     inverter.db.db['inverter'] = {}
@@ -202,8 +201,8 @@ async def test_mqtt_err(config_conn, patch_open_connection, patch_mqtt_err, patc
     
     Inverter.class_init()
 
-    inverter = InverterG3P(FakeReader(), FakeWriter(), ('proxy.local', 10000), client_mode=False)
-    inverter._SolarmanV5__set_serial_no(snr= 123344)
+    inverter = InverterG3(FakeReader(), FakeWriter(), ('proxy.local', 10000))
+    inverter._Talent__set_serial_no(serial_no= "123344")
     
     inverter.new_data['inverter'] = True
     inverter.db.db['inverter'] = {}
@@ -224,8 +223,8 @@ async def test_mqtt_except(config_conn, patch_open_connection, patch_mqtt_except
     
     Inverter.class_init()
 
-    inverter = InverterG3P(FakeReader(), FakeWriter(), ('proxy.local', 10000), client_mode=False)
-    inverter._SolarmanV5__set_serial_no(snr= 123344)
+    inverter = InverterG3(FakeReader(), FakeWriter(), ('proxy.local', 10000))
+    inverter._Talent__set_serial_no(serial_no= "123344")
     
     inverter.new_data['inverter'] = True
     inverter.db.db['inverter'] = {}
