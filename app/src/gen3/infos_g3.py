@@ -11,82 +11,82 @@ else:  # pragma: no cover
 
 class RegisterMap:
     map = {
-        0x00092ba8: Register.COLLECTOR_FW_VERSION,
-        0x000927c0: Register.CHIP_TYPE,
-        0x00092f90: Register.CHIP_MODEL,
-        0x00094ae8: Register.MAC_ADDR,
-        0x00095a88: Register.TRACE_URL,
-        0x00095aec: Register.LOGGER_URL,
-        0x0000000a: Register.PRODUCT_NAME,
-        0x00000014: Register.MANUFACTURER,
-        0x0000001e: Register.VERSION,
-        0x00000028: Register.SERIAL_NUMBER,
-        0x00000032: Register.EQUIPMENT_MODEL,
-        0x00013880: Register.NO_INPUTS,
-        0xffffff00: Register.INVERTER_CNT,
-        0xffffff01: Register.UNKNOWN_SNR,
-        0xffffff02: Register.UNKNOWN_MSG,
-        0xffffff03: Register.INVALID_DATA_TYPE,
-        0xffffff04: Register.INTERNAL_ERROR,
-        0xffffff05: Register.UNKNOWN_CTRL,
-        0xffffff06: Register.OTA_START_MSG,
-        0xffffff07: Register.SW_EXCEPTION,
-        0xffffff08: Register.MAX_DESIGNED_POWER,
-        0xffffff09: Register.OUTPUT_COEFFICIENT,
-        0xffffff0a: Register.INVERTER_STATUS,
-        0xffffff0b: Register.POLLING_INTERVAL,
-        0xfffffffe: Register.TEST_REG1,
-        0xffffffff: Register.TEST_REG2,
-        0x00000640: Register.OUTPUT_POWER,
-        0x000005dc: Register.RATED_POWER,
-        0x00000514: Register.INVERTER_TEMP,
-        0x000006a4: Register.PV1_VOLTAGE,
-        0x00000708: Register.PV1_CURRENT,
-        0x0000076c: Register.PV1_POWER,
-        0x000007d0: Register.PV2_VOLTAGE,
-        0x00000834: Register.PV2_CURRENT,
-        0x00000898: Register.PV2_POWER,
-        0x000008fc: Register.PV3_VOLTAGE,
-        0x00000960: Register.PV3_CURRENT,
-        0x000009c4: Register.PV3_POWER,
-        0x00000a28: Register.PV4_VOLTAGE,
-        0x00000a8c: Register.PV4_CURRENT,
-        0x00000af0: Register.PV4_POWER,
-        0x00000c1c: Register.PV1_DAILY_GENERATION,
-        0x00000c80: Register.PV1_TOTAL_GENERATION,
-        0x00000ce4: Register.PV2_DAILY_GENERATION,
-        0x00000d48: Register.PV2_TOTAL_GENERATION,
-        0x00000dac: Register.PV3_DAILY_GENERATION,
-        0x00000e10: Register.PV3_TOTAL_GENERATION,
-        0x00000e74: Register.PV4_DAILY_GENERATION,
-        0x00000ed8: Register.PV4_TOTAL_GENERATION,
-        0x00000b54: Register.DAILY_GENERATION,
-        0x00000bb8: Register.TOTAL_GENERATION,
-        0x000003e8: Register.GRID_VOLTAGE,
-        0x0000044c: Register.GRID_CURRENT,
-        0x000004b0: Register.GRID_FREQUENCY,
-        0x000cfc38: Register.CONNECT_COUNT,
-        0x000c3500: Register.SIGNAL_STRENGTH,
-        0x000c96a8: Register.POWER_ON_TIME,
-        0x000d0020: Register.COLLECT_INTERVAL,
-        0x000cf850: Register.DATA_UP_INTERVAL,
-        0x000c7f38: Register.COMMUNICATION_TYPE,
-        0x00000191: Register.EVENT_401,
-        0x00000192: Register.EVENT_402,
-        0x00000193: Register.EVENT_403,
-        0x00000194: Register.EVENT_404,
-        0x00000195: Register.EVENT_405,
-        0x00000196: Register.EVENT_406,
-        0x00000197: Register.EVENT_407,
-        0x00000198: Register.EVENT_408,
-        0x00000199: Register.EVENT_409,
-        0x0000019a: Register.EVENT_410,
-        0x0000019b: Register.EVENT_411,
-        0x0000019c: Register.EVENT_412,
-        0x0000019d: Register.EVENT_413,
-        0x0000019e: Register.EVENT_414,
-        0x0000019f: Register.EVENT_415,
-        0x000001a0: Register.EVENT_416,
+        0x00092ba8: {'reg': Register.COLLECTOR_FW_VERSION},
+        0x000927c0: {'reg': Register.CHIP_TYPE},
+        0x00092f90: {'reg': Register.CHIP_MODEL},
+        0x00094ae8: {'reg': Register.MAC_ADDR},
+        0x00095a88: {'reg': Register.TRACE_URL},
+        0x00095aec: {'reg': Register.LOGGER_URL},
+        0x0000000a: {'reg': Register.PRODUCT_NAME},
+        0x00000014: {'reg': Register.MANUFACTURER},
+        0x0000001e: {'reg': Register.VERSION},
+        0x00000028: {'reg': Register.SERIAL_NUMBER},
+        0x00000032: {'reg': Register.EQUIPMENT_MODEL},
+        0x00013880: {'reg': Register.NO_INPUTS},
+        0xffffff00: {'reg': Register.INVERTER_CNT},
+        0xffffff01: {'reg': Register.UNKNOWN_SNR},
+        0xffffff02: {'reg': Register.UNKNOWN_MSG},
+        0xffffff03: {'reg': Register.INVALID_DATA_TYPE},
+        0xffffff04: {'reg': Register.INTERNAL_ERROR},
+        0xffffff05: {'reg': Register.UNKNOWN_CTRL},
+        0xffffff06: {'reg': Register.OTA_START_MSG},
+        0xffffff07: {'reg': Register.SW_EXCEPTION},
+        0xffffff08: {'reg': Register.POLLING_INTERVAL},
+        0xfffffffe: {'reg': Register.TEST_REG1},
+        0xffffffff: {'reg': Register.TEST_REG2},
+        0x00000640: {'reg': Register.OUTPUT_POWER},
+        0x000005dc: {'reg': Register.RATED_POWER},
+        0x00000514: {'reg': Register.INVERTER_TEMP},
+        0x000006a4: {'reg': Register.PV1_VOLTAGE},
+        0x00000708: {'reg': Register.PV1_CURRENT},
+        0x0000076c: {'reg': Register.PV1_POWER},
+        0x000007d0: {'reg': Register.PV2_VOLTAGE},
+        0x00000834: {'reg': Register.PV2_CURRENT},
+        0x00000898: {'reg': Register.PV2_POWER},
+        0x000008fc: {'reg': Register.PV3_VOLTAGE},
+        0x00000960: {'reg': Register.PV3_CURRENT},
+        0x000009c4: {'reg': Register.PV3_POWER},
+        0x00000a28: {'reg': Register.PV4_VOLTAGE},
+        0x00000a8c: {'reg': Register.PV4_CURRENT},
+        0x00000af0: {'reg': Register.PV4_POWER},
+        0x00000c1c: {'reg': Register.PV1_DAILY_GENERATION},
+        0x00000c80: {'reg': Register.PV1_TOTAL_GENERATION},
+        0x00000ce4: {'reg': Register.PV2_DAILY_GENERATION},
+        0x00000d48: {'reg': Register.PV2_TOTAL_GENERATION},
+        0x00000dac: {'reg': Register.PV3_DAILY_GENERATION},
+        0x00000e10: {'reg': Register.PV3_TOTAL_GENERATION},
+        0x00000e74: {'reg': Register.PV4_DAILY_GENERATION},
+        0x00000ed8: {'reg': Register.PV4_TOTAL_GENERATION},
+        0x00000b54: {'reg': Register.DAILY_GENERATION},
+        0x00000bb8: {'reg': Register.TOTAL_GENERATION},
+        0x000003e8: {'reg': Register.GRID_VOLTAGE},
+        0x0000044c: {'reg': Register.GRID_CURRENT},
+        0x000004b0: {'reg': Register.GRID_FREQUENCY},
+        0x000cfc38: {'reg': Register.CONNECT_COUNT},
+        0x000c3500: {'reg': Register.SIGNAL_STRENGTH},
+        0x000c96a8: {'reg': Register.POWER_ON_TIME},
+        0x000d0020: {'reg': Register.COLLECT_INTERVAL},
+        0x000cf850: {'reg': Register.DATA_UP_INTERVAL},
+        0x000c7f38: {'reg': Register.COMMUNICATION_TYPE},
+        0x00000191: {'reg': Register.EVENT_401},
+        0x00000192: {'reg': Register.EVENT_402},
+        0x00000193: {'reg': Register.EVENT_403},
+        0x00000194: {'reg': Register.EVENT_404},
+        0x00000195: {'reg': Register.EVENT_405},
+        0x00000196: {'reg': Register.EVENT_406},
+        0x00000197: {'reg': Register.EVENT_407},
+        0x00000198: {'reg': Register.EVENT_408},
+        0x00000199: {'reg': Register.EVENT_409},
+        0x0000019a: {'reg': Register.EVENT_410},
+        0x0000019b: {'reg': Register.EVENT_411},
+        0x0000019c: {'reg': Register.EVENT_412},
+        0x0000019d: {'reg': Register.EVENT_413},
+        0x0000019e: {'reg': Register.EVENT_414},
+        0x0000019f: {'reg': Register.EVENT_415},
+        0x000001a0: {'reg': Register.EVENT_416},
+        0x00000064: {'reg': Register.INVERTER_STATUS},
+        0x0000125c: {'reg': Register.MAX_DESIGNED_POWER},
+        0x00003200: {'reg': Register.OUTPUT_COEFFICIENT, 'ratio':  100/1024},
     }
 
 
@@ -104,7 +104,8 @@ class InfosG3(Infos):
                          entity strings
         sug_area:str ==> suggested area string from the config file'''
         # iterate over RegisterMap.map and get the register values
-        for reg in RegisterMap.map.values():
+        for row in RegisterMap.map.values():
+            reg = row['reg']
             res = self.ha_conf(reg, ha_prfx, node_id, snr, False, sug_area)  # noqa: E501
             if res:
                 yield res
@@ -123,9 +124,11 @@ class InfosG3(Infos):
             result = struct.unpack_from('!lB', buf, ind)
             addr = result[0]
             if addr not in RegisterMap.map:
+                row = None
                 info_id = -1
             else:
-                info_id = RegisterMap.map[addr]
+                row = RegisterMap.map[addr]
+                info_id = row['reg']
             data_type = result[1]
             ind += 5
 
@@ -171,8 +174,18 @@ class InfosG3(Infos):
                               " not supported")
                 return
 
+            result = self.__modify_val(row, result)
+
             yield from self.__store_result(addr, result, info_id, node_id)
             i += 1
+
+    def __modify_val(self, row, result):
+        if row:
+            if 'eval' in row:
+                result = eval(row['eval'])
+            if 'ratio' in row:
+                result = round(result * row['ratio'], 2)
+        return result
 
     def __store_result(self, addr, result, info_id, node_id):
         keys, level, unit, must_incr = self._key_obj(info_id)

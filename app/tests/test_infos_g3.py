@@ -1,7 +1,7 @@
 # test_with_pytest.py
-import pytest, json
-from app.src.infos import Register, ClrAtMidnight
-from app.src.gen3.infos_g3 import InfosG3
+import pytest, json, math
+from app.src.infos import Register
+from app.src.gen3.infos_g3 import InfosG3, RegisterMap
 
 @pytest.fixture
 def contr_data_seq(): # Get Time Request message
@@ -421,21 +421,21 @@ def test_must_incr_total(inv_data_seq2, inv_data_seq2_zero):
         if key == 'total' or key == 'inverter' or key == 'env':
             assert update == True
             tests +=1   
-    assert tests==5
+    assert tests==8
     assert json.dumps(i.db['total']) == json.dumps({'Daily_Generation': 1.7, 'Total_Generation': 17.36})
     assert json.dumps(i.db['input']) == json.dumps({"pv1": {"Voltage": 33.6, "Current": 1.91, "Power": 64.5, "Daily_Generation": 1.08, "Total_Generation": 9.74}, "pv2": {"Voltage": 33.5, "Current": 1.36, "Power": 45.7, "Daily_Generation": 0.62, "Total_Generation": 7.62}, "pv3": {"Voltage": 0.0, "Current": 0.0, "Power": 0.0}, "pv4": {"Voltage": 0.0, "Current": 0.0, "Power": 0.0}})
-    assert json.dumps(i.db['env']) == json.dumps({"Inverter_Temp": 23})
+    assert json.dumps(i.db['env']) == json.dumps({"Inverter_Status": 1, "Inverter_Temp": 23})
     tests = 0
     for key, update in i.parse (inv_data_seq2):
         if key == 'total' or key == 'env':
             assert update == False
             tests +=1   
 
-    assert tests==3
+    assert tests==4
     assert json.dumps(i.db['total']) == json.dumps({'Daily_Generation': 1.7, 'Total_Generation': 17.36})
     assert json.dumps(i.db['input']) == json.dumps({"pv1": {"Voltage": 33.6, "Current": 1.91, "Power": 64.5, "Daily_Generation": 1.08, "Total_Generation": 9.74}, "pv2": {"Voltage": 33.5, "Current": 1.36, "Power": 45.7, "Daily_Generation": 0.62, "Total_Generation": 7.62}, "pv3": {"Voltage": 0.0, "Current": 0.0, "Power": 0.0}, "pv4": {"Voltage": 0.0, "Current": 0.0, "Power": 0.0}})
-    assert json.dumps(i.db['env']) == json.dumps({"Inverter_Temp": 23})
-    assert json.dumps(i.db['inverter']) == json.dumps({"Rated_Power": 600, "No_Inputs": 2})
+    assert json.dumps(i.db['env']) == json.dumps({"Inverter_Status": 1, "Inverter_Temp": 23})
+    assert json.dumps(i.db['inverter']) == json.dumps({"Rated_Power": 600, "Max_Designed_Power": -1, "Output_Coefficient": 100.0, "No_Inputs": 2})
         
     tests = 0
     for key, update in i.parse (inv_data_seq2_zero):
@@ -443,13 +443,12 @@ def test_must_incr_total(inv_data_seq2, inv_data_seq2_zero):
             assert update == False
             tests +=1   
         elif key == 'env':
-            assert update == True
             tests +=1   
 
-    assert tests==3
+    assert tests==4
     assert json.dumps(i.db['total']) == json.dumps({'Daily_Generation': 1.7, 'Total_Generation': 17.36})
     assert json.dumps(i.db['input']) == json.dumps({"pv1": {"Voltage": 33.6, "Current": 1.91, "Power": 0.0, "Daily_Generation": 1.08, "Total_Generation": 9.74}, "pv2": {"Voltage": 33.5, "Current": 1.36, "Power": 0.0, "Daily_Generation": 0.62, "Total_Generation": 7.62}, "pv3": {"Voltage": 0.0, "Current": 0.0, "Power": 0.0}, "pv4": {"Voltage": 0.0, "Current": 0.0, "Power": 0.0}})
-    assert json.dumps(i.db['env']) == json.dumps({"Inverter_Temp": 0})
+    assert json.dumps(i.db['env']) == json.dumps({"Inverter_Status": 1, "Inverter_Temp": 0})
 
 def test_must_incr_total2(inv_data_seq2, inv_data_seq2_zero):
     i = InfosG3()
@@ -462,10 +461,10 @@ def test_must_incr_total2(inv_data_seq2, inv_data_seq2_zero):
             assert update == True
             tests +=1
 
-    assert tests==3
+    assert tests==4
     assert json.dumps(i.db['total']) == json.dumps({})
     assert json.dumps(i.db['input']) == json.dumps({"pv1": {"Voltage": 33.6, "Current": 1.91, "Power": 0.0}, "pv2": {"Voltage": 33.5, "Current": 1.36, "Power": 0.0}, "pv3": {"Voltage": 0.0, "Current": 0.0, "Power": 0.0}, "pv4": {"Voltage": 0.0, "Current": 0.0, "Power": 0.0}})
-    assert json.dumps(i.db['env']) == json.dumps({"Inverter_Temp": 0})
+    assert json.dumps(i.db['env']) == json.dumps({"Inverter_Status": 1, "Inverter_Temp": 0})
     
     tests = 0
     for key, update in i.parse (inv_data_seq2_zero):
@@ -473,18 +472,17 @@ def test_must_incr_total2(inv_data_seq2, inv_data_seq2_zero):
             assert update == False
             tests +=1   
 
-    assert tests==3
+    assert tests==4
     assert json.dumps(i.db['total']) == json.dumps({})
     assert json.dumps(i.db['input']) == json.dumps({"pv1": {"Voltage": 33.6, "Current": 1.91, "Power": 0.0}, "pv2": {"Voltage": 33.5, "Current": 1.36, "Power": 0.0}, "pv3": {"Voltage": 0.0, "Current": 0.0, "Power": 0.0}, "pv4": {"Voltage": 0.0, "Current": 0.0, "Power": 0.0}})
-    assert json.dumps(i.db['env']) == json.dumps({"Inverter_Temp": 0})
+    assert json.dumps(i.db['env']) == json.dumps({"Inverter_Status": 1, "Inverter_Temp": 0})
 
     tests = 0
     for key, update in i.parse (inv_data_seq2):
         if key == 'total' or key == 'env':
-            assert update == True
             tests +=1   
 
-    assert tests==3
+    assert tests==4
     assert json.dumps(i.db['total']) == json.dumps({'Daily_Generation': 1.7, 'Total_Generation': 17.36})
     assert json.dumps(i.db['input']) == json.dumps({"pv1": {"Voltage": 33.6, "Current": 1.91, "Power": 64.5, "Daily_Generation": 1.08, "Total_Generation": 9.74}, "pv2": {"Voltage": 33.5, "Current": 1.36, "Power": 45.7, "Daily_Generation": 0.62, "Total_Generation": 7.62}, "pv3": {"Voltage": 0.0, "Current": 0.0, "Power": 0.0}, "pv4": {"Voltage": 0.0, "Current": 0.0, "Power": 0.0}})
    
@@ -522,3 +520,15 @@ def test_invalid_data_type(invalid_data_seq):
 
     val = i.dev_value(Register.INVALID_DATA_TYPE)  # check invalid data type counter
     assert val == 1
+
+def test_result_eval(inv_data_seq2: bytes):
+
+    # add eval to convert temperature from °F to °C
+    RegisterMap.map[0x00000514]['eval'] =  '(result-32)/1.8'
+
+    i = InfosG3()
+    
+    for _, _ in i.parse (inv_data_seq2):
+        pass  #  side effect is calling generator i.parse()
+    assert math.isclose(-5.0, round (i.get_db_value(Register.INVERTER_TEMP, 0),4), rel_tol=1e-09, abs_tol=1e-09)
+    del RegisterMap.map[0x00000514]['eval'] # remove eval
