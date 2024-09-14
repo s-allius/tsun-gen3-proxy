@@ -1,7 +1,7 @@
 # test_with_pytest.py
-import pytest, json
-from app.src.infos import Register, ClrAtMidnight
-from app.src.gen3.infos_g3 import InfosG3
+import pytest, json, math
+from app.src.infos import Register
+from app.src.gen3.infos_g3 import InfosG3, RegisterMap
 
 @pytest.fixture
 def contr_data_seq(): # Get Time Request message
@@ -520,3 +520,15 @@ def test_invalid_data_type(invalid_data_seq):
 
     val = i.dev_value(Register.INVALID_DATA_TYPE)  # check invalid data type counter
     assert val == 1
+
+def test_result_eval(inv_data_seq2: bytes):
+
+    # add eval to convert temperature from °F to °C
+    RegisterMap.map[0x00000514]['eval'] =  '(result-32)/1.8'
+
+    i = InfosG3()
+    
+    for _, _ in i.parse (inv_data_seq2):
+        pass  #  side effect is calling generator i.parse()
+    assert math.isclose(-5.0, round (i.get_db_value(Register.INVERTER_TEMP, 0),4), rel_tol=1e-09, abs_tol=1e-09)
+    del RegisterMap.map[0x00000514]['eval'] # remove eval
