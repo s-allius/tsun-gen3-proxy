@@ -1,7 +1,12 @@
 import logging
 from asyncio import StreamReader, StreamWriter
-from async_stream import AsyncStream
-from gen3.talent import Talent
+
+if __name__ == "app.src.gen3.connection_g3":
+    from app.src.async_stream import AsyncStream
+    from app.src.gen3.talent import Talent
+else:  # pragma: no cover
+    from async_stream import AsyncStream
+    from gen3.talent import Talent
 
 logger = logging.getLogger('conn')
 

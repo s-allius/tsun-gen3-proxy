@@ -185,6 +185,35 @@ def device_rsp_msg():  # 0x1110
     return msg
 
 @pytest.fixture
+def device_ind_msg2(): # 0x4110
+    msg  = b'\xa5\xd4\x00\x10\x41\x02\x03' +get_sn()  +b'\x02\xba\xd2\x00\x00'
+    msg += b'\x19\x00\x00\x00\x00\x00\x00\x00\x05\x3c\x78\x01\x64\x01\x4c\x53'
+    msg += b'\x57\x35\x42\x4c\x45\x5f\x31\x37\x5f\x30\x32\x42\x30\x5f\x31\x2e'
+    msg += b'\x30\x35\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+    msg += b'\x00\x00\x00\x00\x00\x00\x40\x2a\x8f\x4f\x51\x54\x31\x39\x32\x2e'
+    msg += b'\x31\x36\x38\x2e\x38\x30\x2e\x34\x39\x00\x00\x00\x0f\x00\x01\xb0'
+    msg += b'\x02\x0f\x00\xff\x56\x31\x2e\x31\x2e\x30\x30\x2e\x30\x42\x00\x00'
+    msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+    msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xfe\xfe\x00\x00'
+    msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+    msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+    msg += b'\x00\x00\x00\x00\x00\x00\x00\x41\x6c\x6c\x69\x75\x73\x2d\x48\x6f'
+    msg += b'\x6d\x65\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+    msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00' 
+    msg += correct_checksum(msg)
+    msg += b'\x15'
+    return msg
+
+@pytest.fixture
+def device_rsp_msg2():  # 0x1110
+    msg  = b'\xa5\x0a\x00\x10\x11\x03\x03' +get_sn()  +b'\x02\x01'
+    msg += total()  
+    msg += hb()
+    msg += correct_checksum(msg)
+    msg += b'\x15'
+    return msg
+
+@pytest.fixture
 def invalid_start_byte(): # 0x4110
     msg  = b'\xa4\xd4\x00\x10\x41\x00\x01' +get_sn()  +b'\x02\xba\xd2\x00\x00'
     msg += b'\x19\x00\x00\x00\x00\x00\x00\x00\x05\x3c\x78\x01\x64\x01\x4c\x53'
@@ -899,6 +928,54 @@ def test_read_two_messages2(config_tsun_allow_all, inverter_ind_msg, inverter_in
     m._send_buffer = bytearray(0) # clear send buffer for next test    
     m._init_new_client_conn()
     assert m._send_buffer==b''
+    m.close()
+
+def test_read_two_messages3(config_tsun_allow_all, device_ind_msg2, device_rsp_msg2, inverter_ind_msg, inverter_rsp_msg):
+    # test device message received after the inverter masg
+    _ = config_tsun_allow_all
+    m = MemoryStream(inverter_ind_msg, (0,))
+    m.append_msg(device_ind_msg2)
+    assert 0 == m.sensor_list
+    m._init_new_client_conn()
+    m.read()         # read complete msg, and dispatch msg
+    assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
+    assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
+    assert m.msg_count == 2
+    assert m.header_len==11
+    assert m.snr == 2070233889
+    assert m.unique_id == '2070233889'
+    assert m.msg_recvd[0]['control']==0x4210
+    assert m.msg_recvd[0]['seq']=='02:02'
+    assert m.msg_recvd[0]['data_len']==0x199
+    assert m.msg_recvd[1]['control']==0x4110
+    assert m.msg_recvd[1]['seq']=='03:03'
+    assert m.msg_recvd[1]['data_len']==0xd4
+    assert '02b0' == m.db.get_db_value(Register.SENSOR_LIST, None)
+    assert 0x02b0 == m.sensor_list
+    assert m._forward_buffer==inverter_ind_msg+device_ind_msg2
+    assert m._send_buffer==inverter_rsp_msg+device_rsp_msg2
+
+    m._send_buffer = bytearray(0) # clear send buffer for next test    
+    m._init_new_client_conn()
+    assert m._send_buffer==b''
+    m.close()
+
+def test_unkown_frame_code(config_tsun_inv1, inverter_ind_msg_81, inverter_rsp_msg_81):
+    _ = config_tsun_inv1
+    m = MemoryStream(inverter_ind_msg_81, (0,))
+    m.read()         # read complete msg, and dispatch msg
+    assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
+    assert m.msg_count == 1
+    assert m.header_len==11
+    assert m.snr == 2070233889
+    assert m.unique_id == '2070233889'
+    assert m.control == 0x4210
+    assert str(m.seq) == '03:03'
+    assert m.data_len == 0x199
+    assert m._recv_buffer==b''
+    assert m._send_buffer==inverter_rsp_msg_81
+    assert m._forward_buffer==inverter_ind_msg_81
+    assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
     m.close()
 
 def test_unkown_message(config_tsun_inv1, unknown_msg):

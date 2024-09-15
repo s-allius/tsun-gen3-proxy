@@ -19,6 +19,7 @@ class RegisterMap:
         0x4102001a: {'reg': Register.HEARTBEAT_INTERVAL,   'fmt': '<B', 'ratio':    1},  # noqa: E501
         0x4102001c: {'reg': Register.SIGNAL_STRENGTH,      'fmt': '<B', 'ratio':    1, 'dep': ProxyMode.SERVER},  # noqa: E501
         0x4102001e: {'reg': Register.CHIP_MODEL,           'fmt': '!40s'},               # noqa: E501
+        0x41020046: {'reg': Register.MAC_ADDR,             'fmt': '!BBBBBB', 'eval': '"%02x:%02x:%02x:%02x:%02x:%02x" % res'},  # noqa: E501
         0x4102004c: {'reg': Register.IP_ADDRESS,           'fmt': '!16s'},               # noqa: E501
         0x4102005f: {'reg': Register.SENSOR_LIST,          'fmt': '<H', 'eval': "f'{result:04x}'"},                 # noqa: E501
         0x41020064: {'reg': Register.COLLECTOR_FW_VERSION, 'fmt': '!40s'},               # noqa: E501
@@ -59,7 +60,7 @@ class RegisterMap:
         0x42010112: {'reg': Register.PV4_TOTAL_GENERATION, 'fmt': '!L', 'ratio': 0.01},  # noqa: E501
         0x42010126: {'reg': Register.MAX_DESIGNED_POWER,   'fmt': '!H', 'ratio':    1},  # noqa: E501
 
-        0xffffff01: {'reg': Register.OUTPUT_COEFFICIENT},
+        0x42010170: {'reg': Register.OUTPUT_COEFFICIENT,   'fmt': '!H', 'ratio':  100/1024},  # noqa: E501
         0xffffff02: {'reg': Register.POLLING_INTERVAL},
         # 0x4281001c: {'reg': Register.POWER_ON_TIME,        'fmt': '<H', 'ratio':    1},  # noqa: E501
 

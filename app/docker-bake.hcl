@@ -78,7 +78,7 @@ target "dev" {
 
 target "preview" {
   inherits = ["_common", "_prod"]
-  tags = ["${IMAGE}:dev", "${IMAGE}:${VERSION}"]
+  tags = ["${IMAGE}:preview", "${IMAGE}:${VERSION}"]
 }
 
 target "rc" {

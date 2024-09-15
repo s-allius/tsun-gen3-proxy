@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+- Parse more values in Server Mode [#186](https://github.com/s-allius/tsun-gen3-proxy/issues/186)
+- GEN3: add support for new messages of version 3 firmwares [#182](https://github.com/s-allius/tsun-gen3-proxy/issues/182)
+- add support for controller MAC and serial number
 - GEN3: don't crash on overwritten msg in the receive buffer
 - Reading the version string from the image updates it even if the image is re-pulled without re-deployment
   
