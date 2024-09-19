@@ -176,7 +176,7 @@ class Talent(Message):
                         f' Ctl: {int(self.ctrl):#02x} Msg: {fnc.__name__!r}')
 
     def forward_snd(self) -> None:
-        '''add the actual receive msg to the forwarding queue'''
+        '''add the build send msg to the forwarding queue'''
         tsun = Config.get('tsun')
         if tsun['enabled']:
             _len = len(self._send_buffer) - self.send_msg_ofs
@@ -393,17 +393,18 @@ class Talent(Message):
     def __process_contact_info(self) -> bool:
         result = struct.unpack_from('!B', self._recv_buffer, self.header_len)
         name_len = result[0]
-        if self.data_len < name_len+2:
+        if self.data_len == 1:  # this is a response withone status byte
             return False
-        result = struct.unpack_from(f'!{name_len+1}pB', self._recv_buffer,
-                                    self.header_len)
-        self.contact_name = result[0]
-        mail_len = result[1]
-        logger.info(f'name: {self.contact_name}')
+        if self.data_len >= name_len+2:
+            result = struct.unpack_from(f'!{name_len+1}pB', self._recv_buffer,
+                                        self.header_len)
+            self.contact_name = result[0]
+            mail_len = result[1]
+            logger.info(f'name: {self.contact_name}')
 
-        result = struct.unpack_from(f'!{mail_len+1}p', self._recv_buffer,
-                                    self.header_len+name_len+1)
-        self.contact_mail = result[0]
+            result = struct.unpack_from(f'!{mail_len+1}p', self._recv_buffer,
+                                        self.header_len+name_len+1)
+            self.contact_mail = result[0]
         logger.info(f'mail: {self.contact_mail}')
         return True
 
