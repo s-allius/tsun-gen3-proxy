@@ -77,8 +77,8 @@ def test_method_calls(patch_async_init, patch_solarman_init, patch_healthy, patc
     addr = ('proxy.local', 10000)
     conn = ConnectionG3P(reader, writer, addr,
                          remote_stream= None, server_side=True, client_mode=False)
-    spy1.assert_called_once_with(conn, reader, writer, addr)
-    spy2.assert_called_once_with(conn, True, False)
+    spy1.assert_called_once_with(conn, reader, writer, addr, conn._ifc)
+    spy2.assert_called_once_with(conn, True, False, conn._ifc)
     conn.healthy()
 
     spy3.assert_called_once()

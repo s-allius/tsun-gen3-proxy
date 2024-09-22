@@ -7,8 +7,10 @@ from typing import Self
 from itertools import count
 
 if __name__ == "app.src.async_stream":
+    from app.src.async_ifc import AsyncIfc
     from app.src.messages import hex_dump_memory, State
 else:  # pragma: no cover
+    from async_ifc import AsyncIfc
     from messages import hex_dump_memory, State
 
 
@@ -28,16 +30,21 @@ class AsyncStream():
     '''maximum default time without a received msg in sec'''
 
     def __init__(self, reader: StreamReader, writer: StreamWriter,
-                 addr) -> None:
+                 addr, ifc: "AsyncIfc") -> None:
         logger.debug('AsyncStream.__init__')
-        self.reader = reader
-        self.writer = writer
+        ifc.write.reg_trigger(self.__write_cb)
+        self.ifc = ifc
+        self._reader = reader
+        self._writer = writer
         self.addr = addr
         self.r_addr = ''
         self.l_addr = ''
         self.conn_no = next(self._ids)
         self.proc_start = None  # start processing start timestamp
         self.proc_max = 0
+
+    def __write_cb(self):
+        self._writer.write(self.ifc.write.get())
 
     def __timeout(self) -> int:
         if self.state == State.init or self.state == State.received:
@@ -101,8 +108,8 @@ class AsyncStream():
 
     async def loop(self) -> Self:
         """Async loop handler for precessing all received messages"""
-        self.r_addr = self.writer.get_extra_info('peername')
-        self.l_addr = self.writer.get_extra_info('sockname')
+        self.r_addr = self._writer.get_extra_info('peername')
+        self.l_addr = self._writer.get_extra_info('sockname')
         self.proc_start = time.time()
         while True:
             try:
@@ -151,31 +158,30 @@ class AsyncStream():
 
     async def async_write(self, headline: str = 'Transmit to ') -> None:
         """Async write handler to transmit the send_buffer"""
-        if self._send_buffer:
-            hex_dump_memory(logging.INFO, f'{headline}{self.addr}:',
-                            self._send_buffer, len(self._send_buffer))
-            self.writer.write(self._send_buffer)
-            await self.writer.drain()
-            self._send_buffer = bytearray(0)  # self._send_buffer[sent:]
+        if len(self.ifc.write) > 0:
+            self.ifc.write.logging(logging.INFO, f'{headline}{self.addr}:')
+            self._writer.write(self.ifc.write.get())
+            await self._writer.drain()
 
     async def disc(self) -> None:
         """Async disc handler for graceful disconnect"""
-        if self.writer.is_closing():
+        if self._writer.is_closing():
             return
         logger.debug(f'AsyncStream.disc() l{self.l_addr} | r{self.r_addr}')
-        self.writer.close()
-        await self.writer.wait_closed()
+        self._writer.close()
+        await self._writer.wait_closed()
 
     def close(self) -> None:
         """close handler for a no waiting disconnect
 
            hint: must be called before releasing the connection instance
         """
-        self.reader.feed_eof()          # abort awaited read
-        if self.writer.is_closing():
+        self._reader.feed_eof()          # abort awaited read
+        if self._writer.is_closing():
             return
         logger.debug(f'AsyncStream.close() l{self.l_addr} | r{self.r_addr}')
-        self.writer.close()
+        self.ifc.write.reg_trigger(None)
+        self._writer.close()
 
     def healthy(self) -> bool:
         elapsed = 0
@@ -194,11 +200,11 @@ class AsyncStream():
     '''
     async def __async_read(self) -> None:
         """Async read handler to read received data from TCP stream"""
-        data = await self.reader.read(4096)
+        data = await self._reader.read(4096)
         if data:
             self.proc_start = time.time()
-            self._recv_buffer += data
-            wait = self.read()                # call read in parent class
+            self.ifc.read += data
+            wait = self.ifc.read()                # call read in parent class
             if wait > 0:
                 await asyncio.sleep(wait)
         else:
@@ -221,8 +227,8 @@ class AsyncStream():
                                 f'Forward to {self.remote_stream.addr}:',
                                 self._forward_buffer,
                                 len(self._forward_buffer))
-                self.remote_stream.writer.write(self._forward_buffer)
-                await self.remote_stream.writer.drain()
+                self.remote_stream._writer.write(self._forward_buffer)
+                await self.remote_stream._writer.drain()
                 self._forward_buffer = bytearray(0)
 
         except OSError as error:

@@ -2,9 +2,11 @@ import logging
 from asyncio import StreamReader, StreamWriter
 
 if __name__ == "app.src.gen3.connection_g3":
+    from app.src.async_ifc import AsyncIfc
     from app.src.async_stream import AsyncStream
     from app.src.gen3.talent import Talent
 else:  # pragma: no cover
+    from async_ifc import AsyncIfc
     from async_stream import AsyncStream
     from gen3.talent import Talent
 
@@ -16,8 +18,9 @@ class ConnectionG3(AsyncStream, Talent):
     def __init__(self, reader: StreamReader, writer: StreamWriter,
                  addr, remote_stream: 'ConnectionG3', server_side: bool,
                  id_str=b'') -> None:
-        AsyncStream.__init__(self, reader, writer, addr)
-        Talent.__init__(self, server_side, id_str)
+        self._ifc = AsyncIfc()
+        AsyncStream.__init__(self, reader, writer, addr, self._ifc)
+        Talent.__init__(self, server_side, self._ifc, id_str)
 
         self.remote_stream: 'ConnectionG3' = remote_stream
 

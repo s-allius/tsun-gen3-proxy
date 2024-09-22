@@ -72,8 +72,8 @@ def test_method_calls(patch_async_init, patch_talent_init, patch_healthy, patch_
     addr = ('proxy.local', 10000)
     conn = ConnectionG3(reader, writer, addr,
                         remote_stream= None, server_side=True, id_str=id_str)
-    spy1.assert_called_once_with(conn, reader, writer, addr)
-    spy2.assert_called_once_with(conn, True, id_str)
+    spy1.assert_called_once_with(conn, reader, writer, addr, conn._ifc)
+    spy2.assert_called_once_with(conn, True, conn._ifc, id_str)
     conn.healthy()
 
     spy3.assert_called_once()

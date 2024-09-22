@@ -5,6 +5,7 @@ import aiomqtt
 import logging
 
 from mock import patch, Mock
+from app.src.async_ifc import AsyncIfc
 from app.src.singleton import Singleton
 from app.src.mqtt import Mqtt
 from app.src.modbus import Modbus
@@ -44,7 +45,8 @@ def config_no_conn(test_port):
 
 @pytest.fixture
 def spy_at_cmd():
-    conn = SolarmanV5(server_side=True, client_mode= False)
+    ifc = AsyncIfc()
+    conn = SolarmanV5(server_side=True, client_mode= False, ifc=ifc)
     conn.node_id = 'inv_2/'
     with patch.object(conn, 'send_at_cmd', wraps=conn.send_at_cmd) as wrapped_conn:
         yield wrapped_conn
@@ -52,7 +54,8 @@ def spy_at_cmd():
 
 @pytest.fixture
 def spy_modbus_cmd():
-    conn = SolarmanV5(server_side=True, client_mode= False)
+    ifc = AsyncIfc()
+    conn = SolarmanV5(server_side=True, client_mode= False, ifc=ifc)
     conn.node_id = 'inv_1/'
     with patch.object(conn, 'send_modbus_cmd', wraps=conn.send_modbus_cmd) as wrapped_conn:
         yield wrapped_conn
@@ -60,7 +63,8 @@ def spy_modbus_cmd():
 
 @pytest.fixture
 def spy_modbus_cmd_client():
-    conn = SolarmanV5(server_side=False, client_mode= False)
+    ifc = AsyncIfc()
+    conn = SolarmanV5(server_side=False, client_mode= False, ifc=ifc)
     conn.node_id = 'inv_1/'
     with patch.object(conn, 'send_modbus_cmd', wraps=conn.send_modbus_cmd) as wrapped_conn:
         yield wrapped_conn

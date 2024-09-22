@@ -33,13 +33,9 @@ def __asc_val(n, data, data_len):
     return line
 
 
-def hex_dump_memory(level, info, data, data_len):
+def hex_dump(data, data_len) -> list:
     n = 0
     lines = []
-    lines.append(info)
-    tracer = logging.getLogger('tracer')
-    if not tracer.isEnabledFor(level):
-        return
 
     for i in range(0, data_len, 16):
         line = '  '
@@ -49,6 +45,23 @@ def hex_dump_memory(level, info, data, data_len):
         line += ' ' * (3 * 16 + 9 - len(line)) + ' | '
         line += __asc_val(n, data, data_len)
         lines.append(line)
+
+    return lines
+
+
+def hex_dump_str(data, data_len):
+    lines = hex_dump(data, data_len)
+    return '\n'.join(lines)
+
+
+def hex_dump_memory(level, info, data, data_len):
+    lines = []
+    lines.append(info)
+    tracer = logging.getLogger('tracer')
+    if not tracer.isEnabledFor(level):
+        return
+
+    lines += hex_dump(data, data_len)
 
     tracer.log(level, '\n'.join(lines))
 
@@ -94,8 +107,6 @@ class Message(metaclass=IterRegistry):
         self.unique_id = 0
         self.node_id = ''  # will be overwritten in the child class's __init__
         self.sug_area = ''
-        self._recv_buffer = bytearray(0)
-        self._send_buffer = bytearray(0)
         self._forward_buffer = bytearray(0)
         self.new_data = {}
         self.state = State.init

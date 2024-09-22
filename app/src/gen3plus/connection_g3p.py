@@ -2,9 +2,11 @@ import logging
 from asyncio import StreamReader, StreamWriter
 
 if __name__ == "app.src.gen3plus.connection_g3p":
+    from app.src.async_ifc import AsyncIfc
     from app.src.async_stream import AsyncStream
     from app.src.gen3plus.solarman_v5 import SolarmanV5
 else:  # pragma: no cover
+    from async_ifc import AsyncIfc
     from async_stream import AsyncStream
     from gen3plus.solarman_v5 import SolarmanV5
 
@@ -17,8 +19,9 @@ class ConnectionG3P(AsyncStream, SolarmanV5):
                  addr, remote_stream: 'ConnectionG3P',
                  server_side: bool,
                  client_mode: bool) -> None:
-        AsyncStream.__init__(self, reader, writer, addr)
-        SolarmanV5.__init__(self, server_side, client_mode)
+        self._ifc = AsyncIfc()
+        AsyncStream.__init__(self, reader, writer, addr, self._ifc)
+        SolarmanV5.__init__(self, server_side, client_mode, self._ifc)
 
         self.remote_stream: 'ConnectionG3P' = remote_stream
 
