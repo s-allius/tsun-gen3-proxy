@@ -378,14 +378,16 @@ class Infos:
 
         return None                  # unknwon idx, not in info_defs
 
-    def inc_counter(self, counter: str) -> None:
+    @classmethod
+    def inc_counter(cls, counter: str) -> None:
         '''inc proxy statistic counter'''
-        db_dict = self.stat['proxy']
+        db_dict = cls.stat['proxy']
         db_dict[counter] += 1
 
-    def dec_counter(self, counter: str) -> None:
+    @classmethod
+    def dec_counter(cls, counter: str) -> None:
         '''dec proxy statistic counter'''
-        db_dict = self.stat['proxy']
+        db_dict = cls.stat['proxy']
         db_dict[counter] -= 1
 
     def ha_proxy_confs(self, ha_prfx: str, node_id: str, snr: str) \
