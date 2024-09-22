@@ -87,8 +87,8 @@ class Modbus():
         '''Response handler to forward the response'''
         self.timeout = timeout
         '''MODBUS response timeout in seconds'''
-        self.max_retries = 1
-        '''Max retransmit for MODBUS requests'''
+        self.max_retries = 0
+        '''Max retransmit for MODBU requests'''
         self.retry_cnt = 0
         self.last_req = b''
         self.counter = {}

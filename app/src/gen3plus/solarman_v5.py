@@ -55,9 +55,9 @@ class SolarmanV5(Message):
     MB_RTU_CMD = 2
     MB_START_TIMEOUT = 40
     '''start delay for Modbus polling in server mode'''
-    MB_REGULAR_TIMEOUT = 60
+    MB_REGULAR_TIMEOUT = 20
     '''regular Modbus polling time in server mode'''
-    MB_CLIENT_DATA_UP = 30
+    MB_CLIENT_DATA_UP = 10
     '''Data up time in client mode'''
     HDR_FMT = '<BLLL'
     '''format string for packing of the header'''
@@ -142,6 +142,8 @@ class SolarmanV5(Message):
         '''timer value for next Modbus polling request'''
         self.modbus_polling = False
         self.sensor_list = 0x0000
+        self.mb_start_reg = 0x5981
+        self.mb_inv_no = 1
 
     '''
     Our puplic methods
@@ -180,7 +182,21 @@ class SolarmanV5(Message):
         self.new_data['controller'] = True
 
         self.state = State.up
-        self._send_modbus_cmd(Modbus.READ_REGS, 0x3000, 48, logging.DEBUG)
+        # self.__build_header(0x1710)
+        # self.ifc.write += struct.pack('<B', 0)
+        # self.__finish_send_msg()
+        # hex_dump_memory(logging.INFO, f'Send StartCmd:{self.addr}:',
+        #                 self.ifc.write, len(self.ifc.write))
+        # self.writer.write(self.ifc.write)
+        # self.ifc.write = bytearray(0)  # self.ifc.write[sent:]
+
+        if self.sensor_list != 0x02b0:
+            self._send_modbus_cmd(self.mb_inv_no, Modbus.READ_REGS,
+                                  self.mb_start_reg, 4, logging.INFO)
+        else:
+            self._send_modbus_cmd(Modbus.INV_ADDR, Modbus.READ_REGS, 0x3000,
+                                  48, logging.DEBUG)
+
         self.mb_timer.start(self.mb_timeout)
 
     def new_state_up(self):
@@ -423,24 +439,38 @@ class SolarmanV5(Message):
         self.ifc.write.logging(log_lvl, f'Send Modbus {state}:{self.addr}:')
         self.ifc.write()
 
-    def _send_modbus_cmd(self, func, addr, val, log_lvl) -> None:
+    def _send_modbus_cmd(self, mb_no, func, addr, val, log_lvl) -> None:
         if self.state != State.up:
             logger.log(log_lvl, f'[{self.node_id}] ignore MODBUS cmd,'
                        ' as the state is not UP')
             return
-        self.mb.build_msg(Modbus.INV_ADDR, func, addr, val, log_lvl)
+        self.mb.build_msg(mb_no, func, addr, val, log_lvl)
 
     async def send_modbus_cmd(self, func, addr, val, log_lvl) -> None:
-        self._send_modbus_cmd(func, addr, val, log_lvl)
+        self._send_modbus_cmd(Modbus.INV_ADDR, func, addr, val, log_lvl)
 
     def mb_timout_cb(self, exp_cnt):
         self.mb_timer.start(self.mb_timeout)
+        if self.sensor_list != 0x2b0:
+            self.mb_start_reg += 4
+            if self.mb_start_reg > 0xffff:
+                self.mb_start_reg = self.mb_start_reg & 0xffff
+                self.mb_inv_no += 1
+                logging.info(f"Next Round: inv:{self.mb_inv_no}"
+                             f" reg:{self.mb_start_reg:04x}")
+            if (self.mb_start_reg & 0xfffc) % 0x80 == 0:
+                logging.info(f"Scan info: inv:{self.mb_inv_no}"
+                             f" reg:{self.mb_start_reg:04x}")
+            self._send_modbus_cmd(self.mb_inv_no, Modbus.READ_REGS,
+                                  self.mb_start_reg, 4, logging.INFO)
+        else:
+            self._send_modbus_cmd(Modbus.INV_ADDR, Modbus.READ_REGS, 0x3000,
+                                  48, logging.DEBUG)
 
-        self._send_modbus_cmd(Modbus.READ_REGS, 0x3000, 48, logging.DEBUG)
-
-        if 1 == (exp_cnt % 30):
-            # logging.info("Regular Modbus Status request")
-            self._send_modbus_cmd(Modbus.READ_REGS, 0x2000, 96, logging.DEBUG)
+            if 1 == (exp_cnt % 30):
+                # logging.info("Regular Modbus Status request")
+                self._send_modbus_cmd(Modbus.INV_ADDR, Modbus.READ_REGS,
+                                      0x2000, 96, logging.DEBUG)
 
     def at_cmd_forbidden(self, cmd: str, connection: str) -> bool:
         return not cmd.startswith(tuple(self.at_acl[connection]['allow'])) or \
@@ -641,6 +671,13 @@ class SolarmanV5(Message):
             # logger.info(f'first byte modbus:{data[14]}')
             inv_update = False
             self.modbus_elms = 0
+            if (self.sensor_list != 0x2b0 and data[15] != 0):
+                logging.info('Valid MODBUS data '
+                             f'(reg: 0x{self.mb.last_reg:04x}):')
+                hex_dump_memory(logging.INFO, 'Valid MODBUS data '
+                                f'(reg: 0x{self.mb.last_reg:04x}):',
+                                data[14:], modbus_msg_len)
+
             for key, update, _ in self.mb.recv_resp(self.db, data[14:],
                                                     self.node_id):
                 self.modbus_elms += 1
