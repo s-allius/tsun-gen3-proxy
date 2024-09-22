@@ -898,6 +898,42 @@ def test_contact_broken_req(config_tsun_allow_all, msg_contact_info_broken, msg_
     assert m.ifc.write.get()==msg_contact_rsp
     m.close()
 
+def test_conttact_req(config_tsun_allow_all, msg_contact_info, msg_contact_rsp):
+    _ = config_tsun_allow_all
+    m = MemoryStream(msg_contact_info, (0,))
+    m.read()         # read complete msg, and dispatch msg
+    assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
+    assert m.msg_count == 1
+    assert m.id_str == b"R170000000000001" 
+    assert m.contact_name == b'solarhub'
+    assert m.contact_mail == b'solarhub@123456'
+    assert m.unique_id == 'R170000000000001'
+    assert int(m.ctrl)==145
+    assert m.msg_id==0 
+    assert m.header_len==23
+    assert m.data_len==25
+    assert m._forward_buffer==b''
+    assert m.ifc.write.get()==msg_contact_rsp
+    m.close()
+
+def test_contact_broken_req(config_tsun_allow_all, msg_contact_info_broken, msg_contact_rsp):
+    _ = config_tsun_allow_all
+    m = MemoryStream(msg_contact_info_broken, (0,))
+    m.read()         # read complete msg, and dispatch msg
+    assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
+    assert m.msg_count == 1
+    assert m.id_str == b"R170000000000001" 
+    assert m.contact_name == b''
+    assert m.contact_mail == b''
+    assert m.unique_id == 'R170000000000001'
+    assert int(m.ctrl)==145
+    assert m.msg_id==0 
+    assert m.header_len==23
+    assert m.data_len==23
+    assert m._forward_buffer==b''
+    assert m.ifc.write.get()==msg_contact_rsp
+    m.close()
+
 def test_msg_contact_resp(config_tsun_inv1, msg_contact_rsp):
     _ = config_tsun_inv1
     m = MemoryStream(msg_contact_rsp, (0,), False)
