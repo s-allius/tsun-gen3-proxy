@@ -6,7 +6,7 @@ from tzlocal import get_localzone
 
 if __name__ == "app.src.gen3.talent":
     from app.src.async_ifc import AsyncIfc
-    from app.src.messages import hex_dump_memory, Message, State
+    from app.src.messages import Message, State
     from app.src.modbus import Modbus
     from app.src.my_timer import Timer
     from app.src.config import Config
@@ -14,7 +14,7 @@ if __name__ == "app.src.gen3.talent":
     from app.src.infos import Register
 else:  # pragma: no cover
     from async_ifc import AsyncIfc
-    from messages import hex_dump_memory, Message, State
+    from messages import Message, State
     from modbus import Modbus
     from my_timer import Timer
     from config import Config
@@ -171,9 +171,8 @@ class Talent(Message):
         if tsun['enabled']:
             buflen = self.header_len+self.data_len
             buffer = self.ifc.read.peek(buflen)
-            self._forward_buffer += buffer
-            hex_dump_memory(logging.DEBUG, 'Store for forwarding:',
-                            buffer, buflen)
+            self.ifc.forward += buffer
+            self.ifc.forward.logging(logging.DEBUG, 'Store for forwarding:')
 
             fnc = self.switch.get(self.msg_id, self.msg_unknown)
             logger.info(self.__flow_str(self.server_side, 'forwrd') +
@@ -187,10 +186,8 @@ class Talent(Message):
         if tsun['enabled']:
             _len = len(buffer)
             struct.pack_into('!l', buffer, 0, _len-4)
-            buflen = _len
-            self._forward_buffer += buffer
-            hex_dump_memory(logging.INFO, 'Store for forwarding:',
-                            buffer, buflen)
+            self.ifc.forward += buffer
+            self.ifc.forward.logging(logging.INFO, 'Store for forwarding:')
 
             fnc = self.switch.get(self.msg_id, self.msg_unknown)
             logger.info(self.__flow_str(self.server_side, 'forwrd') +

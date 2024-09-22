@@ -264,9 +264,8 @@ class SolarmanV5(Message):
             return
         tsun = Config.get('solarman')
         if tsun['enabled']:
-            self._forward_buffer += buffer[:buflen]
-            hex_dump_memory(logging.DEBUG, 'Store for forwarding:',
-                            buffer, buflen)
+            self.ifc.forward += buffer[:buflen]
+            self.ifc.forward.logging(logging.DEBUG, 'Store for forwarding:')
 
             fnc = self.switch.get(self.control, self.msg_unknown)
             logger.info(self.__flow_str(self.server_side, 'forwrd') +
@@ -467,8 +466,9 @@ class SolarmanV5(Message):
                                       0x0002, 0, 0, 0,
                                       at_cmd.encode('utf-8'), b'\r')
         self.__finish_send_msg()
+        self.ifc.write.logging(logging.INFO, 'Send AT Command:')
         try:
-            await self.async_write('Send AT Command:')
+            self.ifc.write()
         except Exception:
             self.ifc.write.clear()
 

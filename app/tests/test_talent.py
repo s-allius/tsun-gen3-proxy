@@ -34,7 +34,6 @@ class MemoryStream(Talent):
         self.msg_count = 0
         self.addr = 'Test: SrvSide'
         self.send_msg_ofs = 0
-        self.test_exception_async_write = False
         self.msg_recvd = []
         self.remote_stream = None
 
@@ -90,10 +89,6 @@ class MemoryStream(Talent):
 
         self.msg_count += 1
     
-    async def async_write(self, headline=''):
-        if self.test_exception_async_write:
-            raise RuntimeError("Peer closed.")
-
     
 
 @pytest.fixture
@@ -746,7 +741,7 @@ def test_read_message(msg_contact_info):
     assert m.msg_id==0 
     assert m.header_len==23
     assert m.data_len==25
-    assert m._forward_buffer==b''
+    assert m.ifc.forward.get()==b''
     m.close()
 
 def test_read_message_twice(config_no_tsun_inv1, msg_inverter_ind):
@@ -766,7 +761,7 @@ def test_read_message_twice(config_no_tsun_inv1, msg_inverter_ind):
     assert m.msg_recvd[1]['data_len']==120
     assert m.id_str == b"R170000000000001" 
     assert m.unique_id == 'R170000000000001'
-    assert m._forward_buffer==b''
+    assert m.ifc.forward.get()==b''
     m.close()
  
 def test_read_message_long_id(msg_contact_info_long_id):
@@ -851,7 +846,7 @@ def test_read_two_messages(config_tsun_allow_all, msg2_contact_info,msg_contact_
     assert m.msg_recvd[1]['msg_id']==0
     assert m.msg_recvd[1]['header_len']==23
     assert m.msg_recvd[1]['data_len']==25
-    assert m._forward_buffer==b''
+    assert m.ifc.forward.get()==b''
     assert m.ifc.write.get()==msg_contact_rsp + msg_contact_rsp2
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
 
@@ -876,7 +871,7 @@ def test_conttact_req(config_tsun_allow_all, msg_contact_info, msg_contact_rsp):
     assert m.msg_id==0 
     assert m.header_len==23
     assert m.data_len==25
-    assert m._forward_buffer==b''
+    assert m.ifc.forward.get()==b''
     assert m.ifc.write.get()==msg_contact_rsp
     m.close()
 
@@ -894,7 +889,7 @@ def test_contact_broken_req(config_tsun_allow_all, msg_contact_info_broken, msg_
     assert m.msg_id==0 
     assert m.header_len==23
     assert m.data_len==23
-    assert m._forward_buffer==b''
+    assert m.ifc.forward.get()==b''
     assert m.ifc.write.get()==msg_contact_rsp
     m.close()
 
@@ -912,7 +907,7 @@ def test_conttact_req(config_tsun_allow_all, msg_contact_info, msg_contact_rsp):
     assert m.msg_id==0 
     assert m.header_len==23
     assert m.data_len==25
-    assert m._forward_buffer==b''
+    assert m.ifc.forward.get()==b''
     assert m.ifc.write.get()==msg_contact_rsp
     m.close()
 
@@ -930,7 +925,7 @@ def test_contact_broken_req(config_tsun_allow_all, msg_contact_info_broken, msg_
     assert m.msg_id==0 
     assert m.header_len==23
     assert m.data_len==23
-    assert m._forward_buffer==b''
+    assert m.ifc.forward.get()==b''
     assert m.ifc.write.get()==msg_contact_rsp
     m.close()
 
@@ -949,7 +944,7 @@ def test_msg_contact_resp(config_tsun_inv1, msg_contact_rsp):
     assert m.msg_id==0
     assert m.header_len==23
     assert m.data_len==1
-    assert m._forward_buffer==b''
+    assert m.ifc.forward.get()==b''
     assert m.ifc.write.get()==b''
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
     m.close()
@@ -969,7 +964,7 @@ def test_msg_contact_resp_2(config_tsun_inv1, msg_contact_rsp):
     assert m.msg_id==0
     assert m.header_len==23
     assert m.data_len==1
-    assert m._forward_buffer==msg_contact_rsp
+    assert m.ifc.forward.get()==msg_contact_rsp
     assert m.ifc.write.get()==b''
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
     m.close()
@@ -989,7 +984,7 @@ def test_msg_contact_resp_3(config_tsun_inv1, msg_contact_rsp):
     assert m.msg_id==0
     assert m.header_len==23
     assert m.data_len==1
-    assert m._forward_buffer==msg_contact_rsp
+    assert m.ifc.forward.get()==msg_contact_rsp
     assert m.ifc.write.get()==b''
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
     m.close()
@@ -1007,7 +1002,7 @@ def test_msg_contact_invalid(config_tsun_inv1, msg_contact_invalid):
     assert m.msg_id==0
     assert m.header_len==23
     assert m.data_len==1
-    assert m._forward_buffer==msg_contact_invalid
+    assert m.ifc.forward.get()==msg_contact_invalid
     assert m.ifc.write.get()==b''
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 1
     m.close()
@@ -1028,7 +1023,7 @@ def test_msg_get_time(config_tsun_inv1, msg_get_time):
     assert m.ts_offset==0
     assert m.data_len==0
     assert m.state==State.pend
-    assert m._forward_buffer==msg_get_time
+    assert m.ifc.forward.get()==msg_get_time
     assert m.ifc.write.get()==b'\x00\x00\x00\x1b\x10R170000000000001\x91"\x00\x00\x01\x89\xc6,_\x00'
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
     m.close()
@@ -1049,7 +1044,7 @@ def test_msg_get_time_autark(config_no_tsun_inv1, msg_get_time):
     assert m.ts_offset==0
     assert m.data_len==0
     assert m.state==State.received
-    assert m._forward_buffer==b''
+    assert m.ifc.forward.get()==b''
     assert m.ifc.write.get()==bytearray(b'\x00\x00\x00\x1b\x10R170000000000001\x91"\x00\x00\x01\x89\xc6,_\x00')
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
     m.close()
@@ -1073,7 +1068,7 @@ def test_msg_time_resp(config_tsun_inv1, msg_time_rsp):
     assert m.ts_offset==3600000
     assert s.ts_offset==3600000
     assert m.data_len==8
-    assert m._forward_buffer==b''
+    assert m.ifc.forward.get()==b''
     assert m.ifc.write.get()==b''
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
     m.remote_stream = None
@@ -1094,7 +1089,7 @@ def test_msg_time_resp_autark(config_no_tsun_inv1, msg_time_rsp):
     assert m.header_len==23
     assert m.ts_offset==3600000
     assert m.data_len==8
-    assert m._forward_buffer==b''
+    assert m.ifc.forward.get()==b''
     assert m.ifc.write.get()==b''
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
     m.close()
@@ -1113,7 +1108,7 @@ def test_msg_time_inv_resp(config_tsun_inv1, msg_time_rsp_inv):
     assert m.header_len==23
     assert m.ts_offset==0
     assert m.data_len==4
-    assert m._forward_buffer==msg_time_rsp_inv
+    assert m.ifc.forward.get()==msg_time_rsp_inv
     assert m.ifc.write.get()==b''
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
     m.close()
@@ -1132,7 +1127,7 @@ def test_msg_time_invalid(config_tsun_inv1, msg_time_invalid):
     assert m.header_len==23
     assert m.ts_offset==0
     assert m.data_len==0
-    assert m._forward_buffer==msg_time_invalid
+    assert m.ifc.forward.get()==msg_time_invalid
     assert m.ifc.write.get()==b''
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 1
     m.close()
@@ -1151,7 +1146,7 @@ def test_msg_time_invalid_autark(config_no_tsun_inv1, msg_time_invalid):
     assert m.ts_offset==0
     assert m.header_len==23
     assert m.data_len==0
-    assert m._forward_buffer==b''
+    assert m.ifc.forward.get()==b''
     assert m.ifc.write.get()==b''
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 1
     m.close()
@@ -1175,7 +1170,7 @@ def test_msg_act_time(config_no_modbus_poll, msg_act_time, msg_act_time_ack):
     assert m.header_len==23
     assert m.data_len==9
     assert m.state == State.up
-    assert m._forward_buffer==msg_act_time
+    assert m.ifc.forward.get()==msg_act_time
     assert m.ifc.write.get()==msg_act_time_ack
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
     assert 125 == m.db.get_db_value(Register.POLLING_INTERVAL, 0)
@@ -1199,7 +1194,7 @@ def test_msg_act_time2(config_tsun_inv1, msg_act_time, msg_act_time_ack):
     assert m.ts_offset==0
     assert m.header_len==23
     assert m.data_len==9
-    assert m._forward_buffer==msg_act_time
+    assert m.ifc.forward.get()==msg_act_time
     assert m.ifc.write.get()==msg_act_time_ack
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
     assert 123 == m.db.get_db_value(Register.POLLING_INTERVAL, 0)
@@ -1220,7 +1215,7 @@ def test_msg_act_time_ofs(config_tsun_inv1, msg_act_time, msg_act_time_ofs, msg_
     assert m.ts_offset==3600
     assert m.header_len==23
     assert m.data_len==9
-    assert m._forward_buffer==msg_act_time_ofs
+    assert m.ifc.forward.get()==msg_act_time_ofs
     assert m.ifc.write.get()==msg_act_time_ack
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
     m.close()
@@ -1240,7 +1235,7 @@ def test_msg_act_time_ofs2(config_tsun_inv1, msg_act_time, msg_act_time_ofs, msg
     assert m.ts_offset==-3600
     assert m.header_len==23
     assert m.data_len==9
-    assert m._forward_buffer==msg_act_time
+    assert m.ifc.forward.get()==msg_act_time
     assert m.ifc.write.get()==msg_act_time_ack
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
     m.close()
@@ -1260,7 +1255,7 @@ def test_msg_act_time_autark(config_no_tsun_inv1, msg_act_time, msg_act_time_ack
     assert m.ts_offset==0
     assert m.header_len==23
     assert m.data_len==9
-    assert m._forward_buffer==b''
+    assert m.ifc.forward.get()==b''
     assert m.ifc.write.get()==msg_act_time_ack
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
     m.close()
@@ -1278,7 +1273,7 @@ def test_msg_act_time_ack(config_tsun_inv1, msg_act_time_ack):
     assert m.msg_id==153
     assert m.header_len==23
     assert m.data_len==1
-    assert m._forward_buffer==b''
+    assert m.ifc.forward.get()==b''
     assert m.ifc.write.get()==b''
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
     m.close()
@@ -1296,7 +1291,7 @@ def test_msg_act_time_cmd(config_tsun_inv1, msg_act_time_cmd):
     assert m.msg_id==153
     assert m.header_len==23
     assert m.data_len==1
-    assert m._forward_buffer==msg_act_time_cmd
+    assert m.ifc.forward.get()==msg_act_time_cmd
     assert m.ifc.write.get()==b''
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 1
     m.close()
@@ -1314,7 +1309,7 @@ def test_msg_act_time_inv(config_tsun_inv1, msg_act_time_inv):
     assert m.msg_id==153
     assert m.header_len==23
     assert m.data_len==8
-    assert m._forward_buffer==msg_act_time_inv
+    assert m.ifc.forward.get()==msg_act_time_inv
     assert m.ifc.write.get()==b''
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
     m.close()
@@ -1333,11 +1328,11 @@ def test_msg_cntrl_ind(config_tsun_inv1, msg_controller_ind, msg_controller_ind_
     assert m.header_len==23
     assert m.data_len==284
     m.ts_offset = 0
-    m._update_header(m._forward_buffer)
-    assert m._forward_buffer==msg_controller_ind
+    m._update_header(m.ifc.forward.peek())
+    assert m.ifc.forward.peek()==msg_controller_ind
     m.ts_offset = -4096
-    m._update_header(m._forward_buffer)
-    assert m._forward_buffer==msg_controller_ind_ts_offs
+    m._update_header(m.ifc.forward.peek())
+    assert m.ifc.forward.get()==msg_controller_ind_ts_offs
     assert m.ifc.write.get()==msg_controller_ack
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
     m.close()
@@ -1355,7 +1350,7 @@ def test_msg_cntrl_ack(config_tsun_inv1, msg_controller_ack):
     assert m.msg_id==113
     assert m.header_len==23
     assert m.data_len==1
-    assert m._forward_buffer==b''
+    assert m.ifc.forward.get()==b''
     assert m.ifc.write.get()==b''
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
     m.close()
@@ -1374,11 +1369,11 @@ def test_msg_cntrl_invalid(config_tsun_inv1, msg_controller_invalid):
     assert m.header_len==23
     assert m.data_len==1
     m.ts_offset = 0
-    m._update_header(m._forward_buffer)
-    assert m._forward_buffer==msg_controller_invalid
+    m._update_header(m.ifc.forward.peek())
+    assert m.ifc.forward.peek()==msg_controller_invalid
     m.ts_offset = -4096
-    m._update_header(m._forward_buffer)
-    assert m._forward_buffer==msg_controller_invalid
+    m._update_header(m.ifc.forward.peek())
+    assert m.ifc.forward.get()==msg_controller_invalid
     assert m.ifc.write.get()==b''
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 1
     m.close()
@@ -1398,11 +1393,11 @@ def test_msg_inv_ind(config_tsun_inv1, msg_inverter_ind, msg_inverter_ind_ts_off
     assert m.header_len==23
     assert m.data_len==120
     m.ts_offset = 0
-    m._update_header(m._forward_buffer)
-    assert m._forward_buffer==msg_inverter_ind
+    m._update_header(m.ifc.forward.peek())
+    assert m.ifc.forward.peek()==msg_inverter_ind
     m.ts_offset = +256
-    m._update_header(m._forward_buffer)
-    assert m._forward_buffer==msg_inverter_ind_ts_offs
+    m._update_header(m.ifc.forward.peek())
+    assert m.ifc.forward.get()==msg_inverter_ind_ts_offs
     assert m.ifc.write.get()==msg_inverter_ack
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
     m.close()
@@ -1425,8 +1420,8 @@ def test_msg_inv_ind1(config_tsun_inv1, msg_inverter_ind2, msg_inverter_ind_ts_o
     assert m.header_len==23
     assert m.data_len==1263
     m.ts_offset = 0
-    m._update_header(m._forward_buffer)
-    assert m._forward_buffer==msg_inverter_ind2
+    m._update_header(m.ifc.forward.peek())
+    assert m.ifc.forward.get()==msg_inverter_ind2
     assert m.ifc.write.get()==msg_inverter_ack
     assert m.db.get_db_value(Register.TS_GRID) == 1691243349
     m.close()
@@ -1449,8 +1444,8 @@ def test_msg_inv_ind2(config_tsun_inv1, msg_inverter_ind_new, msg_inverter_ind_t
     assert m.header_len==23
     assert m.data_len==1165
     m.ts_offset = 0
-    m._update_header(m._forward_buffer)
-    assert m._forward_buffer==msg_inverter_ind_new
+    m._update_header(m.ifc.forward.peek())
+    assert m.ifc.forward.get()==msg_inverter_ind_new
     assert m.ifc.write.get()==msg_inverter_ack
     assert m.db.get_db_value(Register.INVERTER_STATUS) == None
     assert m.db.get_db_value(Register.TS_GRID) == None
@@ -1477,8 +1472,8 @@ def test_msg_inv_ind3(config_tsun_inv1, msg_inverter_ind_0w, msg_inverter_ack):
     assert m.header_len==23
     assert m.data_len==1263
     m.ts_offset = 0
-    m._update_header(m._forward_buffer)
-    assert m._forward_buffer==msg_inverter_ind_0w
+    m._update_header(m.ifc.forward.peek())
+    assert m.ifc.forward.get()==msg_inverter_ind_0w
     assert m.ifc.write.get()==msg_inverter_ack
     assert m.db.get_db_value(Register.INVERTER_STATUS) == 1
     assert isclose(m.db.db['grid']['Output_Power'], 0.5)
@@ -1501,7 +1496,7 @@ def test_msg_inv_ack(config_tsun_inv1, msg_inverter_ack):
     assert m.msg_id==4
     assert m.header_len==23
     assert m.data_len==1
-    assert m._forward_buffer==b''
+    assert m.ifc.forward.get()==b''
     assert m.ifc.write.get()==b''
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
     m.close()
@@ -1520,11 +1515,11 @@ def test_msg_inv_invalid(config_tsun_inv1, msg_inverter_invalid):
     assert m.header_len==23
     assert m.data_len==1
     m.ts_offset = 0
-    m._update_header(m._forward_buffer)
-    assert m._forward_buffer==msg_inverter_invalid
+    m._update_header(m.ifc.forward.peek())
+    assert m.ifc.forward.peek()==msg_inverter_invalid
     m.ts_offset = 256
-    m._update_header(m._forward_buffer)
-    assert m._forward_buffer==msg_inverter_invalid
+    m._update_header(m.ifc.forward.peek())
+    assert m.ifc.forward.get()==msg_inverter_invalid
     assert m.ifc.write.get()==b''
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 1
     m.close()
@@ -1544,11 +1539,11 @@ def test_msg_ota_req(config_tsun_inv1, msg_ota_req):
     assert m.header_len==23
     assert m.data_len==259
     m.ts_offset = 0
-    m._update_header(m._forward_buffer)
-    assert m._forward_buffer==msg_ota_req
+    m._update_header(m.ifc.forward.peek())
+    assert m.ifc.forward.peek()==msg_ota_req
     m.ts_offset = 4096
-    m._update_header(m._forward_buffer)
-    assert m._forward_buffer==msg_ota_req
+    m._update_header(m.ifc.forward.peek())
+    assert m.ifc.forward.get()==msg_ota_req
     assert m.ifc.write.get()==b''
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
     assert m.db.stat['proxy']['OTA_Start_Msg'] == 1
@@ -1571,11 +1566,11 @@ def test_msg_ota_ack(config_tsun_inv1, msg_ota_ack):
     assert m.header_len==23
     assert m.data_len==1
     m.ts_offset = 0
-    m._update_header(m._forward_buffer)
-    assert m._forward_buffer==msg_ota_ack
+    m._update_header(m.ifc.forward.peek())
+    assert m.ifc.forward.peek()==msg_ota_ack
     m.ts_offset = 256
-    m._update_header(m._forward_buffer)
-    assert m._forward_buffer==msg_ota_ack
+    m._update_header(m.ifc.forward.peek())
+    assert m.ifc.forward.get()==msg_ota_ack
     assert m.ifc.write.get()==b''
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
     assert m.db.stat['proxy']['OTA_Start_Msg'] == 0
@@ -1596,11 +1591,11 @@ def test_msg_ota_invalid(config_tsun_inv1, msg_ota_invalid):
     assert m.header_len==23
     assert m.data_len==1
     m.ts_offset = 0
-    m._update_header(m._forward_buffer)
-    assert m._forward_buffer==msg_ota_invalid
+    m._update_header(m.ifc.forward.peek())
+    assert m.ifc.forward.peek()==msg_ota_invalid
     m.ts_offset = 4096
-    assert m._forward_buffer==msg_ota_invalid
-    m._update_header(m._forward_buffer)
+    assert m.ifc.forward.get()==msg_ota_invalid
+    m._update_header(m.ifc.forward.peek())
     assert m.ifc.write.get()==b''
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 1
     assert m.db.stat['proxy']['OTA_Start_Msg'] == 0
@@ -1619,7 +1614,7 @@ def test_msg_unknown(config_tsun_inv1, msg_unknown):
     assert m.msg_id==23
     assert m.header_len==23
     assert m.data_len==4
-    assert m._forward_buffer==msg_unknown
+    assert m.ifc.forward.get()==msg_unknown
     assert m.ifc.write.get()==b''
     assert 1 == m.db.stat['proxy']['Unknown_Msg']
     m.close()
@@ -1744,10 +1739,10 @@ def test_msg_modbus_req(config_tsun_inv1, msg_modbus_cmd):
     assert c.msg_id==119
     assert c.header_len==23
     assert c.data_len==13
-    assert c._forward_buffer==b''
+    assert c.ifc.forward.get()==b''
     assert c.ifc.write.get()==b''
     assert m.id_str == b"R170000000000001" 
-    assert m._forward_buffer==b''
+    assert m.ifc.forward.get()==b''
     assert m.ifc.write.get()==b''
     assert m.sent_pdu == msg_modbus_cmd
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
@@ -1774,10 +1769,10 @@ def test_msg_modbus_req2(config_tsun_inv1, msg_modbus_cmd):
     assert c.msg_id==119
     assert c.header_len==23
     assert c.data_len==13
-    assert c._forward_buffer==b''
+    assert c.ifc.forward.get()==b''
     assert c.ifc.write.get()==b''
     assert m.id_str == b"R170000000000001" 
-    assert m._forward_buffer==b''
+    assert m.ifc.forward.get()==b''
     assert m.ifc.write.get()==b''
     assert m.sent_pdu == b''
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
@@ -1803,9 +1798,9 @@ def test_msg_modbus_req3(config_tsun_inv1, msg_modbus_cmd_crc_err):
     assert c.msg_id==119
     assert c.header_len==23
     assert c.data_len==13
-    assert c._forward_buffer==b''
+    assert c.ifc.forward.get()==b''
     assert c.ifc.write.get()==b''
-    assert m._forward_buffer==b''
+    assert m.ifc.forward.get()==b''
     assert m.ifc.write.get()==b''
     assert m.sent_pdu ==b''
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
@@ -1828,7 +1823,7 @@ def test_msg_modbus_rsp1(config_tsun_inv1, msg_modbus_rsp):
     assert m.msg_id==119
     assert m.header_len==23
     assert m.data_len==13
-    assert m._forward_buffer==b''
+    assert m.ifc.forward.get()==b''
     assert m.ifc.write.get()==b''
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
     assert m.db.stat['proxy']['Modbus_Command'] == 0
@@ -1850,7 +1845,7 @@ def test_msg_modbus_cloud_rsp(config_tsun_inv1, msg_modbus_rsp):
     assert m.msg_id==119
     assert m.header_len==23
     assert m.data_len==13
-    assert m._forward_buffer==b''
+    assert m.ifc.forward.get()==b''
     assert m.ifc.write.get()==b''
     assert m.db.stat['proxy']['Unknown_Msg'] == 1
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
@@ -1878,7 +1873,7 @@ def test_msg_modbus_rsp2(config_tsun_inv1, msg_modbus_rsp20):
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
     assert m.mb.err == 5
     assert m.msg_count == 2
-    assert m._forward_buffer==msg_modbus_rsp20
+    assert m.ifc.forward.get()==msg_modbus_rsp20
     assert m.ifc.write.get()==b''
     assert m.db.db == {'collector': {'Serial_Number': 'R170000000000001'}, 'inverter': {'Version': 'V5.1.09', 'Rated_Power': 300}, 'grid': {'Timestamp': m._utc(), 'Voltage': 225.9, 'Current': 0.41, 'Frequency': 49.99, 'Output_Power': 94.8}, 'env': {'Inverter_Temp': 22}, 'input': {'Timestamp': m._utc(), 'pv1': {'Voltage': 0.8, 'Current': 0.0, 'Power': 0.0}, 'pv2': {'Voltage': 34.5, 'Current': 2.89, 'Power': 99.8}, 'pv3': {'Voltage': 0.0, 'Current': 0.0, 'Power': 0.0}, 'pv4': {'Voltage': 0.0, 'Current': 0.0, 'Power': 0.0}}}
     assert m.db.get_db_value(Register.VERSION) == 'V5.1.09'
@@ -1908,7 +1903,7 @@ def test_msg_modbus_rsp3(config_tsun_inv1, msg_modbus_rsp21):
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
     assert m.mb.err == 5
     assert m.msg_count == 2
-    assert m._forward_buffer==msg_modbus_rsp21
+    assert m.ifc.forward.get()==msg_modbus_rsp21
     assert m.ifc.write.get()==b''
     assert m.db.db == {'collector': {'Serial_Number': 'R170000000000001'}, 'inverter': {'Version': 'V5.1.0E', 'Rated_Power': 300}, 'grid': {'Timestamp': m._utc(), 'Voltage': 225.9, 'Current': 0.41, 'Frequency': 49.99, 'Output_Power': 94.8}, 'env': {'Inverter_Temp': 22}, 'input': {'Timestamp': m._utc(), 'pv1': {'Voltage': 0.8, 'Current': 0.0, 'Power': 0.0}, 'pv2': {'Voltage': 34.5, 'Current': 2.89, 'Power': 99.8}, 'pv3': {'Voltage': 0.0, 'Current': 0.0, 'Power': 0.0}, 'pv4': {'Voltage': 0.0, 'Current': 0.0, 'Power': 0.0}}}
     assert m.db.get_db_value(Register.VERSION) == 'V5.1.0E'
@@ -1937,7 +1932,7 @@ def test_msg_modbus_rsp4(config_tsun_inv1, msg_modbus_rsp21):
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
     assert m.mb.err == 0
     assert m.msg_count == 1
-    assert m._forward_buffer==msg_modbus_rsp21
+    assert m.ifc.forward.get()==msg_modbus_rsp21
     assert m.modbus_elms == 19
     assert m.ifc.write.get()==b''
     assert m.db.db == db_values
@@ -1962,7 +1957,7 @@ def test_msg_modbus_rsp_new(config_tsun_inv1, msg_modbus_rsp20_new):
     assert m.msg_id==135
     assert m.header_len==23
     assert m.data_len==107
-    assert m._forward_buffer==b''
+    assert m.ifc.forward.get()==b''
     assert m.ifc.write.get()==b''
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
     assert m.db.stat['proxy']['Modbus_Command'] == 0
@@ -1982,7 +1977,7 @@ def test_msg_modbus_invalid(config_tsun_inv1, msg_modbus_inv):
     assert m.msg_id==119
     assert m.header_len==23
     assert m.data_len==13
-    assert m._forward_buffer==msg_modbus_inv
+    assert m.ifc.forward.get()==msg_modbus_inv
     assert m.ifc.write.get()==b''
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 1
     assert m.db.stat['proxy']['Modbus_Command'] == 0
@@ -2011,7 +2006,7 @@ def test_msg_modbus_fragment(config_tsun_inv1, msg_modbus_rsp20):
     assert m.msg_id == 119
     assert m.header_len == 23
     assert m.data_len == 50
-    assert m._forward_buffer==msg_modbus_rsp20
+    assert m.ifc.forward.get()==msg_modbus_rsp20
     assert m.ifc.write.get() == b''
     assert m.mb.err == 0
     assert m.modbus_elms == 20-1  # register 0x300d is unknown, so one value can't be mapped
@@ -2026,24 +2021,16 @@ async def test_msg_build_modbus_req(config_tsun_inv1, msg_modbus_cmd):
     m.id_str = b"R170000000000001" 
     await m.send_modbus_cmd(Modbus.WRITE_SINGLE_REG, 0x2008, 0, logging.DEBUG)
     assert 0 == m.send_msg_ofs
-    assert m._forward_buffer == b''
+    assert m.ifc.forward.get() == b''
     assert m.ifc.write.get() == b''
     assert m.sent_pdu == b''
 
     m.state = State.up
     await m.send_modbus_cmd(Modbus.WRITE_SINGLE_REG, 0x2008, 0, logging.DEBUG)
     assert 0 == m.send_msg_ofs
-    assert m._forward_buffer == b''
+    assert m.ifc.forward.get() == b''
     assert m.ifc.write.get() == b''
     assert m.sent_pdu == msg_modbus_cmd
-
-    m.sent_pdu = bytearray(0) # clear send buffer for next test    
-    m.test_exception_async_write = True
-    await m.send_modbus_cmd(Modbus.WRITE_SINGLE_REG, 0x2008, 0, logging.DEBUG)
-    assert 0 == m.send_msg_ofs
-    assert m._forward_buffer == b''
-    assert m.ifc.write.get() == b''
-    assert m.sent_pdu == b''
     m.close()
 
 def test_modbus_no_polling(config_no_modbus_poll, msg_get_time):
@@ -2061,7 +2048,7 @@ def test_modbus_no_polling(config_no_modbus_poll, msg_get_time):
     assert m.header_len==23
     assert m.ts_offset==0
     assert m.data_len==0
-    assert m._forward_buffer==msg_get_time
+    assert m.ifc.forward.get()==msg_get_time
     assert m.ifc.write.get()==b'\x00\x00\x00\x1b\x10R170000000000001\x91"\x00\x00\x01\x89\xc6,_\x00'
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
     m.close()
@@ -2085,7 +2072,7 @@ async def test_modbus_polling(config_tsun_inv1, msg_inverter_ind):
     assert m.header_len==23
     assert m.ts_offset==0
     assert m.data_len==120
-    assert m._forward_buffer==msg_inverter_ind
+    assert m.ifc.forward.get()==msg_inverter_ind
     assert m.ifc.write.get()==b'\x00\x00\x00\x14\x10R170000000000001\x99\x04\x01'
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
 

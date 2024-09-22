@@ -61,6 +61,8 @@ class MemoryStream(SolarmanV5):
         self.msg_recvd = []
 
     def write_cb(self):
+        if self.test_exception_async_write:
+            raise RuntimeError("Peer closed.")
         self.sent_pdu = self.ifc.write.get()
 
     def _timestamp(self):
@@ -96,10 +98,6 @@ class MemoryStream(SolarmanV5):
             pass   # ignore exceptions here
         return copied_bytes
     
-    async def async_write(self, headline=''):
-        if self.test_exception_async_write:
-            raise RuntimeError("Peer closed.")
-
     def createClientStream(self, msg, chunks = (0,)):
         c = MemoryStream(msg, chunks, False)
         self.remote_stream = c
@@ -691,7 +689,7 @@ def test_read_message(device_ind_msg):
     assert m.data_len == 0xd4
     assert m.ifc.read.get()==b''
     assert m.ifc.write.get()==b''
-    assert m._forward_buffer==b''
+    assert m.ifc.forward.get()==b''
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
     m.close()
 
@@ -712,7 +710,7 @@ def test_invalid_start_byte(invalid_start_byte, device_ind_msg):
     assert m.data_len == 0xd4
     assert m.ifc.read.get()==b''
     assert m.ifc.write.get()==b''
-    assert m._forward_buffer==b''
+    assert m.ifc.forward.get()==b''
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 1
     m.close()
 
@@ -732,7 +730,7 @@ def test_invalid_stop_byte(invalid_stop_byte):
     assert m.data_len == 0xd4
     assert m.ifc.read.get()==b''
     assert m.ifc.write.get()==b''
-    assert m._forward_buffer==b''
+    assert m.ifc.forward.get()==b''
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 1
     m.close()
 
@@ -757,7 +755,7 @@ def test_invalid_stop_byte2(invalid_stop_byte, device_ind_msg):
     assert m.unique_id == None
     assert m.ifc.read.get()==b''
     assert m.ifc.write.get()==b''
-    assert m._forward_buffer==b''
+    assert m.ifc.forward.get()==b''
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 1
     m.close()
 
@@ -779,7 +777,7 @@ def test_invalid_stop_start_byte(invalid_stop_byte, invalid_start_byte):
     assert m.data_len == 0xd4
     assert m.ifc.read.get()==b''
     assert m.ifc.write.get()==b''
-    assert m._forward_buffer==b''
+    assert m.ifc.forward.get()==b''
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 1
     m.close()
 
@@ -803,7 +801,7 @@ def test_invalid_checksum(invalid_checksum, device_ind_msg):
     assert m.msg_recvd[1]['data_len']==0xd4
     assert m.ifc.read.get()==b''
     assert m.ifc.write.get()==b''
-    assert m._forward_buffer==b''
+    assert m.ifc.forward.get()==b''
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 1
     m.close()
 
@@ -824,7 +822,7 @@ def test_read_message_twice(config_no_tsun_inv1, device_ind_msg, device_rsp_msg)
     assert m.msg_recvd[1]['seq']=='01:01'
     assert m.msg_recvd[1]['data_len']==0xd4
     assert m.ifc.write.get()==device_rsp_msg+device_rsp_msg
-    assert m._forward_buffer==b''
+    assert m.ifc.forward.get()==b''
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
     m.close()
 
@@ -895,7 +893,7 @@ def test_read_two_messages(config_tsun_allow_all, device_ind_msg, device_rsp_msg
     assert m.msg_recvd[1]['data_len']==0x199
     assert '02b0' == m.db.get_db_value(Register.SENSOR_LIST, None)
     assert 0x02b0 == m.sensor_list
-    assert m._forward_buffer==device_ind_msg+inverter_ind_msg
+    assert m.ifc.forward.get()==device_ind_msg+inverter_ind_msg
     assert m.ifc.write.get()==device_rsp_msg+inverter_rsp_msg
 
     m._init_new_client_conn()
@@ -920,7 +918,7 @@ def test_read_two_messages2(config_tsun_allow_all, inverter_ind_msg, inverter_in
     assert m.msg_recvd[1]['seq']=='03:03'
     assert m.msg_recvd[1]['data_len']==0x199
     assert m.time_ofs == 0x33e447a0
-    assert m._forward_buffer==inverter_ind_msg+inverter_ind_msg_81
+    assert m.ifc.forward.get()==inverter_ind_msg+inverter_ind_msg_81
     assert m.ifc.write.get()==inverter_rsp_msg+inverter_rsp_msg_81
 
     m._init_new_client_conn()
@@ -949,7 +947,7 @@ def test_read_two_messages3(config_tsun_allow_all, device_ind_msg2, device_rsp_m
     assert m.msg_recvd[1]['data_len']==0xd4
     assert '02b0' == m.db.get_db_value(Register.SENSOR_LIST, None)
     assert 0x02b0 == m.sensor_list
-    assert m._forward_buffer==inverter_ind_msg+device_ind_msg2
+    assert m.ifc.forward.get()==inverter_ind_msg+device_ind_msg2
     assert m.ifc.write.get()==inverter_rsp_msg+device_rsp_msg2
 
     m._init_new_client_conn()
@@ -970,7 +968,7 @@ def test_unkown_frame_code(config_tsun_inv1, inverter_ind_msg_81, inverter_rsp_m
     assert m.data_len == 0x199
     assert m.ifc.read.get()==b''
     assert m.ifc.write.get()==inverter_rsp_msg_81
-    assert m._forward_buffer==inverter_ind_msg_81
+    assert m.ifc.forward.get()==inverter_ind_msg_81
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
     m.close()
 
@@ -988,7 +986,7 @@ def test_unkown_message(config_tsun_inv1, unknown_msg):
     assert m.data_len == 0x0a
     assert m.ifc.read.get()==b''
     assert m.ifc.write.get()==b''
-    assert m._forward_buffer==unknown_msg
+    assert m.ifc.forward.get()==unknown_msg
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
     m.close()
 
@@ -1006,7 +1004,7 @@ def test_device_rsp(config_tsun_inv1, device_rsp_msg):
     assert m.data_len == 0x0a
     assert m.ifc.read.get()==b''
     assert m.ifc.write.get()==b''
-    assert m._forward_buffer==b''
+    assert m.ifc.forward.get()==b''
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
     m.close()
 
@@ -1024,7 +1022,7 @@ def test_inverter_rsp(config_tsun_inv1, inverter_rsp_msg):
     assert m.data_len == 0x0a
     assert m.ifc.read.get()==b''
     assert m.ifc.write.get()==b''
-    assert m._forward_buffer==b''
+    assert m.ifc.forward.get()==b''
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
     m.close()
 
@@ -1041,7 +1039,7 @@ def test_heartbeat_ind(config_tsun_inv1, heartbeat_ind_msg, heartbeat_rsp_msg):
     assert m.data_len == 0x01
     assert m.ifc.read.get()==b''
     assert m.ifc.write.get()==heartbeat_rsp_msg
-    assert m._forward_buffer==heartbeat_ind_msg
+    assert m.ifc.forward.get()==heartbeat_ind_msg
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
     m.close()
 
@@ -1059,7 +1057,7 @@ def test_heartbeat_ind2(config_tsun_inv1, heartbeat_ind_msg, heartbeat_rsp_msg):
     assert m.data_len == 0x01
     assert m.ifc.read.get()==b''
     assert m.ifc.write.get()==heartbeat_rsp_msg
-    assert m._forward_buffer==b''
+    assert m.ifc.forward.get()==b''
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
     m.close()
 
@@ -1077,7 +1075,7 @@ def test_heartbeat_rsp(config_tsun_inv1, heartbeat_rsp_msg):
     assert m.data_len == 0x0a
     assert m.ifc.read.get()==b''
     assert m.ifc.write.get()==b''
-    assert m._forward_buffer==b''
+    assert m.ifc.forward.get()==b''
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
     m.close()
 
@@ -1094,13 +1092,13 @@ def test_sync_start_ind(config_tsun_inv1, sync_start_ind_msg, sync_start_rsp_msg
     assert m.data_len == 47
     assert m.ifc.read.get()==b''
     assert m.ifc.write.get()==sync_start_rsp_msg
-    assert m._forward_buffer==sync_start_ind_msg
+    assert m.ifc.forward.peek()==sync_start_ind_msg
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
 
     m.seq.server_side = False  # simulate forawding to TSUN cloud
-    m._update_header(m._forward_buffer)
+    m._update_header(m.ifc.forward.peek())
     assert str(m.seq) == '0d:0e'  # value after forwarding indication
-    assert m._forward_buffer==sync_start_fwd_msg
+    assert m.ifc.forward.get()==sync_start_fwd_msg
 
     m.close()
 
@@ -1118,7 +1116,7 @@ def test_sync_start_rsp(config_tsun_inv1, sync_start_rsp_msg):
     assert m.data_len == 0x0a
     assert m.ifc.read.get()==b''
     assert m.ifc.write.get()==b''
-    assert m._forward_buffer==b''
+    assert m.ifc.forward.get()==b''
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
     m.close()
 
@@ -1135,7 +1133,7 @@ def test_sync_end_ind(config_tsun_inv1, sync_end_ind_msg, sync_end_rsp_msg):
     assert m.data_len == 60
     assert m.ifc.read.get()==b''
     assert m.ifc.write.get()==sync_end_rsp_msg
-    assert m._forward_buffer==sync_end_ind_msg
+    assert m.ifc.forward.get()==sync_end_ind_msg
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
     m.close()
 
@@ -1153,7 +1151,7 @@ def test_sync_end_rsp(config_tsun_inv1, sync_end_rsp_msg):
     assert m.data_len == 0x0a
     assert m.ifc.read.get()==b''
     assert m.ifc.write.get()==b''
-    assert m._forward_buffer==b''
+    assert m.ifc.forward.get()==b''
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
     m.close()
 
@@ -1282,13 +1280,11 @@ async def test_msg_build_modbus_req(config_tsun_inv1, device_ind_msg, device_rsp
     assert m.control == 0x4110
     assert str(m.seq) == '01:01'
     assert m.ifc.write.get()==device_rsp_msg
-    assert m._forward_buffer==device_ind_msg
+    assert m.ifc.forward.get()==device_ind_msg
 
-    m.ifc.write.clear() # clear send buffer for next test    
-    m._forward_buffer = bytearray(0) # clear send buffer for next test    
     await m.send_modbus_cmd(Modbus.WRITE_SINGLE_REG, 0x2008, 0, logging.DEBUG)
     assert 0 == m.send_msg_ofs
-    assert m._forward_buffer == b''
+    assert m.ifc.forward.get() == b''
     assert m.sent_pdu == b'' # modbus command must be ignore, cause connection is still not up
     assert m.ifc.write.get() == b''    # modbus command must be ignore, cause connection is still not up
 
@@ -1302,20 +1298,13 @@ async def test_msg_build_modbus_req(config_tsun_inv1, device_ind_msg, device_rsp
     assert m.msg_recvd[1]['seq']=='02:02'
     assert m.ifc.read.get()==b''
     assert m.ifc.write.get()==inverter_rsp_msg
-    assert m._forward_buffer==inverter_ind_msg
+    assert m.ifc.forward.get()==inverter_ind_msg
 
-    m._forward_buffer = bytearray(0) # clear send buffer for next test    
     await m.send_modbus_cmd(Modbus.WRITE_SINGLE_REG, 0x2008, 0, logging.DEBUG)
     assert 0 == m.send_msg_ofs
-    assert m._forward_buffer == b''
+    assert m.ifc.forward.get() == b''
     assert m.sent_pdu == msg_modbus_cmd
     assert m.ifc.write.get()== b''
-
-    m.test_exception_async_write = True
-    await m.send_modbus_cmd(Modbus.WRITE_SINGLE_REG, 0x2008, 0, logging.DEBUG)
-    assert 0 == m.send_msg_ofs
-    assert m._forward_buffer == b''
-    assert m.ifc.write.get() == b''
     m.close()
 
 @pytest.mark.asyncio
@@ -1326,12 +1315,12 @@ async def test_at_cmd(config_tsun_allow_all, device_ind_msg, device_rsp_msg, inv
     assert m.control == 0x4110
     assert str(m.seq) == '01:01'
     assert m.ifc.write.get()==device_rsp_msg
-    assert m._forward_buffer==device_ind_msg
+    assert m.ifc.forward.get()==device_ind_msg
 
-    m._forward_buffer = bytearray(0) # clear send buffer for next test    
     await m.send_at_cmd('AT+TIME=214028,1,60,120')
     assert m.ifc.write.get()==b''
-    assert m._forward_buffer==b''
+    assert m.ifc.forward.get()==b''
+    assert m.sent_pdu == b''
     assert str(m.seq) == '01:01'
     assert m.mqtt.key == ''
     assert m.mqtt.data == ""
@@ -1341,12 +1330,14 @@ async def test_at_cmd(config_tsun_allow_all, device_ind_msg, device_rsp_msg, inv
     assert m.control == 0x4210
     assert str(m.seq) == '02:02'
     assert m.ifc.write.get()==inverter_rsp_msg
-    assert m._forward_buffer==inverter_ind_msg
+    assert m.ifc.forward.get()==inverter_ind_msg
     
-    m._forward_buffer = bytearray(0) # clear send buffer for next test    
     await m.send_at_cmd('AT+TIME=214028,1,60,120')
-    assert m.ifc.write.get()==at_command_ind_msg
-    assert m._forward_buffer==b''
+    assert m.ifc.forward.get() == b''
+    assert m.ifc.write.get()== b''
+    assert m.sent_pdu == at_command_ind_msg
+    m.sent_pdu = bytearray()
+
     assert str(m.seq) == '02:03'
     assert m.mqtt.key == ''
     assert m.mqtt.data == ""
@@ -1357,15 +1348,18 @@ async def test_at_cmd(config_tsun_allow_all, device_ind_msg, device_rsp_msg, inv
     assert str(m.seq) == '03:03'
     assert m.ifc.read.get()==b''
     assert m.ifc.write.get()==b''
-    assert m._forward_buffer==b''
+    assert m.ifc.forward.get()==b''
     assert m.key == 'at_resp'
     assert m.data == "+ok"
 
+    m.sent_pdu = bytearray()
     m.test_exception_async_write = True
     await m.send_at_cmd('AT+TIME=214028,1,60,120')
+    assert m.sent_pdu == b''
     assert m.ifc.read.get()==b''
     assert m.ifc.write.get()==b''
-    assert m._forward_buffer==b''
+    assert m.ifc.forward.get()==b''
+    assert m.sent_pdu == b''
     assert str(m.seq) == '03:04'
     assert m.forward_at_cmd_resp == False
     assert m.mqtt.key == ''
@@ -1380,12 +1374,11 @@ async def test_at_cmd_blocked(config_tsun_allow_all, device_ind_msg, device_rsp_
     assert m.control == 0x4110
     assert str(m.seq) == '01:01'
     assert m.ifc.write.get()==device_rsp_msg
-    assert m._forward_buffer==device_ind_msg
+    assert m.ifc.forward.get()==device_ind_msg
 
-    m._forward_buffer = bytearray(0) # clear send buffer for next test    
     await m.send_at_cmd('AT+WEBU')
     assert m.ifc.write.get()==b''
-    assert m._forward_buffer==b''
+    assert m.ifc.forward.get()==b''
     assert str(m.seq) == '01:01'
     assert m.mqtt.key == ''
     assert m.mqtt.data == ""
@@ -1396,13 +1389,12 @@ async def test_at_cmd_blocked(config_tsun_allow_all, device_ind_msg, device_rsp_
     assert str(m.seq) == '02:02'
     assert m.ifc.read.get()==b''
     assert m.ifc.write.get()==inverter_rsp_msg
-    assert m._forward_buffer==inverter_ind_msg
+    assert m.ifc.forward.get()==inverter_ind_msg
     
-    m._forward_buffer = bytearray(0) # clear send buffer for next test    
     await m.send_at_cmd('AT+WEBU')
     assert m.ifc.read.get()==b''
     assert m.ifc.write.get()==b''
-    assert m._forward_buffer==b''
+    assert m.ifc.forward.get()==b''
     assert str(m.seq) == '02:02'
     assert m.forward_at_cmd_resp == False
     assert m.mqtt.key == 'at_resp'
@@ -1426,7 +1418,7 @@ def test_at_cmd_ind(config_tsun_inv1, at_command_ind_msg):
     assert m.data_len == 39
     assert m.ifc.read.get()==b''
     assert m.ifc.write.get()==b''
-    assert m._forward_buffer==at_command_ind_msg
+    assert m.ifc.forward.get()==at_command_ind_msg
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
     assert m.db.stat['proxy']['AT_Command'] == 1
     assert m.db.stat['proxy']['AT_Command_Blocked'] == 0
@@ -1450,7 +1442,7 @@ def test_at_cmd_ind_block(config_tsun_inv1, at_command_ind_msg_block):
     assert m.data_len == 23
     assert m.ifc.read.get()==b''
     assert m.ifc.write.get()==b''
-    assert m._forward_buffer==b''
+    assert m.ifc.forward.get()==b''
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
     assert m.db.stat['proxy']['AT_Command'] == 0
     assert m.db.stat['proxy']['AT_Command_Blocked'] == 1
@@ -1470,7 +1462,7 @@ def test_msg_at_command_rsp1(config_tsun_inv1, at_command_rsp_msg):
     assert str(m.seq) == '03:03'
     assert m.header_len==11
     assert m.data_len==17
-    assert m._forward_buffer==at_command_rsp_msg
+    assert m.ifc.forward.get()==at_command_rsp_msg
     assert m.ifc.write.get()==b''
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
     assert m.db.stat['proxy']['Modbus_Command'] == 0
@@ -1489,7 +1481,7 @@ def test_msg_at_command_rsp2(config_tsun_inv1, at_command_rsp_msg):
     assert str(m.seq) == '03:03'
     assert m.header_len==11
     assert m.data_len==17
-    assert m._forward_buffer==b''
+    assert m.ifc.forward.get()==b''
     assert m.ifc.write.get()==b''
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
     assert m.db.stat['proxy']['Modbus_Command'] == 0
@@ -1514,7 +1506,7 @@ def test_msg_modbus_req(config_tsun_inv1, msg_modbus_cmd, msg_modbus_cmd_fwd):
     assert str(c.seq) == '03:02'
     assert c.header_len==11
     assert c.data_len==23
-    assert c._forward_buffer==b''
+    assert c.ifc.forward.get()==b''
     assert c.ifc.write.get()==b''
     assert m.sent_pdu == msg_modbus_cmd_fwd
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
@@ -1541,7 +1533,7 @@ def test_msg_modbus_req2(config_tsun_inv1, msg_modbus_cmd_crc_err):
     assert str(c.seq) == '03:02'
     assert c.header_len==11
     assert c.data_len==23
-    assert c._forward_buffer==b''
+    assert c.ifc.forward.get()==b''
     assert c.ifc.write.get()==b''
     assert m.sent_pdu==b''
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
@@ -1564,7 +1556,7 @@ def test_msg_unknown_cmd_req(config_tsun_inv1, msg_unknown_cmd):
     assert str(m.seq) == '03:02'
     assert m.header_len==11
     assert m.data_len==23
-    assert m._forward_buffer==msg_unknown_cmd
+    assert m.ifc.forward.get()==msg_unknown_cmd
     assert m.ifc.write.get()==b''
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
     assert m.db.stat['proxy']['AT_Command'] == 0
@@ -1585,7 +1577,7 @@ def test_msg_modbus_rsp1(config_tsun_inv1, msg_modbus_rsp):
     assert str(m.seq) == '03:03'
     assert m.header_len==11
     assert m.data_len==59
-    assert m._forward_buffer==b''
+    assert m.ifc.forward.get()==b''
     assert m.ifc.write.get()==b''
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
     assert m.db.stat['proxy']['Modbus_Command'] == 0
@@ -1609,20 +1601,19 @@ def test_msg_modbus_rsp2(config_tsun_inv1, msg_modbus_rsp):
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
     assert m.mb.err == 0
     assert m.msg_count == 1
-    assert m._forward_buffer==msg_modbus_rsp
+    assert m.ifc.forward.get()==msg_modbus_rsp
     assert m.ifc.write.get()==b''
     assert m.db.get_db_value(Register.VERSION) == 'V4.0.10'
     assert m.new_data['inverter'] == True
     m.new_data['inverter'] = False
 
     m.mb.req_pend = True
-    m._forward_buffer = bytearray()
     m.append_msg(msg_modbus_rsp)
     m.read()         # read complete msg, and dispatch msg
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
     assert m.mb.err == 0
     assert m.msg_count == 2
-    assert m._forward_buffer==msg_modbus_rsp
+    assert m.ifc.forward.get()==msg_modbus_rsp
     assert m.ifc.write.get()==b''
     assert m.db.get_db_value(Register.VERSION) == 'V4.0.10'
     assert m.new_data['inverter'] == False
@@ -1647,19 +1638,18 @@ def test_msg_modbus_rsp3(config_tsun_inv1, msg_modbus_rsp):
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
     assert m.mb.err == 0
     assert m.msg_count == 1
-    assert m._forward_buffer==msg_modbus_rsp
+    assert m.ifc.forward.get()==msg_modbus_rsp
     assert m.ifc.write.get()==b''
     assert m.db.get_db_value(Register.VERSION) == 'V4.0.10'
     assert m.new_data['inverter'] == True
     m.new_data['inverter'] = False
 
-    m._forward_buffer = bytearray()
     m.append_msg(msg_modbus_rsp)
     m.read()         # read complete msg, and dispatch msg
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
     assert m.mb.err == 5
     assert m.msg_count == 2
-    assert m._forward_buffer==b''
+    assert m.ifc.forward.get()==b''
     assert m.ifc.write.get()==b''
     assert m.db.get_db_value(Register.VERSION) == 'V4.0.10'
     assert m.new_data['inverter'] == False
@@ -1678,7 +1668,7 @@ def test_msg_unknown_rsp(config_tsun_inv1, msg_unknown_cmd_rsp):
     assert str(m.seq) == '03:03'
     assert m.header_len==11
     assert m.data_len==59
-    assert m._forward_buffer==msg_unknown_cmd_rsp
+    assert m.ifc.forward.get()==msg_unknown_cmd_rsp
     assert m.ifc.write.get()==b''
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
     assert m.db.stat['proxy']['Modbus_Command'] == 0
@@ -1692,7 +1682,7 @@ def test_msg_modbus_invalid(config_tsun_inv1, msg_modbus_invalid):
     m.read()         # read complete msg, and dispatch msg
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
     assert m.msg_count == 1
-    assert m._forward_buffer==b''
+    assert m.ifc.forward.get()==b''
     assert m.ifc.write.get()==b''
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
     assert m.db.stat['proxy']['Modbus_Command'] == 0
@@ -1715,7 +1705,7 @@ def test_msg_modbus_fragment(config_tsun_inv1, msg_modbus_rsp):
     m.read()         # read complete msg, and dispatch msg
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
     assert m.msg_count == 1
-    assert m._forward_buffer==msg_modbus_rsp
+    assert m.ifc.forward.get()==msg_modbus_rsp
     assert m.ifc.write.get()== b''
     assert m.mb.err == 0
     assert m.modbus_elms == 20-1  # register 0x300d is unknown, so one value can't be mapped
@@ -1741,7 +1731,7 @@ async def test_modbus_polling(config_tsun_inv1, heartbeat_ind_msg, heartbeat_rsp
     assert m.data_len == 0x01
     assert m.ifc.read.get()==b''
     assert m.ifc.write.get()==heartbeat_rsp_msg
-    assert m._forward_buffer==heartbeat_ind_msg
+    assert m.ifc.forward.get()==heartbeat_ind_msg
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
 
     assert m.state == State.up

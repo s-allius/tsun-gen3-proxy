@@ -107,7 +107,6 @@ class Message(metaclass=IterRegistry):
         self.unique_id = 0
         self.node_id = ''  # will be overwritten in the child class's __init__
         self.sug_area = ''
-        self._forward_buffer = bytearray(0)
         self.new_data = {}
         self.state = State.init
         self.shutdown_started = False
