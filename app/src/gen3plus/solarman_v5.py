@@ -64,7 +64,8 @@ class SolarmanV5(Message):
 
     def __init__(self, server_side: bool, client_mode: bool, ifc: "AsyncIfc"):
         super().__init__(server_side, self.send_modbus_cb, mb_timeout=8)
-        ifc.read.reg_trigger(self.read)
+        ifc.rx_set_cb(self.read)
+        ifc.prot_set_timeout_cb(self._timeout)
         self.ifc = ifc
         self.header_len = 11  # overwrite construcor in class Message
         self.control = 0
@@ -163,7 +164,8 @@ class SolarmanV5(Message):
         self.log_lvl.clear()
         self.state = State.closed
         self.mb_timer.close()
-        self.ifc.read.reg_trigger(None)
+        self.ifc.rx_set_cb(None)
+        self.ifc.prot_set_timeout_cb(None)
         super().close()
 
     async def send_start_cmd(self, snr: int, host: str,
@@ -234,10 +236,10 @@ class SolarmanV5(Message):
         self._read()
         while True:
             if not self.header_valid:
-                self.__parse_header(self.ifc.read.peek(),
-                                    len(self.ifc.read))
+                self.__parse_header(self.ifc.rx_peek(),
+                                    self.ifc.rx_len())
 
-            if self.header_valid and len(self.ifc.read) >= \
+            if self.header_valid and self.ifc.rx_len() >= \
                (self.header_len + self.data_len+2):
                 self.__process_complete_received_msg()
                 self.__flush_recv_msg()
@@ -248,10 +250,10 @@ class SolarmanV5(Message):
         log_lvl = self.log_lvl.get(self.control, logging.WARNING)
         if callable(log_lvl):
             log_lvl = log_lvl()
-        self.ifc.read.logging(log_lvl, f'Received from {self.addr}:')
+        self.ifc.rx_log(log_lvl, f'Received from {self.addr}:')
         # self._recv_buffer, self.header_len +
         # self.data_len+2)
-        if self.__trailer_is_ok(self.ifc.read.peek(), self.header_len
+        if self.__trailer_is_ok(self.ifc.rx_peek(), self.header_len
                                 + self.data_len + 2):
             if self.state == State.init:
                 self.state = State.received
@@ -264,8 +266,8 @@ class SolarmanV5(Message):
             return
         tsun = Config.get('solarman')
         if tsun['enabled']:
-            self.ifc.forward += buffer[:buflen]
-            self.ifc.forward.logging(logging.DEBUG, 'Store for forwarding:')
+            self.ifc.fwd_add(buffer[:buflen])
+            self.ifc.fwd_log(logging.DEBUG, 'Store for forwarding:')
 
             fnc = self.switch.get(self.control, self.msg_unknown)
             logger.info(self.__flow_str(self.server_side, 'forwrd') +
@@ -321,7 +323,7 @@ class SolarmanV5(Message):
 
             self.inc_counter('Invalid_Msg_Format')
             # erase broken recv buffer
-            self.ifc.read.clear()
+            self.ifc.rx_clear()
             return
         self.header_valid = True
 
@@ -333,11 +335,11 @@ class SolarmanV5(Message):
                             'Drop packet w invalid stop byte from '
                             f'{self.addr}:', buf, buf_len)
             self.inc_counter('Invalid_Msg_Format')
-            if len(self.ifc.read) > (self.data_len+13):
+            if self.ifc.rx_len() > (self.data_len+13):
                 next_start = buf[self.data_len+13]
                 if next_start != 0xa5:
                     # erase broken recv buffer
-                    self.ifc.read.clear()
+                    self.ifc.rx_clear()
 
             return False
 
@@ -353,22 +355,22 @@ class SolarmanV5(Message):
 
     def __build_header(self, ctrl) -> None:
         '''build header for new transmit message'''
-        self.send_msg_ofs = len(self.ifc.write)
+        self.send_msg_ofs = self.ifc.tx_len()
 
-        self.ifc.write += struct.pack(
-            '<BHHHL', 0xA5, 0, ctrl, self.seq.get_send(), self.snr)
+        self.ifc.tx_add(struct.pack(
+            '<BHHHL', 0xA5, 0, ctrl, self.seq.get_send(), self.snr))
         fnc = self.switch.get(ctrl, self.msg_unknown)
         logger.info(self.__flow_str(self.server_side, 'tx') +
                     f' Ctl: {int(ctrl):#04x} Msg: {fnc.__name__!r}')
 
     def __finish_send_msg(self) -> None:
         '''finish the transmit message, set lenght and checksum'''
-        _len = len(self.ifc.write) - self.send_msg_ofs
-        struct.pack_into('<H', self.ifc.write.peek(), self.send_msg_ofs+1,
+        _len = self.ifc.tx_len() - self.send_msg_ofs
+        struct.pack_into('<H', self.ifc.tx_peek(), self.send_msg_ofs+1,
                          _len-11)
-        check = sum(self.ifc.write.peek()[
+        check = sum(self.ifc.tx_peek()[
             self.send_msg_ofs+1:self.send_msg_ofs + _len]) & 0xff
-        self.ifc.write += struct.pack('<BB', check, 0x15)    # crc & stop
+        self.ifc.tx_add(struct.pack('<BB', check, 0x15))    # crc & stop
 
     def _update_header(self, _forward_buffer):
         '''update header for message before forwarding,
@@ -399,14 +401,14 @@ class SolarmanV5(Message):
                         f' Msg: {fnc.__name__!r}')
 
     def __flush_recv_msg(self) -> None:
-        self.ifc.read.get(self.header_len + self.data_len+2)
+        self.ifc.rx_get(self.header_len + self.data_len+2)
         self.header_valid = False
 
     def __send_ack_rsp(self, msgtype, ftype, ack=1):
         self.__build_header(msgtype)
-        self.ifc.write += struct.pack('<BBLL', ftype, ack,
-                                      self._timestamp(),
-                                      self._heartbeat())
+        self.ifc.tx_add(struct.pack('<BBLL', ftype, ack,
+                                    self._timestamp(),
+                                    self._heartbeat()))
         self.__finish_send_msg()
 
     def send_modbus_cb(self, pdu: bytearray, log_lvl: int, state: str):
@@ -415,12 +417,12 @@ class SolarmanV5(Message):
                            ' cause the state is not UP anymore')
             return
         self.__build_header(0x4510)
-        self.ifc.write += struct.pack('<BHLLL', self.MB_RTU_CMD,
-                                      self.sensor_list, 0, 0, 0)
-        self.ifc.write += pdu
+        self.ifc.tx_add(struct.pack('<BHLLL', self.MB_RTU_CMD,
+                                    self.sensor_list, 0, 0, 0))
+        self.ifc.tx_add(pdu)
         self.__finish_send_msg()
-        self.ifc.write.logging(log_lvl, f'Send Modbus {state}:{self.addr}:')
-        self.ifc.write()
+        self.ifc.tx_log(log_lvl, f'Send Modbus {state}:{self.addr}:')
+        self.ifc.tx_flush()
 
     def _send_modbus_cmd(self, func, addr, val, log_lvl) -> None:
         if self.state != State.up:
@@ -462,18 +464,18 @@ class SolarmanV5(Message):
 
         self.forward_at_cmd_resp = False
         self.__build_header(0x4510)
-        self.ifc.write += struct.pack(f'<BHLLL{len(at_cmd)}sc', self.AT_CMD,
-                                      0x0002, 0, 0, 0,
-                                      at_cmd.encode('utf-8'), b'\r')
+        self.ifc.tx_add(struct.pack(f'<BHLLL{len(at_cmd)}sc', self.AT_CMD,
+                                    0x0002, 0, 0, 0,
+                                    at_cmd.encode('utf-8'), b'\r'))
         self.__finish_send_msg()
-        self.ifc.write.logging(logging.INFO, 'Send AT Command:')
+        self.ifc.tx_log(logging.INFO, 'Send AT Command:')
         try:
-            self.ifc.write()
+            self.ifc.tx_flush()
         except Exception:
-            self.ifc.write.clear()
+            self.ifc.tx_clear()
 
     def __forward_msg(self):
-        self.forward(self.ifc.read.peek(), self.header_len+self.data_len+2)
+        self.forward(self.ifc.rx_peek(), self.header_len+self.data_len+2)
 
     def __build_model_name(self):
         db = self.db
@@ -494,7 +496,7 @@ class SolarmanV5(Message):
     def __process_data(self, ftype, ts):
         inv_update = False
         msg_type = self.control >> 8
-        for key, update in self.db.parse(self.ifc.read.peek(), msg_type, ftype,
+        for key, update in self.db.parse(self.ifc.rx_peek(), msg_type, ftype,
                                          self.node_id):
             if update:
                 if key == 'inverter':
@@ -513,7 +515,7 @@ class SolarmanV5(Message):
         self.__forward_msg()
 
     def msg_dev_ind(self):
-        data = self.ifc.read.peek()[self.header_len:]
+        data = self.ifc.rx_peek()[self.header_len:]
         result = struct.unpack_from(self.HDR_FMT, data, 0)
         ftype = result[0]  # always 2
         total = result[1]
@@ -534,7 +536,7 @@ class SolarmanV5(Message):
         self.__send_ack_rsp(0x1110, ftype)
 
     def msg_data_ind(self):
-        data = self.ifc.read.peek()
+        data = self.ifc.rx_peek()
         result = struct.unpack_from('<BHLLLHL', data, self.header_len)
         ftype = result[0]  # 1 or 0x81
         sensor = result[1]
@@ -562,7 +564,7 @@ class SolarmanV5(Message):
         self.new_state_up()
 
     def msg_sync_start(self):
-        data = self.ifc.read.peek()[self.header_len:]
+        data = self.ifc.rx_peek()[self.header_len:]
         result = struct.unpack_from(self.HDR_FMT, data, 0)
         ftype = result[0]
         total = result[1]
@@ -575,8 +577,8 @@ class SolarmanV5(Message):
         self.__send_ack_rsp(0x1310, ftype)
 
     def msg_command_req(self):
-        data = self.ifc.read.peek()[self.header_len:
-                                    self.header_len+self.data_len]
+        data = self.ifc.rx_peek()[self.header_len:
+                                  self.header_len+self.data_len]
         result = struct.unpack_from('<B', data, 0)
         ftype = result[0]
         if ftype == self.AT_CMD:
@@ -588,8 +590,8 @@ class SolarmanV5(Message):
             self.forward_at_cmd_resp = True
 
         elif ftype == self.MB_RTU_CMD:
-            if self.remote_stream.mb.recv_req(data[15:],
-                                              self.remote_stream.
+            if self.remote.stream.mb.recv_req(data[15:],
+                                              self.remote.stream.
                                               __forward_msg):
                 self.inc_counter('Modbus_Command')
             else:
@@ -604,7 +606,7 @@ class SolarmanV5(Message):
             self.mqtt.publish(key, data))
 
     def get_cmd_rsp_log_lvl(self) -> int:
-        ftype = self.ifc.read.peek()[self.header_len]
+        ftype = self.ifc.rx_peek()[self.header_len]
         if ftype == self.AT_CMD:
             if self.forward_at_cmd_resp:
                 return logging.INFO
@@ -616,8 +618,8 @@ class SolarmanV5(Message):
         return logging.WARNING
 
     def msg_command_rsp(self):
-        data = self.ifc.read.peek()[self.header_len:
-                                    self.header_len+self.data_len]
+        data = self.ifc.rx_peek()[self.header_len:
+                                  self.header_len+self.data_len]
         ftype = data[0]
         if ftype == self.AT_CMD:
             if not self.forward_at_cmd_resp:
@@ -653,7 +655,7 @@ class SolarmanV5(Message):
                 self.__build_model_name()
 
     def msg_hbeat_ind(self):
-        data = self.ifc.read.peek()[self.header_len:]
+        data = self.ifc.rx_peek()[self.header_len:]
         result = struct.unpack_from('<B', data, 0)
         ftype = result[0]
 
@@ -662,7 +664,7 @@ class SolarmanV5(Message):
         self.new_state_up()
 
     def msg_sync_end(self):
-        data = self.ifc.read.peek()[self.header_len:]
+        data = self.ifc.rx_peek()[self.header_len:]
         result = struct.unpack_from(self.HDR_FMT, data, 0)
         ftype = result[0]
         total = result[1]
@@ -675,7 +677,7 @@ class SolarmanV5(Message):
         self.__send_ack_rsp(0x1810, ftype)
 
     def msg_response(self):
-        data = self.ifc.read.peek()[self.header_len:]
+        data = self.ifc.rx_peek()[self.header_len:]
         result = struct.unpack_from('<BBLL', data, 0)
         ftype = result[0]  # always 2
         valid = result[1] == 1  # status

@@ -90,6 +90,12 @@ class State(Enum):
 
 class Message(metaclass=IterRegistry):
     _registry = []
+    MAX_START_TIME = 400
+    '''maximum time without a received msg in sec'''
+    MAX_INV_IDLE_TIME = 120
+    '''maximum time without a received msg from the inverter in sec'''
+    MAX_DEF_IDLE_TIME = 360
+    '''maximum default time without a received msg in sec'''
 
     def __init__(self, server_side: bool, send_modbus_cb:
                  Callable[[bytes, int, str], None], mb_timeout: int):
@@ -105,11 +111,20 @@ class Message(metaclass=IterRegistry):
         self.header_len = 0
         self.data_len = 0
         self.unique_id = 0
-        self.node_id = ''  # will be overwritten in the child class's __init__
+        self._node_id = ''
         self.sug_area = ''
         self.new_data = {}
         self.state = State.init
         self.shutdown_started = False
+
+    @property
+    def node_id(self):
+        return self._node_id
+
+    @node_id.setter
+    def node_id(self, value):
+        self._node_id = value
+        self.ifc.set_node_id(value)
 
     '''
     Empty methods, that have to be implemented in any child class which
@@ -137,6 +152,16 @@ class Message(metaclass=IterRegistry):
             # tstr = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(ts))
             # logger.info(f'update: key: {key} ts:{tstr}'
             self.db.set_db_def_value(info_id, round(ts))
+
+    def _timeout(self) -> int:
+        if self.state == State.init or self.state == State.received:
+            to = self.MAX_START_TIME
+        elif self.state == State.up and \
+                self.server_side and self.modbus_polling:
+            to = self.MAX_INV_IDLE_TIME
+        else:
+            to = self.MAX_DEF_IDLE_TIME
+        return to
 
     '''
     Our puplic methods

@@ -383,12 +383,14 @@ class Infos:
         '''inc proxy statistic counter'''
         db_dict = cls.stat['proxy']
         db_dict[counter] += 1
+        cls.new_stat_data['proxy'] = True
 
     @classmethod
     def dec_counter(cls, counter: str) -> None:
         '''dec proxy statistic counter'''
         db_dict = cls.stat['proxy']
         db_dict[counter] -= 1
+        cls.new_stat_data['proxy'] = True
 
     def ha_proxy_confs(self, ha_prfx: str, node_id: str, snr: str) \
             -> Generator[tuple[str, str, str, str], None, None]:

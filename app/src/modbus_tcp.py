@@ -5,9 +5,11 @@ import asyncio
 if __name__ == "app.src.modbus_tcp":
     from app.src.config import Config
     from app.src.gen3plus.inverter_g3p import InverterG3P
+    from app.src.infos import Infos
 else:  # pragma: no cover
     from config import Config
     from gen3plus.inverter_g3p import InverterG3P
+    from infos import Infos
 
 logger = logging.getLogger('conn')
 
@@ -27,13 +29,14 @@ class ModbusConn():
                                   client_mode=True)
         logging.info(f'[{self.stream.node_id}:{self.stream.conn_no}] '
                      f'Connected to {self.addr}')
-        self.stream.inc_counter('Inverter_Cnt')
-        await self.stream.publish_outstanding_mqtt()
+        Infos.inc_counter('Inverter_Cnt')
+        await self.stream._ifc.publish_outstanding_mqtt()
         return self.stream
 
     async def __aexit__(self, exc_type, exc, tb):
-        self.stream.dec_counter('Inverter_Cnt')
-        await self.stream.publish_outstanding_mqtt()
+        Infos.dec_counter('Inverter_Cnt')
+        await self.stream._ifc.publish_outstanding_mqtt()
+        self.stream.close()
 
 
 class ModbusTcp():
@@ -60,7 +63,7 @@ class ModbusTcp():
             try:
                 async with ModbusConn(host, port) as stream:
                     await stream.send_start_cmd(snr, host)
-                    await stream.loop()
+                    await stream._ifc.loop()
                     logger.info(f'[{stream.node_id}:{stream.conn_no}] '
                                 f'Connection closed - Shutdown: '
                                 f'{stream.shutdown_started}')

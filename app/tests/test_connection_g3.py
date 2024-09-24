@@ -2,8 +2,9 @@
 import pytest
 import asyncio
 
+from itertools import count
 from mock import patch
-from app.src.async_stream import AsyncStream
+from app.src.async_stream import AsyncStream, AsyncIfcImpl
 from app.src.gen3.connection_g3 import ConnectionG3
 from app.src.gen3.talent import Talent
 
@@ -60,19 +61,19 @@ class FakeWriter():
 
 
 
-def test_method_calls(patch_async_init, patch_talent_init, patch_healthy, patch_async_close, patch_talent_close):
-    spy1 = patch_async_init
+def test_method_calls(patch_talent_init, patch_healthy, patch_async_close, patch_talent_close):
+    AsyncIfcImpl._ids = count(5)
     spy2 = patch_talent_init
     spy3 = patch_healthy
     spy4 = patch_async_close
     spy5 = patch_talent_close
     reader = FakeReader()
-    writer =  FakeWriter()
+    writer = FakeWriter()
     id_str = "id_string"
     addr = ('proxy.local', 10000)
     conn = ConnectionG3(reader, writer, addr,
-                        remote_stream= None, server_side=True, id_str=id_str)
-    spy1.assert_called_once_with(conn, reader, writer, addr, conn._ifc)
+                        rstream= None, server_side=True, id_str=id_str)
+    assert 5 == conn._ifc.get_conn_no()
     spy2.assert_called_once_with(conn, True, conn._ifc, id_str)
     conn.healthy()
 
@@ -81,4 +82,3 @@ def test_method_calls(patch_async_init, patch_talent_init, patch_healthy, patch_
     conn.close()
     spy4.assert_called_once()
     spy5.assert_called_once()
-

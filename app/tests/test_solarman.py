@@ -5,7 +5,7 @@ import asyncio
 import logging
 import random
 from math import isclose
-from app.src.async_ifc import AsyncIfc
+from app.src.async_stream import AsyncIfcImpl, StreamPtr
 from app.src.gen3plus.solarman_v5 import SolarmanV5
 from app.src.config import Config
 from app.src.infos import Infos, Register
@@ -34,14 +34,15 @@ class Mqtt():
 
 class MemoryStream(SolarmanV5):
     def __init__(self, msg, chunks = (0,), server_side: bool = True):
-        _ifc = AsyncIfc()
+        _ifc = AsyncIfcImpl()
         super().__init__(server_side, client_mode=False, ifc=_ifc)
         if server_side:
             self.mb.timeout = 0.4   # overwrite for faster testing
+        self.remote = StreamPtr(None)
         self.mb_first_timeout = 0.5
         self.mb_timeout = 0.5
         self.sent_pdu = b''
-        self.ifc.write.reg_trigger(self.write_cb)
+        self.ifc.tx_fifo.reg_trigger(self.write_cb)
         self.mqtt = Mqtt()
         self.__msg = msg
         self.__msg_len = len(msg)
@@ -63,7 +64,7 @@ class MemoryStream(SolarmanV5):
     def write_cb(self):
         if self.test_exception_async_write:
             raise RuntimeError("Peer closed.")
-        self.sent_pdu = self.ifc.write.get()
+        self.sent_pdu = self.ifc.tx_fifo.get()
 
     def _timestamp(self):
         return timestamp
@@ -87,11 +88,11 @@ class MemoryStream(SolarmanV5):
                 chunk_len = self.__chunks[self.__chunk_idx]
                 self.__chunk_idx += 1
                 if chunk_len!=0:
-                    self.ifc.read += self.__msg[self.__offs:chunk_len]
+                    self.ifc.rx_fifo += self.__msg[self.__offs:chunk_len]
                     copied_bytes = chunk_len - self.__offs
                     self.__offs = chunk_len
                 else:
-                    self.ifc.read += self.__msg[self.__offs:]
+                    self.ifc.rx_fifo += self.__msg[self.__offs:]
                     copied_bytes = self.__msg_len - self.__offs
                     self.__offs = self.__msg_len
         except Exception:
@@ -100,8 +101,8 @@ class MemoryStream(SolarmanV5):
     
     def createClientStream(self, msg, chunks = (0,)):
         c = MemoryStream(msg, chunks, False)
-        self.remote_stream = c
-        c. remote_stream = self
+        self.remote.stream = c
+        c. remote.stream = self
         return c
 
     def _SolarmanV5__flush_recv_msg(self) -> None:
@@ -687,9 +688,9 @@ def test_read_message(device_ind_msg):
     assert m.control == 0x4110
     assert str(m.seq) == '01:00'
     assert m.data_len == 0xd4
-    assert m.ifc.read.get()==b''
-    assert m.ifc.write.get()==b''
-    assert m.ifc.forward.get()==b''
+    assert m.ifc.rx_get()==b''
+    assert m.ifc.tx_fifo.get()==b''
+    assert m.ifc.fwd_fifo.get()==b''
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
     m.close()
 
@@ -708,9 +709,9 @@ def test_invalid_start_byte(invalid_start_byte, device_ind_msg):
     assert m.control == 0x4110
     assert str(m.seq) == '01:00'
     assert m.data_len == 0xd4
-    assert m.ifc.read.get()==b''
-    assert m.ifc.write.get()==b''
-    assert m.ifc.forward.get()==b''
+    assert m.ifc.rx_get()==b''
+    assert m.ifc.tx_fifo.get()==b''
+    assert m.ifc.fwd_fifo.get()==b''
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 1
     m.close()
 
@@ -728,9 +729,9 @@ def test_invalid_stop_byte(invalid_stop_byte):
     assert m.control == 0x4110
     assert str(m.seq) == '01:00'
     assert m.data_len == 0xd4
-    assert m.ifc.read.get()==b''
-    assert m.ifc.write.get()==b''
-    assert m.ifc.forward.get()==b''
+    assert m.ifc.rx_get()==b''
+    assert m.ifc.tx_fifo.get()==b''
+    assert m.ifc.fwd_fifo.get()==b''
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 1
     m.close()
 
@@ -753,9 +754,9 @@ def test_invalid_stop_byte2(invalid_stop_byte, device_ind_msg):
     assert m.msg_recvd[1]['data_len']==0xd4
 
     assert m.unique_id == None
-    assert m.ifc.read.get()==b''
-    assert m.ifc.write.get()==b''
-    assert m.ifc.forward.get()==b''
+    assert m.ifc.rx_get()==b''
+    assert m.ifc.tx_fifo.get()==b''
+    assert m.ifc.fwd_fifo.get()==b''
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 1
     m.close()
 
@@ -775,9 +776,9 @@ def test_invalid_stop_start_byte(invalid_stop_byte, invalid_start_byte):
     assert m.control == 0x4110
     assert str(m.seq) == '01:00'
     assert m.data_len == 0xd4
-    assert m.ifc.read.get()==b''
-    assert m.ifc.write.get()==b''
-    assert m.ifc.forward.get()==b''
+    assert m.ifc.rx_get()==b''
+    assert m.ifc.tx_fifo.get()==b''
+    assert m.ifc.fwd_fifo.get()==b''
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 1
     m.close()
 
@@ -799,9 +800,9 @@ def test_invalid_checksum(invalid_checksum, device_ind_msg):
     assert m.msg_recvd[1]['control']==0x4110
     assert m.msg_recvd[1]['seq']=='01:00'
     assert m.msg_recvd[1]['data_len']==0xd4
-    assert m.ifc.read.get()==b''
-    assert m.ifc.write.get()==b''
-    assert m.ifc.forward.get()==b''
+    assert m.ifc.rx_get()==b''
+    assert m.ifc.tx_fifo.get()==b''
+    assert m.ifc.fwd_fifo.get()==b''
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 1
     m.close()
 
@@ -821,8 +822,8 @@ def test_read_message_twice(config_no_tsun_inv1, device_ind_msg, device_rsp_msg)
     assert m.msg_recvd[1]['control']==0x4110
     assert m.msg_recvd[1]['seq']=='01:01'
     assert m.msg_recvd[1]['data_len']==0xd4
-    assert m.ifc.write.get()==device_rsp_msg+device_rsp_msg
-    assert m.ifc.forward.get()==b''
+    assert m.ifc.tx_fifo.get()==device_rsp_msg+device_rsp_msg
+    assert m.ifc.fwd_fifo.get()==b''
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
     m.close()
 
@@ -893,11 +894,11 @@ def test_read_two_messages(config_tsun_allow_all, device_ind_msg, device_rsp_msg
     assert m.msg_recvd[1]['data_len']==0x199
     assert '02b0' == m.db.get_db_value(Register.SENSOR_LIST, None)
     assert 0x02b0 == m.sensor_list
-    assert m.ifc.forward.get()==device_ind_msg+inverter_ind_msg
-    assert m.ifc.write.get()==device_rsp_msg+inverter_rsp_msg
+    assert m.ifc.fwd_fifo.get()==device_ind_msg+inverter_ind_msg
+    assert m.ifc.tx_fifo.get()==device_rsp_msg+inverter_rsp_msg
 
     m._init_new_client_conn()
-    assert m.ifc.write.get()==b''
+    assert m.ifc.tx_fifo.get()==b''
     m.close()
 
 def test_read_two_messages2(config_tsun_allow_all, inverter_ind_msg, inverter_ind_msg_81, inverter_rsp_msg, inverter_rsp_msg_81):
@@ -918,11 +919,11 @@ def test_read_two_messages2(config_tsun_allow_all, inverter_ind_msg, inverter_in
     assert m.msg_recvd[1]['seq']=='03:03'
     assert m.msg_recvd[1]['data_len']==0x199
     assert m.time_ofs == 0x33e447a0
-    assert m.ifc.forward.get()==inverter_ind_msg+inverter_ind_msg_81
-    assert m.ifc.write.get()==inverter_rsp_msg+inverter_rsp_msg_81
+    assert m.ifc.fwd_fifo.get()==inverter_ind_msg+inverter_ind_msg_81
+    assert m.ifc.tx_fifo.get()==inverter_rsp_msg+inverter_rsp_msg_81
 
     m._init_new_client_conn()
-    assert m.ifc.write.get()==b''
+    assert m.ifc.tx_fifo.get()==b''
     m.close()
 
 def test_read_two_messages3(config_tsun_allow_all, device_ind_msg2, device_rsp_msg2, inverter_ind_msg, inverter_rsp_msg):
@@ -947,11 +948,11 @@ def test_read_two_messages3(config_tsun_allow_all, device_ind_msg2, device_rsp_m
     assert m.msg_recvd[1]['data_len']==0xd4
     assert '02b0' == m.db.get_db_value(Register.SENSOR_LIST, None)
     assert 0x02b0 == m.sensor_list
-    assert m.ifc.forward.get()==inverter_ind_msg+device_ind_msg2
-    assert m.ifc.write.get()==inverter_rsp_msg+device_rsp_msg2
+    assert m.ifc.fwd_fifo.get()==inverter_ind_msg+device_ind_msg2
+    assert m.ifc.tx_fifo.get()==inverter_rsp_msg+device_rsp_msg2
 
     m._init_new_client_conn()
-    assert m.ifc.write.get()==b''
+    assert m.ifc.tx_fifo.get()==b''
     m.close()
 
 def test_unkown_frame_code(config_tsun_inv1, inverter_ind_msg_81, inverter_rsp_msg_81):
@@ -966,9 +967,9 @@ def test_unkown_frame_code(config_tsun_inv1, inverter_ind_msg_81, inverter_rsp_m
     assert m.control == 0x4210
     assert str(m.seq) == '03:03'
     assert m.data_len == 0x199
-    assert m.ifc.read.get()==b''
-    assert m.ifc.write.get()==inverter_rsp_msg_81
-    assert m.ifc.forward.get()==inverter_ind_msg_81
+    assert m.ifc.rx_get()==b''
+    assert m.ifc.tx_fifo.get()==inverter_rsp_msg_81
+    assert m.ifc.fwd_fifo.get()==inverter_ind_msg_81
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
     m.close()
 
@@ -984,9 +985,9 @@ def test_unkown_message(config_tsun_inv1, unknown_msg):
     assert m.control == 0x5110
     assert str(m.seq) == '84:10'
     assert m.data_len == 0x0a
-    assert m.ifc.read.get()==b''
-    assert m.ifc.write.get()==b''
-    assert m.ifc.forward.get()==unknown_msg
+    assert m.ifc.rx_get()==b''
+    assert m.ifc.tx_fifo.get()==b''
+    assert m.ifc.fwd_fifo.get()==unknown_msg
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
     m.close()
 
@@ -1002,9 +1003,9 @@ def test_device_rsp(config_tsun_inv1, device_rsp_msg):
     assert m.control == 0x1110
     assert str(m.seq) == '01:01'
     assert m.data_len == 0x0a
-    assert m.ifc.read.get()==b''
-    assert m.ifc.write.get()==b''
-    assert m.ifc.forward.get()==b''
+    assert m.ifc.rx_get()==b''
+    assert m.ifc.tx_fifo.get()==b''
+    assert m.ifc.fwd_fifo.get()==b''
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
     m.close()
 
@@ -1020,9 +1021,9 @@ def test_inverter_rsp(config_tsun_inv1, inverter_rsp_msg):
     assert m.control == 0x1210
     assert str(m.seq) == '02:02'
     assert m.data_len == 0x0a
-    assert m.ifc.read.get()==b''
-    assert m.ifc.write.get()==b''
-    assert m.ifc.forward.get()==b''
+    assert m.ifc.rx_get()==b''
+    assert m.ifc.tx_fifo.get()==b''
+    assert m.ifc.fwd_fifo.get()==b''
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
     m.close()
 
@@ -1037,9 +1038,9 @@ def test_heartbeat_ind(config_tsun_inv1, heartbeat_ind_msg, heartbeat_rsp_msg):
     assert m.control == 0x4710
     assert str(m.seq) == '84:11'  # value after sending response
     assert m.data_len == 0x01
-    assert m.ifc.read.get()==b''
-    assert m.ifc.write.get()==heartbeat_rsp_msg
-    assert m.ifc.forward.get()==heartbeat_ind_msg
+    assert m.ifc.rx_get()==b''
+    assert m.ifc.tx_fifo.get()==heartbeat_rsp_msg
+    assert m.ifc.fwd_fifo.get()==heartbeat_ind_msg
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
     m.close()
 
@@ -1055,9 +1056,9 @@ def test_heartbeat_ind2(config_tsun_inv1, heartbeat_ind_msg, heartbeat_rsp_msg):
     assert m.control == 0x4710
     assert str(m.seq) == '84:11'  # value after sending response
     assert m.data_len == 0x01
-    assert m.ifc.read.get()==b''
-    assert m.ifc.write.get()==heartbeat_rsp_msg
-    assert m.ifc.forward.get()==b''
+    assert m.ifc.rx_get()==b''
+    assert m.ifc.tx_fifo.get()==heartbeat_rsp_msg
+    assert m.ifc.fwd_fifo.get()==b''
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
     m.close()
 
@@ -1073,9 +1074,9 @@ def test_heartbeat_rsp(config_tsun_inv1, heartbeat_rsp_msg):
     assert m.control == 0x1710
     assert str(m.seq) == '11:84'  # value after sending response
     assert m.data_len == 0x0a
-    assert m.ifc.read.get()==b''
-    assert m.ifc.write.get()==b''
-    assert m.ifc.forward.get()==b''
+    assert m.ifc.rx_get()==b''
+    assert m.ifc.tx_fifo.get()==b''
+    assert m.ifc.fwd_fifo.get()==b''
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
     m.close()
 
@@ -1090,15 +1091,15 @@ def test_sync_start_ind(config_tsun_inv1, sync_start_ind_msg, sync_start_rsp_msg
     assert m.control == 0x4310
     assert str(m.seq) == '0d:0d'  # value after sending response
     assert m.data_len == 47
-    assert m.ifc.read.get()==b''
-    assert m.ifc.write.get()==sync_start_rsp_msg
-    assert m.ifc.forward.peek()==sync_start_ind_msg
+    assert m.ifc.rx_get()==b''
+    assert m.ifc.tx_fifo.get()==sync_start_rsp_msg
+    assert m.ifc.fwd_fifo.peek()==sync_start_ind_msg
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
 
     m.seq.server_side = False  # simulate forawding to TSUN cloud
-    m._update_header(m.ifc.forward.peek())
+    m._update_header(m.ifc.fwd_fifo.peek())
     assert str(m.seq) == '0d:0e'  # value after forwarding indication
-    assert m.ifc.forward.get()==sync_start_fwd_msg
+    assert m.ifc.fwd_fifo.get()==sync_start_fwd_msg
 
     m.close()
 
@@ -1114,9 +1115,9 @@ def test_sync_start_rsp(config_tsun_inv1, sync_start_rsp_msg):
     assert m.control == 0x1310
     assert str(m.seq) == '0d:0d'  # value after sending response
     assert m.data_len == 0x0a
-    assert m.ifc.read.get()==b''
-    assert m.ifc.write.get()==b''
-    assert m.ifc.forward.get()==b''
+    assert m.ifc.rx_get()==b''
+    assert m.ifc.tx_fifo.get()==b''
+    assert m.ifc.fwd_fifo.get()==b''
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
     m.close()
 
@@ -1131,9 +1132,9 @@ def test_sync_end_ind(config_tsun_inv1, sync_end_ind_msg, sync_end_rsp_msg):
     assert m.control == 0x4810
     assert str(m.seq) == '07:07'  # value after sending response
     assert m.data_len == 60
-    assert m.ifc.read.get()==b''
-    assert m.ifc.write.get()==sync_end_rsp_msg
-    assert m.ifc.forward.get()==sync_end_ind_msg
+    assert m.ifc.rx_get()==b''
+    assert m.ifc.tx_fifo.get()==sync_end_rsp_msg
+    assert m.ifc.fwd_fifo.get()==sync_end_ind_msg
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
     m.close()
 
@@ -1149,9 +1150,9 @@ def test_sync_end_rsp(config_tsun_inv1, sync_end_rsp_msg):
     assert m.control == 0x1810
     assert str(m.seq) == '07:07'  # value after sending response
     assert m.data_len == 0x0a
-    assert m.ifc.read.get()==b''
-    assert m.ifc.write.get()==b''
-    assert m.ifc.forward.get()==b''
+    assert m.ifc.rx_get()==b''
+    assert m.ifc.tx_fifo.get()==b''
+    assert m.ifc.fwd_fifo.get()==b''
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
     m.close()
 
@@ -1169,9 +1170,9 @@ def test_build_modell_600(config_tsun_allow_all, inverter_ind_msg):
     assert '02b0' == m.db.get_db_value(Register.SENSOR_LIST, None)
     assert 0 == m.sensor_list   # must not been set by an inverter data ind
 
-    m.ifc.write.clear() # clear send buffer for next test    
+    m.ifc.tx_clear() # clear send buffer for next test    
     m._init_new_client_conn()
-    assert m.ifc.write.get()==b''
+    assert m.ifc.tx_fifo.get()==b''
     m.close()
 
 def test_build_modell_1600(config_tsun_allow_all, inverter_ind_msg1600):
@@ -1235,9 +1236,9 @@ def test_build_logger_modell(config_tsun_allow_all, device_ind_msg):
 
 def test_msg_iterator():
     Message._registry.clear()
-    m1 = SolarmanV5(server_side=True, client_mode=False, ifc=AsyncIfc())
-    m2 = SolarmanV5(server_side=True, client_mode=False, ifc=AsyncIfc())
-    m3 = SolarmanV5(server_side=True, client_mode=False, ifc=AsyncIfc())
+    m1 = SolarmanV5(server_side=True, client_mode=False, ifc=AsyncIfcImpl())
+    m2 = SolarmanV5(server_side=True, client_mode=False, ifc=AsyncIfcImpl())
+    m3 = SolarmanV5(server_side=True, client_mode=False, ifc=AsyncIfcImpl())
     m3.close()
     del m3
     test1 = 0
@@ -1255,7 +1256,7 @@ def test_msg_iterator():
     assert test2 == 1
 
 def test_proxy_counter():
-    m = SolarmanV5(server_side=True, client_mode=False, ifc=AsyncIfc())
+    m = SolarmanV5(server_side=True, client_mode=False, ifc=AsyncIfcImpl())
     assert m.new_data == {}
     m.db.stat['proxy']['Unknown_Msg'] = 0
     Infos.new_stat_data['proxy'] =  False
@@ -1279,14 +1280,14 @@ async def test_msg_build_modbus_req(config_tsun_inv1, device_ind_msg, device_rsp
     m.read()
     assert m.control == 0x4110
     assert str(m.seq) == '01:01'
-    assert m.ifc.write.get()==device_rsp_msg
-    assert m.ifc.forward.get()==device_ind_msg
+    assert m.ifc.tx_fifo.get()==device_rsp_msg
+    assert m.ifc.fwd_fifo.get()==device_ind_msg
 
     await m.send_modbus_cmd(Modbus.WRITE_SINGLE_REG, 0x2008, 0, logging.DEBUG)
     assert 0 == m.send_msg_ofs
-    assert m.ifc.forward.get() == b''
+    assert m.ifc.fwd_fifo.get() == b''
     assert m.sent_pdu == b'' # modbus command must be ignore, cause connection is still not up
-    assert m.ifc.write.get() == b''    # modbus command must be ignore, cause connection is still not up
+    assert m.ifc.tx_fifo.get() == b''    # modbus command must be ignore, cause connection is still not up
 
     m.append_msg(inverter_ind_msg)
     m.read()
@@ -1296,15 +1297,15 @@ async def test_msg_build_modbus_req(config_tsun_inv1, device_ind_msg, device_rsp
     assert m.msg_recvd[0]['seq']=='01:01'
     assert m.msg_recvd[1]['control']==0x4210
     assert m.msg_recvd[1]['seq']=='02:02'
-    assert m.ifc.read.get()==b''
-    assert m.ifc.write.get()==inverter_rsp_msg
-    assert m.ifc.forward.get()==inverter_ind_msg
+    assert m.ifc.rx_get()==b''
+    assert m.ifc.tx_fifo.get()==inverter_rsp_msg
+    assert m.ifc.fwd_fifo.get()==inverter_ind_msg
 
     await m.send_modbus_cmd(Modbus.WRITE_SINGLE_REG, 0x2008, 0, logging.DEBUG)
     assert 0 == m.send_msg_ofs
-    assert m.ifc.forward.get() == b''
+    assert m.ifc.fwd_fifo.get() == b''
     assert m.sent_pdu == msg_modbus_cmd
-    assert m.ifc.write.get()== b''
+    assert m.ifc.tx_fifo.get()== b''
     m.close()
 
 @pytest.mark.asyncio
@@ -1314,12 +1315,12 @@ async def test_at_cmd(config_tsun_allow_all, device_ind_msg, device_rsp_msg, inv
     m.read()   # read device ind
     assert m.control == 0x4110
     assert str(m.seq) == '01:01'
-    assert m.ifc.write.get()==device_rsp_msg
-    assert m.ifc.forward.get()==device_ind_msg
+    assert m.ifc.tx_fifo.get()==device_rsp_msg
+    assert m.ifc.fwd_fifo.get()==device_ind_msg
 
     await m.send_at_cmd('AT+TIME=214028,1,60,120')
-    assert m.ifc.write.get()==b''
-    assert m.ifc.forward.get()==b''
+    assert m.ifc.tx_fifo.get()==b''
+    assert m.ifc.fwd_fifo.get()==b''
     assert m.sent_pdu == b''
     assert str(m.seq) == '01:01'
     assert m.mqtt.key == ''
@@ -1329,12 +1330,12 @@ async def test_at_cmd(config_tsun_allow_all, device_ind_msg, device_rsp_msg, inv
     m.read() # read inverter ind
     assert m.control == 0x4210
     assert str(m.seq) == '02:02'
-    assert m.ifc.write.get()==inverter_rsp_msg
-    assert m.ifc.forward.get()==inverter_ind_msg
+    assert m.ifc.tx_fifo.get()==inverter_rsp_msg
+    assert m.ifc.fwd_fifo.get()==inverter_ind_msg
     
     await m.send_at_cmd('AT+TIME=214028,1,60,120')
-    assert m.ifc.forward.get() == b''
-    assert m.ifc.write.get()== b''
+    assert m.ifc.fwd_fifo.get() == b''
+    assert m.ifc.tx_fifo.get()== b''
     assert m.sent_pdu == at_command_ind_msg
     m.sent_pdu = bytearray()
 
@@ -1346,9 +1347,9 @@ async def test_at_cmd(config_tsun_allow_all, device_ind_msg, device_rsp_msg, inv
     m.read() # read at resp
     assert m.control == 0x1510
     assert str(m.seq) == '03:03'
-    assert m.ifc.read.get()==b''
-    assert m.ifc.write.get()==b''
-    assert m.ifc.forward.get()==b''
+    assert m.ifc.rx_get()==b''
+    assert m.ifc.tx_fifo.get()==b''
+    assert m.ifc.fwd_fifo.get()==b''
     assert m.key == 'at_resp'
     assert m.data == "+ok"
 
@@ -1356,9 +1357,9 @@ async def test_at_cmd(config_tsun_allow_all, device_ind_msg, device_rsp_msg, inv
     m.test_exception_async_write = True
     await m.send_at_cmd('AT+TIME=214028,1,60,120')
     assert m.sent_pdu == b''
-    assert m.ifc.read.get()==b''
-    assert m.ifc.write.get()==b''
-    assert m.ifc.forward.get()==b''
+    assert m.ifc.rx_get()==b''
+    assert m.ifc.tx_fifo.get()==b''
+    assert m.ifc.fwd_fifo.get()==b''
     assert m.sent_pdu == b''
     assert str(m.seq) == '03:04'
     assert m.forward_at_cmd_resp == False
@@ -1373,12 +1374,12 @@ async def test_at_cmd_blocked(config_tsun_allow_all, device_ind_msg, device_rsp_
     m.read()
     assert m.control == 0x4110
     assert str(m.seq) == '01:01'
-    assert m.ifc.write.get()==device_rsp_msg
-    assert m.ifc.forward.get()==device_ind_msg
+    assert m.ifc.tx_fifo.get()==device_rsp_msg
+    assert m.ifc.fwd_fifo.get()==device_ind_msg
 
     await m.send_at_cmd('AT+WEBU')
-    assert m.ifc.write.get()==b''
-    assert m.ifc.forward.get()==b''
+    assert m.ifc.tx_fifo.get()==b''
+    assert m.ifc.fwd_fifo.get()==b''
     assert str(m.seq) == '01:01'
     assert m.mqtt.key == ''
     assert m.mqtt.data == ""
@@ -1387,14 +1388,14 @@ async def test_at_cmd_blocked(config_tsun_allow_all, device_ind_msg, device_rsp_
     m.read()
     assert m.control == 0x4210
     assert str(m.seq) == '02:02'
-    assert m.ifc.read.get()==b''
-    assert m.ifc.write.get()==inverter_rsp_msg
-    assert m.ifc.forward.get()==inverter_ind_msg
+    assert m.ifc.rx_get()==b''
+    assert m.ifc.tx_fifo.get()==inverter_rsp_msg
+    assert m.ifc.fwd_fifo.get()==inverter_ind_msg
     
     await m.send_at_cmd('AT+WEBU')
-    assert m.ifc.read.get()==b''
-    assert m.ifc.write.get()==b''
-    assert m.ifc.forward.get()==b''
+    assert m.ifc.rx_get()==b''
+    assert m.ifc.tx_fifo.get()==b''
+    assert m.ifc.fwd_fifo.get()==b''
     assert str(m.seq) == '02:02'
     assert m.forward_at_cmd_resp == False
     assert m.mqtt.key == 'at_resp'
@@ -1416,9 +1417,9 @@ def test_at_cmd_ind(config_tsun_inv1, at_command_ind_msg):
     assert m.control == 0x4510
     assert str(m.seq) == '03:02'
     assert m.data_len == 39
-    assert m.ifc.read.get()==b''
-    assert m.ifc.write.get()==b''
-    assert m.ifc.forward.get()==at_command_ind_msg
+    assert m.ifc.rx_get()==b''
+    assert m.ifc.tx_fifo.get()==b''
+    assert m.ifc.fwd_fifo.get()==at_command_ind_msg
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
     assert m.db.stat['proxy']['AT_Command'] == 1
     assert m.db.stat['proxy']['AT_Command_Blocked'] == 0
@@ -1440,9 +1441,9 @@ def test_at_cmd_ind_block(config_tsun_inv1, at_command_ind_msg_block):
     assert m.control == 0x4510
     assert str(m.seq) == '03:02'
     assert m.data_len == 23
-    assert m.ifc.read.get()==b''
-    assert m.ifc.write.get()==b''
-    assert m.ifc.forward.get()==b''
+    assert m.ifc.rx_get()==b''
+    assert m.ifc.tx_fifo.get()==b''
+    assert m.ifc.fwd_fifo.get()==b''
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
     assert m.db.stat['proxy']['AT_Command'] == 0
     assert m.db.stat['proxy']['AT_Command_Blocked'] == 1
@@ -1462,8 +1463,8 @@ def test_msg_at_command_rsp1(config_tsun_inv1, at_command_rsp_msg):
     assert str(m.seq) == '03:03'
     assert m.header_len==11
     assert m.data_len==17
-    assert m.ifc.forward.get()==at_command_rsp_msg
-    assert m.ifc.write.get()==b''
+    assert m.ifc.fwd_fifo.get()==at_command_rsp_msg
+    assert m.ifc.tx_fifo.get()==b''
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
     assert m.db.stat['proxy']['Modbus_Command'] == 0
     m.close()
@@ -1481,8 +1482,8 @@ def test_msg_at_command_rsp2(config_tsun_inv1, at_command_rsp_msg):
     assert str(m.seq) == '03:03'
     assert m.header_len==11
     assert m.data_len==17
-    assert m.ifc.forward.get()==b''
-    assert m.ifc.write.get()==b''
+    assert m.ifc.fwd_fifo.get()==b''
+    assert m.ifc.tx_fifo.get()==b''
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
     assert m.db.stat['proxy']['Modbus_Command'] == 0
     m.close()
@@ -1506,8 +1507,8 @@ def test_msg_modbus_req(config_tsun_inv1, msg_modbus_cmd, msg_modbus_cmd_fwd):
     assert str(c.seq) == '03:02'
     assert c.header_len==11
     assert c.data_len==23
-    assert c.ifc.forward.get()==b''
-    assert c.ifc.write.get()==b''
+    assert c.ifc.fwd_fifo.get()==b''
+    assert c.ifc.tx_fifo.get()==b''
     assert m.sent_pdu == msg_modbus_cmd_fwd
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
     assert m.db.stat['proxy']['AT_Command'] == 0
@@ -1533,8 +1534,8 @@ def test_msg_modbus_req2(config_tsun_inv1, msg_modbus_cmd_crc_err):
     assert str(c.seq) == '03:02'
     assert c.header_len==11
     assert c.data_len==23
-    assert c.ifc.forward.get()==b''
-    assert c.ifc.write.get()==b''
+    assert c.ifc.fwd_fifo.get()==b''
+    assert c.ifc.tx_fifo.get()==b''
     assert m.sent_pdu==b''
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
     assert m.db.stat['proxy']['AT_Command'] == 0
@@ -1556,8 +1557,8 @@ def test_msg_unknown_cmd_req(config_tsun_inv1, msg_unknown_cmd):
     assert str(m.seq) == '03:02'
     assert m.header_len==11
     assert m.data_len==23
-    assert m.ifc.forward.get()==msg_unknown_cmd
-    assert m.ifc.write.get()==b''
+    assert m.ifc.fwd_fifo.get()==msg_unknown_cmd
+    assert m.ifc.tx_fifo.get()==b''
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
     assert m.db.stat['proxy']['AT_Command'] == 0
     assert m.db.stat['proxy']['Modbus_Command'] == 0
@@ -1577,8 +1578,8 @@ def test_msg_modbus_rsp1(config_tsun_inv1, msg_modbus_rsp):
     assert str(m.seq) == '03:03'
     assert m.header_len==11
     assert m.data_len==59
-    assert m.ifc.forward.get()==b''
-    assert m.ifc.write.get()==b''
+    assert m.ifc.fwd_fifo.get()==b''
+    assert m.ifc.tx_fifo.get()==b''
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
     assert m.db.stat['proxy']['Modbus_Command'] == 0
     m.close()
@@ -1601,8 +1602,8 @@ def test_msg_modbus_rsp2(config_tsun_inv1, msg_modbus_rsp):
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
     assert m.mb.err == 0
     assert m.msg_count == 1
-    assert m.ifc.forward.get()==msg_modbus_rsp
-    assert m.ifc.write.get()==b''
+    assert m.ifc.fwd_fifo.get()==msg_modbus_rsp
+    assert m.ifc.tx_fifo.get()==b''
     assert m.db.get_db_value(Register.VERSION) == 'V4.0.10'
     assert m.new_data['inverter'] == True
     m.new_data['inverter'] = False
@@ -1613,8 +1614,8 @@ def test_msg_modbus_rsp2(config_tsun_inv1, msg_modbus_rsp):
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
     assert m.mb.err == 0
     assert m.msg_count == 2
-    assert m.ifc.forward.get()==msg_modbus_rsp
-    assert m.ifc.write.get()==b''
+    assert m.ifc.fwd_fifo.get()==msg_modbus_rsp
+    assert m.ifc.tx_fifo.get()==b''
     assert m.db.get_db_value(Register.VERSION) == 'V4.0.10'
     assert m.new_data['inverter'] == False
 
@@ -1638,8 +1639,8 @@ def test_msg_modbus_rsp3(config_tsun_inv1, msg_modbus_rsp):
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
     assert m.mb.err == 0
     assert m.msg_count == 1
-    assert m.ifc.forward.get()==msg_modbus_rsp
-    assert m.ifc.write.get()==b''
+    assert m.ifc.fwd_fifo.get()==msg_modbus_rsp
+    assert m.ifc.tx_fifo.get()==b''
     assert m.db.get_db_value(Register.VERSION) == 'V4.0.10'
     assert m.new_data['inverter'] == True
     m.new_data['inverter'] = False
@@ -1649,8 +1650,8 @@ def test_msg_modbus_rsp3(config_tsun_inv1, msg_modbus_rsp):
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
     assert m.mb.err == 5
     assert m.msg_count == 2
-    assert m.ifc.forward.get()==b''
-    assert m.ifc.write.get()==b''
+    assert m.ifc.fwd_fifo.get()==b''
+    assert m.ifc.tx_fifo.get()==b''
     assert m.db.get_db_value(Register.VERSION) == 'V4.0.10'
     assert m.new_data['inverter'] == False
 
@@ -1668,8 +1669,8 @@ def test_msg_unknown_rsp(config_tsun_inv1, msg_unknown_cmd_rsp):
     assert str(m.seq) == '03:03'
     assert m.header_len==11
     assert m.data_len==59
-    assert m.ifc.forward.get()==msg_unknown_cmd_rsp
-    assert m.ifc.write.get()==b''
+    assert m.ifc.fwd_fifo.get()==msg_unknown_cmd_rsp
+    assert m.ifc.tx_fifo.get()==b''
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
     assert m.db.stat['proxy']['Modbus_Command'] == 0
     m.close()
@@ -1682,8 +1683,8 @@ def test_msg_modbus_invalid(config_tsun_inv1, msg_modbus_invalid):
     m.read()         # read complete msg, and dispatch msg
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
     assert m.msg_count == 1
-    assert m.ifc.forward.get()==b''
-    assert m.ifc.write.get()==b''
+    assert m.ifc.fwd_fifo.get()==b''
+    assert m.ifc.tx_fifo.get()==b''
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
     assert m.db.stat['proxy']['Modbus_Command'] == 0
     m.close()
@@ -1705,8 +1706,8 @@ def test_msg_modbus_fragment(config_tsun_inv1, msg_modbus_rsp):
     m.read()         # read complete msg, and dispatch msg
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
     assert m.msg_count == 1
-    assert m.ifc.forward.get()==msg_modbus_rsp
-    assert m.ifc.write.get()== b''
+    assert m.ifc.fwd_fifo.get()==msg_modbus_rsp
+    assert m.ifc.tx_fifo.get()== b''
     assert m.mb.err == 0
     assert m.modbus_elms == 20-1  # register 0x300d is unknown, so one value can't be mapped
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
@@ -1729,9 +1730,9 @@ async def test_modbus_polling(config_tsun_inv1, heartbeat_ind_msg, heartbeat_rsp
     assert m.control == 0x4710
     assert str(m.seq) == '84:11'  # value after sending response
     assert m.data_len == 0x01
-    assert m.ifc.read.get()==b''
-    assert m.ifc.write.get()==heartbeat_rsp_msg
-    assert m.ifc.forward.get()==heartbeat_ind_msg
+    assert m.ifc.rx_get()==b''
+    assert m.ifc.tx_fifo.get()==heartbeat_rsp_msg
+    assert m.ifc.fwd_fifo.get()==heartbeat_ind_msg
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
 
     assert m.state == State.up
@@ -1740,16 +1741,16 @@ async def test_modbus_polling(config_tsun_inv1, heartbeat_ind_msg, heartbeat_rsp
     
     await asyncio.sleep(0.5)
     assert m.sent_pdu==bytearray(b'\xa5\x17\x00\x10E\x12\x84!Ce{\x02\xb0\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x03\x30\x00\x000J\xde\x86\x15')
-    assert m.ifc.write.get()==b''
+    assert m.ifc.tx_fifo.get()==b''
     
     await asyncio.sleep(0.5)
     assert m.sent_pdu==bytearray(b'\xa5\x17\x00\x10E\x13\x84!Ce{\x02\xb0\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x03\x30\x00\x000J\xde\x87\x15')
-    assert m.ifc.write.get()==b''
+    assert m.ifc.tx_fifo.get()==b''
     m.state = State.closed
     m.sent_pdu = bytearray()
     await asyncio.sleep(0.5)
     assert m.sent_pdu==bytearray(b'')
-    assert m.ifc.write.get()==b''
+    assert m.ifc.tx_fifo.get()==b''
     assert next(m.mb_timer.exp_count) == 4
     m.close()
 
@@ -1771,16 +1772,29 @@ async def test_start_client_mode(config_tsun_inv1, str_test_ip):
     assert m.state == State.up
     assert m.no_forwarding == True
 
-    assert m.ifc.write.get()==b''
+    assert m.ifc.tx_fifo.get()==b''
     assert isclose(m.mb_timeout, 0.5)
     assert next(m.mb_timer.exp_count) == 0
     
     await asyncio.sleep(0.5)
     assert m.sent_pdu==bytearray(b'\xa5\x17\x00\x10E\x02\x00!Ce{\x02\xb0\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x030\x00\x000J\xde\xf2\x15')
-    assert m.ifc.write.get()==b''
+    assert m.ifc.tx_fifo.get()==b''
     
     await asyncio.sleep(0.5)
     assert m.sent_pdu==bytearray(b'\xa5\x17\x00\x10E\x03\x00!Ce{\x02\xb0\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x030\x00\x000J\xde\xf3\x15')
-    assert m.ifc.write.get()==b''
+    assert m.ifc.tx_fifo.get()==b''
     assert next(m.mb_timer.exp_count) == 3
+    m.close()
+
+def test_timeout(config_tsun_inv1):
+    _ = config_tsun_inv1
+    m = MemoryStream(b'')
+    assert m.state == State.init
+    assert SolarmanV5.MAX_START_TIME == m._timeout()
+    m.state = State.up
+    m.modbus_polling = True
+    assert SolarmanV5.MAX_INV_IDLE_TIME == m._timeout()
+    m.modbus_polling = False
+    assert SolarmanV5.MAX_DEF_IDLE_TIME == m._timeout()
+    m.state = State.closed
     m.close()

@@ -2,34 +2,37 @@ import logging
 from asyncio import StreamReader, StreamWriter
 
 if __name__ == "app.src.gen3plus.connection_g3p":
-    from app.src.async_ifc import AsyncIfc
-    from app.src.async_stream import AsyncStream
+    from app.src.async_stream import AsyncStream, StreamPtr
     from app.src.gen3plus.solarman_v5 import SolarmanV5
 else:  # pragma: no cover
-    from async_ifc import AsyncIfc
-    from async_stream import AsyncStream
+    from async_stream import AsyncStream, StreamPtr
     from gen3plus.solarman_v5 import SolarmanV5
 
 logger = logging.getLogger('conn')
 
 
-class ConnectionG3P(AsyncStream, SolarmanV5):
+class ConnectionG3P(SolarmanV5):
 
     def __init__(self, reader: StreamReader, writer: StreamWriter,
-                 addr, remote_stream: 'ConnectionG3P',
+                 addr, rstream: 'ConnectionG3P',
                  server_side: bool,
                  client_mode: bool) -> None:
-        self._ifc = AsyncIfc()
-        AsyncStream.__init__(self, reader, writer, addr, self._ifc)
+
+        self.remote = StreamPtr(rstream)
+        self._ifc = AsyncStream(reader, writer, addr,
+                                self.async_publ_mqtt,
+                                self.async_create_remote,
+                                self.remote)
         SolarmanV5.__init__(self, server_side, client_mode, self._ifc)
 
-        self.remote_stream: 'ConnectionG3P' = remote_stream
+        self.conn_no = self._ifc.get_conn_no()
+        self.addr = addr
 
     '''
     Our puplic methods
     '''
     def close(self):
-        AsyncStream.close(self)
+        self._ifc.close()
         SolarmanV5.close(self)
         #  logger.info(f'AsyncStream refs: {gc.get_referrers(self)}')
 
@@ -41,10 +44,4 @@ class ConnectionG3P(AsyncStream, SolarmanV5):
 
     def healthy(self) -> bool:
         logger.debug('ConnectionG3P healthy()')
-        return AsyncStream.healthy(self)
-
-    '''
-    Our private methods
-    '''
-    def __del__(self):
-        super().__del__()
+        return self._ifc.healthy()

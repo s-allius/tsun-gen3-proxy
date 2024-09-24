@@ -74,14 +74,14 @@ async def handle_client(reader: StreamReader, writer: StreamWriter):
     '''Handles a new incoming connection and starts an async loop'''
 
     addr = writer.get_extra_info('peername')
-    await InverterG3(reader, writer, addr).server_loop(addr)
+    await InverterG3(reader, writer, addr)._ifc.server_loop(addr)
 
 
 async def handle_client_v2(reader: StreamReader, writer: StreamWriter):
     '''Handles a new incoming connection and starts an async loop'''
 
     addr = writer.get_extra_info('peername')
-    await InverterG3P(reader, writer, addr).server_loop(addr)
+    await InverterG3P(reader, writer, addr)._ifc.server_loop(addr)
 
 
 async def handle_shutdown(web_task):

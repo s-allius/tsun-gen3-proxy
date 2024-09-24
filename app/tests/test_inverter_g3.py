@@ -132,7 +132,7 @@ async def test_remote_conn(config_conn, patch_open_connection, patch_conn_close)
     
     await inverter.async_create_remote()
     await asyncio.sleep(0)
-    assert inverter.remote_stream
+    assert inverter.remote.stream
     inverter.close()
     spy1.assert_called_once()
 
@@ -151,12 +151,12 @@ async def test_remote_except(config_conn, patch_open_connection, patch_conn_clos
 
     await inverter.async_create_remote()
     await asyncio.sleep(0)
-    assert inverter.remote_stream==None
+    assert inverter.remote.stream==None
 
     test  = TestType.RD_TEST_EXCEPT
     await inverter.async_create_remote()
     await asyncio.sleep(0)
-    assert inverter.remote_stream==None
+    assert inverter.remote.stream==None
     inverter.close()
     spy1.assert_called_once()
 

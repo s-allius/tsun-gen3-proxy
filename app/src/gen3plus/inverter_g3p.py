@@ -55,6 +55,7 @@ class InverterG3P(Inverter, ConnectionG3P):
         super().__init__(reader, writer, addr, None,
                          server_side=True, client_mode=client_mode)
         self.__ha_restarts = -1
+        self.addr = addr
 
     async def async_create_remote(self) -> None:
         '''Establish a client connection to the TSUN cloud'''
@@ -67,13 +68,13 @@ class InverterG3P(Inverter, ConnectionG3P):
             logging.info(f'[{self.node_id}] Connect to {addr}')
             connect = asyncio.open_connection(host, port)
             reader, writer = await connect
-            self.remote_stream = ConnectionG3P(reader, writer, addr, self,
+            self.remote.stream = ConnectionG3P(reader, writer, addr, self,
                                                server_side=False,
                                                client_mode=False)
-            logging.info(f'[{self.remote_stream.node_id}:'
-                         f'{self.remote_stream.conn_no}] '
+            logging.info(f'[{self.remote.stream.node_id}:'
+                         f'{self.remote.stream.conn_no}] '
                          f'Connected to {addr}')
-            asyncio.create_task(self.client_loop(addr))
+            asyncio.create_task(self._ifc.client_loop(addr))
 
         except (ConnectionRefusedError, TimeoutError) as error:
             logging.info(f'{error}')
@@ -131,10 +132,6 @@ class InverterG3P(Inverter, ConnectionG3P):
         self.db.reg_clr_at_midnight(f'{self.entity_prfx}{self.node_id}')
 
     def close(self) -> None:
-        logging.debug(f'InverterG3P.close() l{self.l_addr} | r{self.r_addr}')
+        logging.debug(f'InverterG3P.close() {self.addr}')
         super().close()         # call close handler in the parent class
 #        logger.debug (f'Inverter refs: {gc.get_referrers(self)}')
-
-    def __del__(self):
-        logging.debug("InverterG3P.__del__")
-        super().__del__()
