@@ -118,6 +118,8 @@ class InverterG3(Inverter, ConnectionG3):
 
     async def __register_home_assistant(self) -> None:
         '''register all our topics at home assistant'''
+        if not self.unique_id:
+            return
         for data_json, component, node_id, id in self.db.ha_confs(
                 self.entity_prfx, self.node_id, self.unique_id,
                 self.sug_area):
