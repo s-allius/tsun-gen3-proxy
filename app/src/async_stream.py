@@ -36,8 +36,6 @@ class AsyncIfcImpl(AsyncIfc):
 
     def close(self):
         self.timeout_cb = None
-        self.init_new_client_conn_cb = None
-        self.update_header_cb = None
         self.fwd_fifo.reg_trigger(None)
         self.tx_fifo.reg_trigger(None)
         self.rx_fifo.reg_trigger(None)
@@ -351,12 +349,11 @@ class AsyncStream(AsyncIfcImpl):
                         await self.remote.ifc.__async_write()
 
             if self.remote.stream:
-                if self.remote.ifc.update_header_cb is callable:
-                    self.remote.ifc.update_header_cb(self.fwd_fifo.peek())
-                    self.fwd_fifo.logging(logging.INFO, 'Forward to '
-                                          f'{self.remote.ifc.addr}:')
-                    self.remote.ifc._writer.write(self.fwd_fifo.get())
-                    await self.remote.ifc._writer.drain()
+                self.remote.ifc.update_header_cb(self.fwd_fifo.peek())
+                self.fwd_fifo.logging(logging.INFO, 'Forward to '
+                                      f'{self.remote.ifc.addr}:')
+                self.remote.ifc._writer.write(self.fwd_fifo.get())
+                await self.remote.ifc._writer.drain()
 
         except OSError as error:
             if self.remote.stream:
