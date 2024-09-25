@@ -134,10 +134,6 @@ class Message(metaclass=IterRegistry):
         # to our _recv_buffer
         return  # pragma: no cover
 
-    def _update_header(self, _forward_buffer):
-        '''callback for updating the header of the forward buffer'''
-        pass  # pragma: no cover
-
     def _set_mqtt_timestamp(self, key, ts: float | None):
         if key not in self.new_data or \
            not self.new_data[key]:

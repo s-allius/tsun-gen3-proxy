@@ -50,6 +50,8 @@ class Talent(Message):
         super().__init__(server_side, self.send_modbus_cb, mb_timeout=15)
         ifc.rx_set_cb(self.read)
         ifc.prot_set_timeout_cb(self._timeout)
+        ifc.prot_set_init_new_client_conn_cb(self._init_new_client_conn)
+        ifc.prot_set_update_header_cb(self._update_header)
         self.ifc = ifc
         self.await_conn_resp_cnt = 0
         self.id_str = id_str
@@ -110,6 +112,8 @@ class Talent(Message):
         self.mb_timer.close()
         self.ifc.rx_set_cb(None)
         self.ifc.prot_set_timeout_cb(None)
+        self.ifc.prot_set_init_new_client_conn_cb(None)
+        self.ifc.prot_set_update_header_cb(None)
         super().close()
 
     def __set_serial_no(self, serial_no: str):

@@ -109,3 +109,11 @@ class AsyncIfc(ABC):
     @abstractmethod
     def prot_set_timeout_cb(self, callback):
         pass  # pragma: no cover
+
+    @abstractmethod
+    def prot_set_init_new_client_conn_cb(self, callback):
+        pass  # pragma: no cover
+
+    @abstractmethod
+    def prot_set_update_header_cb(self, callback):
+        pass  # pragma: no cover
