@@ -14,18 +14,25 @@
 
 [<<AsyncIfc>>||set_node_id();get_conn_no();;tx_add();tx_flush();tx_get();tx_peek();tx_log();tx_clear();tx_len();;fwd_add();fwd_flush();fwd_log();fwd_clear();rx_get();rx_peek();rx_log();rx_clear();rx_len();rx_set_cb();;prot_set_timeout_cb()]
 [AsyncIfcImpl|fwd_fifo:ByteFifo;tx_fifo:ByteFifo;rx_fifo:ByteFifo;conn_no:Count;node_id;timeout_cb]
+[AsyncStream|reader;writer;addr;r_addr;l_addr|;<async>loop;disc();close();healthy();;__async_read();__async_write();__async_forward()]
+[AsyncStreamServer|async_create_remote|<async>server_loop();<async>_async_forward();<async>publish_outstanding_mqtt();close()]
+[AsyncStreamClient||<async>client_loop();<async>_async_forward())]
 [<<AsyncIfc>>]^-.-[AsyncIfcImpl]
 [AsyncIfcImpl]<-[AsyncStream]
-[AsyncStream|reader;writer;addr;r_addr;l_addr|<async>server_loop();<async>client_loop();<async>loop;disc();close();;__async_read();async_write();__async_forward()]
+[AsyncStream]<-[AsyncStreamServer]
+[AsyncStream]<-[AsyncStreamClient]
+
 
 [ConnectionG3|remote.stream:ConnectionG3|healthy();close()]
 [ConnectionG3]^[InverterG3]
 [ConnectionG3]has-0..1>[ConnectionG3]
-[ConnectionG3]++-1>[AsyncStream]
+[ConnectionG3]++-0..1>[AsyncStreamClient]
+[ConnectionG3]++-0..1>[AsyncStreamServer]
 [ConnectionG3P|remote.stream:ConnectionG3P|healthy();close()]
 [ConnectionG3P]^[InverterG3P]
 [ConnectionG3P]has-0..1>[ConnectionG3P]
-[ConnectionG3P]++-1>[AsyncStream]
+[ConnectionG3P]++-0..1>[AsyncStreamClient]
+[ConnectionG3P]++-0..1>[AsyncStreamServer]
 
 [Infos|stat;new_stat_data;info_dev|static_init();dev_value();inc_counter();dec_counter();ha_proxy_conf;ha_conf;ha_remove;update_db;set_db_def_value;get_db_value;ignore_this_device]
 [Infos]^[InfosG3||ha_confs();parse()]

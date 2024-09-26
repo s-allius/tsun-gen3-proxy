@@ -2,10 +2,12 @@ import logging
 from asyncio import StreamReader, StreamWriter
 
 if __name__ == "app.src.gen3.connection_g3":
-    from app.src.async_stream import AsyncStream, StreamPtr
+    from app.src.async_stream import AsyncStreamServer
+    from app.src.async_stream import AsyncStreamClient, StreamPtr
     from app.src.gen3.talent import Talent
 else:  # pragma: no cover
-    from async_stream import AsyncStream, StreamPtr
+    from async_stream import AsyncStreamServer
+    from async_stream import AsyncStreamClient, StreamPtr
     from gen3.talent import Talent
 
 logger = logging.getLogger('conn')
@@ -17,10 +19,14 @@ class ConnectionG3(Talent):
                  addr, rstream: 'ConnectionG3', server_side: bool,
                  id_str=b'') -> None:
         self.remote = StreamPtr(rstream)
-        self._ifc = AsyncStream(reader, writer, addr,
-                                self.async_publ_mqtt,
-                                self.async_create_remote,
-                                self.remote)
+        if server_side:
+            self._ifc = AsyncStreamServer(reader, writer, addr,
+                                          self.async_publ_mqtt,
+                                          self.async_create_remote,
+                                          self.remote)
+        else:
+            self._ifc = AsyncStreamClient(reader, writer, addr,
+                                          self.remote)
         Talent.__init__(self, server_side, self._ifc, id_str)
 
         self.conn_no = self._ifc.get_conn_no()

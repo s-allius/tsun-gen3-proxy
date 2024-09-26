@@ -171,6 +171,7 @@ async def test_mqtt_publish(config_conn, patch_open_connection, patch_conn_close
     Inverter.class_init()
 
     inverter = InverterG3(FakeReader(), FakeWriter(), ('proxy.local', 10000))
+    await inverter.async_publ_mqtt()  # check call with invalid unique_id
     inverter._Talent__set_serial_no(serial_no= "123344")
     
     inverter.new_data['inverter'] = True

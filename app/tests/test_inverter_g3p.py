@@ -172,6 +172,7 @@ async def test_mqtt_publish(config_conn, patch_open_connection, patch_conn_close
     Inverter.class_init()
 
     inverter = InverterG3P(FakeReader(), FakeWriter(), ('proxy.local', 10000), client_mode=False)
+    await inverter.async_publ_mqtt()  # check call with invalid unique_id   
     inverter._SolarmanV5__set_serial_no(snr= 123344)
     
     inverter.new_data['inverter'] = True

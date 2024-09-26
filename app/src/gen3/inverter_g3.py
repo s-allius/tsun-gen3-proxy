@@ -71,7 +71,7 @@ class InverterG3(Inverter, ConnectionG3):
             logging.info(f'[{self.remote.stream.node_id}:'
                          f'{self.remote.stream.conn_no}] '
                          f'Connected to {addr}')
-            asyncio.create_task(self._ifc.client_loop(addr))
+            asyncio.create_task(self.remote.ifc.client_loop(addr))
 
         except (ConnectionRefusedError, TimeoutError) as error:
             logging.info(f'{error}')
@@ -83,6 +83,8 @@ class InverterG3(Inverter, ConnectionG3):
 
     async def async_publ_mqtt(self) -> None:
         '''publish data to MQTT broker'''
+        if not self.unique_id:
+            return
         # check if new inverter or collector infos are available or when the
         #  home assistant has changed the status back to online
         try:
@@ -97,7 +99,7 @@ class InverterG3(Inverter, ConnectionG3):
             for key in self.new_data:
                 await self.__async_publ_mqtt_packet(key)
             for key in Infos.new_stat_data:
-                await self._async_publ_mqtt_proxy_stat(key)
+                await Inverter._async_publ_mqtt_proxy_stat(key)
 
         except MqttCodeError as error:
             logging.error(f'Mqtt except: {error}')
@@ -118,8 +120,6 @@ class InverterG3(Inverter, ConnectionG3):
 
     async def __register_home_assistant(self) -> None:
         '''register all our topics at home assistant'''
-        if not self.unique_id:
-            return
         for data_json, component, node_id, id in self.db.ha_confs(
                 self.entity_prfx, self.node_id, self.unique_id,
                 self.sug_area):
