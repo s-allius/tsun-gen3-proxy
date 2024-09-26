@@ -8,7 +8,7 @@ from app.src.infos import Infos
 from app.src.config import Config
 from app.src.inverter import Inverter
 from app.src.singleton import Singleton
-from app.src.gen3plus.connection_g3p import ConnectionG3P
+from app.src.gen3plus.connection_g3p import ConnectionG3PServer
 from app.src.gen3plus.inverter_g3p import InverterG3P
 
 from app.tests.test_modbus_tcp import patch_mqtt_err, patch_mqtt_except, test_port, test_hostname
@@ -45,12 +45,12 @@ def module_init():
 
 @pytest.fixture
 def patch_conn_init():
-    with patch.object(ConnectionG3P, '__init__', return_value= None) as conn:
+    with patch.object(ConnectionG3PServer, '__init__', return_value= None) as conn:
         yield conn
 
 @pytest.fixture
 def patch_conn_close():
-    with patch.object(ConnectionG3P, 'close') as conn:
+    with patch.object(ConnectionG3PServer, 'close') as conn:
         yield conn
 
 class FakeReader():
@@ -116,7 +116,7 @@ def test_method_calls(patch_conn_init, patch_conn_close):
     inverter.r_addr = ''
 
     spy1.assert_called_once()
-    spy1.assert_called_once_with(reader, writer, addr, None, server_side=True, client_mode=False)
+    spy1.assert_called_once_with(reader, writer, addr, None, client_mode=False)
 
     inverter.close()
     spy2.assert_called_once()

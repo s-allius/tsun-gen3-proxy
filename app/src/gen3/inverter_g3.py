@@ -8,19 +8,21 @@ from aiomqtt import MqttCodeError
 if __name__ == "app.src.gen3.inverter_g3":
     from app.src.config import Config
     from app.src.inverter import Inverter
-    from app.src.gen3.connection_g3 import ConnectionG3
+    from app.src.gen3.connection_g3 import ConnectionG3Server
+    from app.src.gen3.connection_g3 import ConnectionG3Client
     from app.src.infos import Infos
 else:  # pragma: no cover
     from config import Config
     from inverter import Inverter
-    from gen3.connection_g3 import ConnectionG3
+    from gen3.connection_g3 import ConnectionG3Server
+    from gen3.connection_g3 import ConnectionG3Client
     from infos import Infos
 
 
 logger_mqtt = logging.getLogger('mqtt')
 
 
-class InverterG3(Inverter, ConnectionG3):
+class InverterG3(Inverter, ConnectionG3Server):
     '''class Inverter is a derivation of an Async_Stream
 
     The class has some class method for managing common resources like a
@@ -51,7 +53,7 @@ class InverterG3(Inverter, ConnectionG3):
     '''
 
     def __init__(self, reader: StreamReader, writer: StreamWriter, addr):
-        super().__init__(reader, writer, addr, None, True)
+        super().__init__(reader, writer, addr, None)
         self.__ha_restarts = -1
         self.addr = addr
 
@@ -66,8 +68,8 @@ class InverterG3(Inverter, ConnectionG3):
             logging.info(f'[{self.node_id}] Connect to {addr}')
             connect = asyncio.open_connection(host, port)
             reader, writer = await connect
-            self.remote.stream = ConnectionG3(reader, writer, addr, self,
-                                              False, self.id_str)
+            self.remote.stream = ConnectionG3Client(reader, writer, addr, self,
+                                                    self.id_str)
             logging.info(f'[{self.remote.stream.node_id}:'
                          f'{self.remote.stream.conn_no}] '
                          f'Connected to {addr}')

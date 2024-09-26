@@ -6,7 +6,7 @@ from itertools import count
 from mock import patch
 from app.src.singleton import Singleton
 from app.src.async_stream import AsyncStream, AsyncIfcImpl
-from app.src.gen3plus.connection_g3p import ConnectionG3P
+from app.src.gen3plus.connection_g3p import ConnectionG3PServer
 from app.src.gen3plus.solarman_v5 import SolarmanV5
 
 @pytest.fixture
@@ -76,8 +76,8 @@ def test_method_calls(patch_solarman_init, patch_healthy, patch_async_close, pat
     reader = FakeReader()
     writer = FakeWriter()
     addr = ('proxy.local', 10000)
-    conn = ConnectionG3P(reader, writer, addr,
-                         rstream= None, server_side=True, client_mode=False)
+    conn = ConnectionG3PServer(reader, writer, addr,
+                         rstream= None, client_mode=False)
     assert 5 == conn._ifc.get_conn_no()
     spy2.assert_called_once_with(conn, True, False, conn._ifc)
     conn.healthy()

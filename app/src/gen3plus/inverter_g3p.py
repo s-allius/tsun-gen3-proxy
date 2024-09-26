@@ -8,19 +8,21 @@ from aiomqtt import MqttCodeError
 if __name__ == "app.src.gen3plus.inverter_g3p":
     from app.src.config import Config
     from app.src.inverter import Inverter
-    from app.src.gen3plus.connection_g3p import ConnectionG3P
+    from app.src.gen3plus.connection_g3p import ConnectionG3PServer
+    from app.src.gen3plus.connection_g3p import ConnectionG3PClient
     from app.src.infos import Infos
 else:  # pragma: no cover
     from config import Config
     from inverter import Inverter
-    from gen3plus.connection_g3p import ConnectionG3P
+    from gen3plus.connection_g3p import ConnectionG3PServer
+    from gen3plus.connection_g3p import ConnectionG3PClient
     from infos import Infos
 
 
 logger_mqtt = logging.getLogger('mqtt')
 
 
-class InverterG3P(Inverter, ConnectionG3P):
+class InverterG3P(Inverter, ConnectionG3PServer):
     '''class Inverter is a derivation of an Async_Stream
 
     The class has some class method for managing common resources like a
@@ -53,7 +55,7 @@ class InverterG3P(Inverter, ConnectionG3P):
     def __init__(self, reader: StreamReader, writer: StreamWriter, addr,
                  client_mode: bool = False):
         super().__init__(reader, writer, addr, None,
-                         server_side=True, client_mode=client_mode)
+                         client_mode=client_mode)
         self.__ha_restarts = -1
         self.addr = addr
 
@@ -68,9 +70,8 @@ class InverterG3P(Inverter, ConnectionG3P):
             logging.info(f'[{self.node_id}] Connect to {addr}')
             connect = asyncio.open_connection(host, port)
             reader, writer = await connect
-            self.remote.stream = ConnectionG3P(reader, writer, addr, self,
-                                               server_side=False,
-                                               client_mode=False)
+            self.remote.stream = ConnectionG3PClient(reader, writer,
+                                                     addr, self)
             logging.info(f'[{self.remote.stream.node_id}:'
                          f'{self.remote.stream.conn_no}] '
                          f'Connected to {addr}')
