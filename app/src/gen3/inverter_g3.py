@@ -8,19 +8,21 @@ from aiomqtt import MqttCodeError
 if __name__ == "app.src.gen3.inverter_g3":
     from app.src.config import Config
     from app.src.inverter import Inverter
-    from app.src.gen3.connection_g3 import ConnectionG3
+    from app.src.gen3.connection_g3 import ConnectionG3Server
+    from app.src.gen3.connection_g3 import ConnectionG3Client
     from app.src.infos import Infos
 else:  # pragma: no cover
     from config import Config
     from inverter import Inverter
-    from gen3.connection_g3 import ConnectionG3
+    from gen3.connection_g3 import ConnectionG3Server
+    from gen3.connection_g3 import ConnectionG3Client
     from infos import Infos
 
 
 logger_mqtt = logging.getLogger('mqtt')
 
 
-class InverterG3(Inverter, ConnectionG3):
+class InverterG3(Inverter, ConnectionG3Server):
     '''class Inverter is a derivation of an Async_Stream
 
     The class has some class method for managing common resources like a
@@ -51,8 +53,9 @@ class InverterG3(Inverter, ConnectionG3):
     '''
 
     def __init__(self, reader: StreamReader, writer: StreamWriter, addr):
-        super().__init__(reader, writer, addr, None, True)
+        super().__init__(reader, writer, addr, None)
         self.__ha_restarts = -1
+        self.addr = addr
 
     async def async_create_remote(self) -> None:
         '''Establish a client connection to the TSUN cloud'''
@@ -65,12 +68,12 @@ class InverterG3(Inverter, ConnectionG3):
             logging.info(f'[{self.node_id}] Connect to {addr}')
             connect = asyncio.open_connection(host, port)
             reader, writer = await connect
-            self.remote_stream = ConnectionG3(reader, writer, addr, self,
-                                              False, self.id_str)
-            logging.info(f'[{self.remote_stream.node_id}:'
-                         f'{self.remote_stream.conn_no}] '
+            self.remote.stream = ConnectionG3Client(reader, writer, addr, self,
+                                                    self.id_str)
+            logging.info(f'[{self.remote.stream.node_id}:'
+                         f'{self.remote.stream.conn_no}] '
                          f'Connected to {addr}')
-            asyncio.create_task(self.client_loop(addr))
+            asyncio.create_task(self.remote.ifc.client_loop(addr))
 
         except (ConnectionRefusedError, TimeoutError) as error:
             logging.info(f'{error}')
@@ -82,6 +85,8 @@ class InverterG3(Inverter, ConnectionG3):
 
     async def async_publ_mqtt(self) -> None:
         '''publish data to MQTT broker'''
+        if not self.unique_id:
+            return
         # check if new inverter or collector infos are available or when the
         #  home assistant has changed the status back to online
         try:
@@ -96,7 +101,7 @@ class InverterG3(Inverter, ConnectionG3):
             for key in self.new_data:
                 await self.__async_publ_mqtt_packet(key)
             for key in Infos.new_stat_data:
-                await self._async_publ_mqtt_proxy_stat(key)
+                await Inverter._async_publ_mqtt_proxy_stat(key)
 
         except MqttCodeError as error:
             logging.error(f'Mqtt except: {error}')
@@ -128,10 +133,6 @@ class InverterG3(Inverter, ConnectionG3):
         self.db.reg_clr_at_midnight(f'{self.entity_prfx}{self.node_id}')
 
     def close(self) -> None:
-        logging.debug(f'InverterG3.close() l{self.l_addr} | r{self.r_addr}')
+        logging.debug(f'InverterG3.close() {self.addr}')
         super().close()         # call close handler in the parent class
 #         logging.info(f'Inverter refs: {gc.get_referrers(self)}')
-
-    def __del__(self):
-        logging.debug("InverterG3.__del__")
-        super().__del__()
