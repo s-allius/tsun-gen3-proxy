@@ -38,7 +38,7 @@ class ConnectionG3PServer(ConnectionG3P):
 
         server_side = True
         self.remote = StreamPtr(rstream)
-        self._ifc = AsyncStreamServer(reader, writer, addr,
+        self._ifc = AsyncStreamServer(reader, writer,
                                       self.async_publ_mqtt,
                                       self.async_create_remote,
                                       self.remote)
@@ -55,7 +55,7 @@ class ConnectionG3PClient(ConnectionG3P):
         server_side = False
         client_mode = False
         self.remote = StreamPtr(rstream)
-        self._ifc = AsyncStreamClient(reader, writer, addr, self.remote)
+        self._ifc = AsyncStreamClient(reader, writer, self.remote)
         self.conn_no = self._ifc.get_conn_no()
         self.addr = addr
         SolarmanV5.__init__(self, server_side, client_mode, self._ifc)

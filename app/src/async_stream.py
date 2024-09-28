@@ -158,7 +158,7 @@ class AsyncStream(AsyncIfcImpl):
     '''maximum default time without a received msg in sec'''
 
     def __init__(self, reader: StreamReader, writer: StreamWriter,
-                 addr, rstream: "StreamPtr") -> None:
+                 rstream: "StreamPtr") -> None:
         AsyncIfcImpl.__init__(self)
 
         logger.debug('AsyncStream.__init__')
@@ -167,9 +167,8 @@ class AsyncStream(AsyncIfcImpl):
         self.tx_fifo.reg_trigger(self.__write_cb)
         self._reader = reader
         self._writer = writer
-        self.addr = addr
-        self.r_addr = ''
-        self.l_addr = ''
+        self.r_addr = writer.get_extra_info('peername')
+        self.l_addr = writer.get_extra_info('sockname')
         self.proc_start = None  # start processing start timestamp
         self.proc_max = 0
         self.async_publ_mqtt = None  # will be set AsyncStreamServer only
@@ -184,8 +183,6 @@ class AsyncStream(AsyncIfcImpl):
 
     async def loop(self) -> Self:
         """Async loop handler for precessing all received messages"""
-        self.r_addr = self._writer.get_extra_info('peername')
-        self.l_addr = self._writer.get_extra_info('sockname')
         self.proc_start = time.time()
         while True:
             try:
@@ -228,7 +225,7 @@ class AsyncStream(AsyncIfcImpl):
             except Exception:
                 Infos.inc_counter('SW_Exception')
                 logger.error(
-                    f"Exception for {self.addr}:\n"
+                    f"Exception for {self.r_addr}:\n"
                     f"{traceback.format_exc()}")
             await asyncio.sleep(0)  # be cooperative to other task
 
@@ -282,7 +279,7 @@ class AsyncStream(AsyncIfcImpl):
     async def __async_write(self, headline: str = 'Transmit to ') -> None:
         """Async write handler to transmit the send_buffer"""
         if len(self.tx_fifo) > 0:
-            self.tx_fifo.logging(logging.INFO, f'{headline}{self.addr}:')
+            self.tx_fifo.logging(logging.INFO, f'{headline}{self.r_addr}:')
             self._writer.write(self.tx_fifo.get())
             await self._writer.drain()
 
@@ -314,7 +311,7 @@ class AsyncStream(AsyncIfcImpl):
         except Exception:
             Infos.inc_counter('SW_Exception')
             logger.error(
-                f"Fwd Exception for {self.addr}:\n"
+                f"Fwd Exception for {self.r_addr}:\n"
                 f"{traceback.format_exc()}")
 
     def __del__(self):
@@ -324,17 +321,16 @@ class AsyncStream(AsyncIfcImpl):
 
 class AsyncStreamServer(AsyncStream):
     def __init__(self, reader: StreamReader, writer: StreamWriter,
-                 addr, async_publ_mqtt, async_create_remote,
+                 async_publ_mqtt, async_create_remote,
                  rstream: "StreamPtr") -> None:
-        AsyncStream.__init__(self, reader, writer, addr,
-                             rstream)
+        AsyncStream.__init__(self, reader, writer, rstream)
         self.async_create_remote = async_create_remote
         self.async_publ_mqtt = async_publ_mqtt
 
-    async def server_loop(self, addr: str) -> None:
+    async def server_loop(self) -> None:
         '''Loop for receiving messages from the inverter (server-side)'''
         logger.info(f'[{self.node_id}:{self.conn_no}] '
-                    f'Accept connection from {addr}')
+                    f'Accept connection from {self.r_addr}')
         Infos.inc_counter('Inverter_Cnt')
         await self.publish_outstanding_mqtt()
         await self.loop()
@@ -361,7 +357,7 @@ class AsyncStreamServer(AsyncStream):
         if self.remote.stream:
             self.remote.ifc.update_header_cb(self.fwd_fifo.peek())
             self.fwd_fifo.logging(logging.INFO, 'Forward to '
-                                  f'{self.remote.ifc.addr}:')
+                                  f'{self.remote.ifc.r_addr}:')
             self.remote.ifc._writer.write(self.fwd_fifo.get())
             await self.remote.ifc._writer.drain()
 
@@ -385,9 +381,8 @@ class AsyncStreamServer(AsyncStream):
 
 class AsyncStreamClient(AsyncStream):
     def __init__(self, reader: StreamReader, writer: StreamWriter,
-                 addr, rstream: "StreamPtr") -> None:
-        AsyncStream.__init__(self, reader, writer, addr,
-                             rstream)
+                 rstream: "StreamPtr") -> None:
+        AsyncStream.__init__(self, reader, writer, rstream)
 
     async def client_loop(self, _: str) -> None:
         '''Loop for receiving messages from the TSUN cloud (client-side)'''
@@ -417,6 +412,6 @@ class AsyncStreamClient(AsyncStream):
         if self.remote.stream:
             self.remote.ifc.update_header_cb(self.fwd_fifo.peek())
             self.fwd_fifo.logging(logging.INFO, 'Forward to '
-                                  f'{self.remote.ifc.addr}:')
+                                  f'{self.remote.ifc.r_addr}:')
             self.remote.ifc._writer.write(self.fwd_fifo.get())
             await self.remote.ifc._writer.drain()
