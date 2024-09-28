@@ -38,7 +38,7 @@ class ConnectionG3Server(ConnectionG3):
 
         server_side = True
         self.remote = StreamPtr(rstream)
-        self._ifc = AsyncStreamServer(reader, writer, addr,
+        self._ifc = AsyncStreamServer(reader, writer,
                                       self.async_publ_mqtt,
                                       self.async_create_remote,
                                       self.remote)
@@ -54,7 +54,7 @@ class ConnectionG3Client(ConnectionG3):
                  id_str=b'') -> None:
         server_side = False
         self.remote = StreamPtr(rstream)
-        self._ifc = AsyncStreamClient(reader, writer, addr,
+        self._ifc = AsyncStreamClient(reader, writer,
                                       self.remote)
         self.conn_no = self._ifc.get_conn_no()
         self.addr = addr
