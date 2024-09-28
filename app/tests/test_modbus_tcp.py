@@ -12,10 +12,6 @@ from app.src.mqtt import Mqtt
 from app.src.messages import Message, State
 from app.src.inverter import Inverter
 from app.src.modbus_tcp import ModbusConn, ModbusTcp
-from app.src.mqtt import Mqtt
-from app.src.messages import Message, State
-from app.src.inverter import Inverter
-from app.src.modbus_tcp import ModbusConn, ModbusTcp
 
 
 pytest_plugins = ('pytest_asyncio',)
