@@ -20,7 +20,7 @@ tracer = logging.getLogger('tracer')
 class MemoryStream(Talent):
     def __init__(self, msg, chunks = (0,), server_side: bool = True):
         self.ifc = AsyncIfcImpl()
-        super().__init__(server_side, self.ifc)
+        super().__init__(('test.local', 1234), server_side, self.ifc)
         if server_side:
             self.mb.timeout = 0.4   # overwrite for faster testing
         self.remote = StreamPtr(None)
@@ -1639,9 +1639,9 @@ def test_ctrl_byte():
 
     
 def test_msg_iterator():
-    m1 = Talent(server_side=True, ifc=AsyncIfcImpl())
-    m2 = Talent(server_side=True, ifc=AsyncIfcImpl())
-    m3 = Talent(server_side=True, ifc=AsyncIfcImpl())
+    m1 = Talent(('test1.local', 1234), server_side=True, ifc=AsyncIfcImpl())
+    m2 = Talent(('test2.local', 1234), server_side=True, ifc=AsyncIfcImpl())
+    m3 = Talent(('test3.local', 1234), server_side=True, ifc=AsyncIfcImpl())
     m3.close()
     del m3
     test1 = 0

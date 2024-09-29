@@ -8,7 +8,7 @@ from app.src.infos import Infos
 from app.src.config import Config
 from app.src.inverter import Inverter
 from app.src.singleton import Singleton
-from app.src.gen3.connection_g3 import ConnectionG3Server
+from app.src.gen3.connection_g3 import ConnectionG3
 from app.src.gen3.inverter_g3 import InverterG3
 
 from app.tests.test_modbus_tcp import patch_mqtt_err, patch_mqtt_except, test_port, test_hostname
@@ -44,12 +44,12 @@ def module_init():
 
 @pytest.fixture
 def patch_conn_init():
-    with patch.object(ConnectionG3Server, '__init__', return_value= None) as conn:
+    with patch.object(ConnectionG3, '__init__', return_value= None) as conn:
         yield conn
 
 @pytest.fixture
 def patch_conn_close():
-    with patch.object(ConnectionG3Server, 'close') as conn:
+    with patch.object(ConnectionG3, 'close') as conn:
         yield conn
 
 class FakeReader():

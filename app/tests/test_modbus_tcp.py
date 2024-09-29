@@ -154,8 +154,8 @@ async def test_modbus_conn(patch_open):
         stream = inverter.local.stream
         assert stream.node_id == 'G3P'
         assert stream.addr == ('test.local', 1234)
-        assert type(stream._ifc._reader) is FakeReader
-        assert type(stream._ifc._writer) is FakeWriter
+        assert type(stream.ifc._reader) is FakeReader
+        assert type(stream.ifc._writer) is FakeWriter
         assert Infos.stat['proxy']['Inverter_Cnt'] == 1
     
     assert Infos.stat['proxy']['Inverter_Cnt'] == 0
@@ -206,7 +206,7 @@ async def test_modbus_cnf2(config_conn, patch_no_mqtt, patch_open):
             test += 1
             assert Infos.stat['proxy']['Inverter_Cnt'] == 1
             m.shutdown_started = True
-            m._ifc._reader.on_recv.set()
+            m.ifc._reader.on_recv.set()
             del m
         
     assert 1 == test
@@ -266,14 +266,14 @@ async def test_mqtt_err(config_conn, patch_mqtt_err, patch_open):
             test += 1
             if test == 1:
                 m.shutdown_started = False
-                m._ifc._reader.on_recv.set()
+                m.ifc._reader.on_recv.set()
                 await asyncio.sleep(0.1)
                 assert m.state == State.closed
                 await asyncio.sleep(0.1)
                 await asyncio.sleep(0.1)
             else:
                 m.shutdown_started = True
-                m._ifc._reader.on_recv.set()
+                m.ifc._reader.on_recv.set()
                 del m
 
     await asyncio.sleep(0.01)
@@ -299,13 +299,13 @@ async def test_mqtt_except(config_conn, patch_mqtt_except, patch_open):
             test += 1
             if test == 1:
                 m.shutdown_started = False
-                m._ifc._reader.on_recv.set()
+                m.ifc._reader.on_recv.set()
                 await asyncio.sleep(0.1)
                 assert m.state == State.closed
                 await asyncio.sleep(0.1)
             else:
                 m.shutdown_started = True
-                m._ifc._reader.on_recv.set()
+                m.ifc._reader.on_recv.set()
                 del m
 
     await asyncio.sleep(0.01)

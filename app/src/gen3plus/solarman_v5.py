@@ -62,14 +62,17 @@ class SolarmanV5(Message):
     HDR_FMT = '<BLLL'
     '''format string for packing of the header'''
 
-    def __init__(self, server_side: bool, client_mode: bool, ifc: "AsyncIfc"):
+    def __init__(self, addr, server_side: bool, client_mode: bool,
+                 ifc: "AsyncIfc"):
         super().__init__(server_side, self.send_modbus_cb, mb_timeout=8)
         ifc.rx_set_cb(self.read)
         ifc.prot_set_timeout_cb(self._timeout)
         ifc.prot_set_init_new_client_conn_cb(self._init_new_client_conn)
         ifc.prot_set_update_header_cb(self._update_header)
 
+        self.addr = addr
         self.ifc = ifc
+        self.conn_no = ifc.get_conn_no()
         self.header_len = 11  # overwrite construcor in class Message
         self.control = 0
         self.seq = Sequence(server_side)
@@ -150,6 +153,10 @@ class SolarmanV5(Message):
     '''
     Our puplic methods
     '''
+    def healthy(self) -> bool:
+        logger.debug('SolarmanV5 healthy()')
+        return self.ifc.healthy()
+
     def close(self) -> None:
         logging.debug('Solarman.close()')
         if self.server_side:
@@ -167,6 +174,7 @@ class SolarmanV5(Message):
         self.log_lvl.clear()
         self.state = State.closed
         self.mb_timer.close()
+        self.ifc.close()
         self.ifc.rx_set_cb(None)
         self.ifc.prot_set_timeout_cb(None)
         self.ifc.prot_set_init_new_client_conn_cb(None)

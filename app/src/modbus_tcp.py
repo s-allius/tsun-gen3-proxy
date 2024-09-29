@@ -31,12 +31,12 @@ class ModbusConn():
         logging.info(f'[{stream.node_id}:{stream.conn_no}] '
                      f'Connected to {self.addr}')
         Infos.inc_counter('Inverter_Cnt')
-        await self.inverter.local._ifc.publish_outstanding_mqtt()
+        await self.inverter.local.ifc.publish_outstanding_mqtt()
         return self.inverter
 
     async def __aexit__(self, exc_type, exc, tb):
         Infos.dec_counter('Inverter_Cnt')
-        await self.inverter.local._ifc.publish_outstanding_mqtt()
+        await self.inverter.local.ifc.publish_outstanding_mqtt()
         self.inverter.close()
 
 
@@ -65,7 +65,7 @@ class ModbusTcp():
                 async with ModbusConn(host, port) as inverter:
                     stream = inverter.local.stream
                     await stream.send_start_cmd(snr, host)
-                    await stream._ifc.loop()
+                    await stream.ifc.loop()
                     logger.info(f'[{stream.node_id}:{stream.conn_no}] '
                                 f'Connection closed - Shutdown: '
                                 f'{stream.shutdown_started}')
