@@ -391,18 +391,18 @@ class AsyncStreamClient(AsyncStream):
                     'Client loop stopped for'
                     f' l{self.l_addr}')
 
-        server_stream = self.remote.stream
+        server_ifc = self.remote.ifc
 
         # if the client connection closes, we don't touch the server
         # connection. Instead we erase the client connection stream,
         # thus on the next received packet from the inverter, we can
         # establish a new connection to the TSUN cloud
 
-        if server_stream.remote.ifc == self:
+        if server_ifc.remote.ifc == self:
             # logging.debug(f'Client l{client_stream.l_addr} refs:'
             #               f' {gc.get_referrers(client_stream)}')
             # than erase client connection
-            server_stream.remote.stream = None  # erases stream and ifc link
+            server_ifc.remote.stream = None  # erases stream and ifc link
 
         # erase backlink to inverter
         self.remote.stream = None
