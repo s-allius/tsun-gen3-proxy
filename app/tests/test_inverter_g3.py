@@ -115,7 +115,7 @@ def test_method_calls(patch_conn_init, patch_conn_close):
     inverter.r_addr = ''
 
     spy1.assert_called_once()
-    spy1.assert_called_once_with(reader, writer, addr, None)
+    spy1.assert_called_once_with(inverter, reader, writer, addr, None)
 
     inverter.close()
     spy2.assert_called_once()
