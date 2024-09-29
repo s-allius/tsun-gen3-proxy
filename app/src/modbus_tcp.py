@@ -19,24 +19,25 @@ class ModbusConn():
         self.host = host
         self.port = port
         self.addr = (host, port)
-        self.stream = None
+        self.inverter = None
 
     async def __aenter__(self) -> 'InverterG3P':
         '''Establish a client connection to the TSUN cloud'''
         connection = asyncio.open_connection(self.host, self.port)
         reader, writer = await connection
-        self.stream = InverterG3P(reader, writer, self.addr,
-                                  client_mode=True)
-        logging.info(f'[{self.stream.node_id}:{self.stream.conn_no}] '
+        self.inverter = InverterG3P(reader, writer, self.addr,
+                                    client_mode=True)
+        stream = self.inverter.local.stream
+        logging.info(f'[{stream.node_id}:{stream.conn_no}] '
                      f'Connected to {self.addr}')
         Infos.inc_counter('Inverter_Cnt')
-        await self.stream._ifc.publish_outstanding_mqtt()
-        return self.stream
+        await self.inverter.local.ifc.publish_outstanding_mqtt()
+        return self.inverter
 
     async def __aexit__(self, exc_type, exc, tb):
         Infos.dec_counter('Inverter_Cnt')
-        await self.stream._ifc.publish_outstanding_mqtt()
-        self.stream.close()
+        await self.inverter.local.ifc.publish_outstanding_mqtt()
+        self.inverter.close()
 
 
 class ModbusTcp():
@@ -61,9 +62,10 @@ class ModbusTcp():
         '''Loop for receiving messages from the TSUN cloud (client-side)'''
         while True:
             try:
-                async with ModbusConn(host, port) as stream:
+                async with ModbusConn(host, port) as inverter:
+                    stream = inverter.local.stream
                     await stream.send_start_cmd(snr, host)
-                    await stream._ifc.loop()
+                    await stream.ifc.loop()
                     logger.info(f'[{stream.node_id}:{stream.conn_no}] '
                                 f'Connection closed - Shutdown: '
                                 f'{stream.shutdown_started}')
