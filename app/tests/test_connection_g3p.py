@@ -5,9 +5,22 @@ import asyncio
 from itertools import count
 from mock import patch
 from app.src.singleton import Singleton
-from app.src.async_stream import AsyncStream, AsyncIfcImpl
+from app.src.async_stream import AsyncStream, AsyncIfcImpl, StreamPtr
 from app.src.gen3plus.connection_g3p import ConnectionG3PServer
 from app.src.gen3plus.solarman_v5 import SolarmanV5
+
+
+class FakeInverter():
+    async def async_publ_mqtt(self) -> None:
+        pass  # dummy funcion
+
+    async def async_create_remote(self, inv_prot: str, conn_class) -> None:
+        pass  # dummy function
+
+    def __init__ (self):
+        self.remote = StreamPtr(None)
+        self.local = StreamPtr(None)
+
 
 @pytest.fixture
 def patch_async_init():
@@ -76,8 +89,8 @@ def test_method_calls(patch_solarman_init, patch_healthy, patch_async_close, pat
     reader = FakeReader()
     writer = FakeWriter()
     addr = ('proxy.local', 10000)
-    conn = ConnectionG3PServer(reader, writer, addr,
-                         rstream= None, client_mode=False)
+    conn = ConnectionG3PServer(FakeInverter(), reader, writer, addr,
+                               client_mode=False)
     assert 5 == conn._ifc.get_conn_no()
     spy2.assert_called_once_with(conn, True, False, conn._ifc)
     conn.healthy()

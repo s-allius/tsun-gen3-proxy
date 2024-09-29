@@ -150,7 +150,8 @@ async def test_modbus_conn(patch_open):
     _ = patch_open
     assert Infos.stat['proxy']['Inverter_Cnt'] == 0
 
-    async with ModbusConn('test.local', 1234) as stream:
+    async with ModbusConn('test.local', 1234) as inverter:
+        stream = inverter.local.stream
         assert stream.node_id == 'G3P'
         assert stream.addr == ('test.local', 1234)
         assert type(stream._ifc._reader) is FakeReader
