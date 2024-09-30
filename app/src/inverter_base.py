@@ -29,13 +29,15 @@ class InverterBase(Inverter):
         port = tsun['port']
         addr = (host, port)
         stream = self.local.stream
+        if not stream:
+            return
 
         try:
             logging.info(f'[{stream.node_id}] Connect to {addr}')
             connect = asyncio.open_connection(host, port)
             reader, writer = await connect
             ifc = AsyncStreamClient(reader, writer,
-                                    self.remote)
+                                    self.local)
 
             if hasattr(stream, 'id_str'):
                 self.remote.stream = conn_class(
@@ -60,7 +62,7 @@ class InverterBase(Inverter):
     async def async_publ_mqtt(self) -> None:
         '''publish data to MQTT broker'''
         stream = self.local.stream
-        if not stream.unique_id:
+        if not stream or not stream.unique_id:
             return
         # check if new inverter or collector infos are available or when the
         #  home assistant has changed the status back to online
