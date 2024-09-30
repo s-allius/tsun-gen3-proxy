@@ -26,7 +26,6 @@ class InverterG3(InverterBase):
                                 self.async_create_remote,
                                 self.remote)
 
-        self.remote = StreamPtr(None)
         self.local = StreamPtr(
             ConnectionG3(addr, ifc, True)
         )
