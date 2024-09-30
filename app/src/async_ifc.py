@@ -117,3 +117,7 @@ class AsyncIfc(ABC):
     @abstractmethod
     def prot_set_update_header_cb(self, callback):
         pass  # pragma: no cover
+
+    @abstractmethod
+    def prot_set_close_header_cb(self, callback):
+        pass  # pragma: no cover
