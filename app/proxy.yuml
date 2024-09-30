@@ -18,9 +18,9 @@
 [AsyncStreamServer|async_create_remote|<async>server_loop();<async>_async_forward();<async>publish_outstanding_mqtt();close()]
 [AsyncStreamClient||<async>client_loop();<async>_async_forward())]
 [<<AsyncIfc>>]^-.-[AsyncIfcImpl]
-[AsyncIfcImpl]<-[AsyncStream]
-[AsyncStream]<-[AsyncStreamServer]
-[AsyncStream]<-[AsyncStreamClient]
+[AsyncIfcImpl]^[AsyncStream]
+[AsyncStream]^[AsyncStreamServer]
+[AsyncStream]^[AsyncStreamClient]
 
 
 [ConnectionG3||]
