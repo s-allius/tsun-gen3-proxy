@@ -603,9 +603,9 @@ class SolarmanV5(Message):
             self.forward_at_cmd_resp = True
 
         elif ftype == self.MB_RTU_CMD:
-            if self.remote.stream.mb.recv_req(data[15:],
-                                              self.remote.stream.
-                                              __forward_msg):
+            rstream = self.ifc.remote.stream
+            if rstream.mb.recv_req(data[15:],
+                                   rstream.__forward_msg):
                 self.inc_counter('Modbus_Command')
             else:
                 logger.error('Invalid Modbus Msg')

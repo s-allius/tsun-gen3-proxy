@@ -35,14 +35,12 @@ class AsyncIfcImpl(AsyncIfc):
         self.timeout_cb = None
         self.init_new_client_conn_cb = None
         self.update_header_cb = None
-        self.close_cb = None
 
     def close(self):
         self.timeout_cb = None
         self.fwd_fifo.reg_trigger(None)
         self.tx_fifo.reg_trigger(None)
         self.rx_fifo.reg_trigger(None)
-        self.close_cb = None
 
     def set_node_id(self, value: str):
         self.node_id = value
@@ -125,9 +123,6 @@ class AsyncIfcImpl(AsyncIfc):
 
     def prot_set_update_header_cb(self, callback):
         self.update_header_cb = callback
-
-    def prot_set_close_header_cb(self, callback):
-        self.close_cb = callback
 
 
 class StreamPtr():
@@ -212,7 +207,6 @@ class AsyncStream(AsyncIfcImpl):
                                f'connection timeout ({dead_conn_to}s) '
                                f'for {self.l_addr}')
                 await self.disc()
-                self.close()
                 return self
 
             except OSError as error:
@@ -220,14 +214,12 @@ class AsyncStream(AsyncIfcImpl):
                              f'{error} for l{self.l_addr} | '
                              f'r{self.r_addr}')
                 await self.disc()
-                self.close()
                 return self
 
             except RuntimeError as error:
                 logger.info(f'[{self.node_id}:{self.conn_no}] '
                             f'{error} for {self.l_addr}')
                 await self.disc()
-                self.close()
                 return self
 
             except Exception:
@@ -251,10 +243,7 @@ class AsyncStream(AsyncIfcImpl):
 
            hint: must be called before releasing the connection instance
         """
-        close_cb = self.close_cb
         super().close()
-        if close_cb:
-            close_cb()
         self._reader.feed_eof()          # abort awaited read
         if self._writer.is_closing():
             return
@@ -304,21 +293,22 @@ class AsyncStream(AsyncIfcImpl):
 
         except OSError as error:
             if self.remote.stream:
-                rmt = self.remote.stream
-                self.remote.stream = None
-                logger.error(f'[{rmt.node_id}:{rmt.conn_no}] Fwd: {error} for '
-                             f'l{rmt._ifc.l_addr} | r{rmt._ifc.r_addr}')
-                await rmt._ifc.disc()
-                rmt._ifc.close()
+                rmt = self.remote
+                logger.error(f'[{rmt.stream.node_id}:{rmt.stream.conn_no}] '
+                             f'Fwd: {error} for '
+                             f'l{rmt.ifc.l_addr} | r{rmt.ifc.r_addr}')
+                await rmt.ifc.disc()
+                if rmt.ifc.close_cb:
+                    rmt.ifc.close_cb()
 
         except RuntimeError as error:
             if self.remote.stream:
-                rmt = self.remote.stream
-                self.remote.stream = None
-                logger.info(f'[{rmt.node_id}:{rmt.conn_no}] '
-                            f'Fwd: {error} for {rmt._ifc.l_addr}')
-                await rmt._ifc.disc()
-                rmt._ifc.close()
+                rmt = self.remote
+                logger.info(f'[{rmt.stream.node_id}:{rmt.stream.conn_no}] '
+                            f'Fwd: {error} for {rmt.ifc.l_addr}')
+                await rmt.ifc.disc()
+                if rmt.ifc.close_cb:
+                    rmt.ifc.close_cb()
 
         except Exception:
             Infos.inc_counter('SW_Exception')
@@ -381,46 +371,22 @@ class AsyncStreamServer(AsyncStream):
         except Exception:
             pass
 
-    def close(self) -> None:
-        """close handler for a no waiting disconnect
-
-           hint: must be called before releasing the connection instance
-        """
-        logging.info(
-            f'AsyncStreamServer.close() l{self.l_addr} | r{self.r_addr}')
-        self.async_create_remote = None
-        self.async_publ_mqtt = None
-        super().close()
-
 
 class AsyncStreamClient(AsyncStream):
     def __init__(self, reader: StreamReader, writer: StreamWriter,
-                 rstream: "StreamPtr") -> None:
+                 rstream: "StreamPtr", close_cb) -> None:
         AsyncStream.__init__(self, reader, writer, rstream)
+        self.close_cb = close_cb
 
     async def client_loop(self, _: str) -> None:
         '''Loop for receiving messages from the TSUN cloud (client-side)'''
-        logging.info(f'AsynStream.client_loop{self} rem-> {self.remote}')
         await self.loop()
         logger.info(f'[{self.node_id}:{self.conn_no}] '
                     'Client loop stopped for'
                     f' l{self.l_addr}')
 
-        server_ifc = self.remote.ifc
-
-        # if the client connection closes, we don't touch the server
-        # connection. Instead we erase the client connection stream,
-        # thus on the next received packet from the inverter, we can
-        # establish a new connection to the TSUN cloud
-
-        if server_ifc and server_ifc.remote.ifc == self:
-            # logging.debug(f'Client l{client_stream.l_addr} refs:'
-            #               f' {gc.get_referrers(client_stream)}')
-            # than erase client connection
-            server_ifc.remote.stream = None  # erases stream and ifc link
-
-        # erase backlink to inverter
-        self.remote.stream = None
+        if self.close_cb:
+            self.close_cb()
 
     async def _async_forward(self) -> None:
         """forward handler transmits data over the remote connection"""

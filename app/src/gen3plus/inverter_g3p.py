@@ -34,8 +34,3 @@ class InverterG3P(InverterBase):
     async def async_create_remote(self) -> None:
         await InverterBase.async_create_remote(
             self, 'solarman', ConnectionG3P)
-
-    def close(self) -> None:
-        logging.debug(f'InverterG3P.close() {self.addr}')
-        self.local.stream.close()
-#        logger.debug (f'Inverter refs: {gc.get_referrers(self)}')

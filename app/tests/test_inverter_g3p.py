@@ -48,11 +48,6 @@ def patch_conn_init():
     with patch.object(ConnectionG3P, '__init__', return_value= None) as conn:
         yield conn
 
-@pytest.fixture
-def patch_conn_close():
-    with patch.object(ConnectionG3P, 'close') as conn:
-        yield conn
-
 class FakeReader():
     def __init__(self):
         self.on_recv =  asyncio.Event()
@@ -104,132 +99,102 @@ def patch_open_connection():
     with patch.object(asyncio, 'open_connection', new_open) as conn:
         yield conn
 
-
-def test_method_calls(patch_conn_close):
-    spy2 = patch_conn_close
+def test_method_calls():
     reader = FakeReader()
     writer =  FakeWriter()
     addr = ('proxy.local', 10000)
-    inverter = InverterG3P(reader, writer, addr, client_mode=False)
-    assert inverter.local.stream
-    assert inverter.local.ifc
-
-    inverter.close()
-    spy2.assert_called_once()
+    with InverterG3P(reader, writer, addr, client_mode=False) as inverter:
+        assert inverter.local.stream
+        assert inverter.local.ifc
 
 @pytest.mark.asyncio
-async def test_remote_conn(config_conn, patch_open_connection, patch_conn_close):
+async def test_remote_conn(config_conn, patch_open_connection):
     _ = config_conn
     _ = patch_open_connection
     assert asyncio.get_running_loop()
 
-    spy1 = patch_conn_close
-
-    inverter = InverterG3P(FakeReader(), FakeWriter(), ('proxy.local', 10000), client_mode=False)
-    
-    await inverter.async_create_remote()
-    await asyncio.sleep(0)
-    assert inverter.remote.stream
-    inverter.close()
-    spy1.assert_called_once()
+    with InverterG3P(FakeReader(), FakeWriter(), ('proxy.local', 10000), client_mode=False) as inverter:
+        await inverter.async_create_remote()
+        await asyncio.sleep(0)
+        assert inverter.remote.stream
 
 @pytest.mark.asyncio
-async def test_remote_except(config_conn, patch_open_connection, patch_conn_close):
+async def test_remote_except(config_conn, patch_open_connection):
     _ = config_conn
     _ = patch_open_connection
     assert asyncio.get_running_loop()
-
-    spy1 = patch_conn_close
     
     global test
     test  = TestType.RD_TEST_TIMEOUT
 
-    inverter = InverterG3P(FakeReader(), FakeWriter(), ('proxy.local', 10000), client_mode=False)
+    with InverterG3P(FakeReader(), FakeWriter(), ('proxy.local', 10000), client_mode=False) as inverter:
+        await inverter.async_create_remote()
+        await asyncio.sleep(0)
+        assert inverter.remote.stream==None
 
-    await inverter.async_create_remote()
-    await asyncio.sleep(0)
-    assert inverter.remote.stream==None
-
-    test  = TestType.RD_TEST_EXCEPT
-    await inverter.async_create_remote()
-    await asyncio.sleep(0)
-    assert inverter.remote.stream==None
-    inverter.close()
-    spy1.assert_called_once()
+        test  = TestType.RD_TEST_EXCEPT
+        await inverter.async_create_remote()
+        await asyncio.sleep(0)
+        assert inverter.remote.stream==None
 
 @pytest.mark.asyncio
-async def test_mqtt_publish(config_conn, patch_open_connection, patch_conn_close):
+async def test_mqtt_publish(config_conn, patch_open_connection):
     _ = config_conn
     _ = patch_open_connection
     assert asyncio.get_running_loop()
 
-    spy1 = patch_conn_close
-    
     Inverter.class_init()
 
-    inverter = InverterG3P(FakeReader(), FakeWriter(), ('proxy.local', 10000), client_mode=False)
-    stream = inverter.local.stream
-    await inverter.async_publ_mqtt()  # check call with invalid unique_id   
-    stream._SolarmanV5__set_serial_no(snr= 123344)
-    
-    stream.new_data['inverter'] = True
-    stream.db.db['inverter'] = {}
-    await inverter.async_publ_mqtt()
-    assert stream.new_data['inverter'] == False
+    with InverterG3P(FakeReader(), FakeWriter(), ('proxy.local', 10000), client_mode=False) as inverter:
+        stream = inverter.local.stream
+        await inverter.async_publ_mqtt()  # check call with invalid unique_id   
+        stream._SolarmanV5__set_serial_no(snr= 123344)
 
-    stream.new_data['env'] = True
-    stream.db.db['env'] = {}
-    await inverter.async_publ_mqtt()
-    assert stream.new_data['env'] == False
+        stream.new_data['inverter'] = True
+        stream.db.db['inverter'] = {}
+        await inverter.async_publ_mqtt()
+        assert stream.new_data['inverter'] == False
 
-    Infos.new_stat_data['proxy'] = True
-    await inverter.async_publ_mqtt()
-    assert Infos.new_stat_data['proxy'] == False
+        stream.new_data['env'] = True
+        stream.db.db['env'] = {}
+        await inverter.async_publ_mqtt()
+        assert stream.new_data['env'] == False
 
-    inverter.close()
-    spy1.assert_called_once()
+        Infos.new_stat_data['proxy'] = True
+        await inverter.async_publ_mqtt()
+        assert Infos.new_stat_data['proxy'] == False
 
 @pytest.mark.asyncio
-async def test_mqtt_err(config_conn, patch_open_connection, patch_mqtt_err, patch_conn_close):
+async def test_mqtt_err(config_conn, patch_open_connection, patch_mqtt_err):
     _ = config_conn
     _ = patch_open_connection
     _ = patch_mqtt_err
     assert asyncio.get_running_loop()
 
-    spy1 = patch_conn_close
-    
     Inverter.class_init()
 
-    inverter = InverterG3P(FakeReader(), FakeWriter(), ('proxy.local', 10000), client_mode=False)
-    stream = inverter.local.stream
-    stream._SolarmanV5__set_serial_no(snr= 123344)    
-    stream.new_data['inverter'] = True
-    stream.db.db['inverter'] = {}
-    await inverter.async_publ_mqtt()
-    assert stream.new_data['inverter'] == True
-
-    inverter.close()
-    spy1.assert_called_once()
+    with InverterG3P(FakeReader(), FakeWriter(), ('proxy.local', 10000), client_mode=False) as inverter:
+        stream = inverter.local.stream
+        stream._SolarmanV5__set_serial_no(snr= 123344)    
+        stream.new_data['inverter'] = True
+        stream.db.db['inverter'] = {}
+        await inverter.async_publ_mqtt()
+        assert stream.new_data['inverter'] == True
 
 @pytest.mark.asyncio
-async def test_mqtt_except(config_conn, patch_open_connection, patch_mqtt_except, patch_conn_close):
+async def test_mqtt_except(config_conn, patch_open_connection, patch_mqtt_except):
     _ = config_conn
     _ = patch_open_connection
     _ = patch_mqtt_except
     assert asyncio.get_running_loop()
 
-    spy1 = patch_conn_close
-    
     Inverter.class_init()
 
-    inverter = InverterG3P(FakeReader(), FakeWriter(), ('proxy.local', 10000), client_mode=False)
-    stream = inverter.local.stream
-    stream._SolarmanV5__set_serial_no(snr= 123344)
-    
-    stream.new_data['inverter'] = True
-    stream.db.db['inverter'] = {}
-    await inverter.async_publ_mqtt()
-    assert stream.new_data['inverter'] == True
+    with InverterG3P(FakeReader(), FakeWriter(), ('proxy.local', 10000), client_mode=False) as inverter:
+        stream = inverter.local.stream
+        stream._SolarmanV5__set_serial_no(snr= 123344)
 
-    inverter.close()
-    spy1.assert_called_once()
+        stream.new_data['inverter'] = True
+        stream.db.db['inverter'] = {}
+        await inverter.async_publ_mqtt()
+        assert stream.new_data['inverter'] == True

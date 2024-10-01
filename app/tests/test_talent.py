@@ -16,14 +16,17 @@ Infos.static_init()
 
 tracer = logging.getLogger('tracer')
 
+class FakeIfc(AsyncIfcImpl):
+    def __init__(self):
+        super().__init__()
+        self.remote = StreamPtr(None)
 
 class MemoryStream(Talent):
     def __init__(self, msg, chunks = (0,), server_side: bool = True):
-        self.ifc = AsyncIfcImpl()
+        self.ifc = FakeIfc()
         super().__init__(('test.local', 1234), server_side, self.ifc)
         if server_side:
             self.mb.timeout = 0.4   # overwrite for faster testing
-        self.remote = StreamPtr(None)
         self.mb_first_timeout = 0.5
         self.mb_timeout = 0.5
         self.sent_pdu = b''
@@ -37,7 +40,6 @@ class MemoryStream(Talent):
         self.addr = 'Test: SrvSide'
         self.send_msg_ofs = 0
         self.msg_recvd = []
-        self.remote.stream = None
 
     def write_cb(self):
         self.sent_pdu = self.ifc.tx_fifo.get()
@@ -73,8 +75,8 @@ class MemoryStream(Talent):
     
     def createClientStream(self, msg, chunks = (0,)):
         c = MemoryStream(msg, chunks, False)
-        self.remote.stream = c
-        c. remote.stream = self
+        self.ifc.remote.stream = c
+        c.ifc.remote.stream = self
         return c
 
     def _Talent__flush_recv_msg(self) -> None:
@@ -1059,7 +1061,7 @@ def test_msg_time_resp(config_tsun_inv1, msg_time_rsp):
     m = MemoryStream(msg_time_rsp, (0,), False)
     s = MemoryStream(b'', (0,), True)
     assert s.ts_offset==0
-    m.remote.stream = s
+    m.ifc.remote.stream = s
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
     m.read()         # read complete msg, and dispatch msg
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
@@ -1075,7 +1077,7 @@ def test_msg_time_resp(config_tsun_inv1, msg_time_rsp):
     assert m.ifc.fwd_fifo.get()==b''
     assert m.ifc.tx_fifo.get()==b''
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
-    m.remote.stream = None
+    m.ifc.remote.stream = None
     s.close()
     m.close()
 

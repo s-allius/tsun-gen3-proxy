@@ -74,7 +74,8 @@ async def handle_client(reader: StreamReader, writer: StreamWriter, inv_class):
     '''Handles a new incoming connection and starts an async loop'''
 
     addr = writer.get_extra_info('peername')
-    await inv_class(reader, writer, addr).local.ifc.server_loop()
+    with inv_class(reader, writer, addr) as inv:
+        await inv.local.ifc.server_loop()
 
 
 async def handle_shutdown(web_task):

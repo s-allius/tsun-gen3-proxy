@@ -438,8 +438,8 @@ class Talent(Message):
                 result = struct.unpack_from('!q', self.ifc.rx_peek(),
                                             self.header_len)
                 self.ts_offset = result[0]-ts
-                if self.remote.stream:
-                    self.remote.stream.ts_offset = self.ts_offset
+                if self.ifc.remote.stream:
+                    self.ifc.remote.stream.ts_offset = self.ts_offset
                 logger.debug(f'tsun-time: {int(result[0]):08x}'
                              f'  proxy-time: {ts:08x}'
                              f'  offset: {self.ts_offset}')
@@ -597,9 +597,8 @@ class Talent(Message):
                                   self.header_len+self.data_len]
 
         if self.ctrl.is_req():
-            if self.remote.stream.mb.recv_req(data[hdr_len:],
-                                              self.remote.stream.
-                                              msg_forward):
+            rstream = self.ifc.remote.stream
+            if rstream.mb.recv_req(data[hdr_len:], rstream.msg_forward):
                 self.inc_counter('Modbus_Command')
             else:
                 self.inc_counter('Invalid_Msg_Format')

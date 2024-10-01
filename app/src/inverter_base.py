@@ -22,6 +22,32 @@ class InverterBase(Inverter):
     def __init__(self):
         self.__ha_restarts = -1
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc, tb) -> None:
+        logging.info(f'Inverter.__exit__() {self.addr}')
+        self.__del_remote()
+        if self.local.stream:
+            self.local.stream.close()
+            self.local.stream = None
+
+        if self.local.ifc:
+            self.local.ifc.close()
+            self.local.ifc = None
+
+    def __del__(self) -> None:
+        logging.info(f'Inverter.__del__() {self.addr}')
+
+    def __del_remote(self):
+        if self.remote.stream:
+            self.remote.stream.close()
+            self.remote.stream = None
+
+        if self.remote.ifc:
+            self.remote.ifc.close()
+            self.remote.ifc = None
+
     async def async_create_remote(self, inv_prot: str, conn_class) -> None:
         '''Establish a client connection to the TSUN cloud'''
         tsun = Config.get(inv_prot)
@@ -36,8 +62,8 @@ class InverterBase(Inverter):
             logging.info(f'[{stream.node_id}] Connect to {addr}')
             connect = asyncio.open_connection(host, port)
             reader, writer = await connect
-            ifc = AsyncStreamClient(reader, writer,
-                                    self.local)
+            ifc = AsyncStreamClient(
+                reader, writer, self.local, self.__del_remote)
 
             if hasattr(stream, 'id_str'):
                 self.remote.stream = conn_class(

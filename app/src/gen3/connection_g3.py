@@ -11,6 +11,3 @@ logger = logging.getLogger('conn')
 class ConnectionG3(Talent):
     def __init__(self, addr, ifc, server_side, id_str=b'') -> None:
         super().__init__(addr, server_side, ifc, id_str)
-
-    def close(self):
-        super().close()

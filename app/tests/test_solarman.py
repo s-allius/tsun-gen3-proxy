@@ -32,13 +32,17 @@ class Mqtt():
         self.data = data
 
 
+class FakeIfc(AsyncIfcImpl):
+    def __init__(self):
+        super().__init__()
+        self.remote = StreamPtr(None)
+
 class MemoryStream(SolarmanV5):
     def __init__(self, msg, chunks = (0,), server_side: bool = True):
-        _ifc = AsyncIfcImpl()
+        _ifc = FakeIfc()
         super().__init__(('test.local', 1234), server_side, client_mode=False, ifc=_ifc)
         if server_side:
             self.mb.timeout = 0.4   # overwrite for faster testing
-        self.remote = StreamPtr(None)
         self.mb_first_timeout = 0.5
         self.mb_timeout = 0.5
         self.sent_pdu = b''
@@ -101,8 +105,8 @@ class MemoryStream(SolarmanV5):
     
     def createClientStream(self, msg, chunks = (0,)):
         c = MemoryStream(msg, chunks, False)
-        self.remote.stream = c
-        c. remote.stream = self
+        self.ifc.remote.stream = c
+        c.ifc.remote.stream = self
         return c
 
     def _SolarmanV5__flush_recv_msg(self) -> None:
