@@ -40,7 +40,7 @@ class FakeIfc(AsyncIfcImpl):
 class MemoryStream(SolarmanV5):
     def __init__(self, msg, chunks = (0,), server_side: bool = True):
         _ifc = FakeIfc()
-        super().__init__(('test.local', 1234), server_side, client_mode=False, ifc=_ifc)
+        super().__init__(('test.local', 1234), _ifc, server_side, client_mode=False)
         if server_side:
             self.mb.timeout = 0.4   # overwrite for faster testing
         self.mb_first_timeout = 0.5
@@ -1240,9 +1240,9 @@ def test_build_logger_modell(config_tsun_allow_all, device_ind_msg):
 
 def test_msg_iterator():
     Message._registry.clear()
-    m1 = SolarmanV5(('test1.local', 1234), server_side=True, client_mode=False, ifc=AsyncIfcImpl())
-    m2 = SolarmanV5(('test2.local', 1234), server_side=True, client_mode=False, ifc=AsyncIfcImpl())
-    m3 = SolarmanV5(('test3.local', 1234), server_side=True, client_mode=False, ifc=AsyncIfcImpl())
+    m1 = SolarmanV5(('test1.local', 1234), ifc=AsyncIfcImpl(), server_side=True, client_mode=False)
+    m2 = SolarmanV5(('test2.local', 1234), ifc=AsyncIfcImpl(), server_side=True, client_mode=False)
+    m3 = SolarmanV5(('test3.local', 1234), ifc=AsyncIfcImpl(), server_side=True, client_mode=False)
     m3.close()
     del m3
     test1 = 0
@@ -1260,7 +1260,7 @@ def test_msg_iterator():
     assert test2 == 1
 
 def test_proxy_counter():
-    m = SolarmanV5(('test.local', 1234), server_side=True, client_mode=False, ifc=AsyncIfcImpl())
+    m = SolarmanV5(('test.local', 1234), ifc=AsyncIfcImpl(), server_side=True, client_mode=False)
     assert m.new_data == {}
     m.db.stat['proxy']['Unknown_Msg'] = 0
     Infos.new_stat_data['proxy'] =  False

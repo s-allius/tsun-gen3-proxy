@@ -8,7 +8,6 @@ from app.src.infos import Infos
 from app.src.config import Config
 from app.src.inverter import Inverter
 from app.src.singleton import Singleton
-from app.src.gen3plus.connection_g3p import ConnectionG3P
 from app.src.gen3plus.inverter_g3p import InverterG3P
 
 from app.tests.test_modbus_tcp import patch_mqtt_err, patch_mqtt_except, test_port, test_hostname
@@ -42,11 +41,6 @@ def config_conn():
 def module_init():
     Singleton._instances.clear()
     yield
-
-@pytest.fixture
-def patch_conn_init():
-    with patch.object(ConnectionG3P, '__init__', return_value= None) as conn:
-        yield conn
 
 class FakeReader():
     def __init__(self):

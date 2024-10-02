@@ -1,6 +1,7 @@
 # test_with_pytest.py
 import pytest
 import asyncio
+import sys,gc
 
 from mock import patch
 from enum import Enum
@@ -8,8 +9,8 @@ from app.src.infos import Infos
 from app.src.config import Config
 from app.src.inverter import Inverter
 from app.src.singleton import Singleton
-from app.src.gen3.connection_g3 import ConnectionG3
 from app.src.gen3.inverter_g3 import InverterG3
+from app.src.async_stream import AsyncStream
 
 from app.tests.test_modbus_tcp import patch_mqtt_err, patch_mqtt_except, test_port, test_hostname
 
@@ -41,11 +42,6 @@ def config_conn():
 def module_init():
     Singleton._instances.clear()
     yield
-
-@pytest.fixture
-def patch_conn_init():
-    with patch.object(ConnectionG3, '__init__', return_value= None) as conn:
-        yield conn
 
 class FakeReader():
     def __init__(self):
@@ -98,14 +94,28 @@ def patch_open_connection():
     with patch.object(asyncio, 'open_connection', new_open) as conn:
         yield conn
 
+@pytest.fixture
+def patch_healthy():
+    with patch.object(AsyncStream, 'healthy') as conn:
+        yield conn
 
-def test_method_calls():
+def test_method_calls(patch_healthy):
+    spy = patch_healthy
     reader = FakeReader()
     writer =  FakeWriter()
     addr = ('proxy.local', 10000)
     with InverterG3(reader, writer, addr) as inverter:
         assert inverter.local.stream
         assert inverter.local.ifc
+        for inv in Inverter:
+            inv.healthy()
+            del inv
+        spy.assert_called_once()
+    del inverter
+    cnt = 0
+    for inv in Inverter:
+        cnt += 1
+    assert cnt == 0
 
 @pytest.mark.asyncio
 async def test_remote_conn(config_conn, patch_open_connection):
@@ -117,6 +127,13 @@ async def test_remote_conn(config_conn, patch_open_connection):
         await inverter.async_create_remote()
         await asyncio.sleep(0)
         assert inverter.remote.stream
+    del inverter
+
+    cnt = 0
+    for inv in Inverter:
+        print(f'Inverter refs:{gc.get_referrers(inv)}')
+        cnt += 1
+    assert cnt == 0
 
 @pytest.mark.asyncio
 async def test_remote_except(config_conn, patch_open_connection):
@@ -136,6 +153,13 @@ async def test_remote_except(config_conn, patch_open_connection):
         await inverter.async_create_remote()
         await asyncio.sleep(0)
         assert inverter.remote.stream==None
+    del inverter
+
+    cnt = 0
+    for inv in Inverter:
+        print(f'Inverter refs:{gc.get_referrers(inv)}')
+        cnt += 1
+    assert cnt == 0
 
 @pytest.mark.asyncio
 async def test_mqtt_publish(config_conn, patch_open_connection):

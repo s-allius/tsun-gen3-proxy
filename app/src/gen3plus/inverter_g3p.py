@@ -5,12 +5,12 @@ if __name__ == "app.src.gen3plus.inverter_g3p":
     from app.src.inverter_base import InverterBase
     from app.src.async_stream import StreamPtr
     from app.src.async_stream import AsyncStreamServer
-    from app.src.gen3plus.connection_g3p import ConnectionG3P
+    from app.src.gen3plus.solarman_v5 import SolarmanV5
 else:  # pragma: no cover
     from inverter_base import InverterBase
     from async_stream import StreamPtr
     from async_stream import AsyncStreamServer
-    from gen3plus.connection_g3p import ConnectionG3P
+    from gen3plus.solarman_v5 import SolarmanV5
 
 
 logger_mqtt = logging.getLogger('mqtt')
@@ -28,9 +28,9 @@ class InverterG3P(InverterBase):
                                 self.remote)
 
         self.local = StreamPtr(
-            ConnectionG3P(addr, ifc, True, client_mode)
+            SolarmanV5(addr, ifc, True, client_mode), ifc
         )
 
     async def async_create_remote(self) -> None:
         await InverterBase.async_create_remote(
-            self, 'solarman', ConnectionG3P)
+            self, 'solarman', SolarmanV5)

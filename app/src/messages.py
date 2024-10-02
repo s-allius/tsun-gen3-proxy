@@ -1,13 +1,15 @@
 import logging
 import weakref
-from typing import Callable, Generator
+from typing import Callable
 from enum import Enum
 
 
 if __name__ == "app.src.messages":
+    from app.src.iter_registry import IterRegistry
     from app.src.infos import Infos, Register
     from app.src.modbus import Modbus
 else:  # pragma: no cover
+    from iter_registry import IterRegistry
     from infos import Infos, Register
     from modbus import Modbus
 
@@ -64,14 +66,6 @@ def hex_dump_memory(level, info, data, data_len):
     lines += hex_dump(data, data_len)
 
     tracer.log(level, '\n'.join(lines))
-
-
-class IterRegistry(type):
-    def __iter__(cls) -> Generator['Message', None, None]:
-        for ref in cls._registry:
-            obj = ref()
-            if obj is not None:
-                yield obj
 
 
 class State(Enum):

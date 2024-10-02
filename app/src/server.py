@@ -5,7 +5,6 @@ import os
 from asyncio import StreamReader, StreamWriter
 from aiohttp import web
 from logging import config  # noqa F401
-from messages import Message
 from inverter import Inverter
 from gen3.inverter_g3 import InverterG3
 from gen3plus.inverter_g3p import InverterG3P
@@ -38,9 +37,9 @@ async def healthy(request):
 
     if proxy_is_up:
         # logging.info('web reqeust healthy()')
-        for stream in Message:
+        for inverter in Inverter:
             try:
-                res = stream.healthy()
+                res = inverter.healthy()
                 if not res:
                     return web.Response(status=503, text="I have a problem")
             except Exception as err:
@@ -88,25 +87,13 @@ async def handle_shutdown(web_task):
     #
     # first, disc all open TCP connections gracefully
     #
-    for stream in Message:
-        stream.shutdown_started = True
-        try:
-            await asyncio.wait_for(stream.disc(), 2)
-        except Exception:
-            pass
+    for inverter in Inverter:
+        await inverter.disc(True)
+
     logging.info('Proxy disconnecting done')
 
     #
-    # second, close all open TCP connections
-    #
-    for stream in Message:
-        stream.close()
-
-    await asyncio.sleep(0.1)  # give time for closing
-    logging.info('Proxy closing done')
-
-    #
-    # third, cancel the web server
+    # second, cancel the web server
     #
     web_task.cancel()
     await web_task
@@ -167,7 +154,7 @@ if __name__ == "__main__":
         logging.info(f'ConfigErr: {ConfigErr}')
     Inverter.class_init()
     Schedule.start()
-    mb_tcp = ModbusTcp(loop)
+    ModbusTcp(loop)
 
     #
     # Create tasks for our listening servers. These must be tasks! If we call

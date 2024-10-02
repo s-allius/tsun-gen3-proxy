@@ -1,12 +1,15 @@
 import asyncio
+import weakref
 import logging
 import json
 
 if __name__ == "app.src.inverter":
+    from app.src.iter_registry import IterRegistry
     from app.src.config import Config
     from app.src.mqtt import Mqtt
     from app.src.infos import Infos
 else:  # pragma: no cover
+    from iter_registry import IterRegistry
     from config import Config
     from mqtt import Mqtt
     from infos import Infos
@@ -14,7 +17,7 @@ else:  # pragma: no cover
 logger_mqtt = logging.getLogger('mqtt')
 
 
-class Inverter():
+class Inverter(metaclass=IterRegistry):
     '''class Inverter is a baseclass
 
     The class has some class method for managing common resources like a
@@ -37,6 +40,8 @@ class Inverter():
         async_create_remote(): Establish a client connection to the TSUN cloud
         async_publ_mqtt(): Publish data to MQTT broker
     '''
+    _registry = []
+
     @classmethod
     def class_init(cls) -> None:
         logging.debug('Inverter.class_init')
@@ -104,3 +109,6 @@ class Inverter():
         logging.info('Close MQTT Task')
         loop.run_until_complete(cls.mqtt.close())
         cls.mqtt = None
+
+    def __init__(self):
+        self._registry.append(weakref.ref(self))

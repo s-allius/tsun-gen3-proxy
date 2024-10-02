@@ -20,24 +20,23 @@ logger_mqtt = logging.getLogger('mqtt')
 
 class InverterBase(Inverter):
     def __init__(self):
+        super().__init__()
         self.__ha_restarts = -1
 
     def __enter__(self):
         return self
 
     def __exit__(self, exc_type, exc, tb) -> None:
-        logging.info(f'Inverter.__exit__() {self.addr}')
+        logging.debug(f'InverterBase.__exit__() {self.addr}')
         self.__del_remote()
-        if self.local.stream:
-            self.local.stream.close()
-            self.local.stream = None
 
-        if self.local.ifc:
-            self.local.ifc.close()
-            self.local.ifc = None
+        self.local.stream.close()
+        self.local.stream = None
+        self.local.ifc.close()
+        self.local.ifc = None
 
     def __del__(self) -> None:
-        logging.info(f'Inverter.__del__() {self.addr}')
+        logging.debug(f'InverterBase.__del__() {self.addr}')
 
     def __del_remote(self):
         if self.remote.stream:
@@ -48,6 +47,25 @@ class InverterBase(Inverter):
             self.remote.ifc.close()
             self.remote.ifc = None
 
+    async def disc(self, shutdown_started=False) -> None:
+        if self.remote.stream:
+            self.remote.stream.shutdown_started = shutdown_started
+        if self.remote.ifc:
+            await self.remote.ifc.disc()
+        if self.local.stream:
+            self.local.stream.shutdown_started = shutdown_started
+        if self.local.ifc:
+            await self.local.ifc.disc()
+
+    def healthy(self) -> bool:
+        logging.debug('Inverter healthy()')
+
+        if self.local.ifc and not self.local.ifc.healthy():
+            return False
+        if self.remote.ifc and not self.remote.ifc.healthy():
+            return False
+        return True
+
     async def async_create_remote(self, inv_prot: str, conn_class) -> None:
         '''Establish a client connection to the TSUN cloud'''
         tsun = Config.get(inv_prot)
@@ -55,8 +73,6 @@ class InverterBase(Inverter):
         port = tsun['port']
         addr = (host, port)
         stream = self.local.stream
-        if not stream:
-            return
 
         try:
             logging.info(f'[{stream.node_id}] Connect to {addr}')
@@ -65,12 +81,15 @@ class InverterBase(Inverter):
             ifc = AsyncStreamClient(
                 reader, writer, self.local, self.__del_remote)
 
+            self.remote.ifc = ifc
             if hasattr(stream, 'id_str'):
                 self.remote.stream = conn_class(
-                    addr, ifc, False, stream.id_str)
+                    addr, ifc, server_side=False,
+                    client_mode=False, id_str=stream.id_str)
             else:
                 self.remote.stream = conn_class(
-                    addr, ifc, False)
+                    addr, ifc, server_side=False,
+                    client_mode=False)
 
             logging.info(f'[{self.remote.stream.node_id}:'
                          f'{self.remote.stream.conn_no}] '

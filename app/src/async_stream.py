@@ -127,8 +127,9 @@ class AsyncIfcImpl(AsyncIfc):
 
 class StreamPtr():
     '''Descr StreamPtr'''
-    def __init__(self, _stream):
+    def __init__(self, _stream, _ifc=None):
         self.stream = _stream
+        self.ifc = _ifc
 
     def __str__(self) -> str:
         return f'ifc:{self._ifc}, stream: {self._stream}'
@@ -137,6 +138,10 @@ class StreamPtr():
     def ifc(self):
         return self._ifc
 
+    @ifc.setter
+    def ifc(self, value):
+        self._ifc = value
+
     @property
     def stream(self):
         return self._stream
@@ -144,10 +149,6 @@ class StreamPtr():
     @stream.setter
     def stream(self, value):
         self._stream = value
-        if value:
-            self._ifc = value.ifc
-        else:
-            self._ifc = None
 
 
 class AsyncStream(AsyncIfcImpl):
@@ -231,6 +232,7 @@ class AsyncStream(AsyncIfcImpl):
 
     async def disc(self) -> None:
         """Async disc handler for graceful disconnect"""
+        self.remote = None
         if self._writer.is_closing():
             return
         logger.debug(f'AsyncStream.disc() l{self.l_addr} | r{self.r_addr}')
@@ -329,6 +331,12 @@ class AsyncStreamServer(AsyncStream):
         self.async_create_remote = async_create_remote
         self.async_publ_mqtt = async_publ_mqtt
 
+    def close(self) -> None:
+        logging.info('AsyncStreamServer.close()')
+        self.async_create_remote = None
+        self.async_publ_mqtt = None
+        super().close()
+
     async def server_loop(self) -> None:
         '''Loop for receiving messages from the inverter (server-side)'''
         logger.info(f'[{self.node_id}:{self.conn_no}] '
@@ -343,7 +351,7 @@ class AsyncStreamServer(AsyncStream):
 
         # if the server connection closes, we also have to disconnect
         # the connection to te TSUN cloud
-        if self.remote.stream:
+        if self.remote and self.remote.stream:
             logger.info(f'[{self.node_id}:{self.conn_no}] disc client '
                         f'connection: [{self.remote.ifc.node_id}:'
                         f'{self.remote.ifc.conn_no}]')
@@ -377,6 +385,11 @@ class AsyncStreamClient(AsyncStream):
                  rstream: "StreamPtr", close_cb) -> None:
         AsyncStream.__init__(self, reader, writer, rstream)
         self.close_cb = close_cb
+
+    def close(self) -> None:
+        logging.info('AsyncStreamClient.close()')
+        self.close_cb = None
+        super().close()
 
     async def client_loop(self, _: str) -> None:
         '''Loop for receiving messages from the TSUN cloud (client-side)'''
