@@ -7,6 +7,7 @@ from enum import Enum
 from app.src.infos import Infos
 from app.src.config import Config
 from app.src.inverter import Inverter
+from app.src.inverter_base import InverterBase
 from app.src.singleton import Singleton
 from app.src.gen3plus.inverter_g3p import InverterG3P
 
@@ -96,7 +97,7 @@ def patch_open_connection():
 def test_method_calls():
     reader = FakeReader()
     writer =  FakeWriter()
-    Inverter._registry.clear()
+    InverterBase._registry.clear()
 
     with InverterG3P(reader, writer, client_mode=False) as inverter:
         assert inverter.local.stream

@@ -1,3 +1,5 @@
+from abc import abstractmethod
+import weakref
 import asyncio
 import logging
 import traceback
@@ -6,6 +8,7 @@ from aiomqtt import MqttCodeError
 from asyncio import StreamReader, StreamWriter
 
 if __name__ == "app.src.inverter_base":
+    from app.src.iter_registry import AbstractIterMeta
     from app.src.inverter import Inverter
     from app.src.async_stream import StreamPtr
     from app.src.async_stream import AsyncStreamClient
@@ -13,6 +16,7 @@ if __name__ == "app.src.inverter_base":
     from app.src.config import Config
     from app.src.infos import Infos
 else:  # pragma: no cover
+    from iter_registry import AbstractIterMeta
     from inverter import Inverter
     from async_stream import StreamPtr
     from async_stream import AsyncStreamClient
@@ -23,11 +27,43 @@ else:  # pragma: no cover
 logger_mqtt = logging.getLogger('mqtt')
 
 
-class InverterBase(Inverter):
+class InverterIfc(metaclass=AbstractIterMeta):
+
+    @abstractmethod
+    def __init__(self, reader: StreamReader, writer: StreamWriter,
+                 config_id: str, prot_class,
+                 client_mode: bool):
+        pass  # pragma: no cover
+
+    @abstractmethod
+    def __enter__(self):
+        pass  # pragma: no cover
+
+    @abstractmethod
+    def __exit__(self, exc_type, exc, tb):
+        pass  # pragma: no cover
+
+    @abstractmethod
+    def healthy(self) -> bool:
+        pass  # pragma: no cover
+
+    @abstractmethod
+    async def disc(self, shutdown_started=False) -> None: 
+        pass  # pragma: no cover
+
+    @abstractmethod
+    async def async_create_remote(self) -> None:
+        pass  # pragma: no cover
+
+
+class InverterBase(InverterIfc, Inverter):
+    _registry = []
+
     def __init__(self, reader: StreamReader, writer: StreamWriter,
                  config_id: str, prot_class,
                  client_mode: bool = False):
-        super().__init__()
+        Inverter.__init__(self)
+        self._registry.append(weakref.ref(self))
         self.addr = writer.get_extra_info('peername')
         self.config_id = config_id
         self.prot_class = prot_class

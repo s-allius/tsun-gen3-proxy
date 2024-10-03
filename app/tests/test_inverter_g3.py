@@ -8,6 +8,7 @@ from enum import Enum
 from app.src.infos import Infos
 from app.src.config import Config
 from app.src.inverter import Inverter
+from app.src.inverter_base import InverterBase
 from app.src.singleton import Singleton
 from app.src.gen3.inverter_g3 import InverterG3
 from app.src.async_stream import AsyncStream
@@ -103,18 +104,18 @@ def test_method_calls(patch_healthy):
     spy = patch_healthy
     reader = FakeReader()
     writer =  FakeWriter()
-    Inverter._registry.clear()
-    
+    InverterBase._registry.clear()
+
     with InverterG3(reader, writer) as inverter:
         assert inverter.local.stream
         assert inverter.local.ifc
-        for inv in Inverter:
+        for inv in InverterBase:
             inv.healthy()
             del inv
         spy.assert_called_once()
     del inverter
     cnt = 0
-    for inv in Inverter:
+    for inv in InverterBase:
         cnt += 1
     assert cnt == 0
 
@@ -131,7 +132,7 @@ async def test_remote_conn(config_conn, patch_open_connection):
     del inverter
 
     cnt = 0
-    for inv in Inverter:
+    for inv in InverterBase:
         print(f'Inverter refs:{gc.get_referrers(inv)}')
         cnt += 1
     assert cnt == 0
@@ -157,8 +158,8 @@ async def test_remote_except(config_conn, patch_open_connection):
     del inverter
 
     cnt = 0
-    for inv in Inverter:
-        print(f'Inverter refs:{gc.get_referrers(inv)}')
+    for inv in InverterBase:
+        print(f'InverterBase refs:{gc.get_referrers(inv)}')
         cnt += 1
     assert cnt == 0
 
