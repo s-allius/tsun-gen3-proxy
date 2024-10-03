@@ -2,6 +2,7 @@
 import pytest
 import asyncio
 import sys,gc
+import weakref
 
 from mock import patch
 from enum import Enum
@@ -9,7 +10,9 @@ from app.src.infos import Infos
 from app.src.config import Config
 from app.src.inverter import Inverter
 from app.src.singleton import Singleton
-from app.src.gen3.inverter_g3 import InverterG3
+from app.src.protocol_ifc import ProtocolIfc
+from app.src.inverter_base import InverterBase
+from app.src.messages import Message
 from app.src.async_stream import AsyncStream
 
 from app.tests.test_modbus_tcp import patch_mqtt_err, patch_mqtt_except, test_port, test_hostname
@@ -42,6 +45,15 @@ def config_conn():
 def module_init():
     Singleton._instances.clear()
     yield
+
+class FakeProtocol(ProtocolIfc):
+    def __init__(self, addr, ifc, server_side: bool,
+                 client_mode: bool = False, id_str=b''):
+        # self._registry.append(weakref.ref(self))
+        pass  # empty mockup
+
+    def close(self):
+        pass  # empty mockup
 
 class FakeReader():
     def __init__(self):
@@ -95,26 +107,30 @@ def patch_open_connection():
         yield conn
 
 @pytest.fixture
+def get_test_inverter():
+    reader = FakeReader()
+    writer =  FakeWriter()
+    with InverterBase(reader, writer, 'tsun', FakeProtocol) as inverter:
+        yield inverter
+
+@pytest.fixture
 def patch_healthy():
     with patch.object(AsyncStream, 'healthy') as conn:
         yield conn
 
-def test_method_calls(patch_healthy):
+def test_method_calls(get_test_inverter, patch_healthy):
     spy = patch_healthy
-    reader = FakeReader()
-    writer =  FakeWriter()
-    Inverter._registry.clear()
-    
-    with InverterG3(reader, writer) as inverter:
+    with get_test_inverter as inverter:
         assert inverter.local.stream
         assert inverter.local.ifc
         for inv in Inverter:
             inv.healthy()
             del inv
         spy.assert_called_once()
-    del inverter
+        del inverter
     cnt = 0
     for inv in Inverter:
+        print(f'inv:{gc.get_referrers()}')
         cnt += 1
     assert cnt == 0
 
@@ -124,7 +140,7 @@ async def test_remote_conn(config_conn, patch_open_connection):
     _ = patch_open_connection
     assert asyncio.get_running_loop()
 
-    with InverterG3(FakeReader(), FakeWriter()) as inverter:
+    with InverterBase(FakeReader(), FakeWriter()) as inverter:
         await inverter.async_create_remote()
         await asyncio.sleep(0)
         assert inverter.remote.stream
@@ -145,7 +161,7 @@ async def test_remote_except(config_conn, patch_open_connection):
     global test
     test  = TestType.RD_TEST_TIMEOUT
 
-    with InverterG3(FakeReader(), FakeWriter()) as inverter:
+    with InverterBase(FakeReader(), FakeWriter()) as inverter:
         await inverter.async_create_remote()
         await asyncio.sleep(0)
         assert inverter.remote.stream==None
@@ -170,7 +186,7 @@ async def test_mqtt_publish(config_conn, patch_open_connection):
 
     Inverter.class_init()
 
-    with InverterG3(FakeReader(), FakeWriter()) as inverter:
+    with InverterBase(FakeReader(), FakeWriter()) as inverter:
         stream = inverter.local.stream
         await inverter.async_publ_mqtt()  # check call with invalid unique_id
         stream._Talent__set_serial_no(serial_no= "123344")
@@ -198,7 +214,7 @@ async def test_mqtt_err(config_conn, patch_open_connection, patch_mqtt_err):
 
     Inverter.class_init()
 
-    with InverterG3(FakeReader(), FakeWriter()) as inverter:
+    with InverterBase(FakeReader(), FakeWriter()) as inverter:
         stream = inverter.local.stream
         stream._Talent__set_serial_no(serial_no= "123344")
         stream.new_data['inverter'] = True
@@ -215,7 +231,7 @@ async def test_mqtt_except(config_conn, patch_open_connection, patch_mqtt_except
 
     Inverter.class_init()
 
-    with InverterG3(FakeReader(), FakeWriter()) as inverter:
+    with InverterBase(FakeReader(), FakeWriter()) as inverter:
         stream = inverter.local.stream
         stream._Talent__set_serial_no(serial_no= "123344")
 

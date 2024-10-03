@@ -25,7 +25,7 @@ class ModbusConn():
         '''Establish a client connection to the TSUN cloud'''
         connection = asyncio.open_connection(self.host, self.port)
         reader, writer = await connection
-        self.inverter = InverterG3P(reader, writer, self.addr,
+        self.inverter = InverterG3P(reader, writer,
                                     client_mode=True)
         self.inverter.__enter__()
         stream = self.inverter.local.stream

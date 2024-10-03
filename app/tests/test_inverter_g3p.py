@@ -96,8 +96,9 @@ def patch_open_connection():
 def test_method_calls():
     reader = FakeReader()
     writer =  FakeWriter()
-    addr = ('proxy.local', 10000)
-    with InverterG3P(reader, writer, addr, client_mode=False) as inverter:
+    Inverter._registry.clear()
+
+    with InverterG3P(reader, writer, client_mode=False) as inverter:
         assert inverter.local.stream
         assert inverter.local.ifc
 
@@ -107,7 +108,7 @@ async def test_remote_conn(config_conn, patch_open_connection):
     _ = patch_open_connection
     assert asyncio.get_running_loop()
 
-    with InverterG3P(FakeReader(), FakeWriter(), ('proxy.local', 10000), client_mode=False) as inverter:
+    with InverterG3P(FakeReader(), FakeWriter(), client_mode=False) as inverter:
         await inverter.async_create_remote()
         await asyncio.sleep(0)
         assert inverter.remote.stream
@@ -121,7 +122,7 @@ async def test_remote_except(config_conn, patch_open_connection):
     global test
     test  = TestType.RD_TEST_TIMEOUT
 
-    with InverterG3P(FakeReader(), FakeWriter(), ('proxy.local', 10000), client_mode=False) as inverter:
+    with InverterG3P(FakeReader(), FakeWriter(), client_mode=False) as inverter:
         await inverter.async_create_remote()
         await asyncio.sleep(0)
         assert inverter.remote.stream==None
@@ -139,7 +140,7 @@ async def test_mqtt_publish(config_conn, patch_open_connection):
 
     Inverter.class_init()
 
-    with InverterG3P(FakeReader(), FakeWriter(), ('proxy.local', 10000), client_mode=False) as inverter:
+    with InverterG3P(FakeReader(), FakeWriter(), client_mode=False) as inverter:
         stream = inverter.local.stream
         await inverter.async_publ_mqtt()  # check call with invalid unique_id   
         stream._SolarmanV5__set_serial_no(snr= 123344)
@@ -167,7 +168,7 @@ async def test_mqtt_err(config_conn, patch_open_connection, patch_mqtt_err):
 
     Inverter.class_init()
 
-    with InverterG3P(FakeReader(), FakeWriter(), ('proxy.local', 10000), client_mode=False) as inverter:
+    with InverterG3P(FakeReader(), FakeWriter(), client_mode=False) as inverter:
         stream = inverter.local.stream
         stream._SolarmanV5__set_serial_no(snr= 123344)    
         stream.new_data['inverter'] = True
@@ -184,7 +185,7 @@ async def test_mqtt_except(config_conn, patch_open_connection, patch_mqtt_except
 
     Inverter.class_init()
 
-    with InverterG3P(FakeReader(), FakeWriter(), ('proxy.local', 10000), client_mode=False) as inverter:
+    with InverterG3P(FakeReader(), FakeWriter(), client_mode=False) as inverter:
         stream = inverter.local.stream
         stream._SolarmanV5__set_serial_no(snr= 123344)
 

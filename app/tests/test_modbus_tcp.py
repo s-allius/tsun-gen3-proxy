@@ -93,11 +93,13 @@ class FakeReader():
 
 
 class FakeWriter():
+    def __init__(self, conn='remote.intern'):
+        self.conn = conn
     def write(self, buf: bytes):
         return
     def get_extra_info(self, sel: str):
         if sel == 'peername':
-            return 'remote.intern'
+            return self.conn
         elif sel == 'sockname':
             return 'sock:1234'
         assert False
@@ -113,13 +115,13 @@ class FakeWriter():
 def patch_open():
     async def new_conn(conn):
         await asyncio.sleep(0)
-        return FakeReader(), FakeWriter()
+        return FakeReader(), FakeWriter(conn)
     
     def new_open(host: str, port: int):
         global test
         if test == TestType.RD_TEST_TIMEOUT:
             raise TimeoutError
-        return new_conn(None)
+        return new_conn(f'{host}:{port}')
 
     with patch.object(asyncio, 'open_connection', new_open) as conn:
         yield conn
@@ -153,7 +155,7 @@ async def test_modbus_conn(patch_open):
     async with ModbusConn('test.local', 1234) as inverter:
         stream = inverter.local.stream
         assert stream.node_id == 'G3P'
-        assert stream.addr == ('test.local', 1234)
+        assert stream.addr == ('test.local:1234')
         assert type(stream.ifc._reader) is FakeReader
         assert type(stream.ifc._writer) is FakeWriter
         assert Infos.stat['proxy']['Inverter_Cnt'] == 1

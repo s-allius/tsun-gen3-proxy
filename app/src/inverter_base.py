@@ -3,15 +3,20 @@ import logging
 import traceback
 import json
 from aiomqtt import MqttCodeError
+from asyncio import StreamReader, StreamWriter
 
 if __name__ == "app.src.inverter_base":
     from app.src.inverter import Inverter
+    from app.src.async_stream import StreamPtr
     from app.src.async_stream import AsyncStreamClient
+    from app.src.async_stream import AsyncStreamServer
     from app.src.config import Config
     from app.src.infos import Infos
 else:  # pragma: no cover
     from inverter import Inverter
+    from async_stream import StreamPtr
     from async_stream import AsyncStreamClient
+    from async_stream import AsyncStreamServer
     from config import Config
     from infos import Infos
 
@@ -19,9 +24,23 @@ logger_mqtt = logging.getLogger('mqtt')
 
 
 class InverterBase(Inverter):
-    def __init__(self):
+    def __init__(self, reader: StreamReader, writer: StreamWriter,
+                 config_id: str, prot_class,
+                 client_mode: bool = False):
         super().__init__()
+        self.addr = writer.get_extra_info('peername')
+        self.config_id = config_id
+        self.prot_class = prot_class
         self.__ha_restarts = -1
+        self.remote = StreamPtr(None)
+        ifc = AsyncStreamServer(reader, writer,
+                                self.async_publ_mqtt,
+                                self.async_create_remote,
+                                self.remote)
+
+        self.local = StreamPtr(
+            self.prot_class(self.addr, ifc, True, client_mode), ifc
+        )
 
     def __enter__(self):
         return self
@@ -66,9 +85,10 @@ class InverterBase(Inverter):
             return False
         return True
 
-    async def async_create_remote(self, inv_prot: str, conn_class) -> None:
+    async def async_create_remote(self) -> None:
         '''Establish a client connection to the TSUN cloud'''
-        tsun = Config.get(inv_prot)
+
+        tsun = Config.get(self.config_id)
         host = tsun['host']
         port = tsun['port']
         addr = (host, port)
@@ -83,11 +103,11 @@ class InverterBase(Inverter):
 
             self.remote.ifc = ifc
             if hasattr(stream, 'id_str'):
-                self.remote.stream = conn_class(
+                self.remote.stream = self.prot_class(
                     addr, ifc, server_side=False,
                     client_mode=False, id_str=stream.id_str)
             else:
-                self.remote.stream = conn_class(
+                self.remote.stream = self.prot_class(
                     addr, ifc, server_side=False,
                     client_mode=False)
 

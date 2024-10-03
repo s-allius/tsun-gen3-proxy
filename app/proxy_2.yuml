@@ -1,0 +1,49 @@
+// {type:class}
+// {direction:topDown}
+// {generate:true}
+
+[note: You can stick notes on diagrams too!{bg:cornsilk}]
+[IterRegistry||__iter__]
+
+[InverterG3|addr;remote:StreamPtr;local:StreamPtr|async_create_remote();;close()]
+[InverterG3P|addr;remote:StreamPtr;local:StreamPtr|async_create_remote();;close()]
+
+[<<AsyncIfc>>||set_node_id();get_conn_no();;tx_add();tx_flush();tx_get();tx_peek();tx_log();tx_clear();tx_len();;fwd_add();fwd_flush();fwd_log();fwd_clear();rx_get();rx_peek();rx_log();rx_clear();rx_len();rx_set_cb();;prot_set_timeout_cb()]
+[AsyncIfcImpl|fwd_fifo:ByteFifo;tx_fifo:ByteFifo;rx_fifo:ByteFifo;conn_no:Count;node_id;timeout_cb]
+[AsyncStream|reader;writer;addr;r_addr;l_addr|;<async>loop;disc();close();healthy();;__async_read();__async_write();__async_forward()]
+[AsyncStreamServer|async_create_remote|<async>server_loop();<async>_async_forward();<async>publish_outstanding_mqtt();close()]
+[AsyncStreamClient||<async>client_loop();<async>_async_forward())]
+[<<AsyncIfc>>]^-.-[AsyncIfcImpl]
+[AsyncIfcImpl]^[AsyncStream]
+[AsyncStream]^[AsyncStreamServer]
+[AsyncStream]^[AsyncStreamClient]
+
+
+[Talent|ifc:AsyncIfc;conn_no;addr;;await_conn_resp_cnt;id_str;contact_name;contact_mail;db:InfosG3;mb:Modbus;switch|msg_contact_info();msg_ota_update();msg_get_time();msg_collector_data();msg_inverter_data();msg_unknown();;healthy();close()]
+[Talent]<remote-[InverterG3]
+[InverterG3]-remote>[AsyncStreamClient]
+[Talent]<-local++[InverterG3]
+[InverterG3]++local->[AsyncStreamServer]
+
+[SolarmanV5|ifc:AsyncIfc;conn_no;addr;;control;serial;snr;db:InfosG3P;mb:Modbus;switch|msg_unknown();;healthy();close()]
+[SolarmanV5]<remote-[InverterG3P]
+[InverterG3P]-remote>[AsyncStreamClient]
+[SolarmanV5]<-local++[InverterG3P]
+[InverterG3P]++local->[AsyncStreamServer]
+
+[Infos|stat;new_stat_data;info_dev|static_init();dev_value();inc_counter();dec_counter();ha_proxy_conf;ha_conf;ha_remove;update_db;set_db_def_value;get_db_value;ignore_this_device]
+[Infos]^[InfosG3||ha_confs();parse()]
+[Infos]^[InfosG3P||ha_confs();parse()]
+
+[Talent]use->[<<AsyncIfc>>]
+[Talent]->[InfosG3]
+[SolarmanV5]use->[<<AsyncIfc>>]
+[SolarmanV5]->[InfosG3P]
+
+[IterRegistry]^[Message|node_id|inc_counter();dec_counter()]
+[Message]^[Talent]
+[Message]^[SolarmanV5]
+
+[Modbus|que;;snd_handler;rsp_handler;timeout;max_retires;last_xxx;err;retry_cnt;req_pend;tim|build_msg();recv_req();recv_resp();close()]
+[Modbus]<1-has[SolarmanV5]
+[Modbus]<1-has[Talent]
