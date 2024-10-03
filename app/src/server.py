@@ -6,6 +6,7 @@ from asyncio import StreamReader, StreamWriter
 from aiohttp import web
 from logging import config  # noqa F401
 from inverter import Inverter
+from inverter_base import InverterIfc
 from gen3.inverter_g3 import InverterG3
 from gen3plus.inverter_g3p import InverterG3P
 from scheduler import Schedule
@@ -37,7 +38,7 @@ async def healthy(request):
 
     if proxy_is_up:
         # logging.info('web reqeust healthy()')
-        for inverter in Inverter:
+        for inverter in InverterIfc:
             try:
                 res = inverter.healthy()
                 if not res:
@@ -86,7 +87,7 @@ async def handle_shutdown(web_task):
     #
     # first, disc all open TCP connections gracefully
     #
-    for inverter in Inverter:
+    async for inverter in InverterIfc:
         await inverter.disc(True)
 
     logging.info('Proxy disconnecting done')

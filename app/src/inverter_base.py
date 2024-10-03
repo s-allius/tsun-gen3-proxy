@@ -48,7 +48,7 @@ class InverterIfc(metaclass=AbstractIterMeta):
         pass  # pragma: no cover
 
     @abstractmethod
-    async def disc(self, shutdown_started=False) -> None: 
+    async def disc(self, shutdown_started=False) -> None:
         pass  # pragma: no cover
 
     @abstractmethod
