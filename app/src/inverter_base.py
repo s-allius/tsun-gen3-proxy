@@ -1,4 +1,3 @@
-from abc import abstractmethod
 import weakref
 import asyncio
 import logging
@@ -8,7 +7,7 @@ from aiomqtt import MqttCodeError
 from asyncio import StreamReader, StreamWriter
 
 if __name__ == "app.src.inverter_base":
-    from app.src.iter_registry import AbstractIterMeta
+    from app.src.inverter_ifc import InverterIfc
     from app.src.proxy import Proxy
     from app.src.async_stream import StreamPtr
     from app.src.async_stream import AsyncStreamClient
@@ -16,7 +15,7 @@ if __name__ == "app.src.inverter_base":
     from app.src.config import Config
     from app.src.infos import Infos
 else:  # pragma: no cover
-    from iter_registry import AbstractIterMeta
+    from inverter_ifc import InverterIfc
     from proxy import Proxy
     from async_stream import StreamPtr
     from async_stream import AsyncStreamClient
@@ -25,36 +24,6 @@ else:  # pragma: no cover
     from infos import Infos
 
 logger_mqtt = logging.getLogger('mqtt')
-
-
-class InverterIfc(metaclass=AbstractIterMeta):
-    _registry = []
-
-    @abstractmethod
-    def __init__(self, reader: StreamReader, writer: StreamWriter,
-                 config_id: str, prot_class,
-                 client_mode: bool):
-        pass  # pragma: no cover
-
-    @abstractmethod
-    def __enter__(self):
-        pass  # pragma: no cover
-
-    @abstractmethod
-    def __exit__(self, exc_type, exc, tb):
-        pass  # pragma: no cover
-
-    @abstractmethod
-    def healthy(self) -> bool:
-        pass  # pragma: no cover
-
-    @abstractmethod
-    async def disc(self, shutdown_started=False) -> None:
-        pass  # pragma: no cover
-
-    @abstractmethod
-    async def create_remote(self) -> None:
-        pass  # pragma: no cover
 
 
 class InverterBase(InverterIfc, Proxy):

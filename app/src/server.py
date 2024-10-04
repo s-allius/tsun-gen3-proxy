@@ -6,7 +6,7 @@ from asyncio import StreamReader, StreamWriter
 from aiohttp import web
 from logging import config  # noqa F401
 from proxy import Proxy
-from inverter_base import InverterIfc
+from inverter_ifc import InverterIfc
 from gen3.inverter_g3 import InverterG3
 from gen3plus.inverter_g3p import InverterG3P
 from scheduler import Schedule
