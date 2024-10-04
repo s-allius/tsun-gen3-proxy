@@ -11,7 +11,7 @@ from app.src.gen3.talent import Talent
 from app.src.inverter_base import InverterBase
 from app.src.singleton import Singleton
 from app.src.protocol_ifc import ProtocolIfcImpl
-from app.src.async_stream import AsyncStream, AsyncIfcImpl
+from app.src.async_stream import AsyncStream, AsyncIfcImpl, AsyncStreamClient
 
 from app.tests.test_modbus_tcp import patch_mqtt_err, patch_mqtt_except, test_port, test_hostname
 
@@ -101,6 +101,19 @@ def patch_healthy():
     with patch.object(AsyncStream, 'healthy') as conn:
         yield conn
 
+@pytest.fixture
+def patch_unhealthy():
+    def new_healthy(self):
+        return False
+    with patch.object(AsyncStream, 'healthy', new_healthy) as conn:
+        yield conn
+@pytest.fixture
+def patch_unhealthy_remote():
+    def new_healthy(self):
+        return False
+    with patch.object(AsyncStreamClient, 'healthy', new_healthy) as conn:
+        yield conn
+
 def test_protocol_iter():
     ProtocolIfcImpl._registry.clear()
     cnt = 0
@@ -141,13 +154,166 @@ def test_method_calls(patch_healthy):
     with InverterBase(reader, writer, 'tsun', Talent) as inverter:
         assert inverter.local.stream
         assert inverter.local.ifc
-        # inverter.healthy()
+        # call healthy inside the contexter manager
         for inv in InverterBase:
-            inv.healthy()
+            assert inv.healthy() 
             del inv
         spy.assert_called_once()
+
+    # outside context manager the health function of AsyncStream is not reachable
+    cnt = 0
+    for inv in InverterBase:
+        assert inv.healthy()
+        cnt += 1
+        del inv
+    assert cnt == 1
+    spy.assert_called_once() # counter don't increase and keep one!
+
     del inverter
     cnt = 0
     for inv in InverterBase:
+        print(f'InverterBase refs:{gc.get_referrers(inv)}')
+        cnt += 1
+    assert cnt == 0
+
+def test_unhealthy(patch_unhealthy):
+    _ = patch_unhealthy
+    InverterBase._registry.clear()
+    reader = FakeReader()
+    writer =  FakeWriter()
+
+    with InverterBase(reader, writer, 'tsun', Talent) as inverter:
+        assert inverter.local.stream
+        assert inverter.local.ifc
+        # call healthy inside the contexter manager
+        assert not inverter.healthy()
+
+    # outside context manager the unhealth AsyncStream is released
+    cnt = 0
+    for inv in InverterBase:
+        assert inv.healthy()  # inverter is healthy again (without the unhealty AsyncStream)
+        cnt += 1
+        del inv
+    assert cnt == 1
+
+    del inverter
+    cnt = 0
+    for inv in InverterBase:
+        print(f'InverterBase refs:{gc.get_referrers(inv)}')
+        cnt += 1
+    assert cnt == 0
+
+def test_unhealthy_remote(patch_unhealthy_remote):
+    _ = patch_unhealthy
+    InverterBase._registry.clear()
+    reader = FakeReader()
+    writer =  FakeWriter()
+
+    with InverterBase(reader, writer, 'tsun', Talent) as inverter:
+        assert inverter.local.stream
+        assert inverter.local.ifc
+        # call healthy inside the contexter manager
+        assert not inverter.healthy()
+
+    # outside context manager the unhealth AsyncStream is released
+    cnt = 0
+    for inv in InverterBase:
+        assert inv.healthy()  # inverter is healthy again (without the unhealty AsyncStream)
+        cnt += 1
+        del inv
+    assert cnt == 1
+
+    del inverter
+    cnt = 0
+    for inv in InverterBase:
+        print(f'InverterBase refs:{gc.get_referrers(inv)}')
+        cnt += 1
+    assert cnt == 0
+
+@pytest.mark.asyncio
+async def test_remote_conn(config_conn, patch_open_connection):
+    _ = config_conn
+    _ = patch_open_connection
+    assert asyncio.get_running_loop()
+    reader = FakeReader()
+    writer =  FakeWriter()
+
+    with InverterBase(reader, writer, 'tsun', Talent) as inverter:
+        await inverter.create_remote()
+        await asyncio.sleep(0)
+        assert inverter.remote.stream
+        assert inverter.remote.ifc
+        # call healthy inside the contexter manager
+        assert inverter.healthy()
+
+    # call healthy outside the contexter manager (__exit__() was called)
+    assert inverter.healthy()
+    del inverter
+
+    cnt = 0
+    for inv in InverterBase:
+        print(f'InverterBase refs:{gc.get_referrers(inv)}')
+        cnt += 1
+    assert cnt == 0
+
+@pytest.mark.asyncio
+async def test_unhealthy_remote(config_conn, patch_open_connection, patch_unhealthy_remote):
+    _ = config_conn
+    _ = patch_open_connection
+    _ = patch_unhealthy_remote
+    assert asyncio.get_running_loop()
+    InverterBase._registry.clear()
+    reader = FakeReader()
+    writer =  FakeWriter()
+
+    with InverterBase(reader, writer, 'tsun', Talent) as inverter:
+        assert inverter.local.stream
+        assert inverter.local.ifc
+        await inverter.create_remote()
+        await asyncio.sleep(0)
+        assert inverter.remote.stream
+        assert inverter.remote.ifc
+        assert inverter.local.ifc.healthy()
+        assert not inverter.remote.ifc.healthy()
+        # call healthy inside the contexter manager
+        assert not inverter.healthy()
+
+    # outside context manager the unhealth AsyncStream is released
+    cnt = 0
+    for inv in InverterBase:
+        assert inv.healthy()  # inverter is healthy again (without the unhealty AsyncStream)
+        cnt += 1
+        del inv
+    assert cnt == 1
+
+    del inverter
+    cnt = 0
+    for inv in InverterBase:
+        print(f'InverterBase refs:{gc.get_referrers(inv)}')
+        cnt += 1
+    assert cnt == 0
+
+@pytest.mark.asyncio
+async def test_remote_disc(config_conn, patch_open_connection):
+    _ = config_conn
+    _ = patch_open_connection
+    assert asyncio.get_running_loop()
+    reader = FakeReader()
+    writer =  FakeWriter()
+
+    with InverterBase(reader, writer, 'tsun', Talent) as inverter:
+        await inverter.create_remote()
+        await asyncio.sleep(0)
+        assert inverter.remote.stream
+        # call disc inside the contexter manager
+        await inverter.disc()
+        
+    # call disc outside the contexter manager (__exit__() was called)
+    await inverter.disc()
+    del inverter
+
+    cnt = 0
+    for inv in InverterBase:
+        print(f'InverterBase refs:{gc.get_referrers(inv)}')
         cnt += 1
     assert cnt == 0
