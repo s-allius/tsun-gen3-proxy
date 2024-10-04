@@ -341,7 +341,7 @@ class AsyncStreamServer(AsyncStream):
         logger.info(f'[{self.node_id}:{self.conn_no}] '
                     f'Accept connection from {self.r_addr}')
         Infos.inc_counter('Inverter_Cnt')
-        await self.publish_outstanding_mqtugt()
+        await self.publish_outstanding_mqtt()
         await self.loop()
         Infos.dec_counter('Inverter_Cnt')
         await self.publish_outstanding_mqtt()
