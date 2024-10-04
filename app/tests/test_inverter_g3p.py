@@ -6,7 +6,7 @@ from mock import patch
 from enum import Enum
 from app.src.infos import Infos
 from app.src.config import Config
-from app.src.inverter import Inverter
+from app.src.proxy import Proxy
 from app.src.inverter_base import InverterBase
 from app.src.singleton import Singleton
 from app.src.gen3plus.inverter_g3p import InverterG3P
@@ -110,7 +110,7 @@ async def test_remote_conn(config_conn, patch_open_connection):
     assert asyncio.get_running_loop()
 
     with InverterG3P(FakeReader(), FakeWriter(), client_mode=False) as inverter:
-        await inverter.async_create_remote()
+        await inverter.create_remote()
         await asyncio.sleep(0)
         assert inverter.remote.stream
 
@@ -124,12 +124,12 @@ async def test_remote_except(config_conn, patch_open_connection):
     test  = TestType.RD_TEST_TIMEOUT
 
     with InverterG3P(FakeReader(), FakeWriter(), client_mode=False) as inverter:
-        await inverter.async_create_remote()
+        await inverter.create_remote()
         await asyncio.sleep(0)
         assert inverter.remote.stream==None
 
         test  = TestType.RD_TEST_EXCEPT
-        await inverter.async_create_remote()
+        await inverter.create_remote()
         await asyncio.sleep(0)
         assert inverter.remote.stream==None
 
@@ -139,7 +139,7 @@ async def test_mqtt_publish(config_conn, patch_open_connection):
     _ = patch_open_connection
     assert asyncio.get_running_loop()
 
-    Inverter.class_init()
+    Proxy.class_init()
 
     with InverterG3P(FakeReader(), FakeWriter(), client_mode=False) as inverter:
         stream = inverter.local.stream
@@ -167,7 +167,7 @@ async def test_mqtt_err(config_conn, patch_open_connection, patch_mqtt_err):
     _ = patch_mqtt_err
     assert asyncio.get_running_loop()
 
-    Inverter.class_init()
+    Proxy.class_init()
 
     with InverterG3P(FakeReader(), FakeWriter(), client_mode=False) as inverter:
         stream = inverter.local.stream
@@ -184,7 +184,7 @@ async def test_mqtt_except(config_conn, patch_open_connection, patch_mqtt_except
     _ = patch_mqtt_except
     assert asyncio.get_running_loop()
 
-    Inverter.class_init()
+    Proxy.class_init()
 
     with InverterG3P(FakeReader(), FakeWriter(), client_mode=False) as inverter:
         stream = inverter.local.stream

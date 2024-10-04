@@ -7,12 +7,12 @@ from typing import Self
 from itertools import count
 
 if __name__ == "app.src.async_stream":
-    from app.src.inverter import Inverter
+    from app.src.proxy import Proxy
     from app.src.byte_fifo import ByteFifo
     from app.src.async_ifc import AsyncIfc
     from app.src.infos import Infos
 else:  # pragma: no cover
-    from inverter import Inverter
+    from proxy import Proxy
     from byte_fifo import ByteFifo
     from async_ifc import AsyncIfc
     from infos import Infos
@@ -240,7 +240,7 @@ class AsyncStream(AsyncIfcImpl):
         await self._writer.wait_closed()
 
     def close(self) -> None:
-        logging.info(f'AsyncStream.close1() l{self.l_addr} | r{self.r_addr}')
+        logging.debug(f'AsyncStream.close() l{self.l_addr} | r{self.r_addr}')
         """close handler for a no waiting disconnect
 
            hint: must be called before releasing the connection instance
@@ -249,7 +249,6 @@ class AsyncStream(AsyncIfcImpl):
         self._reader.feed_eof()          # abort awaited read
         if self._writer.is_closing():
             return
-        logger.info(f'AsyncStream.close2() l{self.l_addr} | r{self.r_addr}')
         self._writer.close()
 
     def healthy(self) -> bool:
@@ -325,15 +324,15 @@ class AsyncStream(AsyncIfcImpl):
 
 class AsyncStreamServer(AsyncStream):
     def __init__(self, reader: StreamReader, writer: StreamWriter,
-                 async_publ_mqtt, async_create_remote,
+                 async_publ_mqtt, create_remote,
                  rstream: "StreamPtr") -> None:
         AsyncStream.__init__(self, reader, writer, rstream)
-        self.async_create_remote = async_create_remote
+        self.create_remote = create_remote
         self.async_publ_mqtt = async_publ_mqtt
 
     def close(self) -> None:
-        logging.info('AsyncStreamServer.close()')
-        self.async_create_remote = None
+        logging.debug('AsyncStreamServer.close()')
+        self.create_remote = None
         self.async_publ_mqtt = None
         super().close()
 
@@ -342,7 +341,7 @@ class AsyncStreamServer(AsyncStream):
         logger.info(f'[{self.node_id}:{self.conn_no}] '
                     f'Accept connection from {self.r_addr}')
         Infos.inc_counter('Inverter_Cnt')
-        await self.publish_outstanding_mqtt()
+        await self.publish_outstanding_mqtugt()
         await self.loop()
         Infos.dec_counter('Inverter_Cnt')
         await self.publish_outstanding_mqtt()
@@ -360,7 +359,7 @@ class AsyncStreamServer(AsyncStream):
     async def _async_forward(self) -> None:
         """forward handler transmits data over the remote connection"""
         if not self.remote.stream:
-            await self.async_create_remote()
+            await self.create_remote()
             if self.remote.stream and \
                self.remote.ifc.init_new_client_conn_cb():
                 await self.remote.ifc._AsyncStream__async_write()
@@ -375,7 +374,7 @@ class AsyncStreamServer(AsyncStream):
         '''Publish all outstanding MQTT topics'''
         try:
             await self.async_publ_mqtt()
-            await Inverter._async_publ_mqtt_proxy_stat('proxy')
+            await Proxy._async_publ_mqtt_proxy_stat('proxy')
         except Exception:
             pass
 
@@ -387,7 +386,7 @@ class AsyncStreamClient(AsyncStream):
         self.close_cb = close_cb
 
     def close(self) -> None:
-        logging.info('AsyncStreamClient.close()')
+        logging.debug('AsyncStreamClient.close()')
         self.close_cb = None
         super().close()
 

@@ -10,7 +10,7 @@ from app.src.config import Config
 from app.src.infos import Infos
 from app.src.mqtt import Mqtt
 from app.src.messages import Message, State
-from app.src.inverter import Inverter
+from app.src.proxy import Proxy
 from app.src.modbus_tcp import ModbusConn, ModbusTcp
 
 
@@ -175,7 +175,7 @@ async def test_modbus_cnf1(config_conn, patch_open):
     _ = patch_open
     global test
     assert asyncio.get_running_loop()
-    Inverter.class_init()
+    Proxy.class_init()
     test = TestType.RD_TEST_TIMEOUT
 
     assert Infos.stat['proxy']['Inverter_Cnt'] == 0
@@ -196,7 +196,7 @@ async def test_modbus_cnf2(config_conn, patch_no_mqtt, patch_open):
     _ = patch_no_mqtt
     global test
     assert asyncio.get_running_loop()
-    Inverter.class_init()
+    Proxy.class_init()
     test = TestType.RD_TEST_0_BYTES
 
     assert Infos.stat['proxy']['Inverter_Cnt'] == 0
@@ -222,7 +222,7 @@ async def test_modbus_cnf3(config_conn, patch_no_mqtt, patch_open):
     _ = patch_no_mqtt
     global test
     assert asyncio.get_running_loop()
-    Inverter.class_init()
+    Proxy.class_init()
     test = TestType.RD_TEST_0_BYTES
 
     assert Infos.stat['proxy']['Inverter_Cnt'] == 0
@@ -255,7 +255,7 @@ async def test_mqtt_err(config_conn, patch_mqtt_err, patch_open):
     _ = patch_mqtt_err
     global test
     assert asyncio.get_running_loop()
-    Inverter.class_init()
+    Proxy.class_init()
     test = TestType.RD_TEST_0_BYTES
 
     assert Infos.stat['proxy']['Inverter_Cnt'] == 0
@@ -288,7 +288,7 @@ async def test_mqtt_except(config_conn, patch_mqtt_except, patch_open):
     _ = patch_mqtt_except
     global test
     assert asyncio.get_running_loop()
-    Inverter.class_init()
+    Proxy.class_init()
     test = TestType.RD_TEST_0_BYTES
 
     assert Infos.stat['proxy']['Inverter_Cnt'] == 0

@@ -682,6 +682,7 @@ def config_tsun_inv1():
     Config.act_config = {'solarman':{'enabled': True},'inverters':{'Y170000000000001':{'monitor_sn': 2070233889, 'node_id':'inv1', 'modbus_polling': True, 'suggested_area':'roof', 'sensor_list': 688}}}
 
 def test_read_message(device_ind_msg):
+    Config.act_config = {'solarman':{'enabled': True}}
     m = MemoryStream(device_ind_msg, (0,))
     m.read()         # read complete msg, and dispatch msg
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed

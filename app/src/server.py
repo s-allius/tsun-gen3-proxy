@@ -5,7 +5,7 @@ import os
 from asyncio import StreamReader, StreamWriter
 from aiohttp import web
 from logging import config  # noqa F401
-from inverter import Inverter
+from proxy import Proxy
 from inverter_base import InverterIfc
 from gen3.inverter_g3 import InverterG3
 from gen3plus.inverter_g3p import InverterG3P
@@ -87,7 +87,7 @@ async def handle_shutdown(web_task):
     #
     # first, disc all open TCP connections gracefully
     #
-    async for inverter in InverterIfc:
+    for inverter in InverterIfc:
         await inverter.disc(True)
 
     logging.info('Proxy disconnecting done')
@@ -152,7 +152,7 @@ if __name__ == "__main__":
     ConfigErr = Config.class_init()
     if ConfigErr is not None:
         logging.info(f'ConfigErr: {ConfigErr}')
-    Inverter.class_init()
+    Proxy.class_init()
     Schedule.start()
     ModbusTcp(loop)
 
@@ -185,7 +185,7 @@ if __name__ == "__main__":
         pass
     finally:
         logging.info("Event loop is stopped")
-        Inverter.class_close(loop)
+        Proxy.class_close(loop)
         logging.debug('Close event loop')
         loop.close()
         logging.info(f'Finally, exit Server "{serv_name}"')

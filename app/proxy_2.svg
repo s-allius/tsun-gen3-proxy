@@ -54,7 +54,7 @@
 <text text-anchor="start" x="329.901" y="-553" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">remote:StreamPtr</text>
 <text text-anchor="start" x="335.18" y="-541" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">local:StreamPtr</text>
 <polygon fill="none" stroke="#000000" points="308.348,-472 308.348,-528 430.348,-528 430.348,-472 308.348,-472"/>
-<text text-anchor="start" x="317.9515" y="-509" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">async_create_remote()</text>
+<text text-anchor="start" x="317.9515" y="-509" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">create_remote()</text>
 <text text-anchor="start" x="354.3505" y="-485" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">close()</text>
 </g>
 <!-- A7 -->
@@ -63,7 +63,7 @@
 <polygon fill="none" stroke="#000000" points="12.348,-100 12.348,-132 190.348,-132 190.348,-100 12.348,-100"/>
 <text text-anchor="start" x="56.8995" y="-113" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">AsyncStreamServer</text>
 <polygon fill="none" stroke="#000000" points="12.348,-68 12.348,-100 190.348,-100 190.348,-68 12.348,-68"/>
-<text text-anchor="start" x="53.2805" y="-81" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">async_create_remote</text>
+<text text-anchor="start" x="53.2805" y="-81" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">create_remote</text>
 <polygon fill="none" stroke="#000000" points="12.348,0 12.348,-68 190.348,-68 190.348,0 12.348,0"/>
 <text text-anchor="start" x="53.0055" y="-49" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">&lt;async&gt;server_loop()</text>
 <text text-anchor="start" x="43.8365" y="-37" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">&lt;async&gt;_async_forward()</text>
@@ -105,7 +105,7 @@
 <text text-anchor="start" x="21.901" y="-311" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">remote:StreamPtr</text>
 <text text-anchor="start" x="27.18" y="-299" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">local:StreamPtr</text>
 <polygon fill="none" stroke="#000000" points=".348,-230 .348,-286 122.348,-286 122.348,-230 .348,-230"/>
-<text text-anchor="start" x="9.9515" y="-267" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">async_create_remote()</text>
+<text text-anchor="start" x="9.9515" y="-267" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">create_remote()</text>
 <text text-anchor="start" x="46.3505" y="-243" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">close()</text>
 </g>
 <!-- A3&#45;&gt;A7 -->

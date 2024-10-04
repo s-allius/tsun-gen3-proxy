@@ -9,7 +9,7 @@ from asyncio import StreamReader, StreamWriter
 
 if __name__ == "app.src.inverter_base":
     from app.src.iter_registry import AbstractIterMeta
-    from app.src.inverter import Inverter
+    from app.src.proxy import Proxy
     from app.src.async_stream import StreamPtr
     from app.src.async_stream import AsyncStreamClient
     from app.src.async_stream import AsyncStreamServer
@@ -17,7 +17,7 @@ if __name__ == "app.src.inverter_base":
     from app.src.infos import Infos
 else:  # pragma: no cover
     from iter_registry import AbstractIterMeta
-    from inverter import Inverter
+    from proxy import Proxy
     from async_stream import StreamPtr
     from async_stream import AsyncStreamClient
     from async_stream import AsyncStreamServer
@@ -28,6 +28,7 @@ logger_mqtt = logging.getLogger('mqtt')
 
 
 class InverterIfc(metaclass=AbstractIterMeta):
+    _registry = []
 
     @abstractmethod
     def __init__(self, reader: StreamReader, writer: StreamWriter,
@@ -52,17 +53,16 @@ class InverterIfc(metaclass=AbstractIterMeta):
         pass  # pragma: no cover
 
     @abstractmethod
-    async def async_create_remote(self) -> None:
+    async def create_remote(self) -> None:
         pass  # pragma: no cover
 
 
-class InverterBase(InverterIfc, Inverter):
-    _registry = []
+class InverterBase(InverterIfc, Proxy):
 
     def __init__(self, reader: StreamReader, writer: StreamWriter,
                  config_id: str, prot_class,
                  client_mode: bool = False):
-        Inverter.__init__(self)
+        Proxy.__init__(self)
         self._registry.append(weakref.ref(self))
         self.addr = writer.get_extra_info('peername')
         self.config_id = config_id
@@ -71,7 +71,7 @@ class InverterBase(InverterIfc, Inverter):
         self.remote = StreamPtr(None)
         ifc = AsyncStreamServer(reader, writer,
                                 self.async_publ_mqtt,
-                                self.async_create_remote,
+                                self.create_remote,
                                 self.remote)
 
         self.local = StreamPtr(
@@ -113,7 +113,7 @@ class InverterBase(InverterIfc, Inverter):
             await self.local.ifc.disc()
 
     def healthy(self) -> bool:
-        logging.debug('Inverter healthy()')
+        logging.debug('InverterBase healthy()')
 
         if self.local.ifc and not self.local.ifc.healthy():
             return False
@@ -121,7 +121,7 @@ class InverterBase(InverterIfc, Inverter):
             return False
         return True
 
-    async def async_create_remote(self) -> None:
+    async def create_remote(self) -> None:
         '''Establish a client connection to the TSUN cloud'''
 
         tsun = Config.get(self.config_id)
@@ -179,7 +179,7 @@ class InverterBase(InverterIfc, Inverter):
             for key in stream.new_data:
                 await self.__async_publ_mqtt_packet(stream, key)
             for key in Infos.new_stat_data:
-                await Inverter._async_publ_mqtt_proxy_stat(key)
+                await Proxy._async_publ_mqtt_proxy_stat(key)
 
         except MqttCodeError as error:
             logging.error(f'Mqtt except: {error}')
