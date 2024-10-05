@@ -119,19 +119,19 @@
 <!-- A6 -->
 <g id="node7" class="node">
 <title>A6</title>
-<polygon fill="none" stroke="#000000" points="356.5,-236 356.5,-268 468.5,-268 468.5,-236 356.5,-236"/>
-<text text-anchor="start" x="389.9995" y="-249" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">StreamPtr</text>
-<polygon fill="none" stroke="#000000" points="356.5,-216 356.5,-236 468.5,-236 468.5,-216 356.5,-216"/>
-<polygon fill="none" stroke="#000000" points="356.5,-172 356.5,-216 468.5,-216 468.5,-172 356.5,-172"/>
-<text text-anchor="start" x="366.3825" y="-197" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">stream:MessageProt</text>
-<text text-anchor="start" x="387.2185" y="-185" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">ifc:AsyncIfc</text>
+<polygon fill="none" stroke="#000000" points="356.5,-236 356.5,-268 456.5,-268 456.5,-236 356.5,-236"/>
+<text text-anchor="start" x="383.9995" y="-249" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">StreamPtr</text>
+<polygon fill="none" stroke="#000000" points="356.5,-216 356.5,-236 456.5,-236 456.5,-216 356.5,-216"/>
+<polygon fill="none" stroke="#000000" points="356.5,-172 356.5,-216 456.5,-216 456.5,-172 356.5,-172"/>
+<text text-anchor="start" x="366.2175" y="-197" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">stream:ProtocolIfc</text>
+<text text-anchor="start" x="381.2185" y="-185" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">ifc:AsyncIfc</text>
 </g>
 <!-- A5&#45;&gt;A6 -->
 <g id="edge8" class="edge">
 <title>A5&#45;&gt;A6</title>
-<path fill="none" stroke="#000000" d="M359.288,-317.872C366.9377,-303.802 374.5179,-289.86 381.4556,-277.0995"/>
-<polygon fill="#000000" stroke="#000000" points="386.3856,-268.0318 385.5625,-278.9667 383.9973,-272.4245 381.609,-276.8173 381.609,-276.8173 381.609,-276.8173 383.9973,-272.4245 377.6556,-274.6678 386.3856,-268.0318 386.3856,-268.0318"/>
-<text text-anchor="middle" x="385.1534" y="-284.9938" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">2</text>
+<path fill="none" stroke="#000000" d="M356.1387,-317.872C363.3786,-303.802 370.5526,-289.86 377.1187,-277.0995"/>
+<polygon fill="#000000" stroke="#000000" points="381.7846,-268.0318 381.2105,-278.9826 379.4969,-272.4777 377.2091,-276.9237 377.2091,-276.9237 377.2091,-276.9237 379.4969,-272.4777 373.2078,-274.8647 381.7846,-268.0318 381.7846,-268.0318"/>
+<text text-anchor="middle" x="381.0069" y="-285.0166" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">2</text>
 </g>
 <!-- A7 -->
 <g id="node8" class="node">
@@ -160,44 +160,44 @@
 <!-- A11 -->
 <g id="node12" class="node">
 <title>A11</title>
-<polygon fill="none" stroke="#000000" points="456.1421,-36 366.8579,-36 366.8579,0 456.1421,0 456.1421,-36"/>
-<text text-anchor="middle" x="411.5" y="-15" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">&lt;&lt;AsyncIfc&gt;&gt;</text>
+<polygon fill="none" stroke="#000000" points="450.1421,-36 360.8579,-36 360.8579,0 450.1421,0 450.1421,-36"/>
+<text text-anchor="middle" x="405.5" y="-15" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">&lt;&lt;AsyncIfc&gt;&gt;</text>
 </g>
 <!-- A6&#45;&gt;A11 -->
 <g id="edge11" class="edge">
 <title>A6&#45;&gt;A11</title>
-<path fill="none" stroke="#000000" d="M396.5836,-171.9861C390.0675,-146.4721 384.9947,-114.5619 389.5,-86 391.6448,-72.403 396.0621,-57.8206 400.3796,-45.6603"/>
-<polygon fill="#000000" stroke="#000000" points="403.9307,-36.0902 404.6707,-47.0311 402.1913,-40.7779 400.4518,-45.4656 400.4518,-45.4656 400.4518,-45.4656 402.1913,-40.7779 396.2329,-43.9001 403.9307,-36.0902 403.9307,-36.0902"/>
-<text text-anchor="middle" x="405.5493" y="-53.0246" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">1</text>
+<path fill="none" stroke="#000000" d="M392.6633,-171.974C386.9982,-146.4565 382.5868,-114.547 386.5,-86 388.3468,-72.5276 392.161,-57.9618 395.8907,-45.7804"/>
+<polygon fill="#000000" stroke="#000000" points="398.9587,-36.1851 400.1994,-47.0805 397.4359,-40.9476 395.9131,-45.71 395.9131,-45.71 395.9131,-45.71 397.4359,-40.9476 391.6269,-44.3395 398.9587,-36.1851 398.9587,-36.1851"/>
+<text text-anchor="middle" x="401.4892" y="-53.0243" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">1</text>
 </g>
 <!-- A12 -->
 <g id="node13" class="node">
 <title>A12</title>
-<polygon fill="none" stroke="#000000" points="508.7573,-122 398.2427,-122 398.2427,-86 508.7573,-86 508.7573,-122"/>
-<text text-anchor="middle" x="453.5" y="-101" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">&lt;&lt;MessageProt&gt;&gt;</text>
+<polygon fill="none" stroke="#000000" points="493.5879,-122 395.4121,-122 395.4121,-86 493.5879,-86 493.5879,-122"/>
+<text text-anchor="middle" x="444.5" y="-101" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">&lt;&lt;ProtocolIfc&gt;&gt;</text>
 </g>
 <!-- A6&#45;&gt;A12 -->
 <g id="edge10" class="edge">
 <title>A6&#45;&gt;A12</title>
-<path fill="none" stroke="#000000" d="M429.5315,-171.8133C434.3787,-158.0994 439.4923,-143.6315 443.7456,-131.5978"/>
-<polygon fill="#000000" stroke="#000000" points="447.0913,-122.132 448.0016,-133.06 445.425,-126.8462 443.7588,-131.5604 443.7588,-131.5604 443.7588,-131.5604 445.425,-126.8462 439.516,-130.0607 447.0913,-122.132 447.0913,-122.132"/>
-<text text-anchor="middle" x="449.0201" y="-139.0387" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">1</text>
+<path fill="none" stroke="#000000" d="M422.2853,-171.8133C426.7329,-158.2365 431.4225,-143.9208 435.3408,-131.9595"/>
+<polygon fill="#000000" stroke="#000000" points="438.5602,-122.132 439.7235,-133.036 437.0036,-126.8835 435.4471,-131.6351 435.4471,-131.6351 435.4471,-131.6351 437.0036,-126.8835 431.1707,-130.2341 438.5602,-122.132 438.5602,-122.132"/>
+<text text-anchor="middle" x="440.9498" y="-138.9887" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">1</text>
 </g>
 <!-- A8 -->
 <g id="node9" class="node">
 <title>A8</title>
-<polygon fill="#fff8dc" stroke="#000000" points="586.906,-248 486.094,-248 486.094,-192 592.906,-192 592.906,-242 586.906,-248"/>
-<polyline fill="none" stroke="#000000" points="586.906,-248 586.906,-242 "/>
-<polyline fill="none" stroke="#000000" points="592.906,-242 586.906,-242 "/>
-<text text-anchor="middle" x="539.5" y="-235" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">Creates an GEN3</text>
-<text text-anchor="middle" x="539.5" y="-223" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">inverter instance</text>
-<text text-anchor="middle" x="539.5" y="-211" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">with</text>
-<text text-anchor="middle" x="539.5" y="-199" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">prot_class:Talent</text>
+<polygon fill="#fff8dc" stroke="#000000" points="574.906,-248 474.094,-248 474.094,-192 580.906,-192 580.906,-242 574.906,-248"/>
+<polyline fill="none" stroke="#000000" points="574.906,-248 574.906,-242 "/>
+<polyline fill="none" stroke="#000000" points="580.906,-242 574.906,-242 "/>
+<text text-anchor="middle" x="527.5" y="-235" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">Creates an GEN3</text>
+<text text-anchor="middle" x="527.5" y="-223" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">inverter instance</text>
+<text text-anchor="middle" x="527.5" y="-211" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">with</text>
+<text text-anchor="middle" x="527.5" y="-199" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">prot_class:Talent</text>
 </g>
 <!-- A7&#45;&gt;A8 -->
 <g id="edge3" class="edge">
 <title>A7&#45;&gt;A8</title>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M308.5491,-238.3283C317.4345,-256.0056 333.5793,-281.6949 356.5,-293 401.1429,-315.019 422.6447,-312.368 468.5,-293 490.1607,-283.8511 508.4784,-264.5049 521.0802,-248.0264"/>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M308.5491,-238.3283C317.4345,-256.0056 333.5793,-281.6949 356.5,-293 396.3598,-312.6598 415.5578,-310.2929 456.5,-293 478.1607,-283.8511 496.4784,-264.5049 509.0802,-248.0264"/>
 </g>
 <!-- A10 -->
 <g id="node11" class="node">
@@ -218,9 +218,9 @@
 <!-- A12&#45;&gt;A11 -->
 <g id="edge12" class="edge">
 <title>A12&#45;&gt;A11</title>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M444.5929,-85.7616C438.8574,-74.0176 431.2964,-58.5355 424.8496,-45.3349"/>
-<polygon fill="#000000" stroke="#000000" points="420.3943,-36.2121 428.8262,-43.223 422.5885,-40.7049 424.7827,-45.1978 424.7827,-45.1978 424.7827,-45.1978 422.5885,-40.7049 420.7391,-47.1726 420.3943,-36.2121 420.3943,-36.2121"/>
-<text text-anchor="middle" x="429.0435" y="-70.1832" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">use</text>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M436.2291,-85.7616C430.9033,-74.0176 423.8824,-58.5355 417.896,-45.3349"/>
+<polygon fill="#000000" stroke="#000000" points="413.759,-36.2121 421.9874,-43.4608 415.824,-40.7657 417.8891,-45.3194 417.8891,-45.3194 417.8891,-45.3194 415.824,-40.7657 413.7908,-47.1779 413.759,-36.2121 413.759,-36.2121"/>
+<text text-anchor="middle" x="421.0451" y="-69.7445" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">use</text>
 </g>
 <!-- A13 -->
 <g id="node14" class="node">

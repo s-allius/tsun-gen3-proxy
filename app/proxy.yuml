@@ -11,7 +11,7 @@
 [<<InverterIfc>>||healthy()->bool;<async>disc(shutdown_started=False);<async>create_remote();]
 [<<AbstractIterMeta>>]^-.-[<<InverterIfc>>]
 [InverterBase|_registry;__ha_restarts;;addr;config_id:str;prot_class:MessageProt;remote:StreamPtr;local:StreamPtr;|healthy()->bool;<async>disc(shutdown_started=False);<async>create_remote();<async>async_publ_mqtt()]
-[StreamPtr||stream:MessageProt;ifc:AsyncIfc]
+[StreamPtr||stream:ProtocolIfc;ifc:AsyncIfc]
 [<<InverterIfc>>]^-.-[InverterBase]
 [InverterG3]-[note: Creates an GEN3 inverter instance with prot_class:Talent{bg:cornsilk}]
 [InverterG3P]-[note: Creates an GEN3PLUS inverter instance with prot_class:SolarmanV5{bg:cornsilk}]
@@ -24,11 +24,11 @@
 [<<AsyncIfc>>]
 
 
-[StreamPtr]-1>[<<MessageProt>>]
+[StreamPtr]-1>[<<ProtocolIfc>>]
 [StreamPtr]-1>[<<AsyncIfc>>]
 
 
-[<<MessageProt>>]use-.->[<<AsyncIfc>>]
+[<<ProtocolIfc>>]use-.->[<<AsyncIfc>>]
 
 
 [ModbusConn|host;port;addr;stream:InverterG3P;|]has-1>[InverterG3P]

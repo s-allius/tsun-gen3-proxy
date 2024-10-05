@@ -5,11 +5,11 @@ from enum import Enum
 
 
 if __name__ == "app.src.messages":
-    from app.src.iter_registry import IterRegistry
+    from app.src.protocol_ifc import ProtocolIfc
     from app.src.infos import Infos, Register
     from app.src.modbus import Modbus
 else:  # pragma: no cover
-    from iter_registry import IterRegistry
+    from protocol_ifc import ProtocolIfc
     from infos import Infos, Register
     from modbus import Modbus
 
@@ -82,8 +82,7 @@ class State(Enum):
     '''connection closed'''
 
 
-class Message(metaclass=IterRegistry):
-    _registry = []
+class Message(ProtocolIfc):
     MAX_START_TIME = 400
     '''maximum time without a received msg in sec'''
     MAX_INV_IDLE_TIME = 120

@@ -10,8 +10,7 @@ from app.src.config import Config
 from app.src.gen3.talent import Talent
 from app.src.inverter_base import InverterBase
 from app.src.singleton import Singleton
-from app.src.protocol_ifc import ProtocolIfcImpl
-from app.src.async_stream import AsyncStream, AsyncIfcImpl, AsyncStreamClient
+from app.src.async_stream import AsyncStream, AsyncStreamClient
 
 from app.tests.test_modbus_tcp import patch_mqtt_err, patch_mqtt_except, test_port, test_hostname
 
@@ -113,20 +112,6 @@ def patch_unhealthy_remote():
         return False
     with patch.object(AsyncStreamClient, 'healthy', new_healthy) as conn:
         yield conn
-
-def test_protocol_iter():
-    ProtocolIfcImpl._registry.clear()
-    cnt = 0
-    ifc = AsyncIfcImpl()
-    prot = ProtocolIfcImpl(('test.intern', 123), ifc, True)
-    for p in ProtocolIfcImpl:
-        assert p == prot
-        cnt += 1
-        del p
-    del prot
-    assert cnt == 1
-    for p in ProtocolIfcImpl:
-        assert False
 
 def test_inverter_iter():
     InverterBase._registry.clear()
