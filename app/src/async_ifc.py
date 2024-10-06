@@ -57,18 +57,8 @@ class AsyncIfc(ABC):
         pass  # pragma: no cover
 
     @abstractmethod
-    def fwd_flush(self):
-        ''' send forward queue and clears it'''
-        pass  # pragma: no cover
-
-    @abstractmethod
     def fwd_log(self, level, info):
         ''' log the forward queue'''
-        pass  # pragma: no cover
-
-    @abstractmethod
-    def fwd_clear(self):
-        ''' clear forward queue'''
         pass  # pragma: no cover
 
     #

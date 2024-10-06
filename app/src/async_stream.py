@@ -80,17 +80,9 @@ class AsyncIfcImpl(AsyncIfc):
         ''' add data to forward queue'''
         self.fwd_fifo += data
 
-    def fwd_flush(self):
-        ''' send forward queue and clears it'''
-        self.fwd_fifo()
-
     def fwd_log(self, level, info):
         ''' log the forward queue'''
         self.fwd_fifo.logging(level, info)
-
-    def fwd_clear(self):
-        ''' clear forward queue'''
-        self.fwd_fifo.clear()
 
     def rx_get(self, size: int = None) -> bytearray:
         '''removes size numbers of bytes and return them'''
@@ -130,9 +122,6 @@ class StreamPtr():
     def __init__(self, _stream, _ifc=None):
         self.stream = _stream
         self.ifc = _ifc
-
-    def __str__(self) -> str:
-        return f'ifc:{self._ifc}, stream: {self._stream}'
 
     @property
     def ifc(self):
@@ -181,8 +170,8 @@ class AsyncStream(AsyncIfcImpl):
         self._writer.write(self.tx_fifo.get())
 
     def __timeout(self) -> int:
-        if self.timeout_cb is callable:
-            return self.timeout_cb
+        if self.timeout_cb:
+            return self.timeout_cb()
         return 360
 
     async def loop(self) -> Self:
@@ -273,7 +262,7 @@ class AsyncStream(AsyncIfcImpl):
             self.proc_start = time.time()
             self.rx_fifo += data
             wait = self.rx_fifo()                # call read in parent class
-            if wait > 0:
+            if wait and wait > 0:
                 await asyncio.sleep(wait)
         else:
             raise RuntimeError("Peer closed.")

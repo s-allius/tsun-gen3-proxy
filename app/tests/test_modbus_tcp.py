@@ -71,22 +71,25 @@ def config_conn(test_hostname, test_port):
     }
 
 
-class TestType(Enum):
+class FakeReader():
     RD_TEST_0_BYTES = 1
     RD_TEST_TIMEOUT = 2
+    RD_TEST_13_BYTES = 3
 
-
-test  = TestType.RD_TEST_0_BYTES
-
-
-class FakeReader():
     def __init__(self):
         self.on_recv =  asyncio.Event()
+        self.test  = self.RD_TEST_0_BYTES
+
     async def read(self, max_len: int):
+        print(f'fakeReader test: {self.test}')
         await self.on_recv.wait()
-        if test == TestType.RD_TEST_0_BYTES:
+        if self.test == self.RD_TEST_0_BYTES:
             return b''
-        elif test == TestType.RD_TEST_TIMEOUT:
+        elif self.test == self.RD_TEST_13_BYTES:
+            print('fakeReader return 13 bytes')
+            self.test = self.RD_TEST_0_BYTES
+            return b'test-data-req'
+        elif self.test == self.RD_TEST_TIMEOUT:
             raise TimeoutError
     def feed_eof(self):
         return
@@ -95,8 +98,11 @@ class FakeReader():
 class FakeWriter():
     def __init__(self, conn='remote.intern'):
         self.conn = conn
+        self.closing = False
     def write(self, buf: bytes):
         return
+    async def drain(self):
+        await asyncio.sleep(0)
     def get_extra_info(self, sel: str):
         if sel == 'peername':
             return self.conn
@@ -104,11 +110,11 @@ class FakeWriter():
             return 'sock:1234'
         assert False
     def is_closing(self):
-        return False
+        return self.closing
     def close(self):
-        return
+        self.closing = True
     async def wait_closed(self):
-        return
+        await asyncio.sleep(0)
 
 
 @pytest.fixture
@@ -118,10 +124,15 @@ def patch_open():
         return FakeReader(), FakeWriter(conn)
     
     def new_open(host: str, port: int):
-        global test
-        if test == TestType.RD_TEST_TIMEOUT:
-            raise TimeoutError
         return new_conn(f'{host}:{port}')
+
+    with patch.object(asyncio, 'open_connection', new_open) as conn:
+        yield conn
+
+@pytest.fixture
+def patch_open_timeout():
+    def new_open(host: str, port: int):
+        raise TimeoutError
 
     with patch.object(asyncio, 'open_connection', new_open) as conn:
         yield conn
@@ -170,13 +181,11 @@ async def test_modbus_no_cnf():
     assert Infos.stat['proxy']['Inverter_Cnt'] == 0
 
 @pytest.mark.asyncio
-async def test_modbus_cnf1(config_conn, patch_open):
+async def test_modbus_cnf1(config_conn, patch_open_timeout):
     _ = config_conn
-    _ = patch_open
-    global test
+    _ = patch_open_timeout
     assert asyncio.get_running_loop()
     Proxy.class_init()
-    test = TestType.RD_TEST_TIMEOUT
 
     assert Infos.stat['proxy']['Inverter_Cnt'] == 0
     loop = asyncio.get_event_loop()
@@ -194,10 +203,8 @@ async def test_modbus_cnf2(config_conn, patch_no_mqtt, patch_open):
     _ = config_conn
     _ = patch_open
     _ = patch_no_mqtt
-    global test
     assert asyncio.get_running_loop()
     Proxy.class_init()
-    test = TestType.RD_TEST_0_BYTES
 
     assert Infos.stat['proxy']['Inverter_Cnt'] == 0
     ModbusTcp(asyncio.get_event_loop())
@@ -220,10 +227,8 @@ async def test_modbus_cnf3(config_conn, patch_no_mqtt, patch_open):
     _ = config_conn
     _ = patch_open
     _ = patch_no_mqtt
-    global test
     assert asyncio.get_running_loop()
     Proxy.class_init()
-    test = TestType.RD_TEST_0_BYTES
 
     assert Infos.stat['proxy']['Inverter_Cnt'] == 0
     ModbusTcp(asyncio.get_event_loop(), tim_restart= 0)
@@ -253,10 +258,8 @@ async def test_mqtt_err(config_conn, patch_mqtt_err, patch_open):
     _ = config_conn
     _ = patch_open
     _ = patch_mqtt_err
-    global test
     assert asyncio.get_running_loop()
     Proxy.class_init()
-    test = TestType.RD_TEST_0_BYTES
 
     assert Infos.stat['proxy']['Inverter_Cnt'] == 0
     ModbusTcp(asyncio.get_event_loop(), tim_restart= 0)
@@ -286,10 +289,8 @@ async def test_mqtt_except(config_conn, patch_mqtt_except, patch_open):
     _ = config_conn
     _ = patch_open
     _ = patch_mqtt_except
-    global test
     assert asyncio.get_running_loop()
     Proxy.class_init()
-    test = TestType.RD_TEST_0_BYTES
 
     assert Infos.stat['proxy']['Inverter_Cnt'] == 0
     ModbusTcp(asyncio.get_event_loop(), tim_restart= 0)

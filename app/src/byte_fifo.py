@@ -18,10 +18,11 @@ class ByteFifo:
         self.__buf.extend(data)
         return self
 
-    def __call__(self) -> None:
+    def __call__(self):
         '''triggers the observer'''
         if callable(self.__trigger_cb):
             return self.__trigger_cb()
+        return None
 
     def get(self, size: int = None) -> bytearray:
         '''removes size numbers of byte and return them'''

@@ -1,7 +1,7 @@
 # test_with_pytest.py
 import pytest
 import asyncio
-import sys,gc
+import gc
 
 from mock import patch
 from enum import Enum
