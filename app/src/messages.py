@@ -1,13 +1,15 @@
 import logging
 import weakref
-from typing import Callable, Generator
+from typing import Callable
 from enum import Enum
 
 
 if __name__ == "app.src.messages":
+    from app.src.protocol_ifc import ProtocolIfc
     from app.src.infos import Infos, Register
     from app.src.modbus import Modbus
 else:  # pragma: no cover
+    from protocol_ifc import ProtocolIfc
     from infos import Infos, Register
     from modbus import Modbus
 
@@ -66,14 +68,6 @@ def hex_dump_memory(level, info, data, data_len):
     tracer.log(level, '\n'.join(lines))
 
 
-class IterRegistry(type):
-    def __iter__(cls) -> Generator['Message', None, None]:
-        for ref in cls._registry:
-            obj = ref()
-            if obj is not None:
-                yield obj
-
-
 class State(Enum):
     '''state of the logical connection'''
     init = 0
@@ -88,8 +82,7 @@ class State(Enum):
     '''connection closed'''
 
 
-class Message(metaclass=IterRegistry):
-    _registry = []
+class Message(ProtocolIfc):
     MAX_START_TIME = 400
     '''maximum time without a received msg in sec'''
     MAX_INV_IDLE_TIME = 120

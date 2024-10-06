@@ -6,7 +6,7 @@ import logging
 
 from mock import patch, Mock
 from app.src.singleton import Singleton
-from app.src.inverter import Inverter
+from app.src.proxy import Proxy
 from app.src.mqtt import Mqtt
 from app.src.gen3plus.solarman_v5 import SolarmanV5
 from app.src.config import Config
@@ -63,13 +63,13 @@ def config_conn(test_hostname, test_port):
 async def test_inverter_cb(config_conn):
     _ = config_conn
 
-    with patch.object(Inverter, '_cb_mqtt_is_up', wraps=Inverter._cb_mqtt_is_up) as spy:
-        print('call Inverter.class_init')
-        Inverter.class_init()
-        assert 'homeassistant/' == Inverter.discovery_prfx
-        assert 'tsun/' == Inverter.entity_prfx
-        assert 'test_1/' == Inverter.proxy_node_id
-        await Inverter._cb_mqtt_is_up()
+    with patch.object(Proxy, '_cb_mqtt_is_up', wraps=Proxy._cb_mqtt_is_up) as spy:
+        print('call Proxy.class_init')
+        Proxy.class_init()
+        assert 'homeassistant/' == Proxy.discovery_prfx
+        assert 'tsun/' == Proxy.entity_prfx
+        assert 'test_1/' == Proxy.proxy_node_id
+        await Proxy._cb_mqtt_is_up()
         spy.assert_called_once()
 
 @pytest.mark.asyncio
@@ -77,8 +77,8 @@ async def test_mqtt_is_up(config_conn):
     _ = config_conn
 
     with patch.object(Mqtt, 'publish') as spy:
-        Inverter.class_init()
-        await Inverter._cb_mqtt_is_up()
+        Proxy.class_init()
+        await Proxy._cb_mqtt_is_up()
         spy.assert_called()
 
 @pytest.mark.asyncio
@@ -86,6 +86,6 @@ async def test_mqtt_proxy_statt_invalid(config_conn):
     _ = config_conn
 
     with patch.object(Mqtt, 'publish') as spy:
-        Inverter.class_init()
-        await Inverter._async_publ_mqtt_proxy_stat('InValId_kEy')
+        Proxy.class_init()
+        await Proxy._async_publ_mqtt_proxy_stat('InValId_kEy')
         spy.assert_not_called()

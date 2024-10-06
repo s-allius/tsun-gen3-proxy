@@ -25,8 +25,9 @@ class ModbusConn():
         '''Establish a client connection to the TSUN cloud'''
         connection = asyncio.open_connection(self.host, self.port)
         reader, writer = await connection
-        self.inverter = InverterG3P(reader, writer, self.addr,
+        self.inverter = InverterG3P(reader, writer,
                                     client_mode=True)
+        self.inverter.__enter__()
         stream = self.inverter.local.stream
         logging.info(f'[{stream.node_id}:{stream.conn_no}] '
                      f'Connected to {self.addr}')
@@ -37,7 +38,7 @@ class ModbusConn():
     async def __aexit__(self, exc_type, exc, tb):
         Infos.dec_counter('Inverter_Cnt')
         await self.inverter.local.ifc.publish_outstanding_mqtt()
-        self.inverter.close()
+        self.inverter.__exit__(exc_type, exc, tb)
 
 
 class ModbusTcp():

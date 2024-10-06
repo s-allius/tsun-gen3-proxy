@@ -32,13 +32,17 @@ class Mqtt():
         self.data = data
 
 
+class FakeIfc(AsyncIfcImpl):
+    def __init__(self):
+        super().__init__()
+        self.remote = StreamPtr(None)
+
 class MemoryStream(SolarmanV5):
     def __init__(self, msg, chunks = (0,), server_side: bool = True):
-        _ifc = AsyncIfcImpl()
-        super().__init__(('test.local', 1234), server_side, client_mode=False, ifc=_ifc)
+        _ifc = FakeIfc()
+        super().__init__(('test.local', 1234), _ifc, server_side, client_mode=False)
         if server_side:
             self.mb.timeout = 0.4   # overwrite for faster testing
-        self.remote = StreamPtr(None)
         self.mb_first_timeout = 0.5
         self.mb_timeout = 0.5
         self.sent_pdu = b''
@@ -101,8 +105,8 @@ class MemoryStream(SolarmanV5):
     
     def createClientStream(self, msg, chunks = (0,)):
         c = MemoryStream(msg, chunks, False)
-        self.remote.stream = c
-        c. remote.stream = self
+        self.ifc.remote.stream = c
+        c.ifc.remote.stream = self
         return c
 
     def _SolarmanV5__flush_recv_msg(self) -> None:
@@ -678,6 +682,7 @@ def config_tsun_inv1():
     Config.act_config = {'solarman':{'enabled': True},'inverters':{'Y170000000000001':{'monitor_sn': 2070233889, 'node_id':'inv1', 'modbus_polling': True, 'suggested_area':'roof', 'sensor_list': 688}}}
 
 def test_read_message(device_ind_msg):
+    Config.act_config = {'solarman':{'enabled': True}}
     m = MemoryStream(device_ind_msg, (0,))
     m.read()         # read complete msg, and dispatch msg
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
@@ -1236,9 +1241,9 @@ def test_build_logger_modell(config_tsun_allow_all, device_ind_msg):
 
 def test_msg_iterator():
     Message._registry.clear()
-    m1 = SolarmanV5(('test1.local', 1234), server_side=True, client_mode=False, ifc=AsyncIfcImpl())
-    m2 = SolarmanV5(('test2.local', 1234), server_side=True, client_mode=False, ifc=AsyncIfcImpl())
-    m3 = SolarmanV5(('test3.local', 1234), server_side=True, client_mode=False, ifc=AsyncIfcImpl())
+    m1 = SolarmanV5(('test1.local', 1234), ifc=AsyncIfcImpl(), server_side=True, client_mode=False)
+    m2 = SolarmanV5(('test2.local', 1234), ifc=AsyncIfcImpl(), server_side=True, client_mode=False)
+    m3 = SolarmanV5(('test3.local', 1234), ifc=AsyncIfcImpl(), server_side=True, client_mode=False)
     m3.close()
     del m3
     test1 = 0
@@ -1256,7 +1261,7 @@ def test_msg_iterator():
     assert test2 == 1
 
 def test_proxy_counter():
-    m = SolarmanV5(('test.local', 1234), server_side=True, client_mode=False, ifc=AsyncIfcImpl())
+    m = SolarmanV5(('test.local', 1234), ifc=AsyncIfcImpl(), server_side=True, client_mode=False)
     assert m.new_data == {}
     m.db.stat['proxy']['Unknown_Msg'] = 0
     Infos.new_stat_data['proxy'] =  False

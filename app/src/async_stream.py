@@ -7,12 +7,12 @@ from typing import Self
 from itertools import count
 
 if __name__ == "app.src.async_stream":
-    from app.src.inverter import Inverter
+    from app.src.proxy import Proxy
     from app.src.byte_fifo import ByteFifo
     from app.src.async_ifc import AsyncIfc
     from app.src.infos import Infos
 else:  # pragma: no cover
-    from inverter import Inverter
+    from proxy import Proxy
     from byte_fifo import ByteFifo
     from async_ifc import AsyncIfc
     from infos import Infos
@@ -80,17 +80,9 @@ class AsyncIfcImpl(AsyncIfc):
         ''' add data to forward queue'''
         self.fwd_fifo += data
 
-    def fwd_flush(self):
-        ''' send forward queue and clears it'''
-        self.fwd_fifo()
-
     def fwd_log(self, level, info):
         ''' log the forward queue'''
         self.fwd_fifo.logging(level, info)
-
-    def fwd_clear(self):
-        ''' clear forward queue'''
-        self.fwd_fifo.clear()
 
     def rx_get(self, size: int = None) -> bytearray:
         '''removes size numbers of bytes and return them'''
@@ -127,12 +119,17 @@ class AsyncIfcImpl(AsyncIfc):
 
 class StreamPtr():
     '''Descr StreamPtr'''
-    def __init__(self, _stream):
+    def __init__(self, _stream, _ifc=None):
         self.stream = _stream
+        self.ifc = _ifc
 
     @property
     def ifc(self):
         return self._ifc
+
+    @ifc.setter
+    def ifc(self, value):
+        self._ifc = value
 
     @property
     def stream(self):
@@ -141,10 +138,6 @@ class StreamPtr():
     @stream.setter
     def stream(self, value):
         self._stream = value
-        if value:
-            self._ifc = value.ifc
-        else:
-            self._ifc = None
 
 
 class AsyncStream(AsyncIfcImpl):
@@ -177,8 +170,8 @@ class AsyncStream(AsyncIfcImpl):
         self._writer.write(self.tx_fifo.get())
 
     def __timeout(self) -> int:
-        if self.timeout_cb is callable:
-            return self.timeout_cb
+        if self.timeout_cb:
+            return self.timeout_cb()
         return 360
 
     async def loop(self) -> Self:
@@ -186,10 +179,7 @@ class AsyncStream(AsyncIfcImpl):
         self.proc_start = time.time()
         while True:
             try:
-                proc = time.time() - self.proc_start
-                if proc > self.proc_max:
-                    self.proc_max = proc
-                self.proc_start = None
+                self.__calc_proc_time()
                 dead_conn_to = self.__timeout()
                 await asyncio.wait_for(self.__async_read(),
                                        dead_conn_to)
@@ -204,7 +194,6 @@ class AsyncStream(AsyncIfcImpl):
                                f'connection timeout ({dead_conn_to}s) '
                                f'for {self.l_addr}')
                 await self.disc()
-                self.close()
                 return self
 
             except OSError as error:
@@ -212,14 +201,12 @@ class AsyncStream(AsyncIfcImpl):
                              f'{error} for l{self.l_addr} | '
                              f'r{self.r_addr}')
                 await self.disc()
-                self.close()
                 return self
 
             except RuntimeError as error:
                 logger.info(f'[{self.node_id}:{self.conn_no}] '
                             f'{error} for {self.l_addr}')
                 await self.disc()
-                self.close()
                 return self
 
             except Exception:
@@ -229,8 +216,16 @@ class AsyncStream(AsyncIfcImpl):
                     f"{traceback.format_exc()}")
             await asyncio.sleep(0)  # be cooperative to other task
 
+    def __calc_proc_time(self):
+        if self.proc_start:
+            proc = time.time() - self.proc_start
+            if proc > self.proc_max:
+                self.proc_max = proc
+            self.proc_start = None
+
     async def disc(self) -> None:
         """Async disc handler for graceful disconnect"""
+        self.remote = None
         if self._writer.is_closing():
             return
         logger.debug(f'AsyncStream.disc() l{self.l_addr} | r{self.r_addr}')
@@ -238,6 +233,7 @@ class AsyncStream(AsyncIfcImpl):
         await self._writer.wait_closed()
 
     def close(self) -> None:
+        logging.debug(f'AsyncStream.close() l{self.l_addr} | r{self.r_addr}')
         """close handler for a no waiting disconnect
 
            hint: must be called before releasing the connection instance
@@ -246,7 +242,6 @@ class AsyncStream(AsyncIfcImpl):
         self._reader.feed_eof()          # abort awaited read
         if self._writer.is_closing():
             return
-        logger.debug(f'AsyncStream.close() l{self.l_addr} | r{self.r_addr}')
         self._writer.close()
 
     def healthy(self) -> bool:
@@ -271,7 +266,7 @@ class AsyncStream(AsyncIfcImpl):
             self.proc_start = time.time()
             self.rx_fifo += data
             wait = self.rx_fifo()                # call read in parent class
-            if wait > 0:
+            if wait and wait > 0:
                 await asyncio.sleep(wait)
         else:
             raise RuntimeError("Peer closed.")
@@ -292,21 +287,22 @@ class AsyncStream(AsyncIfcImpl):
 
         except OSError as error:
             if self.remote.stream:
-                rmt = self.remote.stream
-                self.remote.stream = None
-                logger.error(f'[{rmt.node_id}:{rmt.conn_no}] Fwd: {error} for '
-                             f'l{rmt._ifc.l_addr} | r{rmt._ifc.r_addr}')
-                await rmt._ifc.disc()
-                rmt._ifc.close()
+                rmt = self.remote
+                logger.error(f'[{rmt.stream.node_id}:{rmt.stream.conn_no}] '
+                             f'Fwd: {error} for '
+                             f'l{rmt.ifc.l_addr} | r{rmt.ifc.r_addr}')
+                await rmt.ifc.disc()
+                if rmt.ifc.close_cb:
+                    rmt.ifc.close_cb()
 
         except RuntimeError as error:
             if self.remote.stream:
-                rmt = self.remote.stream
-                self.remote.stream = None
-                logger.info(f'[{rmt.node_id}:{rmt.conn_no}] '
-                            f'Fwd: {error} for {rmt._ifc.l_addr}')
-                await rmt._ifc.disc()
-                rmt._ifc.close()
+                rmt = self.remote
+                logger.info(f'[{rmt.stream.node_id}:{rmt.stream.conn_no}] '
+                            f'Fwd: {error} for {rmt.ifc.l_addr}')
+                await rmt.ifc.disc()
+                if rmt.ifc.close_cb:
+                    rmt.ifc.close_cb()
 
         except Exception:
             Infos.inc_counter('SW_Exception')
@@ -315,17 +311,23 @@ class AsyncStream(AsyncIfcImpl):
                 f"{traceback.format_exc()}")
 
     def __del__(self):
-        logger.debug(
+        logger.info(
             f"AsyncStream.__del__  l{self.l_addr} | r{self.r_addr}")
 
 
 class AsyncStreamServer(AsyncStream):
     def __init__(self, reader: StreamReader, writer: StreamWriter,
-                 async_publ_mqtt, async_create_remote,
+                 async_publ_mqtt, create_remote,
                  rstream: "StreamPtr") -> None:
         AsyncStream.__init__(self, reader, writer, rstream)
-        self.async_create_remote = async_create_remote
+        self.create_remote = create_remote
         self.async_publ_mqtt = async_publ_mqtt
+
+    def close(self) -> None:
+        logging.debug('AsyncStreamServer.close()')
+        self.create_remote = None
+        self.async_publ_mqtt = None
+        super().close()
 
     async def server_loop(self) -> None:
         '''Loop for receiving messages from the inverter (server-side)'''
@@ -341,7 +343,7 @@ class AsyncStreamServer(AsyncStream):
 
         # if the server connection closes, we also have to disconnect
         # the connection to te TSUN cloud
-        if self.remote.stream:
+        if self.remote and self.remote.stream:
             logger.info(f'[{self.node_id}:{self.conn_no}] disc client '
                         f'connection: [{self.remote.ifc.node_id}:'
                         f'{self.remote.ifc.conn_no}]')
@@ -350,7 +352,7 @@ class AsyncStreamServer(AsyncStream):
     async def _async_forward(self) -> None:
         """forward handler transmits data over the remote connection"""
         if not self.remote.stream:
-            await self.async_create_remote()
+            await self.create_remote()
             if self.remote.stream and \
                self.remote.ifc.init_new_client_conn_cb():
                 await self.remote.ifc._AsyncStream__async_write()
@@ -365,24 +367,21 @@ class AsyncStreamServer(AsyncStream):
         '''Publish all outstanding MQTT topics'''
         try:
             await self.async_publ_mqtt()
-            await Inverter._async_publ_mqtt_proxy_stat('proxy')
+            await Proxy._async_publ_mqtt_proxy_stat('proxy')
         except Exception:
             pass
-
-    def close(self) -> None:
-        """close handler for a no waiting disconnect
-
-           hint: must be called before releasing the connection instance
-        """
-        self.async_create_remote = None
-        self.async_publ_mqtt = None
-        super().close()
 
 
 class AsyncStreamClient(AsyncStream):
     def __init__(self, reader: StreamReader, writer: StreamWriter,
-                 rstream: "StreamPtr") -> None:
+                 rstream: "StreamPtr", close_cb) -> None:
         AsyncStream.__init__(self, reader, writer, rstream)
+        self.close_cb = close_cb
+
+    def close(self) -> None:
+        logging.debug('AsyncStreamClient.close()')
+        self.close_cb = None
+        super().close()
 
     async def client_loop(self, _: str) -> None:
         '''Loop for receiving messages from the TSUN cloud (client-side)'''
@@ -391,21 +390,8 @@ class AsyncStreamClient(AsyncStream):
                     'Client loop stopped for'
                     f' l{self.l_addr}')
 
-        server_stream = self.remote.stream
-
-        # if the client connection closes, we don't touch the server
-        # connection. Instead we erase the client connection stream,
-        # thus on the next received packet from the inverter, we can
-        # establish a new connection to the TSUN cloud
-
-        if server_stream.remote.ifc == self:
-            # logging.debug(f'Client l{client_stream.l_addr} refs:'
-            #               f' {gc.get_referrers(client_stream)}')
-            # than erase client connection
-            server_stream.remote.stream = None  # erases stream and ifc link
-
-        # erase backlink to inverter
-        self.remote.stream = None
+        if self.close_cb:
+            self.close_cb()
 
     async def _async_forward(self) -> None:
         """forward handler transmits data over the remote connection"""

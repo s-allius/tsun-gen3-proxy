@@ -46,7 +46,8 @@ class Talent(Message):
     MB_REGULAR_TIMEOUT = 60
     TXT_UNKNOWN_CTRL = 'Unknown Ctrl'
 
-    def __init__(self, addr, server_side: bool, ifc: "AsyncIfc", id_str=b''):
+    def __init__(self, addr, ifc: "AsyncIfc", server_side: bool,
+                 client_mode: bool = False, id_str=b''):
         super().__init__(server_side, self.send_modbus_cb, mb_timeout=15)
         ifc.rx_set_cb(self.read)
         ifc.prot_set_timeout_cb(self._timeout)
@@ -95,10 +96,6 @@ class Talent(Message):
     '''
     Our puplic methods
     '''
-    def healthy(self) -> bool:
-        logger.debug('Talent healthy()')
-        return self.ifc.healthy()
-
     def close(self) -> None:
         logging.debug('Talent.close()')
         if self.server_side:
@@ -116,11 +113,11 @@ class Talent(Message):
         self.log_lvl.clear()
         self.state = State.closed
         self.mb_timer.close()
-        self.ifc.close()
         self.ifc.rx_set_cb(None)
         self.ifc.prot_set_timeout_cb(None)
         self.ifc.prot_set_init_new_client_conn_cb(None)
         self.ifc.prot_set_update_header_cb(None)
+        self.ifc = None
         super().close()
 
     def __set_serial_no(self, serial_no: str):
@@ -438,8 +435,8 @@ class Talent(Message):
                 result = struct.unpack_from('!q', self.ifc.rx_peek(),
                                             self.header_len)
                 self.ts_offset = result[0]-ts
-                if self.remote.stream:
-                    self.remote.stream.ts_offset = self.ts_offset
+                if self.ifc.remote.stream:
+                    self.ifc.remote.stream.ts_offset = self.ts_offset
                 logger.debug(f'tsun-time: {int(result[0]):08x}'
                              f'  proxy-time: {ts:08x}'
                              f'  offset: {self.ts_offset}')
@@ -597,9 +594,8 @@ class Talent(Message):
                                   self.header_len+self.data_len]
 
         if self.ctrl.is_req():
-            if self.remote.stream.mb.recv_req(data[hdr_len:],
-                                              self.remote.stream.
-                                              msg_forward):
+            rstream = self.ifc.remote.stream
+            if rstream.mb.recv_req(data[hdr_len:], rstream.msg_forward):
                 self.inc_counter('Modbus_Command')
             else:
                 self.inc_counter('Invalid_Msg_Format')

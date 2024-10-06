@@ -62,8 +62,8 @@ class SolarmanV5(Message):
     HDR_FMT = '<BLLL'
     '''format string for packing of the header'''
 
-    def __init__(self, addr, server_side: bool, client_mode: bool,
-                 ifc: "AsyncIfc"):
+    def __init__(self, addr, ifc: "AsyncIfc",
+                 server_side: bool, client_mode: bool):
         super().__init__(server_side, self.send_modbus_cb, mb_timeout=8)
         ifc.rx_set_cb(self.read)
         ifc.prot_set_timeout_cb(self._timeout)
@@ -155,10 +155,6 @@ class SolarmanV5(Message):
     '''
     Our puplic methods
     '''
-    def healthy(self) -> bool:
-        logger.debug('SolarmanV5 healthy()')
-        return self.ifc.healthy()
-
     def close(self) -> None:
         logging.debug('Solarman.close()')
         if self.server_side:
@@ -176,11 +172,11 @@ class SolarmanV5(Message):
         self.log_lvl.clear()
         self.state = State.closed
         self.mb_timer.close()
-        self.ifc.close()
         self.ifc.rx_set_cb(None)
         self.ifc.prot_set_timeout_cb(None)
         self.ifc.prot_set_init_new_client_conn_cb(None)
         self.ifc.prot_set_update_header_cb(None)
+        self.ifc = None
         super().close()
 
     async def send_start_cmd(self, snr: int, host: str,
@@ -633,9 +629,9 @@ class SolarmanV5(Message):
             self.forward_at_cmd_resp = True
 
         elif ftype == self.MB_RTU_CMD:
-            if self.remote.stream.mb.recv_req(data[15:],
-                                              self.remote.stream.
-                                              __forward_msg):
+            rstream = self.ifc.remote.stream
+            if rstream.mb.recv_req(data[15:],
+                                   rstream.__forward_msg):
                 self.inc_counter('Modbus_Command')
             else:
                 logger.error('Invalid Modbus Msg')
