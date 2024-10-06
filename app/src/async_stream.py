@@ -179,10 +179,11 @@ class AsyncStream(AsyncIfcImpl):
         self.proc_start = time.time()
         while True:
             try:
-                proc = time.time() - self.proc_start
-                if proc > self.proc_max:
-                    self.proc_max = proc
-                self.proc_start = None
+                if self.proc_start:
+                    proc = time.time() - self.proc_start
+                    if proc > self.proc_max:
+                        self.proc_max = proc
+                    self.proc_start = None
                 dead_conn_to = self.__timeout()
                 await asyncio.wait_for(self.__async_read(),
                                        dead_conn_to)

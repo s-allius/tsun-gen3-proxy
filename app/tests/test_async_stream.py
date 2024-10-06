@@ -2,6 +2,7 @@
 import pytest
 import asyncio
 import gc
+import time
 
 from app.src.infos import Infos
 from app.src.inverter_base import InverterBase
@@ -30,6 +31,26 @@ def test_timeout_cb():
 
     # call healthy outside the contexter manager (__exit__() was called)
     assert ifc.healthy()
+    del ifc
+
+    cnt = 0
+    for inv in InverterBase:
+        print(f'InverterBase refs:{gc.get_referrers(inv)}')
+        cnt += 1
+    assert cnt == 0
+
+def test_health():
+    reader = FakeReader()
+    writer =  FakeWriter()
+    
+    ifc =  AsyncStreamClient(reader, writer, None, None)
+    ifc.proc_start = time.time()
+    assert ifc.healthy()
+    ifc.proc_start = time.time() -10
+    assert not ifc.healthy()
+    ifc.proc_start = None
+    assert ifc.healthy()
+
     del ifc
 
     cnt = 0
@@ -92,6 +113,8 @@ async def test_read():
         ifc.close()  # clears the closed callback
         cnt += 1
     def app_read():
+        nonlocal ifc
+        ifc.proc_start -= 3
         return 0.01  # async wait of 0.01 
     cnt = 0
     ifc =  AsyncStreamClient(reader, writer, None, closed)
@@ -99,6 +122,7 @@ async def test_read():
     ifc.rx_set_cb(app_read)
     await ifc.client_loop('')
     print('End loop')
+    assert ifc.proc_max >= 3
     assert 13 == ifc.rx_len()
     assert cnt == 1
     del ifc
@@ -198,6 +222,67 @@ async def test_create_remote_cb():
     ifc.prot_set_timeout_cb(timeout)
     await ifc.server_loop()
     assert not ifc.create_remote
+    del ifc
+
+    cnt = 0
+    for inv in InverterBase:
+        print(f'InverterBase refs:{gc.get_referrers(inv)}')
+        cnt += 1
+    assert cnt == 0
+
+@pytest.mark.asyncio
+async def test_sw_exception():
+    global test
+    assert asyncio.get_running_loop()
+    reader = FakeReader()
+    reader.test  = FakeReader.RD_TEST_SW_EXCEPT
+    reader.on_recv.set()
+    writer =  FakeWriter()
+    cnt = 0
+    def timeout():
+        return 1
+    def closed():
+        nonlocal cnt
+        nonlocal ifc
+        ifc.close()  # clears the closed callback
+        cnt += 1
+    cnt = 0
+    ifc =  AsyncStreamClient(reader, writer, None, closed)
+    ifc.prot_set_timeout_cb(timeout)
+    await ifc.client_loop('')
+    print('End loop')
+    assert cnt == 1
+    del ifc
+
+    cnt = 0
+    for inv in InverterBase:
+        print(f'InverterBase refs:{gc.get_referrers(inv)}')
+        cnt += 1
+    assert cnt == 0
+
+@pytest.mark.asyncio
+async def test_os_error():
+    global test
+    assert asyncio.get_running_loop()
+    reader = FakeReader()
+    reader.test  = FakeReader.RD_TEST_OS_ERROR
+
+    reader.on_recv.set()
+    writer =  FakeWriter()
+    cnt = 0
+    def timeout():
+        return 1
+    def closed():
+        nonlocal cnt
+        nonlocal ifc
+        ifc.close()  # clears the closed callback
+        cnt += 1
+    cnt = 0
+    ifc =  AsyncStreamClient(reader, writer, None, closed)
+    ifc.prot_set_timeout_cb(timeout)
+    await ifc.client_loop('')
+    print('End loop')
+    assert cnt == 1
     del ifc
 
     cnt = 0

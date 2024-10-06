@@ -75,6 +75,8 @@ class FakeReader():
     RD_TEST_0_BYTES = 1
     RD_TEST_TIMEOUT = 2
     RD_TEST_13_BYTES = 3
+    RD_TEST_SW_EXCEPT = 4
+    RD_TEST_OS_ERROR = 5
 
     def __init__(self):
         self.on_recv =  asyncio.Event()
@@ -91,6 +93,13 @@ class FakeReader():
             return b'test-data-req'
         elif self.test == self.RD_TEST_TIMEOUT:
             raise TimeoutError
+        elif self.test == self.RD_TEST_SW_EXCEPT:
+            self.test = self.RD_TEST_0_BYTES
+            self.unknown_var += 1    
+        elif self.test == self.RD_TEST_OS_ERROR:
+            self.test = self.RD_TEST_0_BYTES
+            raise ConnectionRefusedError
+
     def feed_eof(self):
         return
 
