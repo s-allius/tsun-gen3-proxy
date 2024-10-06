@@ -179,11 +179,7 @@ class AsyncStream(AsyncIfcImpl):
         self.proc_start = time.time()
         while True:
             try:
-                if self.proc_start:
-                    proc = time.time() - self.proc_start
-                    if proc > self.proc_max:
-                        self.proc_max = proc
-                    self.proc_start = None
+                self.__calc_proc_time()
                 dead_conn_to = self.__timeout()
                 await asyncio.wait_for(self.__async_read(),
                                        dead_conn_to)
@@ -219,6 +215,13 @@ class AsyncStream(AsyncIfcImpl):
                     f"Exception for {self.r_addr}:\n"
                     f"{traceback.format_exc()}")
             await asyncio.sleep(0)  # be cooperative to other task
+
+    def __calc_proc_time(self):
+        if self.proc_start:
+            proc = time.time() - self.proc_start
+            if proc > self.proc_max:
+                self.proc_max = proc
+            self.proc_start = None
 
     async def disc(self) -> None:
         """Async disc handler for graceful disconnect"""
