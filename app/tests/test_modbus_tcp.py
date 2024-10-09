@@ -147,6 +147,22 @@ def patch_open_timeout():
         yield conn
 
 @pytest.fixture
+def patch_open_value_error():
+    def new_open(host: str, port: int):
+        raise ValueError
+
+    with patch.object(asyncio, 'open_connection', new_open) as conn:
+        yield conn
+
+@pytest.fixture
+def patch_open_conn_abort():
+    def new_open(host: str, port: int):
+        raise ConnectionAbortedError
+
+    with patch.object(asyncio, 'open_connection', new_open) as conn:
+        yield conn
+
+@pytest.fixture
 def patch_no_mqtt():
     with patch.object(Mqtt, 'publish') as conn:
         yield conn
@@ -190,9 +206,45 @@ async def test_modbus_no_cnf():
     assert Infos.stat['proxy']['Inverter_Cnt'] == 0
 
 @pytest.mark.asyncio
-async def test_modbus_cnf1(config_conn, patch_open_timeout):
+async def test_modbus_timeout(config_conn, patch_open_timeout):
     _ = config_conn
     _ = patch_open_timeout
+    assert asyncio.get_running_loop()
+    Proxy.class_init()
+
+    assert Infos.stat['proxy']['Inverter_Cnt'] == 0
+    loop = asyncio.get_event_loop()
+    ModbusTcp(loop)
+    await asyncio.sleep(0.01)
+    for m in Message:
+        if (m.node_id == 'inv_2'):
+            assert False
+        
+    await asyncio.sleep(0.01)
+    assert Infos.stat['proxy']['Inverter_Cnt'] == 0
+
+@pytest.mark.asyncio
+async def test_modbus_value_err(config_conn, patch_open_value_error):
+    _ = config_conn
+    _ = patch_open_value_error
+    assert asyncio.get_running_loop()
+    Proxy.class_init()
+
+    assert Infos.stat['proxy']['Inverter_Cnt'] == 0
+    loop = asyncio.get_event_loop()
+    ModbusTcp(loop)
+    await asyncio.sleep(0.01)
+    for m in Message:
+        if (m.node_id == 'inv_2'):
+            assert False
+        
+    await asyncio.sleep(0.01)
+    assert Infos.stat['proxy']['Inverter_Cnt'] == 0
+
+@pytest.mark.asyncio
+async def test_modbus_conn_abort(config_conn, patch_open_conn_abort):
+    _ = config_conn
+    _ = patch_open_conn_abort
     assert asyncio.get_running_loop()
     Proxy.class_init()
 

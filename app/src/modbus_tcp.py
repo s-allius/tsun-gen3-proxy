@@ -77,7 +77,7 @@ class ModbusTcp():
                 logging.debug(f'Inv-conn:{error}')
 
             except OSError as error:
-                if error.errno == 113:
+                if error.errno == 113:  # pragma: no cover
                     logging.debug(f'os-error:{error}')
                 else:
                     logging.info(f'os-error: {error}')
