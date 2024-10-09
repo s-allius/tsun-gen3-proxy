@@ -24,11 +24,6 @@ class AsyncIfc(ABC):
         pass  # pragma: no cover
 
     @abstractmethod
-    def tx_get(self, size: int = None) -> bytearray:
-        '''removes size numbers of bytes and return them'''
-        pass  # pragma: no cover
-
-    @abstractmethod
     def tx_peek(self, size: int = None) -> bytearray:
         '''returns size numbers of byte without removing them'''
         pass  # pragma: no cover

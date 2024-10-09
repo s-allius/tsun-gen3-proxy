@@ -56,10 +56,6 @@ class AsyncIfcImpl(AsyncIfc):
         ''' send transmit queue and clears it'''
         self.tx_fifo()
 
-    def tx_get(self, size: int = None) -> bytearray:
-        '''removes size numbers of bytes and return them'''
-        return self.tx_fifo.get(size)
-
     def tx_peek(self, size: int = None) -> bytearray:
         '''returns size numbers of byte without removing them'''
         return self.tx_fifo.peek(size)
