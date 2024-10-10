@@ -1,15 +1,17 @@
 # test_with_pytest.py
 import pytest
 import asyncio
+import sys,gc
 
 from mock import patch
 from enum import Enum
 from app.src.infos import Infos
 from app.src.config import Config
-from app.src.inverter import Inverter
+from app.src.proxy import Proxy
+from app.src.inverter_base import InverterBase
 from app.src.singleton import Singleton
-from app.src.gen3.connection_g3 import ConnectionG3
 from app.src.gen3.inverter_g3 import InverterG3
+from app.src.async_stream import AsyncStream
 
 from app.tests.test_modbus_tcp import patch_mqtt_err, patch_mqtt_except, test_port, test_hostname
 
@@ -41,16 +43,6 @@ def config_conn():
 def module_init():
     Singleton._instances.clear()
     yield
-
-@pytest.fixture
-def patch_conn_init():
-    with patch.object(ConnectionG3, '__init__', return_value= None) as conn:
-        yield conn
-
-@pytest.fixture
-def patch_conn_close():
-    with patch.object(ConnectionG3, 'close') as conn:
-        yield conn
 
 class FakeReader():
     def __init__(self):
@@ -103,133 +95,132 @@ def patch_open_connection():
     with patch.object(asyncio, 'open_connection', new_open) as conn:
         yield conn
 
+@pytest.fixture
+def patch_healthy():
+    with patch.object(AsyncStream, 'healthy') as conn:
+        yield conn
 
-def test_method_calls(patch_conn_init, patch_conn_close):
-    spy1 = patch_conn_init
-    spy2 = patch_conn_close
+def test_method_calls(patch_healthy):
+    spy = patch_healthy
     reader = FakeReader()
     writer =  FakeWriter()
-    addr = ('proxy.local', 10000)
-    inverter = InverterG3(reader, writer, addr)
-    inverter.l_addr = ''
-    inverter.r_addr = ''
+    InverterBase._registry.clear()
 
-    spy1.assert_called_once()
-    spy1.assert_called_once_with(reader, writer, addr, None, True)
-
-    inverter.close()
-    spy2.assert_called_once()
+    with InverterG3(reader, writer) as inverter:
+        assert inverter.local.stream
+        assert inverter.local.ifc
+        for inv in InverterBase:
+            inv.healthy()
+            del inv
+        spy.assert_called_once()
+    del inverter
+    cnt = 0
+    for inv in InverterBase:
+        cnt += 1
+    assert cnt == 0
 
 @pytest.mark.asyncio
-async def test_remote_conn(config_conn, patch_open_connection, patch_conn_close):
+async def test_remote_conn(config_conn, patch_open_connection):
     _ = config_conn
     _ = patch_open_connection
     assert asyncio.get_running_loop()
 
-    spy1 = patch_conn_close
+    with InverterG3(FakeReader(), FakeWriter()) as inverter:
+        await inverter.create_remote()
+        await asyncio.sleep(0)
+        assert inverter.remote.stream
+    del inverter
 
-    inverter = InverterG3(FakeReader(), FakeWriter(), ('proxy.local', 10000))
-    
-    await inverter.async_create_remote()
-    await asyncio.sleep(0)
-    assert inverter.remote_stream
-    inverter.close()
-    spy1.assert_called_once()
+    cnt = 0
+    for inv in InverterBase:
+        print(f'InverterBase refs:{gc.get_referrers(inv)}')
+        cnt += 1
+    assert cnt == 0
 
 @pytest.mark.asyncio
-async def test_remote_except(config_conn, patch_open_connection, patch_conn_close):
+async def test_remote_except(config_conn, patch_open_connection):
     _ = config_conn
     _ = patch_open_connection
     assert asyncio.get_running_loop()
 
-    spy1 = patch_conn_close
-    
     global test
     test  = TestType.RD_TEST_TIMEOUT
 
-    inverter = InverterG3(FakeReader(), FakeWriter(), ('proxy.local', 10000))
+    with InverterG3(FakeReader(), FakeWriter()) as inverter:
+        await inverter.create_remote()
+        await asyncio.sleep(0)
+        assert inverter.remote.stream==None
 
-    await inverter.async_create_remote()
-    await asyncio.sleep(0)
-    assert inverter.remote_stream==None
+        test  = TestType.RD_TEST_EXCEPT
+        await inverter.create_remote()
+        await asyncio.sleep(0)
+        assert inverter.remote.stream==None
+    del inverter
 
-    test  = TestType.RD_TEST_EXCEPT
-    await inverter.async_create_remote()
-    await asyncio.sleep(0)
-    assert inverter.remote_stream==None
-    inverter.close()
-    spy1.assert_called_once()
+    cnt = 0
+    for inv in InverterBase:
+        print(f'InverterBase refs:{gc.get_referrers(inv)}')
+        cnt += 1
+    assert cnt == 0
 
 @pytest.mark.asyncio
-async def test_mqtt_publish(config_conn, patch_open_connection, patch_conn_close):
+async def test_mqtt_publish(config_conn, patch_open_connection):
     _ = config_conn
     _ = patch_open_connection
     assert asyncio.get_running_loop()
 
-    spy1 = patch_conn_close
-    
-    Inverter.class_init()
+    Proxy.class_init()
 
-    inverter = InverterG3(FakeReader(), FakeWriter(), ('proxy.local', 10000))
-    inverter._Talent__set_serial_no(serial_no= "123344")
-    
-    inverter.new_data['inverter'] = True
-    inverter.db.db['inverter'] = {}
-    await inverter.async_publ_mqtt()
-    assert inverter.new_data['inverter'] == False
+    with InverterG3(FakeReader(), FakeWriter()) as inverter:
+        stream = inverter.local.stream
+        await inverter.async_publ_mqtt()  # check call with invalid unique_id
+        stream._Talent__set_serial_no(serial_no= "123344")
 
-    inverter.new_data['env'] = True
-    inverter.db.db['env'] = {}
-    await inverter.async_publ_mqtt()
-    assert inverter.new_data['env'] == False
+        stream.new_data['inverter'] = True
+        stream.db.db['inverter'] = {}
+        await inverter.async_publ_mqtt()
+        assert stream.new_data['inverter'] == False
 
-    Infos.new_stat_data['proxy'] = True
-    await inverter.async_publ_mqtt()
-    assert Infos.new_stat_data['proxy'] == False
+        stream.new_data['env'] = True
+        stream.db.db['env'] = {}
+        await inverter.async_publ_mqtt()
+        assert stream.new_data['env'] == False
 
-    inverter.close()
-    spy1.assert_called_once()
+        Infos.new_stat_data['proxy'] = True
+        await inverter.async_publ_mqtt()
+        assert Infos.new_stat_data['proxy'] == False
 
 @pytest.mark.asyncio
-async def test_mqtt_err(config_conn, patch_open_connection, patch_mqtt_err, patch_conn_close):
+async def test_mqtt_err(config_conn, patch_open_connection, patch_mqtt_err):
     _ = config_conn
     _ = patch_open_connection
     _ = patch_mqtt_err
     assert asyncio.get_running_loop()
 
-    spy1 = patch_conn_close
-    
-    Inverter.class_init()
+    Proxy.class_init()
 
-    inverter = InverterG3(FakeReader(), FakeWriter(), ('proxy.local', 10000))
-    inverter._Talent__set_serial_no(serial_no= "123344")
-    
-    inverter.new_data['inverter'] = True
-    inverter.db.db['inverter'] = {}
-    await inverter.async_publ_mqtt()
-    assert inverter.new_data['inverter'] == True
-
-    inverter.close()
-    spy1.assert_called_once()
+    with InverterG3(FakeReader(), FakeWriter()) as inverter:
+        stream = inverter.local.stream
+        stream._Talent__set_serial_no(serial_no= "123344")
+        stream.new_data['inverter'] = True
+        stream.db.db['inverter'] = {}
+        await inverter.async_publ_mqtt()
+        assert stream.new_data['inverter'] == True
 
 @pytest.mark.asyncio
-async def test_mqtt_except(config_conn, patch_open_connection, patch_mqtt_except, patch_conn_close):
+async def test_mqtt_except(config_conn, patch_open_connection, patch_mqtt_except):
     _ = config_conn
     _ = patch_open_connection
     _ = patch_mqtt_except
     assert asyncio.get_running_loop()
 
-    spy1 = patch_conn_close
-    
-    Inverter.class_init()
+    Proxy.class_init()
 
-    inverter = InverterG3(FakeReader(), FakeWriter(), ('proxy.local', 10000))
-    inverter._Talent__set_serial_no(serial_no= "123344")
-    
-    inverter.new_data['inverter'] = True
-    inverter.db.db['inverter'] = {}
-    await inverter.async_publ_mqtt()
-    assert inverter.new_data['inverter'] == True
+    with InverterG3(FakeReader(), FakeWriter()) as inverter:
+        stream = inverter.local.stream
+        stream._Talent__set_serial_no(serial_no= "123344")
 
-    inverter.close()
-    spy1.assert_called_once()
+        stream.new_data['inverter'] = True
+        stream.db.db['inverter'] = {}
+        await inverter.async_publ_mqtt()
+        assert stream.new_data['inverter'] == True

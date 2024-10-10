@@ -1,7 +1,8 @@
 import asyncio
 import logging
 import json
-if __name__ == "app.src.inverter":
+
+if __name__ == "app.src.proxy":
     from app.src.config import Config
     from app.src.mqtt import Mqtt
     from app.src.infos import Infos
@@ -13,10 +14,32 @@ else:  # pragma: no cover
 logger_mqtt = logging.getLogger('mqtt')
 
 
-class Inverter():
+class Proxy():
+    '''class Proxy is a baseclass
+
+    The class has some class method for managing common resources like a
+    connection to the MQTT broker or proxy error counter which are common
+    for all inverter connection
+
+    Instances of the class are connections to an inverter and can have an
+    optional link to an remote connection to the TSUN cloud. A remote
+    connection dies with the inverter connection.
+
+    class methods:
+        class_init():  initialize the common resources of the proxy (MQTT
+                       broker, Proxy DB, etc). Must be called before the
+                       first inverter instance can be created
+        class_close(): release the common resources of the proxy. Should not
+                       be called before any instances of the class are
+                       destroyed
+
+    methods:
+        create_remote(): Establish a client connection to the TSUN cloud
+        async_publ_mqtt(): Publish data to MQTT broker
+    '''
     @classmethod
     def class_init(cls) -> None:
-        logging.debug('Inverter.class_init')
+        logging.debug('Proxy.class_init')
         # initialize the proxy statistics
         Infos.static_init()
         cls.db_stat = Infos()
@@ -38,7 +61,7 @@ class Inverter():
         # reset at midnight when you restart the proxy just before
         # midnight!
         inverters = Config.get('inverters')
-        # logger.debug(f'Inverters: {inverters}')
+        # logger.debug(f'Proxys: {inverters}')
         for inv in inverters.values():
             if (type(inv) is dict):
                 node_id = inv['node_id']
@@ -77,7 +100,7 @@ class Inverter():
 
     @classmethod
     def class_close(cls, loop) -> None:   # pragma: no cover
-        logging.debug('Inverter.class_close')
+        logging.debug('Proxy.class_close')
         logging.info('Close MQTT Task')
         loop.run_until_complete(cls.mqtt.close())
         cls.mqtt = None

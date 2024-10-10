@@ -1,13 +1,15 @@
 import logging
 import weakref
-from typing import Callable, Generator
+from typing import Callable
 from enum import Enum
 
 
 if __name__ == "app.src.messages":
+    from app.src.protocol_ifc import ProtocolIfc
     from app.src.infos import Infos, Register
     from app.src.modbus import Modbus
 else:  # pragma: no cover
+    from protocol_ifc import ProtocolIfc
     from infos import Infos, Register
     from modbus import Modbus
 
@@ -33,13 +35,9 @@ def __asc_val(n, data, data_len):
     return line
 
 
-def hex_dump_memory(level, info, data, data_len):
+def hex_dump(data, data_len) -> list:
     n = 0
     lines = []
-    lines.append(info)
-    tracer = logging.getLogger('tracer')
-    if not tracer.isEnabledFor(level):
-        return
 
     for i in range(0, data_len, 16):
         line = '  '
@@ -50,15 +48,24 @@ def hex_dump_memory(level, info, data, data_len):
         line += __asc_val(n, data, data_len)
         lines.append(line)
 
+    return lines
+
+
+def hex_dump_str(data, data_len):
+    lines = hex_dump(data, data_len)
+    return '\n'.join(lines)
+
+
+def hex_dump_memory(level, info, data, data_len):
+    lines = []
+    lines.append(info)
+    tracer = logging.getLogger('tracer')
+    if not tracer.isEnabledFor(level):
+        return
+
+    lines += hex_dump(data, data_len)
+
     tracer.log(level, '\n'.join(lines))
-
-
-class IterRegistry(type):
-    def __iter__(cls) -> Generator['Message', None, None]:
-        for ref in cls._registry:
-            obj = ref()
-            if obj is not None:
-                yield obj
 
 
 class State(Enum):
@@ -75,8 +82,13 @@ class State(Enum):
     '''connection closed'''
 
 
-class Message(metaclass=IterRegistry):
-    _registry = []
+class Message(ProtocolIfc):
+    MAX_START_TIME = 400
+    '''maximum time without a received msg in sec'''
+    MAX_INV_IDLE_TIME = 120
+    '''maximum time without a received msg from the inverter in sec'''
+    MAX_DEF_IDLE_TIME = 360
+    '''maximum default time without a received msg in sec'''
 
     def __init__(self, server_side: bool, send_modbus_cb:
                  Callable[[bytes, int, str], None], mb_timeout: int):
@@ -92,14 +104,20 @@ class Message(metaclass=IterRegistry):
         self.header_len = 0
         self.data_len = 0
         self.unique_id = 0
-        self.node_id = ''  # will be overwritten in the child class's __init__
+        self._node_id = ''
         self.sug_area = ''
-        self._recv_buffer = bytearray(0)
-        self._send_buffer = bytearray(0)
-        self._forward_buffer = bytearray(0)
         self.new_data = {}
         self.state = State.init
         self.shutdown_started = False
+
+    @property
+    def node_id(self):
+        return self._node_id
+
+    @node_id.setter
+    def node_id(self, value):
+        self._node_id = value
+        self.ifc.set_node_id(value)
 
     '''
     Empty methods, that have to be implemented in any child class which
@@ -108,10 +126,6 @@ class Message(metaclass=IterRegistry):
     def _read(self) -> None:     # read data bytes from socket and copy them
         # to our _recv_buffer
         return  # pragma: no cover
-
-    def _update_header(self, _forward_buffer):
-        '''callback for updating the header of the forward buffer'''
-        pass  # pragma: no cover
 
     def _set_mqtt_timestamp(self, key, ts: float | None):
         if key not in self.new_data or \
@@ -127,6 +141,16 @@ class Message(metaclass=IterRegistry):
             # tstr = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(ts))
             # logger.info(f'update: key: {key} ts:{tstr}'
             self.db.set_db_def_value(info_id, round(ts))
+
+    def _timeout(self) -> int:
+        if self.state == State.init or self.state == State.received:
+            to = self.MAX_START_TIME
+        elif self.state == State.up and \
+                self.server_side and self.modbus_polling:
+            to = self.MAX_INV_IDLE_TIME
+        else:
+            to = self.MAX_DEF_IDLE_TIME
+        return to
 
     '''
     Our puplic methods
