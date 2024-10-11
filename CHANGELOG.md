@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+- refactoring: cleaner architecture, increase test coverage
 - Parse more values in Server Mode [#186](https://github.com/s-allius/tsun-gen3-proxy/issues/186)
 - GEN3: add support for new messages of version 3 firmwares [#182](https://github.com/s-allius/tsun-gen3-proxy/issues/182)
 - add support for controller MAC and serial number

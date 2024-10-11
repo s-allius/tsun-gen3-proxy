@@ -3,7 +3,7 @@
 // {generate:true}
 
 [note: You can stick notes on diagrams too!{bg:cornsilk}]
-[<<AbstractIterMeta>>||__iter__]
+[<<AbstractIterMeta>>||__iter__()]
 
 [Mqtt;<<Singleton>>|<static>ha_restarts;<static>__client;<static>__cb_MqttIsUp|<async>publish();<async>close()]
 [Proxy|<cls>db_stat;<cls>entity_prfx;<cls>discovery_prfx;<cls>proxy_node_id;<cls>proxy_unique_id;<cls>mqtt:Mqtt;;__ha_restarts|class_init();class_close();;<async>_cb_mqtt_is_up();<async>_register_proxy_stat_home_assistant();<async>_async_publ_mqtt_proxy_stat(key)]

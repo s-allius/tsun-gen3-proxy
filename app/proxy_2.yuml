@@ -3,7 +3,7 @@
 // {generate:true}
 
 [note: You can stick notes on diagrams too!{bg:cornsilk}]
-[IterRegistry||__iter__]
+[<<AbstractIterMeta>>||__iter__()]
 
 [InverterG3|addr;remote:StreamPtr;local:StreamPtr|create_remote();;close()]
 [InverterG3P|addr;remote:StreamPtr;local:StreamPtr|create_remote();;close()]
@@ -40,7 +40,9 @@
 [SolarmanV5]use->[<<AsyncIfc>>]
 [SolarmanV5]->[InfosG3P]
 
-[IterRegistry]^[Message|node_id|inc_counter();dec_counter()]
+[<<ProtocolIfc>>|_registry|close()]
+[<<AbstractIterMeta>>]^-.-[<<ProtocolIfc>>]
+[<<ProtocolIfc>>]^-.-[Message|node_id|inc_counter();dec_counter()]
 [Message]^[Talent]
 [Message]^[SolarmanV5]
 

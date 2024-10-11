@@ -25,7 +25,7 @@
 <text text-anchor="start" x="225.149" y="-939" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">&lt;&lt;AbstractIterMeta&gt;&gt;</text>
 <polygon fill="none" stroke="#000000" points="215.5,-906 215.5,-926 331.5,-926 331.5,-906 215.5,-906"/>
 <polygon fill="none" stroke="#000000" points="215.5,-874 215.5,-906 331.5,-906 331.5,-874 215.5,-874"/>
-<text text-anchor="start" x="255.439" y="-887" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">__iter__</text>
+<text text-anchor="start" x="252.11" y="-887" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">__iter__()</text>
 </g>
 <!-- A4 -->
 <g id="node5" class="node">
