@@ -66,7 +66,7 @@ class Talent(Message):
             0x00: self.msg_contact_info,
             0x13: self.msg_ota_update,
             0x22: self.msg_get_time,
-            0x99: self.msg_act_time,
+            0x99: self.msg_heartbeat,
             0x71: self.msg_collector_data,
             # 0x76:
             0x77: self.msg_modbus,
@@ -187,22 +187,6 @@ class Talent(Message):
             fnc = self.switch.get(self.msg_id, self.msg_unknown)
             logger.info(self.__flow_str(self.server_side, 'forwrd') +
                         f' Ctl: {int(self.ctrl):#02x} Msg: {fnc.__name__!r}')
-
-    def forward_snd(self) -> None:
-        '''add the build send msg to the forwarding queue'''
-        tsun = Config.get('tsun')
-        rest = self.ifc.tx_get(self.send_msg_ofs)
-        buffer = self.ifc.tx_get()
-        if tsun['enabled']:
-            _len = len(buffer)
-            struct.pack_into('!l', buffer, 0, _len-4)
-            self.ifc.fwd_add(buffer)
-            self.ifc.fwd_log(logging.INFO, 'Store for forwarding:')
-
-            fnc = self.switch.get(self.msg_id, self.msg_unknown)
-            logger.info(self.__flow_str(self.server_side, 'forwrd') +
-                        f' Ctl: {int(self.ctrl):#02x} Msg: {fnc.__name__!r}')
-        self.ifc.tx_add(rest)
 
     def send_modbus_cb(self, modbus_pdu: bytearray, log_lvl: int, state: str):
         if self.state != State.up:
@@ -447,7 +431,7 @@ class Talent(Message):
 
         self.forward()
 
-    def msg_act_time(self):
+    def msg_heartbeat(self):
         if self.ctrl.is_ind():
             if self.data_len == 9:
                 self.state = State.up  # allow MODBUS cmds
@@ -466,15 +450,13 @@ class Talent(Message):
                 logger.debug(f'inv-time: {int(result[1]):08x}'
                              f'  tsun-time: {ts:08x}'
                              f'  offset: {self.ts_offset}')
-                self.__build_header(0x91)
-                self.ifc.tx_add(struct.pack('!Bq', resp_code, ts))
-                self.forward_snd()
-                return
+                struct.pack_into('!Bq', self.ifc.rx_peek(),
+                                 self.header_len, resp_code, ts)
         elif self.ctrl.is_resp():
             result = struct.unpack_from('!B', self.ifc.rx_peek(),
                                         self.header_len)
             resp_code = result[0]
-            logging.debug(f'TimeActRespCode: {resp_code}')
+            logging.debug(f'Heartbeat-RespCode: {resp_code}')
             return
         else:
             logger.warning(self.TXT_UNKNOWN_CTRL)
