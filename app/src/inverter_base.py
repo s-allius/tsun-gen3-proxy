@@ -62,7 +62,7 @@ class InverterBase(InverterIfc, Proxy):
 
         # now explicitly call garbage collector to release unreachable objects
         unreachable_obj = gc.collect()
-        logging.info(
+        logging.debug(
             f'InverterBase.__exit: freed unreachable obj: {unreachable_obj}')
 
     def __del_remote(self):
