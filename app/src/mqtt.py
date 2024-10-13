@@ -44,9 +44,6 @@ class Mqtt(metaclass=Singleton):
     def ha_restarts(self, value):
         self._ha_restarts = value
 
-    def __del__(self):
-        logger_mqtt.debug('MQTT: __del__')
-
     async def close(self) -> None:
         logger_mqtt.debug('MQTT: close')
         self.task.cancel()
