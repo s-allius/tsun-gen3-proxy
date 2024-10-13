@@ -5,14 +5,16 @@ from datetime import datetime
 from tzlocal import get_localzone
 
 if __name__ == "app.src.gen3.talent":
-    from app.src.messages import hex_dump_memory, Message, State
+    from app.src.async_ifc import AsyncIfc
+    from app.src.messages import Message, State
     from app.src.modbus import Modbus
     from app.src.my_timer import Timer
     from app.src.config import Config
     from app.src.gen3.infos_g3 import InfosG3
     from app.src.infos import Register
 else:  # pragma: no cover
-    from messages import hex_dump_memory, Message, State
+    from async_ifc import AsyncIfc
+    from messages import Message, State
     from modbus import Modbus
     from my_timer import Timer
     from config import Config
@@ -44,8 +46,16 @@ class Talent(Message):
     MB_REGULAR_TIMEOUT = 60
     TXT_UNKNOWN_CTRL = 'Unknown Ctrl'
 
-    def __init__(self, server_side: bool, id_str=b''):
+    def __init__(self, addr, ifc: "AsyncIfc", server_side: bool,
+                 client_mode: bool = False, id_str=b''):
         super().__init__(server_side, self.send_modbus_cb, mb_timeout=15)
+        ifc.rx_set_cb(self.read)
+        ifc.prot_set_timeout_cb(self._timeout)
+        ifc.prot_set_init_new_client_conn_cb(self._init_new_client_conn)
+        ifc.prot_set_update_header_cb(self._update_header)
+        self.addr = addr
+        self.ifc = ifc
+        self.conn_no = ifc.get_conn_no()
         self.await_conn_resp_cnt = 0
         self.id_str = id_str
         self.contact_name = b''
@@ -56,7 +66,7 @@ class Talent(Message):
             0x00: self.msg_contact_info,
             0x13: self.msg_ota_update,
             0x22: self.msg_get_time,
-            0x99: self.msg_act_time,
+            0x99: self.msg_heartbeat,
             0x71: self.msg_collector_data,
             # 0x76:
             0x77: self.msg_modbus,
@@ -103,6 +113,11 @@ class Talent(Message):
         self.log_lvl.clear()
         self.state = State.closed
         self.mb_timer.close()
+        self.ifc.rx_set_cb(None)
+        self.ifc.prot_set_timeout_cb(None)
+        self.ifc.prot_set_init_new_client_conn_cb(None)
+        self.ifc.prot_set_update_header_cb(None)
+        self.ifc = None
         super().close()
 
     def __set_serial_no(self, serial_no: str):
@@ -138,10 +153,10 @@ class Talent(Message):
         self._read()
         while True:
             if not self.header_valid:
-                self.__parse_header(self._recv_buffer, len(self._recv_buffer))
+                self.__parse_header(self.ifc.rx_peek(), self.ifc.rx_len())
 
             if self.header_valid and \
-               len(self._recv_buffer) >= (self.header_len + self.data_len):
+               self.ifc.rx_len() >= (self.header_len + self.data_len):
                 if self.state == State.init:
                     self.state = State.received     # received 1st package
 
@@ -149,11 +164,10 @@ class Talent(Message):
                 if callable(log_lvl):
                     log_lvl = log_lvl()
 
-                hex_dump_memory(log_lvl, f'Received from {self.addr}:'
-                                f' BufLen: {len(self._recv_buffer)}'
+                self.ifc.rx_log(log_lvl, f'Received from {self.addr}:'
+                                f' BufLen: {self.ifc.rx_len()}'
                                 f' HdrLen: {self.header_len}'
-                                f' DtaLen: {self.data_len}',
-                                self._recv_buffer, len(self._recv_buffer))
+                                f' DtaLen: {self.data_len}')
 
                 self.__set_serial_no(self.id_str.decode("utf-8"))
                 self.__dispatch_msg()
@@ -165,34 +179,14 @@ class Talent(Message):
         '''add the actual receive msg to the forwarding queue'''
         tsun = Config.get('tsun')
         if tsun['enabled']:
-            buffer = self._recv_buffer
             buflen = self.header_len+self.data_len
-            self._forward_buffer += buffer[:buflen]
-            hex_dump_memory(logging.DEBUG, 'Store for forwarding:',
-                            buffer, buflen)
+            buffer = self.ifc.rx_peek(buflen)
+            self.ifc.fwd_add(buffer)
+            self.ifc.fwd_log(logging.DEBUG, 'Store for forwarding:')
 
             fnc = self.switch.get(self.msg_id, self.msg_unknown)
             logger.info(self.__flow_str(self.server_side, 'forwrd') +
                         f' Ctl: {int(self.ctrl):#02x} Msg: {fnc.__name__!r}')
-
-    def forward_snd(self) -> None:
-        '''add the actual receive msg to the forwarding queue'''
-        tsun = Config.get('tsun')
-        if tsun['enabled']:
-            _len = len(self._send_buffer) - self.send_msg_ofs
-            struct.pack_into('!l', self._send_buffer, self.send_msg_ofs,
-                             _len-4)
-
-            buffer = self._send_buffer[self.send_msg_ofs:]
-            buflen = _len
-            self._forward_buffer += buffer[:buflen]
-            hex_dump_memory(logging.INFO, 'Store for forwarding:',
-                            buffer, buflen)
-
-            fnc = self.switch.get(self.msg_id, self.msg_unknown)
-            logger.info(self.__flow_str(self.server_side, 'forwrd') +
-                        f' Ctl: {int(self.ctrl):#02x} Msg: {fnc.__name__!r}')
-        self._send_buffer = self._send_buffer[:self.send_msg_ofs]
 
     def send_modbus_cb(self, modbus_pdu: bytearray, log_lvl: int, state: str):
         if self.state != State.up:
@@ -201,15 +195,13 @@ class Talent(Message):
             return
 
         self.__build_header(0x70, 0x77)
-        self._send_buffer += b'\x00\x01\xa3\x28'   # magic ?
-        self._send_buffer += struct.pack('!B', len(modbus_pdu))
-        self._send_buffer += modbus_pdu
+        self.ifc.tx_add(b'\x00\x01\xa3\x28')   # magic ?
+        self.ifc.tx_add(struct.pack('!B', len(modbus_pdu)))
+        self.ifc.tx_add(modbus_pdu)
         self.__finish_send_msg()
 
-        hex_dump_memory(log_lvl, f'Send Modbus {state}:{self.addr}:',
-                        self._send_buffer, len(self._send_buffer))
-        self.writer.write(self._send_buffer)
-        self._send_buffer = bytearray(0)  # self._send_buffer[sent:]
+        self.ifc.tx_log(log_lvl, f'Send Modbus {state}:{self.addr}:')
+        self.ifc.tx_flush()
 
     def _send_modbus_cmd(self, func, addr, val, log_lvl) -> None:
         if self.state != State.up:
@@ -237,9 +229,9 @@ class Talent(Message):
         self.msg_id = 0
         self.await_conn_resp_cnt += 1
         self.__build_header(0x91)
-        self._send_buffer += struct.pack(f'!{len(contact_name)+1}p'
-                                         f'{len(contact_mail)+1}p',
-                                         contact_name, contact_mail)
+        self.ifc.tx_add(struct.pack(f'!{len(contact_name)+1}p'
+                                    f'{len(contact_mail)+1}p',
+                                    contact_name, contact_mail))
 
         self.__finish_send_msg()
         return True
@@ -323,7 +315,7 @@ class Talent(Message):
             self.inc_counter('Invalid_Msg_Format')
 
             # erase broken recv buffer
-            self._recv_buffer = bytearray()
+            self.ifc.rx_clear()
             return
 
         hdr_len = 5+id_len+2
@@ -344,16 +336,17 @@ class Talent(Message):
     def __build_header(self, ctrl, msg_id=None) -> None:
         if not msg_id:
             msg_id = self.msg_id
-        self.send_msg_ofs = len(self._send_buffer)
-        self._send_buffer += struct.pack(f'!l{len(self.id_str)+1}pBB',
-                                         0, self.id_str, ctrl, msg_id)
+        self.send_msg_ofs = self.ifc.tx_len()
+        self.ifc.tx_add(struct.pack(f'!l{len(self.id_str)+1}pBB',
+                                    0, self.id_str, ctrl, msg_id))
         fnc = self.switch.get(msg_id, self.msg_unknown)
         logger.info(self.__flow_str(self.server_side, 'tx') +
                     f' Ctl: {int(ctrl):#02x} Msg: {fnc.__name__!r}')
 
     def __finish_send_msg(self) -> None:
-        _len = len(self._send_buffer) - self.send_msg_ofs
-        struct.pack_into('!l', self._send_buffer, self.send_msg_ofs, _len-4)
+        _len = self.ifc.tx_len() - self.send_msg_ofs
+        struct.pack_into('!l', self.ifc.tx_peek(), self.send_msg_ofs,
+                         _len-4)
 
     def __dispatch_msg(self) -> None:
         fnc = self.switch.get(self.msg_id, self.msg_unknown)
@@ -367,7 +360,7 @@ class Talent(Message):
                         f' Ctl: {int(self.ctrl):#02x} Msg: {fnc.__name__!r}')
 
     def __flush_recv_msg(self) -> None:
-        self._recv_buffer = self._recv_buffer[(self.header_len+self.data_len):]
+        self.ifc.rx_get(self.header_len+self.data_len)
         self.header_valid = False
 
     '''
@@ -377,7 +370,7 @@ class Talent(Message):
         if self.ctrl.is_ind():
             if self.server_side and self.__process_contact_info():
                 self.__build_header(0x91)
-                self._send_buffer += b'\x01'
+                self.ifc.tx_add(b'\x01')
                 self.__finish_send_msg()
             # don't forward this contact info here, we will build one
             # when the remote connection is established
@@ -391,19 +384,21 @@ class Talent(Message):
             self.forward()
 
     def __process_contact_info(self) -> bool:
-        result = struct.unpack_from('!B', self._recv_buffer, self.header_len)
+        buf = self.ifc.rx_peek()
+        result = struct.unpack_from('!B', buf, self.header_len)
         name_len = result[0]
-        if self.data_len < name_len+2:
+        if self.data_len == 1:  # this is a response withone status byte
             return False
-        result = struct.unpack_from(f'!{name_len+1}pB', self._recv_buffer,
-                                    self.header_len)
-        self.contact_name = result[0]
-        mail_len = result[1]
-        logger.info(f'name: {self.contact_name}')
+        if self.data_len >= name_len+2:
+            result = struct.unpack_from(f'!{name_len+1}pB', buf,
+                                        self.header_len)
+            self.contact_name = result[0]
+            mail_len = result[1]
+            logger.info(f'name: {self.contact_name}')
 
-        result = struct.unpack_from(f'!{mail_len+1}p', self._recv_buffer,
-                                    self.header_len+name_len+1)
-        self.contact_mail = result[0]
+            result = struct.unpack_from(f'!{mail_len+1}p', buf,
+                                        self.header_len+name_len+1)
+            self.contact_mail = result[0]
         logger.info(f'mail: {self.contact_mail}')
         return True
 
@@ -416,16 +411,16 @@ class Talent(Message):
                 ts = self._timestamp()
                 logger.debug(f'time: {ts:08x}')
                 self.__build_header(0x91)
-                self._send_buffer += struct.pack('!q', ts)
+                self.ifc.tx_add(struct.pack('!q', ts))
                 self.__finish_send_msg()
 
             elif self.data_len >= 8:
                 ts = self._timestamp()
-                result = struct.unpack_from('!q', self._recv_buffer,
+                result = struct.unpack_from('!q', self.ifc.rx_peek(),
                                             self.header_len)
                 self.ts_offset = result[0]-ts
-                if self.remote_stream:
-                    self.remote_stream.ts_offset = self.ts_offset
+                if self.ifc.remote.stream:
+                    self.ifc.remote.stream.ts_offset = self.ts_offset
                 logger.debug(f'tsun-time: {int(result[0]):08x}'
                              f'  proxy-time: {ts:08x}'
                              f'  offset: {self.ts_offset}')
@@ -436,7 +431,7 @@ class Talent(Message):
 
         self.forward()
 
-    def msg_act_time(self):
+    def msg_heartbeat(self):
         if self.ctrl.is_ind():
             if self.data_len == 9:
                 self.state = State.up  # allow MODBUS cmds
@@ -445,25 +440,23 @@ class Talent(Message):
                     self.db.set_db_def_value(Register.POLLING_INTERVAL,
                                              self.mb_timeout)
                 self.__build_header(0x99)
-                self._send_buffer += b'\x02'
+                self.ifc.tx_add(b'\x02')
                 self.__finish_send_msg()
 
-                result = struct.unpack_from('!Bq', self._recv_buffer,
+                result = struct.unpack_from('!Bq', self.ifc.rx_peek(),
                                             self.header_len)
                 resp_code = result[0]
                 ts = result[1]+self.ts_offset
                 logger.debug(f'inv-time: {int(result[1]):08x}'
                              f'  tsun-time: {ts:08x}'
                              f'  offset: {self.ts_offset}')
-                self.__build_header(0x91)
-                self._send_buffer += struct.pack('!Bq', resp_code, ts)
-                self.forward_snd()
-                return
+                struct.pack_into('!Bq', self.ifc.rx_peek(),
+                                 self.header_len, resp_code, ts)
         elif self.ctrl.is_resp():
-            result = struct.unpack_from('!B', self._recv_buffer,
+            result = struct.unpack_from('!B', self.ifc.rx_peek(),
                                         self.header_len)
             resp_code = result[0]
-            logging.debug(f'TimeActRespCode: {resp_code}')
+            logging.debug(f'Heartbeat-RespCode: {resp_code}')
             return
         else:
             logger.warning(self.TXT_UNKNOWN_CTRL)
@@ -472,7 +465,8 @@ class Talent(Message):
         self.forward()
 
     def parse_msg_header(self):
-        result = struct.unpack_from('!lB', self._recv_buffer, self.header_len)
+        result = struct.unpack_from('!lB', self.ifc.rx_peek(),
+                                    self.header_len)
 
         data_id = result[0]    # len of complete message
         id_len = result[1]     # len of variable id string
@@ -480,7 +474,7 @@ class Talent(Message):
 
         msg_hdr_len = 5+id_len+9
 
-        result = struct.unpack_from(f'!{id_len+1}pBq', self._recv_buffer,
+        result = struct.unpack_from(f'!{id_len+1}pBq', self.ifc.rx_peek(),
                                     self.header_len + 4)
 
         timestamp = result[2]
@@ -493,7 +487,7 @@ class Talent(Message):
     def msg_collector_data(self):
         if self.ctrl.is_ind():
             self.__build_header(0x99)
-            self._send_buffer += b'\x01'
+            self.ifc.tx_add(b'\x01')
             self.__finish_send_msg()
             self.__process_data()
 
@@ -508,7 +502,7 @@ class Talent(Message):
     def msg_inverter_data(self):
         if self.ctrl.is_ind():
             self.__build_header(0x99)
-            self._send_buffer += b'\x01'
+            self.ifc.tx_add(b'\x01')
             self.__finish_send_msg()
             self.__process_data()
             self.state = State.up  # allow MODBUS cmds
@@ -528,7 +522,7 @@ class Talent(Message):
     def __process_data(self):
         msg_hdr_len, ts = self.parse_msg_header()
 
-        for key, update in self.db.parse(self._recv_buffer, self.header_len
+        for key, update in self.db.parse(self.ifc.rx_peek(), self.header_len
                                          + msg_hdr_len, self.node_id):
             if update:
                 self._set_mqtt_timestamp(key, self._utcfromts(ts))
@@ -548,7 +542,7 @@ class Talent(Message):
 
         msg_hdr_len = 5
 
-        result = struct.unpack_from('!lBB', self._recv_buffer,
+        result = struct.unpack_from('!lBB', self.ifc.rx_peek(),
                                     self.header_len)
         modbus_len = result[1]
         return msg_hdr_len, modbus_len
@@ -557,7 +551,7 @@ class Talent(Message):
 
         msg_hdr_len = 6
 
-        result = struct.unpack_from('!lBBB', self._recv_buffer,
+        result = struct.unpack_from('!lBBB', self.ifc.rx_peek(),
                                     self.header_len)
         modbus_len = result[2]
         return msg_hdr_len, modbus_len
@@ -578,13 +572,12 @@ class Talent(Message):
         self.__msg_modbus(hdr_len)
 
     def __msg_modbus(self, hdr_len):
-        data = self._recv_buffer[self.header_len:
-                                 self.header_len+self.data_len]
+        data = self.ifc.rx_peek()[self.header_len:
+                                  self.header_len+self.data_len]
 
         if self.ctrl.is_req():
-            if self.remote_stream.mb.recv_req(data[hdr_len:],
-                                              self.remote_stream.
-                                              msg_forward):
+            rstream = self.ifc.remote.stream
+            if rstream.mb.recv_req(data[hdr_len:], rstream.msg_forward):
                 self.inc_counter('Modbus_Command')
             else:
                 self.inc_counter('Invalid_Msg_Format')

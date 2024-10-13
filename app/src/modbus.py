@@ -117,10 +117,6 @@ class Modbus():
         while not self.que.empty():
             self.que.get_nowait()
 
-    def __del__(self):
-        """log statistics on the deleting of a MODBUS instance"""
-        logging.debug(f'Modbus __del__:\n {self.counter}')
-
     def build_msg(self, addr: int, func: int, reg: int, val: int,
                   log_lvl=logging.DEBUG) -> None:
         """Build MODBUS RTU request frame and add it to the tx queue

@@ -83,7 +83,7 @@ services:
       - ${PROJECT_DIR:-./}tsun-proxy/log:/home/tsun-proxy/log 
       - ${PROJECT_DIR:-./}tsun-proxy/config:/home/tsun-proxy/config 
     healthcheck:
-      test: wget --no-verbose --tries=1 --spider  http://localhost:8127/-/healthy || exit 1
+      test: wget --no-verbose --tries=1 --spider  http://127.0.0.1:8127/-/healthy || exit 1
       interval: 10s
       timeout: 3s    
     networks:
