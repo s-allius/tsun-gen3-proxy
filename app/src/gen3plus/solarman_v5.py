@@ -149,7 +149,7 @@ class SolarmanV5(Message):
         '''timer value for next Modbus polling request'''
         self.modbus_polling = False
         self.sensor_list = 0x0000
-        self.mb_start_reg = 0x1081
+        self.mb_start_reg = 0x2b01
         self.mb_inv_no = 3
 
     '''
