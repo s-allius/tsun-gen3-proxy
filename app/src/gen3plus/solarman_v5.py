@@ -149,8 +149,8 @@ class SolarmanV5(Message):
         '''timer value for next Modbus polling request'''
         self.modbus_polling = False
         self.sensor_list = 0x0000
-        self.mb_start_reg = 0xcc01
-        self.mb_inv_no = 1
+        self.mb_start_reg = 0x1081
+        self.mb_inv_no = 3
 
     '''
     Our puplic methods
@@ -205,6 +205,7 @@ class SolarmanV5(Message):
             self._send_modbus_cmd(self.mb_inv_no, Modbus.READ_REGS,
                                   self.mb_start_reg, 4, logging.INFO)
         else:
+            self.mb_inv_no = Modbus.INV_ADDR
             self._send_modbus_cmd(Modbus.INV_ADDR, Modbus.READ_REGS, 0x3000,
                                   48, logging.DEBUG)
 
@@ -461,7 +462,7 @@ class SolarmanV5(Message):
 
     def mb_timout_cb(self, exp_cnt):
         self.mb_timer.start(self.mb_timeout)
-        if self.sensor_list != 0x2b0:
+        if self.sensor_list != 0:  # 0x02b0
             self.mb_start_reg += 4
             if self.mb_start_reg > 0xffff:
                 self.mb_start_reg = self.mb_start_reg & 0xffff
