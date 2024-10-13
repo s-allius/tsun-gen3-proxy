@@ -72,6 +72,7 @@ class ModbusTcp():
                                 f'{stream.shutdown_started}')
                     if stream.shutdown_started:
                         return
+                del inverter  # decrease ref counter after the with block
 
             except (ConnectionRefusedError, TimeoutError) as error:
                 logging.debug(f'Inv-conn:{error}')
