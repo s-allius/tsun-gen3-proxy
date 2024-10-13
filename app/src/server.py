@@ -5,8 +5,8 @@ import os
 from asyncio import StreamReader, StreamWriter
 from aiohttp import web
 from logging import config  # noqa F401
-from messages import Message
-from inverter import Inverter
+from proxy import Proxy
+from inverter_ifc import InverterIfc
 from gen3.inverter_g3 import InverterG3
 from gen3plus.inverter_g3p import InverterG3P
 from scheduler import Schedule
@@ -38,9 +38,9 @@ async def healthy(request):
 
     if proxy_is_up:
         # logging.info('web reqeust healthy()')
-        for stream in Message:
+        for inverter in InverterIfc:
             try:
-                res = stream.healthy()
+                res = inverter.healthy()
                 if not res:
                     return web.Response(status=503, text="I have a problem")
             except Exception as err:
@@ -70,18 +70,11 @@ async def webserver(addr, port):
         logging.debug('HTTP cleanup done')
 
 
-async def handle_client(reader: StreamReader, writer: StreamWriter):
+async def handle_client(reader: StreamReader, writer: StreamWriter, inv_class):
     '''Handles a new incoming connection and starts an async loop'''
 
-    addr = writer.get_extra_info('peername')
-    await InverterG3(reader, writer, addr).server_loop(addr)
-
-
-async def handle_client_v2(reader: StreamReader, writer: StreamWriter):
-    '''Handles a new incoming connection and starts an async loop'''
-
-    addr = writer.get_extra_info('peername')
-    await InverterG3P(reader, writer, addr).server_loop(addr)
+    with inv_class(reader, writer) as inv:
+        await inv.local.ifc.server_loop()
 
 
 async def handle_shutdown(web_task):
@@ -94,25 +87,13 @@ async def handle_shutdown(web_task):
     #
     # first, disc all open TCP connections gracefully
     #
-    for stream in Message:
-        stream.shutdown_started = True
-        try:
-            await asyncio.wait_for(stream.disc(), 2)
-        except Exception:
-            pass
+    for inverter in InverterIfc:
+        await inverter.disc(True)
+
     logging.info('Proxy disconnecting done')
 
     #
-    # second, close all open TCP connections
-    #
-    for stream in Message:
-        stream.close()
-
-    await asyncio.sleep(0.1)  # give time for closing
-    logging.info('Proxy closing done')
-
-    #
-    # third, cancel the web server
+    # second, cancel the web server
     #
     web_task.cancel()
     await web_task
@@ -171,17 +152,19 @@ if __name__ == "__main__":
     ConfigErr = Config.class_init()
     if ConfigErr is not None:
         logging.info(f'ConfigErr: {ConfigErr}')
-    Inverter.class_init()
+    Proxy.class_init()
     Schedule.start()
-    mb_tcp = ModbusTcp(loop)
+    ModbusTcp(loop)
 
     #
     # Create tasks for our listening servers. These must be tasks! If we call
     # start_server directly out of our main task, the eventloop will be blocked
     # and we can't receive and handle the UNIX signals!
     #
-    loop.create_task(asyncio.start_server(handle_client, '0.0.0.0', 5005))
-    loop.create_task(asyncio.start_server(handle_client_v2, '0.0.0.0', 10000))
+    for inv_class, port in [(InverterG3, 5005), (InverterG3P, 10000)]:
+        loop.create_task(asyncio.start_server(lambda r, w, i=inv_class:
+                                              handle_client(r, w, i),
+                                              '0.0.0.0', port))
     web_task = loop.create_task(webserver('0.0.0.0', 8127))
 
     #
@@ -202,7 +185,7 @@ if __name__ == "__main__":
         pass
     finally:
         logging.info("Event loop is stopped")
-        Inverter.class_close(loop)
+        Proxy.class_close(loop)
         logging.debug('Close event loop')
         loop.close()
         logging.info(f'Finally, exit Server "{serv_name}"')
