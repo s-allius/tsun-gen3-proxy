@@ -9,6 +9,7 @@ from app.src.singleton import Singleton
 from app.src.config import Config
 from app.src.infos import Infos
 from app.src.mqtt import Mqtt
+from app.src.inverter_base import InverterBase
 from app.src.messages import Message, State
 from app.src.proxy import Proxy
 from app.src.modbus_tcp import ModbusConn, ModbusTcp
@@ -195,7 +196,11 @@ async def test_modbus_conn(patch_open):
         assert type(stream.ifc._reader) is FakeReader
         assert type(stream.ifc._writer) is FakeWriter
         assert Infos.stat['proxy']['Inverter_Cnt'] == 1
-    
+        del inverter
+
+    for _ in InverterBase:
+        assert False
+
     assert Infos.stat['proxy']['Inverter_Cnt'] == 0
 
 @pytest.mark.asyncio

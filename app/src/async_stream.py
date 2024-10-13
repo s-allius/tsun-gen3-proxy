@@ -306,10 +306,6 @@ class AsyncStream(AsyncIfcImpl):
                 f"Fwd Exception for {self.r_addr}:\n"
                 f"{traceback.format_exc()}")
 
-    def __del__(self):
-        logger.info(
-            f"AsyncStream.__del__  l{self.l_addr} | r{self.r_addr}")
-
 
 class AsyncStreamServer(AsyncStream):
     def __init__(self, reader: StreamReader, writer: StreamWriter,

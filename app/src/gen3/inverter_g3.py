@@ -1,5 +1,4 @@
 from asyncio import StreamReader, StreamWriter
-
 if __name__ == "app.src.gen3.inverter_g3":
     from app.src.inverter_base import InverterBase
     from app.src.gen3.talent import Talent
