@@ -3,6 +3,7 @@ import asyncio
 import logging
 import traceback
 import json
+import gc
 from aiomqtt import MqttCodeError
 from asyncio import StreamReader, StreamWriter
 
@@ -59,8 +60,10 @@ class InverterBase(InverterIfc, Proxy):
         self.local.ifc.close()
         self.local.ifc = None
 
-    def __del__(self) -> None:
-        logging.debug(f'InverterBase.__del__() {self.addr}')
+        # now explicitly call garbage collector to release unreachable objects
+        unreachable_obj = gc.collect()
+        logging.info(
+            f'InverterBase.__exit: freed unreachable obj: {unreachable_obj}')
 
     def __del_remote(self):
         if self.remote.stream:
