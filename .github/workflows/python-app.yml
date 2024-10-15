@@ -31,11 +31,11 @@ jobs:
 
     steps:
     - name: Set timezone
-      uses: szenius/set-timezone@v2.0
+      uses: MathRobin/timezone-action@v1.1
       with:
-        timezoneLinux: "utc"
-        timezoneMacos: "utc"
-        timezoneWindows: "utc"
+        timezoneLinux: "Europe/Berlin"
+        timezoneMacos: "Europe/Berlin"
+        timezoneWindows: "Europe/Berlin"
     # - name: Start Mosquitto
     #  uses: namoshek/mosquitto-github-action@v1
     #  with:
