@@ -10,6 +10,8 @@ else:  # pragma: no cover
 
 
 class RegisterMap:
+    __slots__ = ()
+
     map = {
         0x00092ba8: {'reg': Register.COLLECTOR_FW_VERSION},
         0x000927c0: {'reg': Register.CHIP_TYPE},
@@ -91,6 +93,7 @@ class RegisterMap:
 
 
 class InfosG3(Infos):
+    __slots__ = ()
 
     def ha_confs(self, ha_prfx: str, node_id: str, snr: str,
                  sug_area: str = '') \

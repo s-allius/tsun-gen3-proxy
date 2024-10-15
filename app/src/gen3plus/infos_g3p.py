@@ -10,8 +10,8 @@ else:  # pragma: no cover
 
 class RegisterMap:
     # make the class read/only by using __slots__
-
     __slots__ = ()
+
     map = {
         # 0x41020007: {'reg': Register.DEVICE_SNR,           'fmt': '<L'},                 # noqa: E501
         0x41020018: {'reg': Register.DATA_UP_INTERVAL,     'fmt': '<B', 'ratio':   60, 'dep': ProxyMode.SERVER},  # noqa: E501
@@ -68,6 +68,8 @@ class RegisterMap:
 
 
 class InfosG3P(Infos):
+    __slots__ = ('client_mode', )
+
     def __init__(self, client_mode: bool):
         super().__init__()
         self.client_mode = client_mode

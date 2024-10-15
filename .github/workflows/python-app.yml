@@ -24,18 +24,15 @@ permissions:
   contents: read
   pull-requests: read # allows SonarCloud to decorate PRs with analysis results
 
+env:
+  TZ: "Europe/Berlin"
+
 jobs:
   build:
 
     runs-on: ubuntu-latest
 
     steps:
-    - name: Set timezone
-      uses: szenius/set-timezone@v2.0
-      with:
-        timezoneLinux: "Europe/Berlin"
-        timezoneMacos: "Europe/Berlin"
-        timezoneWindows: "Europe/Berlin"
     # - name: Start Mosquitto
     #  uses: namoshek/mosquitto-github-action@v1
     #  with:
