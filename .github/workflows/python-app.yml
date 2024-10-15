@@ -30,12 +30,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    # - name: Set timezone
-    #   uses: szenius/set-timezone@v2.0
-    #   with:
-    #     timezoneLinux: "Europe/Berlin"
-    #     timezoneMacos: "Europe/Berlin"
-    #     timezoneWindows: "Europe/Berlin"
+    - name: Set timezone
+      uses: szenius/set-timezone@v2.0
+      with:
+        timezoneLinux: "utc"
+        timezoneMacos: "utc"
+        timezoneWindows: "utc"
     # - name: Start Mosquitto
     #  uses: namoshek/mosquitto-github-action@v1
     #  with:
