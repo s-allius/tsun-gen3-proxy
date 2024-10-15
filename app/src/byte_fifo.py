@@ -7,6 +7,8 @@ else:  # pragma: no cover
 
 class ByteFifo:
     """ a byte FIFO buffer with trigger callback """
+    __slots__ = ('__buf', '__trigger_cb')
+
     def __init__(self):
         self.__buf = bytearray()
         self.__trigger_cb = None

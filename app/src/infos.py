@@ -152,6 +152,8 @@ class ClrAtMidnight:
 
 
 class Infos:
+    __slots__ = ('db', 'tracer', )
+
     LIGHTNING = 'mdi:lightning-bolt'
     COUNTER = 'mdi:counter'
     GAUGE = 'mdi:gauge'
