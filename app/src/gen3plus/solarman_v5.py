@@ -654,8 +654,7 @@ class SolarmanV5(Message):
             # logger.info(f'first byte modbus:{data[14]}')
             inv_update = False
             self.modbus_elms = 0
-            for key, update, _ in self.mb.recv_resp(self.db, data[14:],
-                                                    self.node_id):
+            for key, update, _ in self.mb.recv_resp(self.db, data[14:]):
                 self.modbus_elms += 1
                 if update:
                     if key == 'inverter':
