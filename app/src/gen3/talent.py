@@ -135,6 +135,8 @@ class Talent(Message):
                 self.modbus_polling = inv['modbus_polling']
                 logger.debug(f'SerialNo {serial_no} allowed! area:{self.sug_area}')  # noqa: E501
                 self.db.set_pv_module_details(inv)
+                if self.mb:
+                    self.mb.set_node_id(self.node_id)
             else:
                 self.node_id = ''
                 self.sug_area = ''
@@ -590,8 +592,7 @@ class Talent(Message):
                 return
 
             for key, update, _ in self.mb.recv_resp(self.db, data[
-                    hdr_len:],
-                    self.node_id):
+                    hdr_len:]):
                 if update:
                     self._set_mqtt_timestamp(key, self._utc())
                     self.new_data[key] = True

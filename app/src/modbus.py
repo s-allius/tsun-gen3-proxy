@@ -117,6 +117,9 @@ class Modbus():
         while not self.que.empty():
             self.que.get_nowait()
 
+    def set_node_id(self, node_id: str):
+        self.node_id = node_id
+
     def build_msg(self, addr: int, func: int, reg: int, val: int,
                   log_lvl=logging.DEBUG) -> None:
         """Build MODBUS RTU request frame and add it to the tx queue
@@ -160,14 +163,13 @@ class Modbus():
 
         return True
 
-    def recv_resp(self, info_db, buf: bytes, node_id: str) -> \
+    def recv_resp(self, info_db, buf: bytes) -> \
             Generator[tuple[str, bool, int | float | str], None, None]:
         """Generator which check and parse a received MODBUS response.
 
         Keyword arguments:
             info_db: database for info lockups
             buf: received Modbus RTU response frame
-            node_id: string for logging which identifies the slave
 
         Returns on error and set Self.err to:
             1: CRC error
@@ -177,7 +179,6 @@ class Modbus():
             5: No MODBUS request pending
         """
         # logging.info(f'recv_resp: first byte modbus:{buf[0]} len:{len(buf)}')
-        self.node_id = node_id
 
         fcode = buf[1]
         data_available = self.last_addr == self.INV_ADDR and \

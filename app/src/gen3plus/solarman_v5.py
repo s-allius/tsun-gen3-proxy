@@ -225,6 +225,8 @@ class SolarmanV5(Message):
         self.sug_area = inv['suggested_area']
         self.modbus_polling = inv['modbus_polling']
         self.sensor_list = inv['sensor_list']
+        if self.mb:
+            self.mb.set_node_id(self.node_id)
 
     def __set_serial_no(self, snr: int):
         '''check the serial number and configure the inverter connection'''
@@ -690,8 +692,7 @@ class SolarmanV5(Message):
                                 f'(reg: 0x{self.mb.last_reg:04x}):',
                                 data[14:], modbus_msg_len)
 
-            for key, update, _ in self.mb.recv_resp(self.db, data[14:],
-                                                    self.node_id):
+            for key, update, _ in self.mb.recv_resp(self.db, data[14:]):
                 self.modbus_elms += 1
                 if update:
                     if key == 'inverter':
