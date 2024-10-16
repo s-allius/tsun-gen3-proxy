@@ -685,9 +685,10 @@ class SolarmanV5(Message):
             # logger.info(f'first byte modbus:{data[14]}')
             inv_update = False
             self.modbus_elms = 0
-            if (self.sensor_list != 0x2b0 and data[15] != 0):
+            if (self.sensor_list != 0x0 and data[15] != 0):
                 logging.info('Valid MODBUS data '
-                             f'(reg: 0x{self.mb.last_reg:04x}):')
+                             f'(inv:{self.mb_inv_no} '
+                             f'reg: 0x{self.mb.last_reg:04x}):')
                 hex_dump_memory(logging.INFO, 'Valid MODBUS data '
                                 f'(reg: 0x{self.mb.last_reg:04x}):',
                                 data[14:], modbus_msg_len)
