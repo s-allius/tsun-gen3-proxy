@@ -8,7 +8,6 @@ if __name__ == "app.src.gen3.talent":
     from app.src.async_ifc import AsyncIfc
     from app.src.messages import Message, State
     from app.src.modbus import Modbus
-    from app.src.my_timer import Timer
     from app.src.config import Config
     from app.src.gen3.infos_g3 import InfosG3
     from app.src.infos import Register
@@ -16,7 +15,6 @@ else:  # pragma: no cover
     from async_ifc import AsyncIfc
     from messages import Message, State
     from modbus import Modbus
-    from my_timer import Timer
     from config import Config
     from gen3.infos_g3 import InfosG3
     from infos import Register
@@ -42,19 +40,18 @@ class Control:
 
 
 class Talent(Message):
-    MB_START_TIMEOUT = 40
-    MB_REGULAR_TIMEOUT = 60
     TXT_UNKNOWN_CTRL = 'Unknown Ctrl'
 
     def __init__(self, addr, ifc: "AsyncIfc", server_side: bool,
                  client_mode: bool = False, id_str=b''):
-        super().__init__(server_side, self.send_modbus_cb, mb_timeout=15)
+        super().__init__('G3', ifc, server_side, self.send_modbus_cb,
+                         mb_timeout=15)
         ifc.rx_set_cb(self.read)
         ifc.prot_set_timeout_cb(self._timeout)
         ifc.prot_set_init_new_client_conn_cb(self._init_new_client_conn)
         ifc.prot_set_update_header_cb(self._update_header)
+
         self.addr = addr
-        self.ifc = ifc
         self.conn_no = ifc.get_conn_no()
         self.await_conn_resp_cnt = 0
         self.id_str = id_str
@@ -86,38 +83,17 @@ class Talent(Message):
             0x87: self.get_modbus_log_lvl,
             0x04: logging.INFO,
         }
-        self.modbus_elms = 0    # for unit tests
-        self.node_id = 'G3'     # will be overwritten in __set_serial_no
-        self.mb_timer = Timer(self.mb_timout_cb, self.node_id)
-        self.mb_timeout = self.MB_REGULAR_TIMEOUT
-        self.mb_first_timeout = self.MB_START_TIMEOUT
-        self.modbus_polling = False
 
     '''
     Our puplic methods
     '''
     def close(self) -> None:
         logging.debug('Talent.close()')
-        if self.server_side:
-            # set inverter state to offline, if output power is very low
-            logging.debug('close power: '
-                          f'{self.db.get_db_value(Register.OUTPUT_POWER, -1)}')
-            if self.db.get_db_value(Register.OUTPUT_POWER, 999) < 2:
-                self.db.set_db_def_value(Register.INVERTER_STATUS, 0)
-                self.new_data['env'] = True
-
         # we have references to methods of this class in self.switch
         # so we have to erase self.switch, otherwise this instance can't be
         # deallocated by the garbage collector ==> we get a memory leak
         self.switch.clear()
         self.log_lvl.clear()
-        self.state = State.closed
-        self.mb_timer.close()
-        self.ifc.rx_set_cb(None)
-        self.ifc.prot_set_timeout_cb(None)
-        self.ifc.prot_set_init_new_client_conn_cb(None)
-        self.ifc.prot_set_update_header_cb(None)
-        self.ifc = None
         super().close()
 
     def __set_serial_no(self, serial_no: str):
