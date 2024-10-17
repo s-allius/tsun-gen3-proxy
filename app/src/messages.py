@@ -152,6 +152,16 @@ class Message(ProtocolIfc):
             to = self.MAX_DEF_IDLE_TIME
         return to
 
+    def _send_modbus_cmd(self, func, addr, val, log_lvl) -> None:
+        if self.state != State.up:
+            logger.log(log_lvl, f'[{self.node_id}] ignore MODBUS cmd,'
+                       ' as the state is not UP')
+            return
+        self.mb.build_msg(Modbus.INV_ADDR, func, addr, val, log_lvl)
+
+    async def send_modbus_cmd(self, func, addr, val, log_lvl) -> None:
+        self._send_modbus_cmd(func, addr, val, log_lvl)
+
     '''
     Our puplic methods
     '''

@@ -435,16 +435,6 @@ class SolarmanV5(Message):
         self.ifc.tx_log(log_lvl, f'Send Modbus {state}:{self.addr}:')
         self.ifc.tx_flush()
 
-    def _send_modbus_cmd(self, func, addr, val, log_lvl) -> None:
-        if self.state != State.up:
-            logger.log(log_lvl, f'[{self.node_id}] ignore MODBUS cmd,'
-                       ' as the state is not UP')
-            return
-        self.mb.build_msg(Modbus.INV_ADDR, func, addr, val, log_lvl)
-
-    async def send_modbus_cmd(self, func, addr, val, log_lvl) -> None:
-        self._send_modbus_cmd(func, addr, val, log_lvl)
-
     def mb_timout_cb(self, exp_cnt):
         self.mb_timer.start(self.mb_timeout)
 
