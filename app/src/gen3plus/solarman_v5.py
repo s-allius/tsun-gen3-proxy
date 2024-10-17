@@ -8,7 +8,6 @@ if __name__ == "app.src.gen3plus.solarman_v5":
     from app.src.async_ifc import AsyncIfc
     from app.src.messages import hex_dump_memory, Message, State
     from app.src.modbus import Modbus
-    from app.src.my_timer import Timer
     from app.src.config import Config
     from app.src.gen3plus.infos_g3p import InfosG3P
     from app.src.infos import Register
@@ -17,7 +16,6 @@ else:  # pragma: no cover
     from messages import hex_dump_memory, Message, State
     from config import Config
     from modbus import Modbus
-    from my_timer import Timer
     from gen3plus.infos_g3p import InfosG3P
     from infos import Register
 
@@ -53,9 +51,6 @@ class Sequence():
 class SolarmanV5(Message):
     AT_CMD = 1
     MB_RTU_CMD = 2
-    MB_START_TIMEOUT = 40
-    '''start delay for Modbus polling in server mode'''
-    MB_REGULAR_TIMEOUT = 20
     '''regular Modbus polling time in server mode'''
     MB_CLIENT_DATA_UP = 10
     '''Data up time in client mode'''
@@ -64,14 +59,14 @@ class SolarmanV5(Message):
 
     def __init__(self, addr, ifc: "AsyncIfc",
                  server_side: bool, client_mode: bool):
-        super().__init__(server_side, self.send_modbus_cb, mb_timeout=8)
+        super().__init__('G3P', ifc, server_side, self.send_modbus_cb,
+                         mb_timeout=8)
         ifc.rx_set_cb(self.read)
         ifc.prot_set_timeout_cb(self._timeout)
         ifc.prot_set_init_new_client_conn_cb(self._init_new_client_conn)
         ifc.prot_set_update_header_cb(self._update_header)
 
         self.addr = addr
-        self.ifc = ifc
         self.conn_no = ifc.get_conn_no()
         self.header_len = 11  # overwrite construcor in class Message
         self.control = 0
@@ -136,18 +131,11 @@ class SolarmanV5(Message):
             0x4510: logging.INFO,  # from server
             0x1510: self.get_cmd_rsp_log_lvl,
         }
-        self.modbus_elms = 0    # for unit tests
         g3p_cnf = Config.get('gen3plus')
 
         if 'at_acl' in g3p_cnf:  # pragma: no cover
             self.at_acl = g3p_cnf['at_acl']
 
-        self.node_id = 'G3P'  # will be overwritten in __set_serial_no
-        self.mb_timer = Timer(self.mb_timout_cb, self.node_id)
-        self.mb_timeout = self.MB_REGULAR_TIMEOUT
-        self.mb_first_timeout = self.MB_START_TIMEOUT
-        '''timer value for next Modbus polling request'''
-        self.modbus_polling = False
         self.sensor_list = 0x0000
         self.mb_start_reg = 0x2b01
         self.mb_inv_no = 3
@@ -157,26 +145,11 @@ class SolarmanV5(Message):
     '''
     def close(self) -> None:
         logging.debug('Solarman.close()')
-        if self.server_side:
-            # set inverter state to offline, if output power is very low
-            logging.debug('close power: '
-                          f'{self.db.get_db_value(Register.OUTPUT_POWER, -1)}')
-            if self.db.get_db_value(Register.OUTPUT_POWER, 999) < 2:
-                self.db.set_db_def_value(Register.INVERTER_STATUS, 0)
-                self.new_data['env'] = True
-
         # we have references to methods of this class in self.switch
         # so we have to erase self.switch, otherwise this instance can't be
         # deallocated by the garbage collector ==> we get a memory leak
         self.switch.clear()
         self.log_lvl.clear()
-        self.state = State.closed
-        self.mb_timer.close()
-        self.ifc.rx_set_cb(None)
-        self.ifc.prot_set_timeout_cb(None)
-        self.ifc.prot_set_init_new_client_conn_cb(None)
-        self.ifc.prot_set_update_header_cb(None)
-        self.ifc = None
         super().close()
 
     async def send_start_cmd(self, snr: int, host: str,
@@ -451,16 +424,6 @@ class SolarmanV5(Message):
         self.__finish_send_msg()
         self.ifc.tx_log(log_lvl, f'Send Modbus {state}:{self.addr}:')
         self.ifc.tx_flush()
-
-    def _send_modbus_cmd(self, mb_no, func, addr, val, log_lvl) -> None:
-        if self.state != State.up:
-            logger.log(log_lvl, f'[{self.node_id}] ignore MODBUS cmd,'
-                       ' as the state is not UP')
-            return
-        self.mb.build_msg(mb_no, func, addr, val, log_lvl)
-
-    async def send_modbus_cmd(self, func, addr, val, log_lvl) -> None:
-        self._send_modbus_cmd(Modbus.INV_ADDR, func, addr, val, log_lvl)
 
     def mb_timout_cb(self, exp_cnt):
         self.mb_timer.start(self.mb_timeout)

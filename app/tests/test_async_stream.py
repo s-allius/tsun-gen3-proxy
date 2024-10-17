@@ -17,9 +17,12 @@ pytest_plugins = ('pytest_asyncio',)
 Infos.static_init()
 
 class FakeProto(Message):
-    def __init__(self, server_side):
-        super().__init__(server_side, None, 10)
+    def __init__(self, ifc, server_side):
+        super().__init__('G3F', ifc, server_side, None, 10)
         self.conn_no = 0
+
+    def mb_timout_cb(self, exp_cnt):
+        pass  # empty callback
 
 def fake_reader_fwd():
     reader = FakeReader()
@@ -349,7 +352,7 @@ def create_remote(remote, test_type, with_close_hdr:bool = False):
         FakeReader(), FakeWriter(), StreamPtr(None), close_hndl)
     remote.ifc.prot_set_update_header_cb(update_hdr)
     remote.ifc.prot_set_init_new_client_conn_cb(callback)
-    remote.stream = FakeProto(False)
+    remote.stream = FakeProto(remote.ifc, False)
 
 @pytest.mark.asyncio
 async def test_forward():
