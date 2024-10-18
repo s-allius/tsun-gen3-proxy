@@ -340,6 +340,7 @@ def create_remote(remote, test_type, with_close_hdr:bool = False):
         elif test_type == TestType.FWD_RUNTIME_ERROR_NO_STREAM:
             remote.stream = None
             raise RuntimeError("Peer closed")
+        return True
 
     def close():
         return
@@ -532,4 +533,40 @@ async def test_forward_runtime_error3():
     ifc.fwd_add(b'test-forward_msg')
     await ifc.server_loop()
     assert cnt == 1
+    del ifc
+
+@pytest.mark.asyncio
+async def test_forward_resp():
+    assert asyncio.get_running_loop()
+    remote = StreamPtr(None)
+    cnt = 0
+
+    async def _close_cb():
+        nonlocal cnt, remote, ifc
+        cnt += 1
+    
+    cnt = 0
+    ifc =  AsyncStreamClient(fake_reader_fwd(), FakeWriter(), remote, _close_cb)
+    create_remote(remote, TestType.FWD_NO_EXCPT)
+    ifc.fwd_add(b'test-forward_msg')
+    await ifc.client_loop('')
+    assert cnt == 0
+    del ifc
+
+@pytest.mark.asyncio
+async def test_forward_resp2():
+    assert asyncio.get_running_loop()
+    remote = StreamPtr(None)
+    cnt = 0
+
+    async def _close_cb():
+        nonlocal cnt, remote, ifc
+        cnt += 1
+    
+    cnt = 0
+    ifc =  AsyncStreamClient(fake_reader_fwd(), FakeWriter(), None, _close_cb)
+    create_remote(remote, TestType.FWD_NO_EXCPT)
+    ifc.fwd_add(b'test-forward_msg')
+    await ifc.client_loop('')
+    assert cnt == 0
     del ifc
