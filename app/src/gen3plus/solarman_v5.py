@@ -137,7 +137,7 @@ class SolarmanV5(Message):
             self.at_acl = g3p_cnf['at_acl']
 
         self.sensor_list = 0x0000
-        self.mb_start_reg = 0x2b01
+        self.mb_start_reg = 0x4b81
         self.mb_inv_no = 3
 
     '''
