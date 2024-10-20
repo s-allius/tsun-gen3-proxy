@@ -137,8 +137,9 @@ class SolarmanV5(Message):
             self.at_acl = g3p_cnf['at_acl']
 
         self.sensor_list = 0x0000
-        self.mb_start_reg = 0x4b81
-        self.mb_inv_no = 3
+        self.mb_start_reg = 0x0001    # 0x7001
+        self.mb_incr_reg = 0x100      # 4
+        self.mb_inv_no = 126            # 3
 
     '''
     Our puplic methods
@@ -428,7 +429,7 @@ class SolarmanV5(Message):
     def mb_timout_cb(self, exp_cnt):
         self.mb_timer.start(self.mb_timeout)
         if self.sensor_list != 0:  # 0x02b0
-            self.mb_start_reg += 4
+            self.mb_start_reg += self.mb_incr_reg
             if self.mb_start_reg > 0xffff:
                 self.mb_start_reg = self.mb_start_reg & 0xffff
                 self.mb_inv_no += 1
