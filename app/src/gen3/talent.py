@@ -186,9 +186,11 @@ class Talent(Message):
 
         if 2 == (exp_cnt % 30):
             # logging.info("Regular Modbus Status request")
-            self._send_modbus_cmd(Modbus.READ_REGS, 0x2000, 96, logging.DEBUG)
+            self._send_modbus_cmd(Modbus.INV_ADDR, Modbus.READ_REGS, 0x2000,
+                                  96, logging.DEBUG)
         else:
-            self._send_modbus_cmd(Modbus.READ_REGS, 0x3000, 48, logging.DEBUG)
+            self._send_modbus_cmd(Modbus.INV_ADDR, Modbus.READ_REGS, 0x3000,
+                                  48, logging.DEBUG)
 
     def _init_new_client_conn(self) -> bool:
         contact_name = self.contact_name
