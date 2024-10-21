@@ -1727,6 +1727,7 @@ async def test_modbus_polling(config_tsun_inv1, heartbeat_ind_msg, heartbeat_rsp
     assert asyncio.get_running_loop() == m.mb_timer.loop
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
     assert m.mb_timer.tim == None
+    
     m.read()         # read complete msg, and dispatch msg
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
     assert m.msg_count == 1
@@ -1764,6 +1765,10 @@ async def test_start_client_mode(config_tsun_inv1, str_test_ip):
     _ = config_tsun_inv1
     assert asyncio.get_running_loop()
     m = MemoryStream(b'')
+    m.mb_start_reg = 0x3000
+    m.mb_incr_reg = 0x00      # 4
+    m.mb_scan_len = 48
+
     assert m.state == State.init
     assert m.no_forwarding == False
     assert m.mb_timer.tim == None
