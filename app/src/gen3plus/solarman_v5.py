@@ -139,7 +139,8 @@ class SolarmanV5(Message):
         self.sensor_list = 0x0000
         self.mb_start_reg = 0x0001    # 0x7001
         self.mb_incr_reg = 0x100      # 4
-        self.mb_inv_no = 126            # 3
+        self.mb_inv_no = 140           # 3
+        self.mb_scan_len = 4
 
     '''
     Our puplic methods
@@ -177,10 +178,11 @@ class SolarmanV5(Message):
 
         if self.sensor_list != 0x02b0:
             self._send_modbus_cmd(self.mb_inv_no, Modbus.READ_REGS,
-                                  self.mb_start_reg, 4, logging.INFO)
+                                  self.mb_start_reg, self.mb_scan_len,
+                                  logging.INFO)
         else:
             self.mb_inv_no = Modbus.INV_ADDR
-            self._send_modbus_cmd(Modbus.INV_ADDR, Modbus.READ_REGS, 0x3000,
+            self._send_modbus_cmd(self.mb_inv_no, Modbus.READ_REGS, 0x3000,
                                   48, logging.DEBUG)
 
         self.mb_timer.start(self.mb_timeout)
@@ -428,7 +430,7 @@ class SolarmanV5(Message):
 
     def mb_timout_cb(self, exp_cnt):
         self.mb_timer.start(self.mb_timeout)
-        if self.sensor_list != 0:  # 0x02b0
+        if self.sensor_list != 0x02b0:
             self.mb_start_reg += self.mb_incr_reg
             if self.mb_start_reg > 0xffff:
                 self.mb_start_reg = self.mb_start_reg & 0xffff
@@ -439,13 +441,16 @@ class SolarmanV5(Message):
                 logging.info(f"Scan info: inv:{self.mb_inv_no}"
                              f" reg:{self.mb_start_reg:04x}")
             self._send_modbus_cmd(self.mb_inv_no, Modbus.READ_REGS,
-                                  self.mb_start_reg, 4, logging.INFO)
+                                  self.mb_start_reg, self.mb_scan_len,
+                                  logging.INFO)
         else:
             self._send_modbus_cmd(Modbus.INV_ADDR, Modbus.READ_REGS, 0x3000,
                                   48, logging.DEBUG)
 
             if 1 == (exp_cnt % 30):
                 # logging.info("Regular Modbus Status request")
+                self._send_modbus_cmd(Modbus.INV_ADDR, Modbus.READ_REGS,
+                                      0x5000, 8, logging.DEBUG)
                 self._send_modbus_cmd(Modbus.INV_ADDR, Modbus.READ_REGS,
                                       0x2000, 96, logging.DEBUG)
 
@@ -649,7 +654,7 @@ class SolarmanV5(Message):
             # logger.info(f'first byte modbus:{data[14]}')
             inv_update = False
             self.modbus_elms = 0
-            if (self.sensor_list != 0x0 and data[15] != 0):
+            if (self.sensor_list != 0x02b0 and data[15] != 0):
                 logging.info('Valid MODBUS data '
                              f'(inv:{self.mb_inv_no} '
                              f'reg: 0x{self.mb.last_reg:04x}):')
