@@ -139,7 +139,7 @@ class SolarmanV5(Message):
         self.sensor_list = 0x0000
         self.mb_start_reg = 0x0001    # 0x7001
         self.mb_incr_reg = 0x100      # 4
-        self.mb_inv_no = 140           # 3
+        self.mb_inv_no = 144           # 3
         self.mb_scan_len = 4
 
     '''
