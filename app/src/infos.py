@@ -1,5 +1,6 @@
 import logging
 import json
+import struct
 import os
 from enum import Enum
 from typing import Generator
@@ -121,6 +122,40 @@ class Register(Enum):
     VALUE_1 = 9000
     TEST_REG1 = 10000
     TEST_REG2 = 10001
+
+
+class Fmt:
+    @staticmethod
+    def get_value(buf: bytes, idx: int, row: dict):
+        '''Get a value from buf and interpret as in row defined'''
+        fmt = row['fmt']
+        res = struct.unpack_from(fmt, buf, idx)
+        result = res[0]
+        if isinstance(result, (bytearray, bytes)):
+            result = result.decode().split('\x00')[0]
+        if 'func' in row:
+            result = row['func'](res)
+        if 'ratio' in row:
+            result = round(result * row['ratio'], 2)
+        if 'quotient' in row:
+            result = round(result/row['quotient'])
+        if 'offset' in row:
+            result = result + row['offset']
+        return result
+
+    @staticmethod
+    def hex4(val):
+        return f'{val[0]:04x}'
+
+    @staticmethod
+    def mac(val):
+        return "%02x:%02x:%02x:%02x:%02x:%02x" % val
+
+    @staticmethod
+    def version(val):
+        x = val[0]
+        return f'V{(x>>12)}.{(x>>8)&0xf}.{(x>>4)&0xf}{x&0xf:1X}'
+        # return f'V{x>>12}.{(x>>8)&0xf}.{(x>>4)&0xf}{val[0]&0xf}'
 
 
 class ClrAtMidnight:

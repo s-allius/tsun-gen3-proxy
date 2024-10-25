@@ -1,11 +1,10 @@
 
-import struct
 from typing import Generator
 
 if __name__ == "app.src.gen3plus.infos_g3p":
-    from app.src.infos import Infos, Register, ProxyMode
+    from app.src.infos import Infos, Register, ProxyMode, Fmt
 else:  # pragma: no cover
-    from infos import Infos, Register, ProxyMode
+    from infos import Infos, Register, ProxyMode, Fmt
 
 
 class RegisterMap:
@@ -19,16 +18,16 @@ class RegisterMap:
         0x4102001a: {'reg': Register.HEARTBEAT_INTERVAL,   'fmt': '<B', 'ratio':    1},  # noqa: E501
         0x4102001c: {'reg': Register.SIGNAL_STRENGTH,      'fmt': '<B', 'ratio':    1, 'dep': ProxyMode.SERVER},  # noqa: E501
         0x4102001e: {'reg': Register.CHIP_MODEL,           'fmt': '!40s'},               # noqa: E501
-        0x41020046: {'reg': Register.MAC_ADDR,             'fmt': '!BBBBBB', 'eval': '"%02x:%02x:%02x:%02x:%02x:%02x" % res'},  # noqa: E501
+        0x41020046: {'reg': Register.MAC_ADDR,             'fmt': '!BBBBBB', 'func': Fmt.mac},  # noqa: E501
         0x4102004c: {'reg': Register.IP_ADDRESS,           'fmt': '!16s'},               # noqa: E501
-        0x4102005f: {'reg': Register.SENSOR_LIST,          'fmt': '<H', 'eval': "f'{result:04x}'"},                 # noqa: E501
+        0x4102005f: {'reg': Register.SENSOR_LIST,          'fmt': '<H', 'func': Fmt.hex4},   # noqa: E501
         0x41020064: {'reg': Register.COLLECTOR_FW_VERSION, 'fmt': '!40s'},               # noqa: E501
 
-        0x4201000c: {'reg': Register.SENSOR_LIST,          'fmt': '<H', 'eval': "f'{result:04x}'"},                 # noqa: E501
+        0x4201000c: {'reg': Register.SENSOR_LIST,          'fmt': '<H', 'func': Fmt.hex4},   # noqa: E501
         0x4201001c: {'reg': Register.POWER_ON_TIME,        'fmt': '<H', 'ratio':    1, 'dep': ProxyMode.SERVER},  # noqa: E501, or packet number
         0x42010020: {'reg': Register.SERIAL_NUMBER,        'fmt': '!16s'},               # noqa: E501
         0x420100c0: {'reg': Register.INVERTER_STATUS,      'fmt': '!H'},                 # noqa: E501
-        0x420100d0: {'reg': Register.VERSION,              'fmt': '!H', 'eval': "f'V{(result>>12)}.{(result>>8)&0xf}.{(result>>4)&0xf}{result&0xf}'"},  # noqa: E501
+        0x420100d0: {'reg': Register.VERSION,              'fmt': '!H', 'func': Fmt.version},  # noqa: E501
         0x420100d2: {'reg': Register.GRID_VOLTAGE,         'fmt': '!H', 'ratio':  0.1},  # noqa: E501
         0x420100d4: {'reg': Register.GRID_CURRENT,         'fmt': '!H', 'ratio': 0.01},  # noqa: E501
         0x420100d6: {'reg': Register.GRID_FREQUENCY,       'fmt': '!H', 'ratio': 0.01},  # noqa: E501
@@ -123,7 +122,7 @@ class InfosG3P(Infos):
             if not isinstance(row, dict):
                 continue
             info_id = row['reg']
-            result = self.__get_value(buf, addr, row)
+            result = Fmt.get_value(buf, addr, row)
 
             keys, level, unit, must_incr = self._key_obj(info_id)
 
@@ -137,20 +136,3 @@ class InfosG3P(Infos):
             if update:
                 self.tracer.log(level, f'[{node_id}] GEN3PLUS: {name}'
                                        f' : {result}{unit}')
-
-    def __get_value(self, buf, idx, row):
-        '''Get a value from buf and interpret as in row'''
-        fmt = row['fmt']
-        res = struct.unpack_from(fmt, buf, idx)
-        result = res[0]
-        if isinstance(result, (bytearray, bytes)):
-            result = result.decode().split('\x00')[0]
-        if 'eval' in row:
-            result = eval(row['eval'])
-        if 'ratio' in row:
-            result = round(result * row['ratio'], 2)
-        if 'quotient' in row:
-            result = round(result/row['quotient'])
-        if 'offset' in row:
-            result = result + row['offset']
-        return result

@@ -183,11 +183,8 @@ class InfosG3(Infos):
             i += 1
 
     def __modify_val(self, row, result):
-        if row:
-            if 'eval' in row:
-                result = eval(row['eval'])
-            if 'ratio' in row:
-                result = round(result * row['ratio'], 2)
+        if row and 'ratio' in row:
+            result = round(result * row['ratio'], 2)
         return result
 
     def __store_result(self, addr, result, info_id, node_id):
