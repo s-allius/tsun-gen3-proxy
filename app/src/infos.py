@@ -154,8 +154,7 @@ class Fmt:
     @staticmethod
     def version(val):
         x = val[0]
-        return f'V{(x>>12)}.{(x>>8)&0xf}.{(x>>4)&0xf}{x&0xf:1X}'
-        # return f'V{x>>12}.{(x>>8)&0xf}.{(x>>4)&0xf}{val[0]&0xf}'
+        return f'V{(x >> 12)}.{(x >> 8) & 0xf}.{(x >> 4) & 0xf}{x & 0xf:1X}'
 
 
 class ClrAtMidnight:
