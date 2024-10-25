@@ -15,7 +15,7 @@ class RegisterMap:
     map = {
         # 0x41020007: {'reg': Register.DEVICE_SNR,           'fmt': '<L'},                 # noqa: E501
         0x41020018: {'reg': Register.DATA_UP_INTERVAL,     'fmt': '<B', 'ratio':   60, 'dep': ProxyMode.SERVER},  # noqa: E501
-        0x41020019: {'reg': Register.COLLECT_INTERVAL,     'fmt': '<B', 'eval': 'round(result/60)', 'dep': ProxyMode.SERVER},  # noqa: E501
+        0x41020019: {'reg': Register.COLLECT_INTERVAL,     'fmt': '<B', 'quotient': 60, 'dep': ProxyMode.SERVER},  # noqa: E501
         0x4102001a: {'reg': Register.HEARTBEAT_INTERVAL,   'fmt': '<B', 'ratio':    1},  # noqa: E501
         0x4102001c: {'reg': Register.SIGNAL_STRENGTH,      'fmt': '<B', 'ratio':    1, 'dep': ProxyMode.SERVER},  # noqa: E501
         0x4102001e: {'reg': Register.CHIP_MODEL,           'fmt': '!40s'},               # noqa: E501
@@ -32,7 +32,7 @@ class RegisterMap:
         0x420100d2: {'reg': Register.GRID_VOLTAGE,         'fmt': '!H', 'ratio':  0.1},  # noqa: E501
         0x420100d4: {'reg': Register.GRID_CURRENT,         'fmt': '!H', 'ratio': 0.01},  # noqa: E501
         0x420100d6: {'reg': Register.GRID_FREQUENCY,       'fmt': '!H', 'ratio': 0.01},  # noqa: E501
-        0x420100d8: {'reg': Register.INVERTER_TEMP,        'fmt': '!H', 'eval': 'result-40'},  # noqa: E501
+        0x420100d8: {'reg': Register.INVERTER_TEMP,        'fmt': '!H', 'offset': -40},  # noqa: E501
         # 0x420100d8: {'reg': Register.INVERTER_TEMP,        'fmt': '!H'},                 # noqa: E501
         0x420100dc: {'reg': Register.RATED_POWER,          'fmt': '!H', 'ratio':    1},  # noqa: E501
         0x420100de: {'reg': Register.OUTPUT_POWER,         'fmt': '!H', 'ratio':  0.1},  # noqa: E501
@@ -149,4 +149,8 @@ class InfosG3P(Infos):
             result = eval(row['eval'])
         if 'ratio' in row:
             result = round(result * row['ratio'], 2)
+        if 'quotient' in row:
+            result = round(result/row['quotient'])
+        if 'offset' in row:
+            result = result + row['offset']
         return result

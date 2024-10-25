@@ -259,6 +259,8 @@ def test_build_ha_conf4():
 def test_exception_and_eval(inverter_data: bytes):
 
     # add eval to convert temperature from °F to °C
+    ofs =     RegisterMap.map[0x420100d8]['offset']
+    del RegisterMap.map[0x420100d8]['offset']
     RegisterMap.map[0x420100d8]['eval'] =  '(result-32)/1.8'
     # map PV1_VOLTAGE to invalid register  
     RegisterMap.map[0x420100e0]['reg'] = Register.TEST_REG2
@@ -279,4 +281,5 @@ def test_exception_and_eval(inverter_data: bytes):
     for key, update in i.parse (inverter_data, 0x42, 1):
         pass  #  side effect is calling generator i.parse()
     assert 54 == i.get_db_value(Register.INVERTER_TEMP, 0)
- 
+
+    RegisterMap.map[0x420100d8]['offset'] = ofs
