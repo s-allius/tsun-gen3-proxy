@@ -44,6 +44,11 @@ class Modbus():
         0x202c: {'reg': Register.OUTPUT_COEFFICIENT,   'fmt': '!H', 'ratio':  100/1024},  # noqa: E501
 
         0x3000: {'reg': Register.INVERTER_STATUS,      'fmt': '!H'},                 # noqa: E501
+        0x3003: {'reg': Register.EVENT_ALARM,          'fmt': '!H'},                 # noqa: E501
+        0x3004: {'reg': Register.EVENT_FAULT,          'fmt': '!H'},                 # noqa: E501
+        0x3005: {'reg': Register.EVENT_BF1,            'fmt': '!H'},                 # noqa: E501
+        0x3006: {'reg': Register.EVENT_BF2,            'fmt': '!H'},                 # noqa: E501
+
         0x3008: {'reg': Register.VERSION,              'fmt': '!H', 'func': Fmt.version},  # noqa: E501
         0x3009: {'reg': Register.GRID_VOLTAGE,         'fmt': '!H', 'ratio':  0.1},  # noqa: E501
         0x300a: {'reg': Register.GRID_CURRENT,         'fmt': '!H', 'ratio': 0.01},  # noqa: E501

@@ -27,6 +27,10 @@ class RegisterMap:
         0x4201001c: {'reg': Register.POWER_ON_TIME,        'fmt': '<H', 'ratio':    1, 'dep': ProxyMode.SERVER},  # noqa: E501, or packet number
         0x42010020: {'reg': Register.SERIAL_NUMBER,        'fmt': '!16s'},               # noqa: E501
         0x420100c0: {'reg': Register.INVERTER_STATUS,      'fmt': '!H'},                 # noqa: E501
+        0x420100c6: {'reg': Register.EVENT_ALARM,          'fmt': '!H'},                 # noqa: E501
+        0x420100c8: {'reg': Register.EVENT_FAULT,          'fmt': '!H'},                 # noqa: E501
+        0x420100ca: {'reg': Register.EVENT_BF1,            'fmt': '!H'},                 # noqa: E501
+        0x420100cc: {'reg': Register.EVENT_BF2,            'fmt': '!H'},                 # noqa: E501
         0x420100d0: {'reg': Register.VERSION,              'fmt': '!H', 'func': Fmt.version},  # noqa: E501
         0x420100d2: {'reg': Register.GRID_VOLTAGE,         'fmt': '!H', 'ratio':  0.1},  # noqa: E501
         0x420100d4: {'reg': Register.GRID_CURRENT,         'fmt': '!H', 'ratio': 0.01},  # noqa: E501

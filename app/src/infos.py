@@ -100,22 +100,10 @@ class Register(Enum):
     IP_ADDRESS = 407
     POLLING_INTERVAL = 408
     SENSOR_LIST = 409
-    EVENT_401 = 500
-    EVENT_402 = 501
-    EVENT_403 = 502
-    EVENT_404 = 503
-    EVENT_405 = 504
-    EVENT_406 = 505
-    EVENT_407 = 506
-    EVENT_408 = 507
-    EVENT_409 = 508
-    EVENT_410 = 509
-    EVENT_411 = 510
-    EVENT_412 = 511
-    EVENT_413 = 512
-    EVENT_414 = 513
-    EVENT_415 = 514
-    EVENT_416 = 515
+    EVENT_ALARM = 500
+    EVENT_FAULT = 501
+    EVENT_BF1 = 502
+    EVENT_BF2 = 503
     TS_INPUT = 600
     TS_GRID = 601
     TS_TOTAL = 602
@@ -251,6 +239,99 @@ class Infos:
   {{ this.state }}
 {% endif %}
 '''
+    __inv_alarm_val_tpl = '''
+{% if 'Inverter_Alarm' in value_json and
+      value_json['Inverter_Alarm'] != None %}
+  {% set val_int = value_json['Inverter_Alarm'] | int %}
+  {% if val_int == 0 %}
+    {% set result = 'noAlarm'%}
+  {%else%}
+    {% set result = '' %}
+    {% if val_int | bitwise_and(1)%}{% set result = result + 'Bit1, '%}
+    {% endif %}
+    {% if val_int | bitwise_and(2)%}{% set result = result + 'Bit2, '%}
+    {% endif %}
+    {% if val_int | bitwise_and(3)%}{% set result = result + 'Bit3, '%}
+    {% endif %}
+    {% if val_int | bitwise_and(4)%}{% set result = result + 'Bit4, '%}
+    {% endif %}
+    {% if val_int | bitwise_and(5)%}{% set result = result + 'Bit5, '%}
+    {% endif %}
+    {% if val_int | bitwise_and(6)%}{% set result = result + 'Bit6, '%}
+    {% endif %}
+    {% if val_int | bitwise_and(7)%}{% set result = result + 'Bit7, '%}
+    {% endif %}
+    {% if val_int | bitwise_and(8)%}{% set result = result + 'Bit8, '%}
+    {% endif %}
+    {% if val_int | bitwise_and(9)%}{% set result = result + 'noUtility, '%}
+    {% endif %}
+    {% if val_int | bitwise_and(10)%}{% set result = result + 'Bit10, '%}
+    {% endif %}
+    {% if val_int | bitwise_and(11)%}{% set result = result + 'Bit11, '%}
+    {% endif %}
+    {% if val_int | bitwise_and(12)%}{% set result = result + 'Bit12, '%}
+    {% endif %}
+    {% if val_int | bitwise_and(13)%}{% set result = result + 'Bit13, '%}
+    {% endif %}
+    {% if val_int | bitwise_and(14)%}{% set result = result + 'Bit14, '%}
+    {% endif %}
+    {% if val_int | bitwise_and(15)%}{% set result = result + 'Bit15, '%}
+    {% endif %}
+    {% if val_int | bitwise_and(16)%}{% set result = result + 'Bit16, '%}
+    {% endif %}
+  {% endif %}
+  {{ result }}
+{% else %}
+  {{ this.state }}
+{% endif %}
+'''
+    __inv_fault_val_tpl = '''
+{% if 'Inverter_Fault' in value_json and
+      value_json['Inverter_Fault'] != None %}
+  {% set val_int = value_json['Inverter_Fault'] | int %}
+  {% if val_int == 0 %}
+    {% set result = 'noFault'%}
+  {%else%}
+    {% set result = '' %}
+    {% if val_int | bitwise_and(1)%}{% set result = result + 'Bit1, '%}
+    {% endif %}
+    {% if val_int | bitwise_and(2)%}{% set result = result + 'Bit2, '%}
+    {% endif %}
+    {% if val_int | bitwise_and(3)%}{% set result = result + 'Bit3, '%}
+    {% endif %}
+    {% if val_int | bitwise_and(4)%}{% set result = result + 'Bit4, '%}
+    {% endif %}
+    {% if val_int | bitwise_and(5)%}{% set result = result + 'Bit5, '%}
+    {% endif %}
+    {% if val_int | bitwise_and(6)%}{% set result = result + 'Bit6, '%}
+    {% endif %}
+    {% if val_int | bitwise_and(7)%}{% set result = result + 'Bit7, '%}
+    {% endif %}
+    {% if val_int | bitwise_and(8)%}{% set result = result + 'Bit8, '%}
+    {% endif %}
+    {% if val_int | bitwise_and(9)%}{% set result = result + 'Bit9, '%}
+    {% endif %}
+    {% if val_int | bitwise_and(10)%}{% set result = result + 'Bit10, '%}
+    {% endif %}
+    {% if val_int | bitwise_and(11)%}{% set result = result + 'Bit11, '%}
+    {% endif %}
+    {% if val_int | bitwise_and(12)%}{% set result = result + 'Bit12, '%}
+    {% endif %}
+    {% if val_int | bitwise_and(13)%}{% set result = result + 'Bit13, '%}
+    {% endif %}
+    {% if val_int | bitwise_and(14)%}{% set result = result + 'Bit14, '%}
+    {% endif %}
+    {% if val_int | bitwise_and(15)%}{% set result = result + 'Bit15, '%}
+    {% endif %}
+    {% if val_int | bitwise_and(16)%}{% set result = result + 'Bit16, '%}
+    {% endif %}
+  {% endif %}
+  {{ result }}
+{% else %}
+  {{ this.state }}
+{% endif %}
+'''
+
     __output_coef_val_tpl = "{% if 'Output_Coefficient' in value_json and value_json['Output_Coefficient'] != None %}{{value_json['Output_Coefficient']|string() +' %'}}{% else %}{{ this.state }}{% endif %}"  # noqa: E501
 
     __info_defs = {
@@ -303,22 +384,12 @@ class Infos:
         # 0xffffff03:  {'name':['proxy', 'Voltage'],                        'level': logging.DEBUG, 'unit': 'V',    'ha':{'dev':'proxy', 'dev_cla': 'voltage',     'stat_cla': 'measurement', 'id':'proxy_volt_',  'fmt':FMT_FLOAT,'name': 'Grid Voltage'}},  # noqa: E501
 
         # events
-        Register.EVENT_401:  {'name': ['events', '401_'],                          'level': logging.DEBUG, 'unit': ''},  # noqa: E501
-        Register.EVENT_402:  {'name': ['events', '402_'],                          'level': logging.DEBUG, 'unit': ''},  # noqa: E501
-        Register.EVENT_403:  {'name': ['events', '403_'],                          'level': logging.DEBUG, 'unit': ''},  # noqa: E501
-        Register.EVENT_404:  {'name': ['events', '404_'],                          'level': logging.DEBUG, 'unit': ''},  # noqa: E501
-        Register.EVENT_405:  {'name': ['events', '405_'],                          'level': logging.DEBUG, 'unit': ''},  # noqa: E501
-        Register.EVENT_406:  {'name': ['events', '406_'],                          'level': logging.DEBUG, 'unit': ''},  # noqa: E501
-        Register.EVENT_407:  {'name': ['events', '407_'],                          'level': logging.DEBUG, 'unit': ''},  # noqa: E501
-        Register.EVENT_408:  {'name': ['events', '408_'],                          'level': logging.DEBUG, 'unit': ''},  # noqa: E501
-        Register.EVENT_409:  {'name': ['events', '409_No_Utility'],                'level': logging.DEBUG, 'unit': ''},  # noqa: E501
-        Register.EVENT_410:  {'name': ['events', '410_'],                          'level': logging.DEBUG, 'unit': ''},  # noqa: E501
-        Register.EVENT_411:  {'name': ['events', '411_'],                          'level': logging.DEBUG, 'unit': ''},  # noqa: E501
-        Register.EVENT_412:  {'name': ['events', '412_'],                          'level': logging.DEBUG, 'unit': ''},  # noqa: E501
-        Register.EVENT_413:  {'name': ['events', '413_'],                          'level': logging.DEBUG, 'unit': ''},  # noqa: E501
-        Register.EVENT_414:  {'name': ['events', '414_'],                          'level': logging.DEBUG, 'unit': ''},  # noqa: E501
-        Register.EVENT_415:  {'name': ['events', '415_GridFreqOverRating'],        'level': logging.DEBUG, 'unit': ''},  # noqa: E501
-        Register.EVENT_416:  {'name': ['events', '416_'],                          'level': logging.DEBUG, 'unit': ''},  # noqa: E501
+        Register.EVENT_ALARM:  {'name': ['events', 'Inverter_Alarm'],              'level': logging.INFO, 'unit': '', 'ha': {'dev': 'inverter', 'comp': 'sensor', 'dev_cla': None, 'stat_cla': None, 'id': 'inv_alarm_', 'name': 'Inverter Alarm', 'val_tpl': __inv_alarm_val_tpl, 'icon': 'mdi:alarm-light'}},  # noqa: E501
+        Register.EVENT_FAULT:  {'name': ['events', 'Inverter_Fault'],              'level': logging.INFO, 'unit': '', 'ha': {'dev': 'inverter', 'comp': 'sensor', 'dev_cla': None, 'stat_cla': None, 'id': 'inv_fault_', 'name': 'Inverter Fault', 'val_tpl': __inv_fault_val_tpl, 'icon': 'mdi:alarm-light'}},  # noqa: E501
+        Register.EVENT_BF1:    {'name': ['events', 'Inverter_Bitfield_1'],         'level': logging.INFO, 'unit': ''},  # noqa: E501
+        Register.EVENT_BF2:    {'name': ['events', 'Inverter_bitfield_2'],         'level': logging.INFO, 'unit': ''},  # noqa: E501
+        # Register.EVENT_409:  {'name': ['events', '409_No_Utility'],                'level': logging.DEBUG, 'unit': ''},  # noqa: E501
+        # Register.EVENT_415:  {'name': ['events', '415_GridFreqOverRating'],        'level': logging.DEBUG, 'unit': ''},  # noqa: E501
 
         # grid measures:
         Register.TS_GRID:         {'name': ['grid', 'Timestamp'],                  'level': logging.INFO,  'unit': ''},  # noqa: E501

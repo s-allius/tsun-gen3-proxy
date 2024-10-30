@@ -100,6 +100,7 @@ def test_parse_4210(inverter_data: bytes):
          "controller": {"Sensor_List": "02b0", "Power_On_Time": 2051}, 
          "inverter": {"Serial_Number": "Y17E00000000000E", "Version": "V4.0.10", "Rated_Power": 600, "Max_Designed_Power": 2000, "Output_Coefficient": 100.0}, 
          "env": {"Inverter_Status": 1, "Inverter_Temp": 14}, 
+         "events": {"Inverter_Alarm": 0, "Inverter_Fault": 0, "Inverter_Bitfield_1": 0, "Inverter_bitfield_2": 0},
          "grid": {"Voltage": 224.8, "Current": 0.73, "Frequency": 50.05, "Output_Power": 165.8}, 
          "input": {"pv1": {"Voltage": 35.3, "Current": 1.68, "Power": 59.6, "Daily_Generation": 0.04, "Total_Generation": 30.76}, 
                    "pv2": {"Voltage": 34.6, "Current": 1.38, "Power": 48.4, "Daily_Generation": 0.03, "Total_Generation": 27.91}, 
