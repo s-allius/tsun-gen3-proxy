@@ -43,6 +43,8 @@ class Register(Enum):
     RATED_POWER = 84
     INVERTER_TEMP = 85
     INVERTER_STATUS = 86
+    DETECT_STATUS_1 = 87
+    DETECT_STATUS_2 = 88
     PV1_VOLTAGE = 100
     PV1_CURRENT = 101
     PV1_POWER = 102
@@ -85,6 +87,10 @@ class Register(Enum):
     PV5_TOTAL_GENERATION = 241
     PV6_DAILY_GENERATION = 250
     PV6_TOTAL_GENERATION = 251
+    INV_UNKNOWN_1 = 252
+    BOOT_STATUS = 253
+    DSP_STATUS = 254
+
     GRID_VOLTAGE = 300
     GRID_CURRENT = 301
     GRID_FREQUENCY = 302
@@ -100,6 +106,7 @@ class Register(Enum):
     IP_ADDRESS = 407
     POLLING_INTERVAL = 408
     SENSOR_LIST = 409
+    SSID = 410
     EVENT_ALARM = 500
     EVENT_FAULT = 501
     EVENT_BF1 = 502
@@ -132,17 +139,54 @@ class Fmt:
         return result
 
     @staticmethod
-    def hex4(val):
-        return f'{val[0]:04x}'
+    def hex4(val: tuple | str, reverse=False) -> str | int:
+        if not reverse:
+            return f'{val[0]:04x}'
+        else:
+            return int(val, 16)
 
     @staticmethod
-    def mac(val):
-        return "%02x:%02x:%02x:%02x:%02x:%02x" % val
+    def mac(val: tuple | str, reverse=False) -> str | tuple:
+        if not reverse:
+            return "%02x:%02x:%02x:%02x:%02x:%02x" % val
+        else:
+            return (
+                int(val[0:2], 16), int(val[3:5], 16),
+                int(val[6:8], 16), int(val[9:11], 16),
+                int(val[12:14], 16), int(val[15:], 16))
 
     @staticmethod
-    def version(val):
-        x = val[0]
-        return f'V{(x >> 12)}.{(x >> 8) & 0xf}.{(x >> 4) & 0xf}{x & 0xf:1X}'
+    def version(val: tuple | str, reverse=False) -> str | int:
+        if not reverse:
+            x = val[0]
+            return f'V{(x >> 12)}.{(x >> 8) & 0xf}' \
+                f'.{(x >> 4) & 0xf}{x & 0xf:1X}'
+        else:
+            arr = val[1:].split('.')
+            return int(arr[0], 10) << 12 | \
+                int(arr[1], 10) << 8 | \
+                int(arr[2][:-1], 10) << 4 | \
+                int(arr[2][-1:], 16)
+
+    @staticmethod
+    def set_value(buf: bytearray, idx: int, row: dict, val):
+        '''Get a value from buf and interpret as in row defined'''
+        fmt = row['fmt']
+        if 'offset' in row:
+            val = val - row['offset']
+        if 'quotient' in row:
+            val = round(val * row['quotient'])
+        if 'ratio' in row:
+            val = round(val / row['ratio'])
+        if 'func' in row:
+            val = row['func'](val, reverse=True)
+        if isinstance(val, str):
+            val = bytes(val, 'UTF8')
+
+        if isinstance(val, tuple):
+            struct.pack_into(fmt, buf, idx, *val)
+        else:
+            struct.pack_into(fmt, buf, idx, val)
 
 
 class ClrAtMidnight:
@@ -367,7 +411,8 @@ class Infos:
         Register.PV5_MODEL:        {'name': ['inverter', 'PV5_Model'],             'level': logging.DEBUG, 'unit': ''},  # noqa: E501
         Register.PV6_MANUFACTURER: {'name': ['inverter', 'PV6_Manufacturer'],      'level': logging.DEBUG, 'unit': ''},  # noqa: E501
         Register.PV6_MODEL:        {'name': ['inverter', 'PV6_Model'],             'level': logging.DEBUG, 'unit': ''},  # noqa: E501
-
+        Register.BOOT_STATUS:      {'name': ['inverter', 'BOOT_STATUS'],           'level': logging.DEBUG, 'unit': ''},  # noqa: E501
+        Register.DSP_STATUS:       {'name': ['inverter', 'DSP_STATUS'],            'level': logging.DEBUG, 'unit': ''},  # noqa: E501
         # proxy:
         Register.INVERTER_CNT:       {'name': ['proxy', 'Inverter_Cnt'],       'singleton': True,   'ha': {'dev': 'proxy', 'comp': 'sensor', 'dev_cla': None, 'stat_cla': None, 'id': 'inv_count_',     'fmt': FMT_INT, 'name': 'Active Inverter Connections',    'icon': COUNTER}},  # noqa: E501
         Register.UNKNOWN_SNR:        {'name': ['proxy', 'Unknown_SNR'],        'singleton': True,   'ha': {'dev': 'proxy', 'comp': 'sensor', 'dev_cla': None, 'stat_cla': None, 'id': 'unknown_snr_',   'fmt': FMT_INT, 'name': 'Unknown Serial No',    'icon': COUNTER, 'ent_cat': 'diagnostic'}},  # noqa: E501
@@ -399,6 +444,8 @@ class Infos:
         Register.OUTPUT_POWER:    {'name': ['grid', 'Output_Power'],               'level': logging.INFO,  'unit': 'W',    'ha': {'dev': 'inverter', 'dev_cla': 'power',       'stat_cla': 'measurement', 'id': 'out_power_', 'fmt': FMT_FLOAT, 'name': 'Power'}},  # noqa: E501
         Register.INVERTER_TEMP:   {'name': ['env',  'Inverter_Temp'],              'level': logging.DEBUG, 'unit': '°C',   'ha': {'dev': 'inverter', 'dev_cla': 'temperature', 'stat_cla': 'measurement', 'id': 'temp_',       'fmt': FMT_INT, 'name': 'Temperature'}},  # noqa: E501
         Register.INVERTER_STATUS: {'name': ['env',  'Inverter_Status'],            'level': logging.INFO,  'unit': '',     'ha': {'dev': 'inverter', 'comp': 'sensor', 'dev_cla': None, 'stat_cla': None, 'id': 'inv_status_', 'name': 'Inverter Status', 'val_tpl': __status_type_val_tpl,          'icon': 'mdi:power'}},  # noqa: E501
+        Register.DETECT_STATUS_1: {'name': ['env',  'Detect_Status_1'],            'level': logging.DEBUG, 'unit': ''},  # noqa: E501
+        Register.DETECT_STATUS_2: {'name': ['env',  'Detect_Status_2'],            'level': logging.DEBUG, 'unit': ''},  # noqa: E501
 
         # input measures:
         Register.TS_INPUT:     {'name': ['input', 'Timestamp'],                    'level': logging.INFO,  'unit': ''},  # noqa: E501
@@ -448,6 +495,10 @@ class Infos:
         Register.IP_ADDRESS:         {'name': ['controller', 'IP_Address'],         'level': logging.DEBUG, 'unit': '',     'ha': {'dev': 'controller', 'dev_cla': None,       'stat_cla': None,          'id': 'ip_address_',           'fmt': '| string',        'name': 'IP Address', 'icon': WIFI, 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.POLLING_INTERVAL:   {'name': ['controller', 'Polling_Interval'],   'level': logging.DEBUG, 'unit': 's',    'ha': {'dev': 'controller', 'dev_cla': None,       'stat_cla': None,          'id': 'polling_intval_', 'fmt': FMT_STRING_SEC, 'name': 'Polling Interval', 'icon': UPDATE, 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.SENSOR_LIST:        {'name': ['controller', 'Sensor_List'],        'level': logging.INFO,  'unit': ''},  # noqa: E501
+        Register.SSID:               {'name': ['controller', 'WiFi_SSID'],          'level': logging.DEBUG,  'unit': ''},  # noqa: E501
+
+        Register.INV_UNKNOWN_1:      {'name': ['inv_unknown', 'Unknown_1'],          'level': logging.DEBUG, 'unit': ''},  # noqa: E501
+
     }
 
     @property
@@ -757,6 +808,8 @@ class Infos:
 
     def get_db_value(self, id: Register, not_found_result: any = None):
         '''get database value'''
+        if id not in self.info_defs:
+            return not_found_result
         row = self.info_defs[id]
         if isinstance(row, dict):
             keys = row['name']

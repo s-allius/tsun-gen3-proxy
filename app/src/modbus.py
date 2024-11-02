@@ -40,10 +40,14 @@ class Modbus():
 
     __crc_tab = []
     mb_reg_mapping = {
+        0x2000: {'reg': Register.BOOT_STATUS,          'fmt': '!H'},                 # noqa: E501
+        0x2001: {'reg': Register.DSP_STATUS,           'fmt': '!H'},                 # noqa: E501
         0x2007: {'reg': Register.MAX_DESIGNED_POWER,   'fmt': '!H', 'ratio':  1},  # noqa: E501
         0x202c: {'reg': Register.OUTPUT_COEFFICIENT,   'fmt': '!H', 'ratio':  100/1024},  # noqa: E501
 
         0x3000: {'reg': Register.INVERTER_STATUS,      'fmt': '!H'},                 # noqa: E501
+        0x3001: {'reg': Register.DETECT_STATUS_1,      'fmt': '!H'},                 # noqa: E501
+        0x3002: {'reg': Register.DETECT_STATUS_2,      'fmt': '!H'},                 # noqa: E501
         0x3003: {'reg': Register.EVENT_ALARM,          'fmt': '!H'},                 # noqa: E501
         0x3004: {'reg': Register.EVENT_FAULT,          'fmt': '!H'},                 # noqa: E501
         0x3005: {'reg': Register.EVENT_BF1,            'fmt': '!H'},                 # noqa: E501
@@ -79,6 +83,7 @@ class Modbus():
         0x3026: {'reg': Register.PV3_TOTAL_GENERATION, 'fmt': '!L', 'ratio': 0.01},  # noqa: E501
         0x3028: {'reg': Register.PV4_DAILY_GENERATION, 'fmt': '!H', 'ratio': 0.01},  # noqa: E501
         0x3029: {'reg': Register.PV4_TOTAL_GENERATION, 'fmt': '!L', 'ratio': 0.01},  # noqa: E501
+        # 0x302a
     }
 
     def __init__(self, snd_handler: Callable[[bytes, int, str], None],
