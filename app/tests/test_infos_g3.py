@@ -501,10 +501,10 @@ def test_new_data_types(inv_data_new):
         else:
             assert False
 
-    assert tests==15
+    assert tests==5
     assert json.dumps(i.db['inverter']) == json.dumps({"Manufacturer": 0})
     assert json.dumps(i.db['input']) == json.dumps({"pv1": {}})
-    assert json.dumps(i.db['events']) == json.dumps({"401_": 0, "404_": 0, "405_": 0, "408_": 0, "409_No_Utility": 0, "406_": 0, "416_": 0})
+    assert json.dumps(i.db['events']) == json.dumps({"Inverter_Alarm": 0, "Inverter_Fault": 0})
 
 def test_invalid_data_type(invalid_data_seq):
     i = InfosG3()
