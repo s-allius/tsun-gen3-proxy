@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+- add SolarmanV5 messages builder
+- report inverter alarms and faults per MQTT [#7](https://github.com/s-allius/tsun-gen3-proxy/issues/7)
+
 ## [0.11.0] - 2024-10-13
 
 - fix healthcheck on infrastructure with IPv6 support [#196](https://github.com/s-allius/tsun-gen3-proxy/issues/196)
