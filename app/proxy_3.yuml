@@ -2,12 +2,12 @@
 // {direction:topDown}
 // {generate:true}
 
-[note: Example of instantiation for a GEN3 inverter!{bg:cornsilk}]
+[note: Example of instantiation for a GEN3PLUS inverter!{bg:cornsilk}]
 [<<AbstractIterMeta>>||__iter__()]
 
-[InverterG3|addr;remote:StreamPtr;local:StreamPtr|create_remote();;close()]
-[InverterG3]++->[local:StreamPtr]
-[InverterG3]++->[remote:StreamPtr]
+[InverterG3P|addr;remote:StreamPtr;local:StreamPtr|create_remote();;close()]
+[InverterG3P]++->[local:StreamPtr]
+[InverterG3P]++->[remote:StreamPtr]
 
 [<<AsyncIfc>>||set_node_id();get_conn_no();;tx_add();tx_flush();tx_get();tx_peek();tx_log();tx_clear();tx_len();;fwd_add();fwd_log();rx_get();rx_peek();rx_log();rx_clear();rx_len();rx_set_cb();;prot_set_timeout_cb()]
 [AsyncIfcImpl|fwd_fifo:ByteFifo;tx_fifo:ByteFifo;rx_fifo:ByteFifo;conn_no:Count;node_id;timeout_cb]
@@ -19,17 +19,16 @@
 [AsyncStream]^[AsyncStreamServer]
 [AsyncStream]^[AsyncStreamClient]
 
-
-[Talent|conn_no;addr;;await_conn_resp_cnt;id_str;contact_name;contact_mail;db:InfosG3;mb:Modbus;switch|msg_contact_info();msg_ota_update();msg_get_time();msg_collector_data();msg_inverter_data();msg_unknown();;healthy();close()]
-[Talent]<-++[local:StreamPtr]
+[SolarmanV5|conn_no;addr;;control;serial;snr;db:InfosG3P;switch|msg_unknown();;healthy();close()]
+[SolarmanV5]<-++[local:StreamPtr]
 [local:StreamPtr]++->[AsyncStreamServer]
-[Talent]<-0..1[remote:StreamPtr]
+[SolarmanV5]<-0..1[remote:StreamPtr]
 [remote:StreamPtr]0..1->[AsyncStreamClient]
 
 [Infos|stat;new_stat_data;info_dev|static_init();dev_value();inc_counter();dec_counter();ha_proxy_conf;ha_conf;ha_remove;update_db;set_db_def_value;get_db_value;ignore_this_device]
-[Infos]^[InfosG3||ha_confs();parse()]
+[Infos]^[InfosG3P||ha_confs();parse()]
 
-[Talent]->[InfosG3]
+[SolarmanV5]->[InfosG3P]
 
 [Message|server_side:bool;mb:Modbus;ifc:AsyncIfc;node_id;header_valid:bool;header_len;data_len;unique_id;sug_area:str;new_data:dict;state:State;shutdown_started:bool;modbus_elms;mb_timer:Timer;mb_timeout;mb_first_timeout;modbus_polling:bool|_set_mqtt_timestamp();_timeout();_send_modbus_cmd();<async> end_modbus_cmd();close();inc_counter();dec_counter()]
 [Message]use->[<<AsyncIfc>>]
@@ -37,7 +36,7 @@
 [<<ProtocolIfc>>|_registry|close()]
 [<<AbstractIterMeta>>]^-.-[<<ProtocolIfc>>]
 [<<ProtocolIfc>>]^-.-[Message]
-[Message]^[Talent]
+[Message]^[SolarmanV5]
 
 [Modbus|que;;snd_handler;rsp_handler;timeout;max_retires;last_xxx;err;retry_cnt;req_pend;tim|build_msg();recv_req();recv_resp();close()]
 [Modbus]<0..1-has[Message]

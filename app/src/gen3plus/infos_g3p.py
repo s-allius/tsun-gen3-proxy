@@ -1,39 +1,58 @@
 
-import struct
 from typing import Generator
 
 if __name__ == "app.src.gen3plus.infos_g3p":
-    from app.src.infos import Infos, Register, ProxyMode
+    from app.src.infos import Infos, Register, ProxyMode, Fmt
 else:  # pragma: no cover
-    from infos import Infos, Register, ProxyMode
+    from infos import Infos, Register, ProxyMode, Fmt
 
 
 class RegisterMap:
     # make the class read/only by using __slots__
     __slots__ = ()
 
+    FMT_2_16BIT_VAL = '!HH'
+    FMT_3_16BIT_VAL = '!HHH'
+    FMT_4_16BIT_VAL = '!HHHH'
+
     map = {
         # 0x41020007: {'reg': Register.DEVICE_SNR,           'fmt': '<L'},                 # noqa: E501
         0x41020018: {'reg': Register.DATA_UP_INTERVAL,     'fmt': '<B', 'ratio':   60, 'dep': ProxyMode.SERVER},  # noqa: E501
-        0x41020019: {'reg': Register.COLLECT_INTERVAL,     'fmt': '<B', 'eval': 'round(result/60)', 'dep': ProxyMode.SERVER},  # noqa: E501
+        0x41020019: {'reg': Register.COLLECT_INTERVAL,     'fmt': '<B', 'quotient': 60, 'dep': ProxyMode.SERVER},  # noqa: E501
         0x4102001a: {'reg': Register.HEARTBEAT_INTERVAL,   'fmt': '<B', 'ratio':    1},  # noqa: E501
+        0x4102001b: {'reg': None,                          'fmt': '<B', 'const':    1},  # noqa: E501
         0x4102001c: {'reg': Register.SIGNAL_STRENGTH,      'fmt': '<B', 'ratio':    1, 'dep': ProxyMode.SERVER},  # noqa: E501
+        0x4102001d: {'reg': None,                          'fmt': '<B', 'const':    1},  # noqa: E501
         0x4102001e: {'reg': Register.CHIP_MODEL,           'fmt': '!40s'},               # noqa: E501
-        0x41020046: {'reg': Register.MAC_ADDR,             'fmt': '!BBBBBB', 'eval': '"%02x:%02x:%02x:%02x:%02x:%02x" % res'},  # noqa: E501
+        0x41020046: {'reg': Register.MAC_ADDR,             'fmt': '!6B', 'func': Fmt.mac},  # noqa: E501
         0x4102004c: {'reg': Register.IP_ADDRESS,           'fmt': '!16s'},               # noqa: E501
-        0x4102005f: {'reg': Register.SENSOR_LIST,          'fmt': '<H', 'eval': "f'{result:04x}'"},                 # noqa: E501
+        0x4102005c: {'reg': None,                          'fmt': '<B', 'const':   15},  # noqa: E501
+        0x4102005e: {'reg': None,                          'fmt': '<B', 'const':    1},  # noqa: E501
+        0x4102005f: {'reg': Register.SENSOR_LIST,          'fmt': '<H', 'func': Fmt.hex4},   # noqa: E501
+        0x41020061: {'reg': None,                          'fmt': '<BBB', 'const':  (15, 0, 255)},  # noqa: E501
         0x41020064: {'reg': Register.COLLECTOR_FW_VERSION, 'fmt': '!40s'},               # noqa: E501
+        0x4102008c: {'reg': None,                          'fmt': '<BB', 'const':    (254, 254)},  # noqa: E501
+        0x410200b7: {'reg': Register.SSID,                 'fmt': '!40s'},               # noqa: E501
 
-        0x4201000c: {'reg': Register.SENSOR_LIST,          'fmt': '<H', 'eval': "f'{result:04x}'"},                 # noqa: E501
+        0x4201000c: {'reg': Register.SENSOR_LIST,          'fmt': '<H', 'func': Fmt.hex4},   # noqa: E501
         0x4201001c: {'reg': Register.POWER_ON_TIME,        'fmt': '<H', 'ratio':    1, 'dep': ProxyMode.SERVER},  # noqa: E501, or packet number
         0x42010020: {'reg': Register.SERIAL_NUMBER,        'fmt': '!16s'},               # noqa: E501
+
+        # Start MODBUS Block: 0x3000 (R/O Measurements)
         0x420100c0: {'reg': Register.INVERTER_STATUS,      'fmt': '!H'},                 # noqa: E501
-        0x420100d0: {'reg': Register.VERSION,              'fmt': '!H', 'eval': "f'V{(result>>12)}.{(result>>8)&0xf}.{(result>>4)&0xf}{result&0xf}'"},  # noqa: E501
+        0x420100c2: {'reg': Register.DETECT_STATUS_1,      'fmt': '!H'},                 # noqa: E501
+        0x420100c4: {'reg': Register.DETECT_STATUS_2,      'fmt': '!H'},                 # noqa: E501
+        0x420100c6: {'reg': Register.EVENT_ALARM,          'fmt': '!H'},                 # noqa: E501
+        0x420100c8: {'reg': Register.EVENT_FAULT,          'fmt': '!H'},                 # noqa: E501
+        0x420100ca: {'reg': Register.EVENT_BF1,            'fmt': '!H'},                 # noqa: E501
+        0x420100cc: {'reg': Register.EVENT_BF2,            'fmt': '!H'},                 # noqa: E501
+        # 0x420100ce
+        0x420100d0: {'reg': Register.VERSION,              'fmt': '!H', 'func': Fmt.version},  # noqa: E501
         0x420100d2: {'reg': Register.GRID_VOLTAGE,         'fmt': '!H', 'ratio':  0.1},  # noqa: E501
         0x420100d4: {'reg': Register.GRID_CURRENT,         'fmt': '!H', 'ratio': 0.01},  # noqa: E501
         0x420100d6: {'reg': Register.GRID_FREQUENCY,       'fmt': '!H', 'ratio': 0.01},  # noqa: E501
-        0x420100d8: {'reg': Register.INVERTER_TEMP,        'fmt': '!H', 'eval': 'result-40'},  # noqa: E501
-        # 0x420100d8: {'reg': Register.INVERTER_TEMP,        'fmt': '!H'},                 # noqa: E501
+        0x420100d8: {'reg': Register.INVERTER_TEMP,        'fmt': '!H', 'offset': -40},  # noqa: E501
+        # 0x420100da
         0x420100dc: {'reg': Register.RATED_POWER,          'fmt': '!H', 'ratio':    1},  # noqa: E501
         0x420100de: {'reg': Register.OUTPUT_POWER,         'fmt': '!H', 'ratio':  0.1},  # noqa: E501
         0x420100e0: {'reg': Register.PV1_VOLTAGE,          'fmt': '!H', 'ratio':  0.1},  # noqa: E501
@@ -58,12 +77,34 @@ class RegisterMap:
         0x4201010c: {'reg': Register.PV3_TOTAL_GENERATION, 'fmt': '!L', 'ratio': 0.01},  # noqa: E501
         0x42010110: {'reg': Register.PV4_DAILY_GENERATION, 'fmt': '!H', 'ratio': 0.01},  # noqa: E501
         0x42010112: {'reg': Register.PV4_TOTAL_GENERATION, 'fmt': '!L', 'ratio': 0.01},  # noqa: E501
-        0x42010126: {'reg': Register.MAX_DESIGNED_POWER,   'fmt': '!H', 'ratio':    1},  # noqa: E501
+        0x42010116: {'reg': Register.INV_UNKNOWN_1,        'fmt': '!H'},                 # noqa: E501
 
+        # Start MODBUS Block: 0x2000 (R/W Config Paramaneters)
+        0x42010118: {'reg': Register.BOOT_STATUS,          'fmt': '!H'},                 # noqa: E501
+        0x4201011a: {'reg': Register.DSP_STATUS,           'fmt': '!H'},                 # noqa: E501
+        0x4201011c: {'reg': None,                          'fmt': FMT_2_16BIT_VAL, 'const':   (1, 0)},  # noqa: E501
+        0x42010124: {'reg': None,                          'fmt': '!H', 'const':    0xffff},  # noqa: E501
+        0x42010126: {'reg': Register.MAX_DESIGNED_POWER,   'fmt': '!H', 'ratio':    1},  # noqa: E501
+        0x42010128: {'reg': None,                          'fmt': '!H', 'const':    3},  # noqa: E501
+        0x4201012a: {'reg': None,                          'fmt': FMT_3_16BIT_VAL, 'const':  (1024, 1024, 1024)},  # noqa: E501
+        0x42010130: {'reg': None,                          'fmt': FMT_4_16BIT_VAL, 'const': (1024, 1, 0xffff, 1)},  # noqa: E501
+        0x42010138: {'reg': None,                          'fmt': FMT_4_16BIT_VAL, 'const': (6, 0x68, 0x68, 0x500)},  # noqa: E501
+        0x42010140: {'reg': None,                          'fmt': FMT_4_16BIT_VAL, 'const': (0x9cd, 0x7b6, 0x139c, 0x1324)},  # noqa: E501
+        0x42010148: {'reg': None,                          'fmt': FMT_4_16BIT_VAL, 'const': (1, 0x7ae, 0x40f, 0x41)},  # noqa: E501
+        0x42010150: {'reg': None,                          'fmt': FMT_4_16BIT_VAL, 'const': (0xf, 0xa64, 0xa64, 0x6)},  # noqa: E501
+        0x42010158: {'reg': None,                          'fmt': FMT_4_16BIT_VAL, 'const': (0x6, 0x9f6, 0x128c, 0x128c)},  # noqa: E501
+        0x42010160: {'reg': None,                          'fmt': FMT_4_16BIT_VAL, 'const': (0x10, 0x10, 0x1452, 0x1452)},  # noqa: E501
+        0x42010168: {'reg': None,                          'fmt': FMT_4_16BIT_VAL, 'const': (0x10, 0x10, 0x151, 0x5)},  # noqa: E501
         0x42010170: {'reg': Register.OUTPUT_COEFFICIENT,   'fmt': '!H', 'ratio':  100/1024},  # noqa: E501
+        0x42010172: {'reg': None,                          'fmt': FMT_3_16BIT_VAL, 'const':  (0x1, 0x139c, 0xfa0)},  # noqa: E501
+        0x42010178: {'reg': None,                          'fmt': FMT_4_16BIT_VAL, 'const': (0x4e, 0x66, 0x3e8, 0x400)},  # noqa: E501
+        0x42010180: {'reg': None,                          'fmt': FMT_4_16BIT_VAL, 'const': (0x9ce, 0x7a8, 0x139c, 0x1326)},  # noqa: E501
+        0x42010188: {'reg': None,                          'fmt': FMT_4_16BIT_VAL, 'const': (0x0, 0x0, 0x0, 0)},  # noqa: E501
+        0x42010190: {'reg': None,                          'fmt': FMT_4_16BIT_VAL, 'const': (0x0, 0x0, 1024, 1024)},  # noqa: E501
+        0x4201019a: {'reg': None,                          'fmt': FMT_2_16BIT_VAL, 'const':   (0, 0xffff)},  # noqa: E501
+
         0xffffff02: {'reg': Register.POLLING_INTERVAL},
         # 0x4281001c: {'reg': Register.POWER_ON_TIME,        'fmt': '<H', 'ratio':    1},  # noqa: E501
-
     }
 
 
@@ -123,7 +164,7 @@ class InfosG3P(Infos):
             if not isinstance(row, dict):
                 continue
             info_id = row['reg']
-            result = self.__get_value(buf, addr, row)
+            result = Fmt.get_value(buf, addr, row)
 
             keys, level, unit, must_incr = self._key_obj(info_id)
 
@@ -138,15 +179,22 @@ class InfosG3P(Infos):
                 self.tracer.log(level, f'[{node_id}] GEN3PLUS: {name}'
                                        f' : {result}{unit}')
 
-    def __get_value(self, buf, idx, row):
-        '''Get a value from buf and interpret as in row'''
-        fmt = row['fmt']
-        res = struct.unpack_from(fmt, buf, idx)
-        result = res[0]
-        if isinstance(result, (bytearray, bytes)):
-            result = result.decode().split('\x00')[0]
-        if 'eval' in row:
-            result = eval(row['eval'])
-        if 'ratio' in row:
-            result = round(result * row['ratio'], 2)
-        return result
+    def build(self, len, msg_type: int, rcv_ftype: int):
+        buf = bytearray(len)
+        for idx, row in RegisterMap.map.items():
+            addr = idx & 0xffff
+            ftype = (idx >> 16) & 0xff
+            mtype = (idx >> 24) & 0xff
+            if ftype != rcv_ftype or mtype != msg_type:
+                continue
+            if not isinstance(row, dict):
+                continue
+            if 'const' in row:
+                val = row['const']
+            else:
+                info_id = row['reg']
+                val = self.get_db_value(info_id)
+            if not val:
+                continue
+            Fmt.set_value(buf, addr, row, val)
+        return buf

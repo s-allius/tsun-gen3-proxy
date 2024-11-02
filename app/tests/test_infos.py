@@ -3,7 +3,7 @@ import pytest
 import json, math
 import logging
 from app.src.infos import Register, ClrAtMidnight
-from app.src.infos import Infos
+from app.src.infos import Infos, Fmt
 
 def test_statistic_counter():
     i = Infos()
@@ -256,3 +256,24 @@ def test_key_obj():
     assert level == logging.DEBUG
     assert unit == 'kWh'
     assert must_incr == True
+
+def test_hex4_cnv():
+    tst_val = (0x12ef, )
+    string = Fmt.hex4(tst_val)
+    assert string == '12ef'
+    val = Fmt.hex4(string, reverse=True)
+    assert val == tst_val[0]
+
+def test_mac_cnv():
+    tst_val = (0x12, 0x34,  0x67, 0x89, 0xcd, 0xef)
+    string = Fmt.mac(tst_val)
+    assert string == '12:34:67:89:cd:ef'
+    val = Fmt.mac(string, reverse=True)
+    assert val == tst_val
+
+def test_version_cnv():
+    tst_val = (0x123f, )
+    string = Fmt.version(tst_val)
+    assert string == 'V1.2.3F'
+    val = Fmt.version(string, reverse=True)
+    assert val == tst_val[0]

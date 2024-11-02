@@ -221,7 +221,6 @@ class AsyncStream(AsyncIfcImpl):
 
     async def disc(self) -> None:
         """Async disc handler for graceful disconnect"""
-        self.remote = None
         if self._writer.is_closing():
             return
         logger.debug(f'AsyncStream.disc() l{self.l_addr} | r{self.r_addr}')
@@ -369,6 +368,11 @@ class AsyncStreamClient(AsyncStream):
                  rstream: "StreamPtr", close_cb) -> None:
         AsyncStream.__init__(self, reader, writer, rstream)
         self.close_cb = close_cb
+
+    async def disc(self) -> None:
+        logging.debug('AsyncStreamClient.disc()')
+        self.remote = None
+        await super().disc()
 
     def close(self) -> None:
         logging.debug('AsyncStreamClient.close()')

@@ -17,9 +17,9 @@ import asyncio
 from typing import Generator, Callable
 
 if __name__ == "app.src.modbus":
-    from app.src.infos import Register
+    from app.src.infos import Register, Fmt
 else:  # pragma: no cover
-    from infos import Register
+    from infos import Register, Fmt
 
 logger = logging.getLogger('data')
 
@@ -40,15 +40,24 @@ class Modbus():
 
     __crc_tab = []
     mb_reg_mapping = {
+        0x2000: {'reg': Register.BOOT_STATUS,          'fmt': '!H'},                 # noqa: E501
+        0x2001: {'reg': Register.DSP_STATUS,           'fmt': '!H'},                 # noqa: E501
         0x2007: {'reg': Register.MAX_DESIGNED_POWER,   'fmt': '!H', 'ratio':  1},  # noqa: E501
         0x202c: {'reg': Register.OUTPUT_COEFFICIENT,   'fmt': '!H', 'ratio':  100/1024},  # noqa: E501
 
         0x3000: {'reg': Register.INVERTER_STATUS,      'fmt': '!H'},                 # noqa: E501
-        0x3008: {'reg': Register.VERSION,              'fmt': '!H', 'eval': "f'V{(result>>12)}.{(result>>8)&0xf}.{(result>>4)&0xf}{result&0xf:1X}'"},  # noqa: E501
+        0x3001: {'reg': Register.DETECT_STATUS_1,      'fmt': '!H'},                 # noqa: E501
+        0x3002: {'reg': Register.DETECT_STATUS_2,      'fmt': '!H'},                 # noqa: E501
+        0x3003: {'reg': Register.EVENT_ALARM,          'fmt': '!H'},                 # noqa: E501
+        0x3004: {'reg': Register.EVENT_FAULT,          'fmt': '!H'},                 # noqa: E501
+        0x3005: {'reg': Register.EVENT_BF1,            'fmt': '!H'},                 # noqa: E501
+        0x3006: {'reg': Register.EVENT_BF2,            'fmt': '!H'},                 # noqa: E501
+
+        0x3008: {'reg': Register.VERSION,              'fmt': '!H', 'func': Fmt.version},  # noqa: E501
         0x3009: {'reg': Register.GRID_VOLTAGE,         'fmt': '!H', 'ratio':  0.1},  # noqa: E501
         0x300a: {'reg': Register.GRID_CURRENT,         'fmt': '!H', 'ratio': 0.01},  # noqa: E501
         0x300b: {'reg': Register.GRID_FREQUENCY,       'fmt': '!H', 'ratio': 0.01},  # noqa: E501
-        0x300c: {'reg': Register.INVERTER_TEMP,        'fmt': '!H', 'eval': 'result-40'},  # noqa: E501
+        0x300c: {'reg': Register.INVERTER_TEMP,        'fmt': '!H', 'offset': -40},  # noqa: E501
         # 0x300d
         0x300e: {'reg': Register.RATED_POWER,          'fmt': '!H', 'ratio':    1},  # noqa: E501
         0x300f: {'reg': Register.OUTPUT_POWER,         'fmt': '!H', 'ratio':  0.1},  # noqa: E501
@@ -74,6 +83,7 @@ class Modbus():
         0x3026: {'reg': Register.PV3_TOTAL_GENERATION, 'fmt': '!L', 'ratio': 0.01},  # noqa: E501
         0x3028: {'reg': Register.PV4_DAILY_GENERATION, 'fmt': '!H', 'ratio': 0.01},  # noqa: E501
         0x3029: {'reg': Register.PV4_TOTAL_GENERATION, 'fmt': '!L', 'ratio': 0.01},  # noqa: E501
+        # 0x302a
     }
 
     def __init__(self, snd_handler: Callable[[bytes, int, str], None],
@@ -229,17 +239,6 @@ class Modbus():
 
         return False
 
-    def __get_value(self, buf: bytes, idx: int, row: dict):
-        '''get a value from the received buffer'''
-        val = struct.unpack_from(row['fmt'], buf, idx)
-        result = val[0]
-
-        if 'eval' in row:
-            result = eval(row['eval'])
-        if 'ratio' in row:
-            result = round(result * row['ratio'], 2)
-        return result
-
     def __process_data(self, info_db, buf: bytes, first_reg, elmlen):
         '''Generator over received registers, updates the db'''
         for i in range(0, elmlen):
@@ -249,7 +248,7 @@ class Modbus():
                 info_id = row['reg']
                 keys, level, unit, must_incr = info_db._key_obj(info_id)
                 if keys:
-                    result = self.__get_value(buf, 3+2*i, row)
+                    result = Fmt.get_value(buf, 3+2*i, row)
                     name, update = info_db.update_db(keys, must_incr,
                                                      result)
                     yield keys[0], update, result

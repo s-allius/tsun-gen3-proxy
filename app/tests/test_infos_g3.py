@@ -501,10 +501,10 @@ def test_new_data_types(inv_data_new):
         else:
             assert False
 
-    assert tests==15
+    assert tests==5
     assert json.dumps(i.db['inverter']) == json.dumps({"Manufacturer": 0})
     assert json.dumps(i.db['input']) == json.dumps({"pv1": {}})
-    assert json.dumps(i.db['events']) == json.dumps({"401_": 0, "404_": 0, "405_": 0, "408_": 0, "409_No_Utility": 0, "406_": 0, "416_": 0})
+    assert json.dumps(i.db['events']) == json.dumps({"Inverter_Alarm": 0, "Inverter_Fault": 0})
 
 def test_invalid_data_type(invalid_data_seq):
     i = InfosG3()
@@ -520,15 +520,3 @@ def test_invalid_data_type(invalid_data_seq):
 
     val = i.dev_value(Register.INVALID_DATA_TYPE)  # check invalid data type counter
     assert val == 1
-
-def test_result_eval(inv_data_seq2: bytes):
-
-    # add eval to convert temperature from °F to °C
-    RegisterMap.map[0x00000514]['eval'] =  '(result-32)/1.8'
-
-    i = InfosG3()
-    
-    for _, _ in i.parse (inv_data_seq2):
-        pass  #  side effect is calling generator i.parse()
-    assert math.isclose(-5.0, round (i.get_db_value(Register.INVERTER_TEMP, 0),4), rel_tol=1e-09, abs_tol=1e-09)
-    del RegisterMap.map[0x00000514]['eval'] # remove eval

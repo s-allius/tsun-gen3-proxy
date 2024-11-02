@@ -70,22 +70,10 @@ class RegisterMap:
         0x000d0020: {'reg': Register.COLLECT_INTERVAL},
         0x000cf850: {'reg': Register.DATA_UP_INTERVAL},
         0x000c7f38: {'reg': Register.COMMUNICATION_TYPE},
-        0x00000191: {'reg': Register.EVENT_401},
-        0x00000192: {'reg': Register.EVENT_402},
-        0x00000193: {'reg': Register.EVENT_403},
-        0x00000194: {'reg': Register.EVENT_404},
-        0x00000195: {'reg': Register.EVENT_405},
-        0x00000196: {'reg': Register.EVENT_406},
-        0x00000197: {'reg': Register.EVENT_407},
-        0x00000198: {'reg': Register.EVENT_408},
-        0x00000199: {'reg': Register.EVENT_409},
-        0x0000019a: {'reg': Register.EVENT_410},
-        0x0000019b: {'reg': Register.EVENT_411},
-        0x0000019c: {'reg': Register.EVENT_412},
-        0x0000019d: {'reg': Register.EVENT_413},
-        0x0000019e: {'reg': Register.EVENT_414},
-        0x0000019f: {'reg': Register.EVENT_415},
-        0x000001a0: {'reg': Register.EVENT_416},
+        0x00000190: {'reg': Register.EVENT_ALARM},
+        0x000001f4: {'reg': Register.EVENT_FAULT},
+        0x00000258: {'reg': Register.EVENT_BF1},
+        0x000002bc: {'reg': Register.EVENT_BF2},
         0x00000064: {'reg': Register.INVERTER_STATUS},
         0x0000125c: {'reg': Register.MAX_DESIGNED_POWER},
         0x00003200: {'reg': Register.OUTPUT_COEFFICIENT, 'ratio':  100/1024},
@@ -183,11 +171,8 @@ class InfosG3(Infos):
             i += 1
 
     def __modify_val(self, row, result):
-        if row:
-            if 'eval' in row:
-                result = eval(row['eval'])
-            if 'ratio' in row:
-                result = round(result * row['ratio'], 2)
+        if row and 'ratio' in row:
+            result = round(result * row['ratio'], 2)
         return result
 
     def __store_result(self, addr, result, info_id, node_id):
