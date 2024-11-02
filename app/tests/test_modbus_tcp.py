@@ -52,6 +52,10 @@ def config_conn(test_hostname, test_port):
                             'proxy_node_id': 'test_1',
                             'proxy_unique_id': ''
                         },
+                        'solarman':{
+                            'host': 'access1.solarmanpv.com',
+                            'port': 10000
+                        },
                         'inverters':{
                             'allow_all': True,
                             "R170000000000001":{

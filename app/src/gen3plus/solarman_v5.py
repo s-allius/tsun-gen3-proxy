@@ -48,7 +48,30 @@ class Sequence():
         return f'{self.rcv_idx:02x}:{self.snd_idx:02x}'
 
 
-class SolarmanV5(Message):
+class SolarmanBase(Message):
+    def __init__(self, addr, ifc: "AsyncIfc", server_side: bool,
+                 send_modbus_cb, mb_timeout: int):
+        super().__init__('G3P', ifc, server_side, send_modbus_cb,
+                         mb_timeout)
+        self.addr = addr
+        self.conn_no = ifc.get_conn_no()
+
+
+class SolarmanEmu(SolarmanBase):
+    def __init__(self, addr, ifc: "AsyncIfc",
+                 server_side: bool, client_mode: bool):
+        super().__init__(addr, ifc, server_side,
+                         send_modbus_cb=None,
+                         mb_timeout=8)
+        ifc.prot_set_init_new_client_conn_cb(self._init_new_client_conn)
+        logging.info('SolarmanEmu.init()')
+
+    def _init_new_client_conn(self) -> bool:
+        logging.info('SolarmanEmu.init_new()')
+        return False
+
+
+class SolarmanV5(SolarmanBase):
     AT_CMD = 1
     MB_RTU_CMD = 2
     MB_CLIENT_DATA_UP = 30
@@ -58,15 +81,13 @@ class SolarmanV5(Message):
 
     def __init__(self, addr, ifc: "AsyncIfc",
                  server_side: bool, client_mode: bool):
-        super().__init__('G3P', ifc, server_side, self.send_modbus_cb,
+        super().__init__(addr, ifc, server_side, self.send_modbus_cb,
                          mb_timeout=8)
         ifc.rx_set_cb(self.read)
         ifc.prot_set_timeout_cb(self._timeout)
         ifc.prot_set_init_new_client_conn_cb(self._init_new_client_conn)
         ifc.prot_set_update_header_cb(self._update_header)
 
-        self.addr = addr
-        self.conn_no = ifc.get_conn_no()
         self.header_len = 11  # overwrite construcor in class Message
         self.control = 0
         self.seq = Sequence(server_side)
@@ -165,6 +186,9 @@ class SolarmanV5(Message):
         self.state = State.up
         self._send_modbus_cmd(Modbus.READ_REGS, 0x3000, 48, logging.DEBUG)
         self.mb_timer.start(self.mb_timeout)
+
+        if not self.ifc.remote.stream:
+            await self.ifc.create_remote()  # fixe don't call directly
 
     def new_state_up(self):
         if self.state is not State.up:

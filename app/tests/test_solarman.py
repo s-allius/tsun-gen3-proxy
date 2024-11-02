@@ -37,6 +37,9 @@ class FakeIfc(AsyncIfcImpl):
         super().__init__()
         self.remote = StreamPtr(None)
 
+    async def create_remote(self):
+        await asyncio.sleep(0)
+
 class MemoryStream(SolarmanV5):
     def __init__(self, msg, chunks = (0,), server_side: bool = True):
         _ifc = FakeIfc()
