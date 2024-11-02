@@ -11,6 +11,10 @@ class RegisterMap:
     # make the class read/only by using __slots__
     __slots__ = ()
 
+    FMT_2_16BIT_VAL = '!HH'
+    FMT_3_16BIT_VAL = '!HHH'
+    FMT_4_16BIT_VAL = '!HHHH'
+
     map = {
         # 0x41020007: {'reg': Register.DEVICE_SNR,           'fmt': '<L'},                 # noqa: E501
         0x41020018: {'reg': Register.DATA_UP_INTERVAL,     'fmt': '<B', 'ratio':   60, 'dep': ProxyMode.SERVER},  # noqa: E501
@@ -78,26 +82,26 @@ class RegisterMap:
         # Start MODBUS Block: 0x2000 (R/W Config Paramaneters)
         0x42010118: {'reg': Register.BOOT_STATUS,          'fmt': '!H'},                 # noqa: E501
         0x4201011a: {'reg': Register.DSP_STATUS,           'fmt': '!H'},                 # noqa: E501
-        0x4201011c: {'reg': None,                          'fmt': '!HH', 'const':   (1, 0)},  # noqa: E501
+        0x4201011c: {'reg': None,                          'fmt': FMT_2_16BIT_VAL, 'const':   (1, 0)},  # noqa: E501
         0x42010124: {'reg': None,                          'fmt': '!H', 'const':    0xffff},  # noqa: E501
         0x42010126: {'reg': Register.MAX_DESIGNED_POWER,   'fmt': '!H', 'ratio':    1},  # noqa: E501
         0x42010128: {'reg': None,                          'fmt': '!H', 'const':    3},  # noqa: E501
-        0x4201012a: {'reg': None,                          'fmt': '!HHH', 'const':  (1024, 1024, 1024)},  # noqa: E501
-        0x42010130: {'reg': None,                          'fmt': '!HHHH', 'const': (1024, 1, 0xffff, 1)},  # noqa: E501
-        0x42010138: {'reg': None,                          'fmt': '!HHHH', 'const': (6, 0x68, 0x68, 0x500)},  # noqa: E501
-        0x42010140: {'reg': None,                          'fmt': '!HHHH', 'const': (0x9cd, 0x7b6, 0x139c, 0x1324)},  # noqa: E501
-        0x42010148: {'reg': None,                          'fmt': '!HHHH', 'const': (1, 0x7ae, 0x40f, 0x41)},  # noqa: E501
-        0x42010150: {'reg': None,                          'fmt': '!HHHH', 'const': (0xf, 0xa64, 0xa64, 0x6)},  # noqa: E501
-        0x42010158: {'reg': None,                          'fmt': '!HHHH', 'const': (0x6, 0x9f6, 0x128c, 0x128c)},  # noqa: E501
-        0x42010160: {'reg': None,                          'fmt': '!HHHH', 'const': (0x10, 0x10, 0x1452, 0x1452)},  # noqa: E501
-        0x42010168: {'reg': None,                          'fmt': '!HHHH', 'const': (0x10, 0x10, 0x151, 0x5)},  # noqa: E501
+        0x4201012a: {'reg': None,                          'fmt': FMT_3_16BIT_VAL, 'const':  (1024, 1024, 1024)},  # noqa: E501
+        0x42010130: {'reg': None,                          'fmt': FMT_4_16BIT_VAL, 'const': (1024, 1, 0xffff, 1)},  # noqa: E501
+        0x42010138: {'reg': None,                          'fmt': FMT_4_16BIT_VAL, 'const': (6, 0x68, 0x68, 0x500)},  # noqa: E501
+        0x42010140: {'reg': None,                          'fmt': FMT_4_16BIT_VAL, 'const': (0x9cd, 0x7b6, 0x139c, 0x1324)},  # noqa: E501
+        0x42010148: {'reg': None,                          'fmt': FMT_4_16BIT_VAL, 'const': (1, 0x7ae, 0x40f, 0x41)},  # noqa: E501
+        0x42010150: {'reg': None,                          'fmt': FMT_4_16BIT_VAL, 'const': (0xf, 0xa64, 0xa64, 0x6)},  # noqa: E501
+        0x42010158: {'reg': None,                          'fmt': FMT_4_16BIT_VAL, 'const': (0x6, 0x9f6, 0x128c, 0x128c)},  # noqa: E501
+        0x42010160: {'reg': None,                          'fmt': FMT_4_16BIT_VAL, 'const': (0x10, 0x10, 0x1452, 0x1452)},  # noqa: E501
+        0x42010168: {'reg': None,                          'fmt': FMT_4_16BIT_VAL, 'const': (0x10, 0x10, 0x151, 0x5)},  # noqa: E501
         0x42010170: {'reg': Register.OUTPUT_COEFFICIENT,   'fmt': '!H', 'ratio':  100/1024},  # noqa: E501
-        0x42010172: {'reg': None,                          'fmt': '!HHH', 'const':  (0x1, 0x139c, 0xfa0)},  # noqa: E501
-        0x42010178: {'reg': None,                          'fmt': '!HHHH', 'const': (0x4e, 0x66, 0x3e8, 0x400)},  # noqa: E501
-        0x42010180: {'reg': None,                          'fmt': '!HHHH', 'const': (0x9ce, 0x7a8, 0x139c, 0x1326)},  # noqa: E501
-        0x42010188: {'reg': None,                          'fmt': '!HHHH', 'const': (0x0, 0x0, 0x0, 0)},  # noqa: E501
-        0x42010190: {'reg': None,                          'fmt': '!HHHH', 'const': (0x0, 0x0, 1024, 1024)},  # noqa: E501
-        0x4201019a: {'reg': None,                          'fmt': '!HH', 'const':   (0, 0xffff)},  # noqa: E501
+        0x42010172: {'reg': None,                          'fmt': FMT_3_16BIT_VAL, 'const':  (0x1, 0x139c, 0xfa0)},  # noqa: E501
+        0x42010178: {'reg': None,                          'fmt': FMT_4_16BIT_VAL, 'const': (0x4e, 0x66, 0x3e8, 0x400)},  # noqa: E501
+        0x42010180: {'reg': None,                          'fmt': FMT_4_16BIT_VAL, 'const': (0x9ce, 0x7a8, 0x139c, 0x1326)},  # noqa: E501
+        0x42010188: {'reg': None,                          'fmt': FMT_4_16BIT_VAL, 'const': (0x0, 0x0, 0x0, 0)},  # noqa: E501
+        0x42010190: {'reg': None,                          'fmt': FMT_4_16BIT_VAL, 'const': (0x0, 0x0, 1024, 1024)},  # noqa: E501
+        0x4201019a: {'reg': None,                          'fmt': FMT_2_16BIT_VAL, 'const':   (0, 0xffff)},  # noqa: E501
 
         0xffffff02: {'reg': Register.POLLING_INTERVAL},
         # 0x4281001c: {'reg': Register.POWER_ON_TIME,        'fmt': '<H', 'ratio':    1},  # noqa: E501
