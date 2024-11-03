@@ -20,14 +20,14 @@ class RegisterMap:
         0x41020018: {'reg': Register.DATA_UP_INTERVAL,     'fmt': '<B', 'ratio':   60, 'dep': ProxyMode.SERVER},  # noqa: E501
         0x41020019: {'reg': Register.COLLECT_INTERVAL,     'fmt': '<B', 'quotient': 60, 'dep': ProxyMode.SERVER},  # noqa: E501
         0x4102001a: {'reg': Register.HEARTBEAT_INTERVAL,   'fmt': '<B', 'ratio':    1},  # noqa: E501
-        0x4102001b: {'reg': None,                          'fmt': '<B', 'const':    1},  # noqa: E501
+        0x4102001b: {'reg': None,                          'fmt': '<B', 'const':    1},  # noqa: E501 Max No Of Connected Devices
         0x4102001c: {'reg': Register.SIGNAL_STRENGTH,      'fmt': '<B', 'ratio':    1, 'dep': ProxyMode.SERVER},  # noqa: E501
         0x4102001d: {'reg': None,                          'fmt': '<B', 'const':    1},  # noqa: E501
         0x4102001e: {'reg': Register.CHIP_MODEL,           'fmt': '!40s'},               # noqa: E501
         0x41020046: {'reg': Register.MAC_ADDR,             'fmt': '!6B', 'func': Fmt.mac},  # noqa: E501
         0x4102004c: {'reg': Register.IP_ADDRESS,           'fmt': '!16s'},               # noqa: E501
         0x4102005c: {'reg': None,                          'fmt': '<B', 'const':   15},  # noqa: E501
-        0x4102005e: {'reg': None,                          'fmt': '<B', 'const':    1},  # noqa: E501
+        0x4102005e: {'reg': None,                          'fmt': '<B', 'const':    1},  # noqa: E501 No Of Sensors (ListLen)
         0x4102005f: {'reg': Register.SENSOR_LIST,          'fmt': '<H', 'func': Fmt.hex4},   # noqa: E501
         0x41020061: {'reg': None,                          'fmt': '<BBB', 'const':  (15, 0, 255)},  # noqa: E501
         0x41020064: {'reg': Register.COLLECTOR_FW_VERSION, 'fmt': '!40s'},               # noqa: E501

@@ -69,7 +69,8 @@ def config_conn(test_hostname, test_port):
                                 'sensor_list': 0x2b0,
                                 'client_mode':{
                                     'host': '192.168.0.1', 
-                                    'port': 8899
+                                    'port': 8899,
+                                    'forward': True
                                 }  
                             }
                         }

@@ -144,7 +144,7 @@ async def test_mqtt_publish(config_conn, patch_open_connection):
     with InverterG3P(FakeReader(), FakeWriter(), client_mode=False) as inverter:
         stream = inverter.local.stream
         await inverter.async_publ_mqtt()  # check call with invalid unique_id   
-        stream._SolarmanV5__set_serial_no(snr= 123344)
+        stream._set_serial_no(snr= 123344)
 
         stream.new_data['inverter'] = True
         stream.db.db['inverter'] = {}
@@ -171,7 +171,7 @@ async def test_mqtt_err(config_conn, patch_open_connection, patch_mqtt_err):
 
     with InverterG3P(FakeReader(), FakeWriter(), client_mode=False) as inverter:
         stream = inverter.local.stream
-        stream._SolarmanV5__set_serial_no(snr= 123344)    
+        stream._set_serial_no(snr= 123344)    
         stream.new_data['inverter'] = True
         stream.db.db['inverter'] = {}
         await inverter.async_publ_mqtt()
@@ -188,7 +188,7 @@ async def test_mqtt_except(config_conn, patch_open_connection, patch_mqtt_except
 
     with InverterG3P(FakeReader(), FakeWriter(), client_mode=False) as inverter:
         stream = inverter.local.stream
-        stream._SolarmanV5__set_serial_no(snr= 123344)
+        stream._set_serial_no(snr= 123344)
 
         stream.new_data['inverter'] = True
         stream.db.db['inverter'] = {}

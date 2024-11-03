@@ -57,15 +57,16 @@ class ModbusTcp():
                 # logging.info(f"SerialNo:{inv['monitor_sn']} host:{client['host']} port:{client['port']}")  # noqa: E501
                 loop.create_task(self.modbus_loop(client['host'],
                                                   client['port'],
-                                                  inv['monitor_sn']))
+                                                  inv['monitor_sn'],
+                                                  client['forward']))
 
-    async def modbus_loop(self, host, port, snr: int) -> None:
+    async def modbus_loop(self, host, port, snr: int, forward: bool) -> None:
         '''Loop for receiving messages from the TSUN cloud (client-side)'''
         while True:
             try:
                 async with ModbusConn(host, port) as inverter:
                     stream = inverter.local.stream
-                    await stream.send_start_cmd(snr, host)
+                    await stream.send_start_cmd(snr, host, forward)
                     await stream.ifc.loop()
                     logger.info(f'[{stream.node_id}:{stream.conn_no}] '
                                 f'Connection closed - Shutdown: '
