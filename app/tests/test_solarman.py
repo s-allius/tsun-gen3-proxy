@@ -1105,7 +1105,7 @@ def test_sync_start_ind(config_tsun_inv1, sync_start_ind_msg, sync_start_rsp_msg
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
 
     m.seq.server_side = False  # simulate forawding to TSUN cloud
-    m._update_header(m.ifc.fwd_fifo.peek())
+    m._SolarmanBase__update_header(m.ifc.fwd_fifo.peek())
     assert str(m.seq) == '0d:0e'  # value after forwarding indication
     assert m.ifc.fwd_fifo.get()==sync_start_fwd_msg
 

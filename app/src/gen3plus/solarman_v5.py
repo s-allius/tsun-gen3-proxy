@@ -56,7 +56,7 @@ class SolarmanBase(Message):
         ifc.rx_set_cb(self.read)
         ifc.prot_set_timeout_cb(self._timeout)
         ifc.prot_set_init_new_client_conn_cb(self._init_new_client_conn)
-        ifc.prot_set_update_header_cb(self._update_header)
+        ifc.prot_set_update_header_cb(self.__update_header)
         self.addr = addr
         self.conn_no = ifc.get_conn_no()
         self.header_len = 11  # overwrite construcor in class Message
@@ -80,7 +80,7 @@ class SolarmanBase(Message):
             else:
                 return 0  # wait 0s before sending a response
     '''
-    Our private methods
+    Our public methods
     '''
     def _flow_str(self, server_side: bool, type: str):  # noqa: F821
         switch = {
@@ -116,7 +116,10 @@ class SolarmanBase(Message):
             self.send_msg_ofs+1:self.send_msg_ofs + _len]) & 0xff
         self.ifc.tx_add(struct.pack('<BB', check, 0x15))    # crc & stop
 
-    def _update_header(self, _forward_buffer):
+    '''
+    Our private methods
+    '''
+    def __update_header(self, _forward_buffer):
         '''update header for message before forwarding,
         set sequence and checksum'''
         _len = len(_forward_buffer)
@@ -132,9 +135,6 @@ class SolarmanBase(Message):
             struct.pack_into('<B', _forward_buffer, ofs+data_len+11, check)
             ofs += (13 + data_len)
 
-    '''
-    Our private methods
-    '''
     def __process_complete_received_msg(self):
         log_lvl = self.log_lvl.get(self.control, logging.WARNING)
         if callable(log_lvl):
@@ -233,99 +233,6 @@ class SolarmanBase(Message):
         logger.debug(f'ts: {dt.strftime("%Y-%m-%d %H:%M:%S")}')
 
 
-class SolarmanEmu(SolarmanBase):
-    def __init__(self, addr, ifc: "AsyncIfc",
-                 server_side: bool, client_mode: bool):
-        super().__init__(addr, ifc, server_side,
-                         self.send_modbus_cb,
-                         mb_timeout=8)
-        logging.info('SolarmanEmu.init()')
-        self.switch = {
-
-            # 0x4210: self.msg_data_ind,   # real time data
-            0x1210: self.msg_response,   # at least every 5 minutes
-
-            # 0x4710: self.msg_hbeat_ind,  # heatbeat
-            0x1710: self.msg_response,   # every 2 minutes
-
-            # every 3 hours comes a sync seuqence:
-            # 00:00:00  0x4110   device data     ftype: 0x02
-            # 00:00:02  0x4210   real time data  ftype: 0x01
-            # 00:00:03  0x4210   real time data  ftype: 0x81
-            # 00:00:05  0x4310   wifi data       ftype: 0x81    sub-id 0x0018: 0c   # noqa: E501
-            # 00:00:06  0x4310   wifi data       ftype: 0x81    sub-id 0x0018: 1c   # noqa: E501
-            # 00:00:07  0x4310   wifi data       ftype: 0x01    sub-id 0x0018: 0c   # noqa: E501
-            # 00:00:08  0x4810   options?        ftype: 0x01
-
-            # 0x4110: self.msg_dev_ind,     # device data, sync start
-            0x1110: self.msg_response,    # every 3 hours
-
-            # 0x4310: self.msg_sync_start,  # regulary after 3-6 hours
-            0x1310: self.msg_response,
-            # 0x4810: self.msg_sync_end,    # sync end
-            0x1810: self.msg_response,
-
-            #
-            # MODbus or AT cmd
-            # 0x4510: self.msg_command_req,  # from server
-            # 0x1510: self.msg_command_rsp,     # from inverter
-            # 0x0510: self.msg_command_rsp,     # from inverter
-        }
-
-        self.log_lvl = {
-
-            0x4210: logging.INFO,   # real time data
-            0x1210: logging.INFO,   # at least every 5 minutes
-
-            0x4710: logging.DEBUG,  # heatbeat
-            0x1710: logging.DEBUG,  # every 2 minutes
-
-            0x4110: logging.INFO,   # device data, sync start
-            0x1110: logging.INFO,   # every 3 hours
-
-            0x4310: logging.INFO,   # regulary after 3-6 hours
-            0x1310: logging.INFO,
-
-            0x4810: logging.INFO,   # sync end
-            0x1810: logging.INFO,
-
-            #
-            # MODbus or AT cmd
-            0x4510: logging.INFO,  # from server
-            0x1510: logging.INFO,  # self.get_cmd_rsp_log_lvl,
-        }
-
-    '''
-    Our puplic methods
-    '''
-    def close(self) -> None:
-        logging.info('SolarmanEmu.close()')
-        # we have references to methods of this class in self.switch
-        # so we have to erase self.switch, otherwise this instance can't be
-        # deallocated by the garbage collector ==> we get a memory leak
-        self.switch.clear()
-        self.log_lvl.clear()
-        super().close()
-
-    def _set_serial_no(self, snr: int):
-        return
-
-    def _init_new_client_conn(self) -> bool:
-        logging.info('SolarmanEmu.init_new()')
-        return False
-
-    '''
-    Message handler methods
-    '''
-    def msg_unknown(self):
-        logger.warning(f"Unknow Msg: ID:{int(self.control):#04x}")
-        self.inc_counter('Unknown_Msg')
-
-    def send_modbus_cb(self, pdu: bytearray, log_lvl: int, state: str):
-        logger.warning(f'[{self.node_id}] ignore MODBUS cmd,'
-                       ' cause we are in EMU mode')
-
-
 class SolarmanV5(SolarmanBase):
     AT_CMD = 1
     MB_RTU_CMD = 2
@@ -343,6 +250,8 @@ class SolarmanV5(SolarmanBase):
         self.forward_at_cmd_resp = False
         self.no_forwarding = False
         '''not allowed to connect to TSUN cloud by connection type'''
+        self.establish_inv_emu = False
+        '''create an Solarman EMU instance to send data to the TSUN cloud'''
         self.switch = {
 
             0x4210: self.msg_data_ind,   # real time data
@@ -420,6 +329,7 @@ class SolarmanV5(SolarmanBase):
                              forward: bool,
                              start_timeout=MB_CLIENT_DATA_UP):
         self.no_forwarding = True
+        self.establish_inv_emu = forward
         self.snr = snr
         self._set_serial_no(snr)
         self.mb_timeout = start_timeout
@@ -436,17 +346,6 @@ class SolarmanV5(SolarmanBase):
         self._send_modbus_cmd(Modbus.READ_REGS, 0x3000, 48, logging.DEBUG)
         self.mb_timer.start(self.mb_timeout)
 
-        if not forward:
-            return
-        # self.ifc.fwd_add(
-        #     struct.pack('<BHHHLBBB', 0xA5, 1, 0x4710, 0, snr, 0, 0, 0x15))
-        _len = 223
-        build_msg = self.db.build(_len, 0x41, 2)
-        struct.pack_into(
-            '<BHHHLB', build_msg, 0, 0xA5, _len-11, 0x4110, 0, snr, 2)
-        self.ifc.fwd_add(build_msg)
-        self.ifc.fwd_add(struct.pack('<BB', 0, 0x15))    # crc & stop
-
     def new_state_up(self):
         if self.state is not State.up:
             self.state = State.up
@@ -454,6 +353,18 @@ class SolarmanV5(SolarmanBase):
                 self.mb_timer.start(self.mb_first_timeout)
                 self.db.set_db_def_value(Register.POLLING_INTERVAL,
                                          self.mb_timeout)
+
+    def establish_emu(self):
+        # self.ifc.fwd_add(
+        #     struct.pack('<BHHHLBBB', 0xA5, 1,
+        #  0x4710, 0, snr, 0, 0, 0x15))
+        _len = 223
+        build_msg = self.db.build(_len, 0x41, 2)
+        struct.pack_into(
+            '<BHHHLB', build_msg, 0, 0xA5, _len-11, 0x4110,
+            0, self.snr, 2)
+        self.ifc.fwd_add(build_msg)
+        self.ifc.fwd_add(struct.pack('<BB', 0, 0x15))    # crc & stop
 
     def __set_config_parms(self, inv: dict):
         '''init connection with params from the configuration'''
@@ -739,6 +650,18 @@ class SolarmanV5(SolarmanBase):
             return
         self.__forward_msg()
 
+    def __parse_modbus_rsp(self, data):
+        inv_update = False
+        self.modbus_elms = 0
+        for key, update, _ in self.mb.recv_resp(self.db, data[14:]):
+            self.modbus_elms += 1
+            if update:
+                if key == 'inverter':
+                    inv_update = True
+                self._set_mqtt_timestamp(key, self._timestamp())
+                self.new_data[key] = True
+        return inv_update
+
     def __modbus_command_rsp(self, data):
         '''precess MODBUS RTU response'''
         valid = data[1]
@@ -746,17 +669,12 @@ class SolarmanV5(SolarmanBase):
         # logger.debug(f'modbus_len:{modbus_msg_len} accepted:{valid}')
         if valid == 1 and modbus_msg_len > 4:
             # logger.info(f'first byte modbus:{data[14]}')
-            inv_update = False
-            self.modbus_elms = 0
-            for key, update, _ in self.mb.recv_resp(self.db, data[14:]):
-                self.modbus_elms += 1
-                if update:
-                    if key == 'inverter':
-                        inv_update = True
-                    self._set_mqtt_timestamp(key, self._timestamp())
-                    self.new_data[key] = True
+            inv_update = self.__parse_modbus_rsp(data)
             if inv_update:
                 self.__build_model_name()
+
+            if self.establish_inv_emu and not self.ifc.remote.stream:
+                self.establish_emu()
 
     def msg_hbeat_ind(self):
         data = self.ifc.rx_peek()[self.header_len:]
