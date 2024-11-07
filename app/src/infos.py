@@ -39,6 +39,7 @@ class Register(Enum):
     AT_COMMAND = 59
     MODBUS_COMMAND = 60
     AT_COMMAND_BLOCKED = 61
+    CLOUD_CONN_CNT = 62
     OUTPUT_POWER = 83
     RATED_POWER = 84
     INVERTER_TEMP = 85
@@ -415,6 +416,7 @@ class Infos:
         Register.DSP_STATUS:       {'name': ['inverter', 'DSP_STATUS'],            'level': logging.DEBUG, 'unit': ''},  # noqa: E501
         # proxy:
         Register.INVERTER_CNT:       {'name': ['proxy', 'Inverter_Cnt'],       'singleton': True,   'ha': {'dev': 'proxy', 'comp': 'sensor', 'dev_cla': None, 'stat_cla': None, 'id': 'inv_count_',     'fmt': FMT_INT, 'name': 'Active Inverter Connections',    'icon': COUNTER}},  # noqa: E501
+        Register.CLOUD_CONN_CNT:     {'name': ['proxy', 'Cloud_Conn_Cnt'],     'singleton': True,   'ha': {'dev': 'proxy', 'comp': 'sensor', 'dev_cla': None, 'stat_cla': None, 'id': 'cloud_conn_count_', 'fmt': FMT_INT, 'name': 'Active Cloud Connections',    'icon': COUNTER}},  # noqa: E501
         Register.UNKNOWN_SNR:        {'name': ['proxy', 'Unknown_SNR'],        'singleton': True,   'ha': {'dev': 'proxy', 'comp': 'sensor', 'dev_cla': None, 'stat_cla': None, 'id': 'unknown_snr_',   'fmt': FMT_INT, 'name': 'Unknown Serial No',    'icon': COUNTER, 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.UNKNOWN_MSG:        {'name': ['proxy', 'Unknown_Msg'],        'singleton': True,   'ha': {'dev': 'proxy', 'comp': 'sensor', 'dev_cla': None, 'stat_cla': None, 'id': 'unknown_msg_',   'fmt': FMT_INT, 'name': 'Unknown Msg Type',     'icon': COUNTER, 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.INVALID_DATA_TYPE:  {'name': ['proxy', 'Invalid_Data_Type'],  'singleton': True,   'ha': {'dev': 'proxy', 'comp': 'sensor', 'dev_cla': None, 'stat_cla': None, 'id': 'inv_data_type_', 'fmt': FMT_INT, 'name': 'Invalid Data Type',    'icon': COUNTER, 'ent_cat': 'diagnostic'}},  # noqa: E501
