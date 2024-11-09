@@ -116,6 +116,15 @@ class SolarmanBase(Message):
             self.send_msg_ofs+1:self.send_msg_ofs + _len]) & 0xff
         self.ifc.tx_add(struct.pack('<BB', check, 0x15))    # crc & stop
 
+    def _timestamp(self):
+        # utc as epoche
+        return int(time.time())    # pragma: no cover
+
+    def _emu_timestamp(self):
+        '''timestamp for an emulated inverter (realtime - 1 day)'''
+        one_day = 24*60*60
+        return self._timestamp()-one_day
+
     '''
     Our private methods
     '''
@@ -231,6 +240,7 @@ class SolarmanBase(Message):
 
         dt = datetime.fromtimestamp(ts)
         logger.debug(f'ts: {dt.strftime("%Y-%m-%d %H:%M:%S")}')
+        return ftype, valid, ts, set_hb
 
 
 class SolarmanV5(SolarmanBase):
@@ -325,7 +335,7 @@ class SolarmanV5(SolarmanBase):
         self.log_lvl.clear()
         super().close()
 
-    async def send_start_cmd(self, snr: int, host: str,
+    async def send_start_cmd(self, dev_snr: str, snr: int, host: str,
                              forward: bool,
                              start_timeout=MB_CLIENT_DATA_UP):
         self.no_forwarding = True
@@ -333,9 +343,14 @@ class SolarmanV5(SolarmanBase):
         self.snr = snr
         self._set_serial_no(snr)
         self.mb_timeout = start_timeout
+        self.db.set_db_def_value(Register.SERIAL_NUMBER, dev_snr)
         self.db.set_db_def_value(Register.IP_ADDRESS, host)
         self.db.set_db_def_value(Register.POLLING_INTERVAL,
                                  self.mb_timeout)
+        self.db.set_db_def_value(Register.DATA_UP_INTERVAL,
+                                 300)
+        self.db.set_db_def_value(Register.COLLECT_INTERVAL,
+                                 1)
         self.db.set_db_def_value(Register.HEARTBEAT_INTERVAL,
                                  120)
         self.db.set_db_def_value(Register.SENSOR_LIST,
@@ -355,14 +370,11 @@ class SolarmanV5(SolarmanBase):
                                          self.mb_timeout)
 
     def establish_emu(self):
-        # self.ifc.fwd_add(
-        #     struct.pack('<BHHHLBBB', 0xA5, 1,
-        #  0x4710, 0, snr, 0, 0, 0x15))
         _len = 223
         build_msg = self.db.build(_len, 0x41, 2)
         struct.pack_into(
-            '<BHHHLB', build_msg, 0, 0xA5, _len-11, 0x4110,
-            0, self.snr, 2)
+            '<BHHHLBL', build_msg, 0, 0xA5, _len-11, 0x4110,
+            0, self.snr, 2, self._emu_timestamp())
         self.ifc.fwd_add(build_msg)
         self.ifc.fwd_add(struct.pack('<BB', 0, 0x15))    # crc & stop
 
@@ -422,10 +434,6 @@ class SolarmanV5(SolarmanBase):
 
     def _init_new_client_conn(self) -> bool:
         return False
-
-    def _timestamp(self):
-        # utc as epoche
-        return int(time.time())    # pragma: no cover
 
     def _heartbeat(self) -> int:
         return 60                  # pragma: no cover
