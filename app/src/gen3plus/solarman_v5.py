@@ -335,7 +335,7 @@ class SolarmanV5(SolarmanBase):
         self.log_lvl.clear()
         super().close()
 
-    async def send_start_cmd(self, dev_snr: str, snr: int, host: str,
+    async def send_start_cmd(self, snr: int, host: str,
                              forward: bool,
                              start_timeout=MB_CLIENT_DATA_UP):
         self.no_forwarding = True
@@ -343,7 +343,6 @@ class SolarmanV5(SolarmanBase):
         self.snr = snr
         self._set_serial_no(snr)
         self.mb_timeout = start_timeout
-        self.db.set_db_def_value(Register.SERIAL_NUMBER, dev_snr)
         self.db.set_db_def_value(Register.IP_ADDRESS, host)
         self.db.set_db_def_value(Register.POLLING_INTERVAL,
                                  self.mb_timeout)
@@ -404,7 +403,8 @@ class SolarmanV5(SolarmanBase):
                     self.db.set_pv_module_details(inv)
                     logger.debug(f'SerialNo {serial_no} allowed! area:{self.sug_area}')  # noqa: E501
 
-                    self.db.set_db_def_value(Register.COLLECTOR_SNR, key)
+                    self.db.set_db_def_value(Register.COLLECTOR_SNR, snr)
+                    self.db.set_db_def_value(Register.SERIAL_NUMBER, key)
                     break
             else:
                 self.node_id = ''

@@ -26,7 +26,10 @@ class Register(Enum):
     EQUIPMENT_MODEL = 24
     NO_INPUTS = 25
     MAX_DESIGNED_POWER = 26
-    OUTPUT_COEFFICIENT = 27
+    RATED_LEVEL = 27
+    INPUT_COEFFICIENT = 28
+    GRID_VOLT_CAL_COEF = 29
+    OUTPUT_COEFFICIENT = 30
     INVERTER_CNT = 50
     UNKNOWN_SNR = 51
     UNKNOWN_MSG = 52
@@ -91,6 +94,8 @@ class Register(Enum):
     INV_UNKNOWN_1 = 252
     BOOT_STATUS = 253
     DSP_STATUS = 254
+    WORK_MODE = 255
+    OUTPUT_SHUTDOWN = 256
 
     GRID_VOLTAGE = 300
     GRID_CURRENT = 301
@@ -270,6 +275,7 @@ class Infos:
     }
 
     __comm_type_val_tpl = "{%set com_types = ['n/a','Wi-Fi', 'G4', 'G5', 'GPRS'] %}{{com_types[value_json['Communication_Type']|int(0)]|default(value_json['Communication_Type'])}}"    # noqa: E501
+    __work_mode_val_tpl = "{%set mode = ['Normal-Mode', 'Aging-Mode', 'ATE-Mode', 'Shielding GFDI', 'DTU-Mode'] %}{{mode[value_json['Work_Mode']|int(0)]|default(value_json['Work_Mode'])}}"    # noqa: E501
     __status_type_val_tpl = "{%set inv_status = ['Off-line', 'On-grid', 'Off-grid'] %}{{inv_status[value_json['Inverter_Status']|int(0)]|default(value_json['Inverter_Status'])}}"    # noqa: E501
     __rated_power_val_tpl = "{% if 'Rated_Power' in value_json and value_json['Rated_Power'] != None %}{{value_json['Rated_Power']|string() +' W'}}{% else %}{{ this.state }}{% endif %}"  # noqa: E501
     __designed_power_val_tpl = '''
@@ -377,6 +383,7 @@ class Infos:
 {% endif %}
 '''
 
+    __input_coef_val_tpl = "{% if 'Output_Coefficient' in value_json and value_json['Input_Coefficient'] != None %}{{value_json['Input_Coefficient']|string() +' %'}}{% else %}{{ this.state }}{% endif %}"  # noqa: E501
     __output_coef_val_tpl = "{% if 'Output_Coefficient' in value_json and value_json['Output_Coefficient'] != None %}{{value_json['Output_Coefficient']|string() +' %'}}{% else %}{{ this.state }}{% endif %}"  # noqa: E501
 
     __info_defs = {
@@ -399,6 +406,8 @@ class Infos:
         Register.NO_INPUTS:       {'name': ['inverter', 'No_Inputs'],              'level': logging.DEBUG, 'unit': ''},  # noqa: E501
         Register.MAX_DESIGNED_POWER: {'name': ['inverter',  'Max_Designed_Power'], 'level': logging.INFO,  'unit': 'W',    'ha': {'dev': 'inverter', 'dev_cla': None, 'stat_cla': None, 'id': 'designed_power_', 'val_tpl': __designed_power_val_tpl, 'name': 'Max Designed Power', 'icon': LIGHTNING, 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.RATED_POWER:        {'name': ['inverter',  'Rated_Power'],        'level': logging.DEBUG, 'unit': 'W',    'ha': {'dev': 'inverter', 'dev_cla': None, 'stat_cla': None, 'id': 'rated_power_',    'val_tpl': __rated_power_val_tpl,    'name': 'Rated Power',        'icon': LIGHTNING, 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.WORK_MODE:          {'name': ['inverter',  'Work_Mode'],          'level': logging.DEBUG, 'unit': '',     'ha': {'dev': 'inverter', 'comp': 'sensor', 'dev_cla': None, 'stat_cla': None, 'id': 'work_mode_', 'name': 'Work Mode', 'val_tpl': __work_mode_val_tpl,  'icon': 'mdi:power', 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.INPUT_COEFFICIENT:  {'name': ['inverter',  'Input_Coefficient'],  'level': logging.DEBUG, 'unit': '%',    'ha': {'dev': 'inverter', 'dev_cla': None, 'stat_cla': None, 'id': 'input_coef_',    'val_tpl': __input_coef_val_tpl,    'name': 'Input Coefficient', 'icon': LIGHTNING, 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.OUTPUT_COEFFICIENT: {'name': ['inverter',  'Output_Coefficient'], 'level': logging.INFO,  'unit': '%',    'ha': {'dev': 'inverter', 'dev_cla': None, 'stat_cla': None, 'id': 'output_coef_',    'val_tpl': __output_coef_val_tpl,    'name': 'Output Coefficient', 'icon': LIGHTNING, 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.PV1_MANUFACTURER: {'name': ['inverter', 'PV1_Manufacturer'],      'level': logging.DEBUG, 'unit': ''},  # noqa: E501
         Register.PV1_MODEL:        {'name': ['inverter', 'PV1_Model'],             'level': logging.DEBUG, 'unit': ''},  # noqa: E501
@@ -497,9 +506,12 @@ class Infos:
         Register.IP_ADDRESS:         {'name': ['controller', 'IP_Address'],         'level': logging.DEBUG, 'unit': '',     'ha': {'dev': 'controller', 'dev_cla': None,       'stat_cla': None,          'id': 'ip_address_',           'fmt': '| string',        'name': 'IP Address', 'icon': WIFI, 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.POLLING_INTERVAL:   {'name': ['controller', 'Polling_Interval'],   'level': logging.DEBUG, 'unit': 's',    'ha': {'dev': 'controller', 'dev_cla': None,       'stat_cla': None,          'id': 'polling_intval_', 'fmt': FMT_STRING_SEC, 'name': 'Polling Interval', 'icon': UPDATE, 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.SENSOR_LIST:        {'name': ['controller', 'Sensor_List'],        'level': logging.INFO,  'unit': ''},  # noqa: E501
-        Register.SSID:               {'name': ['controller', 'WiFi_SSID'],          'level': logging.DEBUG,  'unit': ''},  # noqa: E501
+        Register.SSID:               {'name': ['controller', 'WiFi_SSID'],          'level': logging.DEBUG, 'unit': ''},  # noqa: E501
 
-        Register.INV_UNKNOWN_1:      {'name': ['inv_unknown', 'Unknown_1'],          'level': logging.DEBUG, 'unit': ''},  # noqa: E501
+        Register.OUTPUT_SHUTDOWN:    {'name': ['other', 'Output_Shutdown'],         'level': logging.DEBUG, 'unit': ''},  # noqa: E501
+        Register.RATED_LEVEL:        {'name': ['other', 'Rated_Level'],             'level': logging.DEBUG, 'unit': ''},  # noqa: E501
+        Register.GRID_VOLT_CAL_COEF: {'name': ['other', 'Grid_Volt_Cal_Coef'],      'level': logging.DEBUG, 'unit': ''},  # noqa: E501
+        Register.INV_UNKNOWN_1:      {'name': ['inv_unknown', 'Unknown_1'],         'level': logging.DEBUG, 'unit': ''},  # noqa: E501
 
     }
 

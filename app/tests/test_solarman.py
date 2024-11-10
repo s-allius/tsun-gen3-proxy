@@ -1771,7 +1771,7 @@ async def test_start_client_mode(config_tsun_inv1, str_test_ip):
     assert m.no_forwarding == False
     assert m.mb_timer.tim == None
     assert asyncio.get_running_loop() == m.mb_timer.loop
-    await m.send_start_cmd('Y170000000000000', get_sn_int(), str_test_ip, False, m.mb_first_timeout)
+    await m.send_start_cmd(get_sn_int(), str_test_ip, False, m.mb_first_timeout)
     assert m.sent_pdu==bytearray(b'\xa5\x17\x00\x10E\x01\x00!Ce{\x02\xb0\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x030\x00\x000J\xde\xf1\x15')
     assert m.db.get_db_value(Register.IP_ADDRESS) == str_test_ip
     assert isclose(m.db.get_db_value(Register.POLLING_INTERVAL), 0.5)
