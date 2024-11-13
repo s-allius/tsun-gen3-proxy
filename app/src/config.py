@@ -57,7 +57,8 @@ class Config():
                 Optional('client_mode'): {
                     'host': Use(str),
                     Optional('port', default=8899):
-                        And(Use(int), lambda n: 1024 <= n <= 65535)
+                        And(Use(int), lambda n: 1024 <= n <= 65535),
+                    Optional('forward', default=False): Use(bool),
                 },
                 Optional('modbus_polling', default=True): Use(bool),
                 Optional('suggested_area', default=""): Use(str),
