@@ -31,12 +31,16 @@ class InverterBase(InverterIfc, Proxy):
 
     def __init__(self, reader: StreamReader, writer: StreamWriter,
                  config_id: str, prot_class,
-                 client_mode: bool = False):
+                 client_mode: bool = False,
+                 remote_prot_class=None):
         Proxy.__init__(self)
         self._registry.append(weakref.ref(self))
         self.addr = writer.get_extra_info('peername')
         self.config_id = config_id
-        self.prot_class = prot_class
+        if remote_prot_class:
+            self.prot_class = remote_prot_class
+        else:
+            self.prot_class = prot_class
         self.__ha_restarts = -1
         self.remote = StreamPtr(None)
         ifc = AsyncStreamServer(reader, writer,
@@ -45,7 +49,7 @@ class InverterBase(InverterIfc, Proxy):
                                 self.remote)
 
         self.local = StreamPtr(
-            self.prot_class(self.addr, ifc, True, client_mode), ifc
+            prot_class(self.addr, ifc, True, client_mode), ifc
         )
 
     def __enter__(self):

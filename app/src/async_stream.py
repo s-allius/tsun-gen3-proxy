@@ -305,6 +305,14 @@ class AsyncStream(AsyncIfcImpl):
                 f"Fwd Exception for {self.r_addr}:\n"
                 f"{traceback.format_exc()}")
 
+    async def publish_outstanding_mqtt(self):
+        '''Publish all outstanding MQTT topics'''
+        try:
+            await self.async_publ_mqtt()
+            await Proxy._async_publ_mqtt_proxy_stat('proxy')
+        except Exception:
+            pass
+
 
 class AsyncStreamServer(AsyncStream):
     def __init__(self, reader: StreamReader, writer: StreamWriter,
@@ -354,14 +362,6 @@ class AsyncStreamServer(AsyncStream):
             self.remote.ifc._writer.write(self.fwd_fifo.get())
             await self.remote.ifc._writer.drain()
 
-    async def publish_outstanding_mqtt(self):
-        '''Publish all outstanding MQTT topics'''
-        try:
-            await self.async_publ_mqtt()
-            await Proxy._async_publ_mqtt_proxy_stat('proxy')
-        except Exception:
-            pass
-
 
 class AsyncStreamClient(AsyncStream):
     def __init__(self, reader: StreamReader, writer: StreamWriter,
@@ -381,7 +381,11 @@ class AsyncStreamClient(AsyncStream):
 
     async def client_loop(self, _: str) -> None:
         '''Loop for receiving messages from the TSUN cloud (client-side)'''
+        Infos.inc_counter('Cloud_Conn_Cnt')
+        await self.publish_outstanding_mqtt()
         await self.loop()
+        Infos.dec_counter('Cloud_Conn_Cnt')
+        await self.publish_outstanding_mqtt()
         logger.info(f'[{self.node_id}:{self.conn_no}] '
                     'Client loop stopped for'
                     f' l{self.l_addr}')

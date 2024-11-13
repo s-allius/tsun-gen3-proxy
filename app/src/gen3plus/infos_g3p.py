@@ -17,17 +17,17 @@ class RegisterMap:
 
     map = {
         # 0x41020007: {'reg': Register.DEVICE_SNR,           'fmt': '<L'},                 # noqa: E501
-        0x41020018: {'reg': Register.DATA_UP_INTERVAL,     'fmt': '<B', 'ratio':   60, 'dep': ProxyMode.SERVER},  # noqa: E501
+        0x41020018: {'reg': Register.DATA_UP_INTERVAL,     'fmt': '<B', 'ratio':    60, 'dep': ProxyMode.SERVER},  # noqa: E501
         0x41020019: {'reg': Register.COLLECT_INTERVAL,     'fmt': '<B', 'quotient': 60, 'dep': ProxyMode.SERVER},  # noqa: E501
         0x4102001a: {'reg': Register.HEARTBEAT_INTERVAL,   'fmt': '<B', 'ratio':    1},  # noqa: E501
-        0x4102001b: {'reg': None,                          'fmt': '<B', 'const':    1},  # noqa: E501
+        0x4102001b: {'reg': None,                          'fmt': '<B', 'const':    1},  # noqa: E501 Max No Of Connected Devices
         0x4102001c: {'reg': Register.SIGNAL_STRENGTH,      'fmt': '<B', 'ratio':    1, 'dep': ProxyMode.SERVER},  # noqa: E501
         0x4102001d: {'reg': None,                          'fmt': '<B', 'const':    1},  # noqa: E501
         0x4102001e: {'reg': Register.CHIP_MODEL,           'fmt': '!40s'},               # noqa: E501
         0x41020046: {'reg': Register.MAC_ADDR,             'fmt': '!6B', 'func': Fmt.mac},  # noqa: E501
         0x4102004c: {'reg': Register.IP_ADDRESS,           'fmt': '!16s'},               # noqa: E501
         0x4102005c: {'reg': None,                          'fmt': '<B', 'const':   15},  # noqa: E501
-        0x4102005e: {'reg': None,                          'fmt': '<B', 'const':    1},  # noqa: E501
+        0x4102005e: {'reg': None,                          'fmt': '<B', 'const':    1},  # noqa: E501 No Of Sensors (ListLen)
         0x4102005f: {'reg': Register.SENSOR_LIST,          'fmt': '<H', 'func': Fmt.hex4},   # noqa: E501
         0x41020061: {'reg': None,                          'fmt': '<BBB', 'const':  (15, 0, 255)},  # noqa: E501
         0x41020064: {'reg': Register.COLLECTOR_FW_VERSION, 'fmt': '!40s'},               # noqa: E501
@@ -80,13 +80,16 @@ class RegisterMap:
         0x42010116: {'reg': Register.INV_UNKNOWN_1,        'fmt': '!H'},                 # noqa: E501
 
         # Start MODBUS Block: 0x2000 (R/W Config Paramaneters)
-        0x42010118: {'reg': Register.BOOT_STATUS,          'fmt': '!H'},                 # noqa: E501
-        0x4201011a: {'reg': Register.DSP_STATUS,           'fmt': '!H'},                 # noqa: E501
-        0x4201011c: {'reg': None,                          'fmt': FMT_2_16BIT_VAL, 'const':   (1, 0)},  # noqa: E501
-        0x42010124: {'reg': None,                          'fmt': '!H', 'const':    0xffff},  # noqa: E501
-        0x42010126: {'reg': Register.MAX_DESIGNED_POWER,   'fmt': '!H', 'ratio':    1},  # noqa: E501
-        0x42010128: {'reg': None,                          'fmt': '!H', 'const':    3},  # noqa: E501
-        0x4201012a: {'reg': None,                          'fmt': FMT_3_16BIT_VAL, 'const':  (1024, 1024, 1024)},  # noqa: E501
+        0x42010118: {'reg': Register.BOOT_STATUS,          'fmt': '!H'},
+        0x4201011a: {'reg': Register.DSP_STATUS,           'fmt': '!H'},
+        0x4201011c: {'reg': None,                          'fmt': '!H', 'const':    1},  # noqa: E501
+        0x4201011e: {'reg': Register.WORK_MODE,            'fmt': '!H'},
+        0x42010124: {'reg': Register.OUTPUT_SHUTDOWN,      'fmt': '!H'},
+        0x42010126: {'reg': Register.MAX_DESIGNED_POWER,   'fmt': '!H'},
+        0x42010128: {'reg': Register.RATED_LEVEL,          'fmt': '!H'},
+        0x4201012a: {'reg': Register.INPUT_COEFFICIENT,    'fmt': '!H', 'ratio':  100/1024},  # noqa: E501
+        0x4201012c: {'reg': Register.GRID_VOLT_CAL_COEF,   'fmt': '!H'},
+        0x4201012e: {'reg': None,                          'fmt': '!H', 'const':   1024},  # noqa: E501
         0x42010130: {'reg': None,                          'fmt': FMT_4_16BIT_VAL, 'const': (1024, 1, 0xffff, 1)},  # noqa: E501
         0x42010138: {'reg': None,                          'fmt': FMT_4_16BIT_VAL, 'const': (6, 0x68, 0x68, 0x500)},  # noqa: E501
         0x42010140: {'reg': None,                          'fmt': FMT_4_16BIT_VAL, 'const': (0x9cd, 0x7b6, 0x139c, 0x1324)},  # noqa: E501
@@ -101,7 +104,8 @@ class RegisterMap:
         0x42010180: {'reg': None,                          'fmt': FMT_4_16BIT_VAL, 'const': (0x9ce, 0x7a8, 0x139c, 0x1326)},  # noqa: E501
         0x42010188: {'reg': None,                          'fmt': FMT_4_16BIT_VAL, 'const': (0x0, 0x0, 0x0, 0)},  # noqa: E501
         0x42010190: {'reg': None,                          'fmt': FMT_4_16BIT_VAL, 'const': (0x0, 0x0, 1024, 1024)},  # noqa: E501
-        0x4201019a: {'reg': None,                          'fmt': FMT_2_16BIT_VAL, 'const':   (0, 0xffff)},  # noqa: E501
+        0x42010198: {'reg': None,                          'fmt': FMT_4_16BIT_VAL, 'const': (0, 0, 0xffff, 0)},  # noqa: E501
+        0x420101a0: {'reg': None,                          'fmt': FMT_2_16BIT_VAL, 'const': (0x0, 0x0)},  # noqa: E501
 
         0xffffff02: {'reg': Register.POLLING_INTERVAL},
         # 0x4281001c: {'reg': Register.POWER_ON_TIME,        'fmt': '<H', 'ratio':    1},  # noqa: E501
