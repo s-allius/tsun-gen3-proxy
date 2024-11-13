@@ -4,23 +4,14 @@ from app.src.async_stream import AsyncIfcImpl, StreamPtr
 from app.src.gen3plus.solarman_v5 import SolarmanV5, SolarmanBase
 from app.src.gen3plus.solarman_emu import SolarmanEmu
 from app.src.infos import Infos, Register
-from app.tests.test_solarman import get_sn_int, get_sn, correct_checksum, config_tsun_inv1
+from app.tests.test_solarman import FakeIfc, MemoryStream, get_sn_int, get_sn, correct_checksum, config_tsun_inv1, msg_modbus_rsp
 from app.tests.test_infos_g3p import str_test_ip, bytes_test_ip
 
 timestamp = 0x3224c8bc
 
-class FakeIfc(AsyncIfcImpl):
-    def __init__(self):
-        super().__init__()
-        self.remote = StreamPtr(None)
-
-    async def create_remote(self):
-        await asyncio.sleep(0)
-
-class InvStream(SolarmanV5):
-    def __init__(self):
-        _ifc = FakeIfc()
-        super().__init__(('test.local', 1234), _ifc, server_side=True, client_mode=False)
+class InvStream(MemoryStream):
+    def __init__(self, msg=b''):
+        super().__init__(msg)
 
     def _emu_timestamp(self):
         return timestamp
@@ -42,10 +33,6 @@ class CldStream(SolarmanEmu):
     def append_msg(self, msg):
         self.__msg += msg
         self.__msg_len += len(msg)    
-
-    def publish_mqtt(self, key, data):
-        self.key = key
-        self.data = data
 
     def _read(self) -> int:
         copied_bytes = 0
@@ -146,14 +133,17 @@ def test_emu_init_close():
 
 
 @pytest.mark.asyncio
-async def test_emu_start(config_tsun_inv1, str_test_ip, device_ind_msg):
+async def test_emu_start(config_tsun_inv1, msg_modbus_rsp, str_test_ip, device_ind_msg):
     _ = config_tsun_inv1
     assert asyncio.get_running_loop()
-    inv = InvStream()
+    inv = InvStream(msg_modbus_rsp)
 
     assert asyncio.get_running_loop() == inv.mb_timer.loop
-    await inv.send_start_cmd(get_sn_int(), str_test_ip, False, inv.mb_first_timeout)
-    inv.establish_emu()
+    await inv.send_start_cmd(get_sn_int(), str_test_ip, True, inv.mb_first_timeout)
+    inv.read()         # read complete msg, and dispatch msg
+    assert not inv.header_valid  # must be invalid, since msg was handled and buffer flushed
+    assert inv.msg_count == 1
+    assert inv.control == 0x1510
 
     cld = CldStream(inv)
     cld.ifc.update_header_cb(inv.ifc.fwd_fifo.peek())
@@ -221,7 +211,6 @@ async def test_rcv_invalid(config_tsun_inv1, inverter_ind_msg, inverter_rsp_msg)
 
     cld = CldStream(inv)
     cld._init_new_client_conn()
-    # cld.db.stat['proxy']['Unknown_Msg'] = 0
 
     cld.append_msg(inverter_ind_msg)
     cld.read()         # read complete msg, and dispatch msg
