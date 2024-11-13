@@ -25,10 +25,15 @@ class SolarmanEmu(SolarmanBase):
         self.db = ifc.remote.stream.db
         self.snr = ifc.remote.stream.snr
         self.hb_timeout = 60
+        '''actual heatbeat timeout from the last response message'''
         self.data_up_inv = self.db.get_db_value(Register.DATA_UP_INTERVAL)
+        '''time interval for getting new MQTT data messages'''
         self.hb_timer = Timer(self.send_heartbeat_cb, self.node_id)
         self.data_timer = Timer(self.send_data_cb, self.node_id)
+        self.last_sync = self._emu_timestamp()
+        '''timestamp when we send the last sync message (4110)'''
         self.pkt_cnt = 0
+        '''last sent packet number'''
 
         self.switch = {
 
@@ -81,10 +86,16 @@ class SolarmanEmu(SolarmanBase):
         return False
 
     def next_pkt_cnt(self):
+        '''get the next packet number'''
         self.pkt_cnt = (self.pkt_cnt + 1) & 0xffffffff
         return self.pkt_cnt
 
+    def seconds_since_last_sync(self):
+        '''get seconds since last 0x4110 message was sent'''
+        return self._emu_timestamp() - self.last_sync
+
     def send_heartbeat_cb(self, exp_cnt):
+        '''send a heartbeat to the TSUN cloud'''
         self._build_header(0x4710)
         self.ifc.tx_add(struct.pack('<B', 0))
         self._finish_send_msg()
@@ -93,6 +104,7 @@ class SolarmanEmu(SolarmanBase):
         self.ifc.tx_flush()
 
     def send_data_cb(self, exp_cnt):
+        '''send a inverter data message to the TSUN cloud'''
         self.hb_timer.start(self.hb_timeout)
         self.data_timer.start(self.data_up_inv)
         _len = 420
@@ -104,7 +116,7 @@ class SolarmanEmu(SolarmanBase):
             struct.pack(
                 '<BHLLLHL', ftype, 0x02b0,
                 self._emu_timestamp(),
-                self.hb_timeout,  # fixme check value
+                self.seconds_since_last_sync(),
                 self.time_ofs,
                 1,  # offset 0x1a
                 self.next_pkt_cnt()))
@@ -118,6 +130,7 @@ class SolarmanEmu(SolarmanBase):
     Message handler methods
     '''
     def msg_response(self):
+        '''handle a received response from the TSUN cloud'''
         logger.debug("EMU received rsp:")
         _, _, ts, hb = super().msg_response()
         logger.debug(f"EMU ts:{ts} hb:{hb}")
@@ -126,5 +139,6 @@ class SolarmanEmu(SolarmanBase):
         self.hb_timer.start(self.hb_timeout)
 
     def msg_unknown(self):
+        '''counts a unknown or unexpected message from the TSUN cloud'''
         logger.warning(f"EMU Unknow Msg: ID:{int(self.control):#04x}")
         self.inc_counter('Unknown_Msg')

@@ -186,6 +186,7 @@ async def test_snd_inv_data(config_tsun_inv1, inverter_ind_msg, inverter_rsp_msg
 
     cld = CldStream(inv)
     cld.time_ofs = 0x33e447a0
+    cld.last_sync = cld._emu_timestamp() - 60
     cld.pkt_cnt = 0x802
     assert cld.data_up_inv == 17  # check test value
     cld.data_up_inv = 0.1         # speedup test first data msg
