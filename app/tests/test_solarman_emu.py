@@ -1,17 +1,9 @@
 import pytest
-import struct
-import time
 import asyncio
-import logging
-import random
-from math import isclose
 from app.src.async_stream import AsyncIfcImpl, StreamPtr
 from app.src.gen3plus.solarman_v5 import SolarmanV5, SolarmanBase
 from app.src.gen3plus.solarman_emu import SolarmanEmu
-from app.src.config import Config
 from app.src.infos import Infos, Register
-from app.src.modbus import Modbus
-from app.src.messages import State, Message
 from app.tests.test_solarman import get_sn_int, get_sn, correct_checksum, config_tsun_inv1
 from app.tests.test_infos_g3p import str_test_ip, bytes_test_ip
 
@@ -38,9 +30,44 @@ class CldStream(SolarmanEmu):
         _ifc = FakeIfc()
         _ifc.remote.stream = inv
         super().__init__(('test.local', 1234), _ifc, server_side=False, client_mode=False)
+        self.__msg = b''
+        self.__msg_len = 0
+        self.__offs = 0
+        self.msg_count = 0
+        self.msg_recvd = []
 
     def _emu_timestamp(self):
         return timestamp
+    
+    def append_msg(self, msg):
+        self.__msg += msg
+        self.__msg_len += len(msg)    
+
+    def publish_mqtt(self, key, data):
+        self.key = key
+        self.data = data
+
+    def _read(self) -> int:
+        copied_bytes = 0
+        try:    
+            if (self.__offs < self.__msg_len):
+                self.ifc.rx_fifo += self.__msg[self.__offs:]
+                copied_bytes = self.__msg_len - self.__offs
+                self.__offs = self.__msg_len
+        except Exception:
+            pass   # ignore exceptions here
+        return copied_bytes
+
+    def _SolarmanBase__flush_recv_msg(self) -> None:
+        self.msg_recvd.append(
+            {
+                'control': self.control,
+                'seq': str(self.seq),
+                'data_len': self.data_len
+            }
+        )
+        super()._SolarmanBase__flush_recv_msg()
+        self.msg_count += 1
 
 @pytest.fixture
 def device_ind_msg(bytes_test_ip): # 0x4110
@@ -96,6 +123,15 @@ def inverter_ind_msg():  # 0x4210
     return msg
 
 @pytest.fixture
+def inverter_rsp_msg():  # 0x1210
+    msg  = b'\xa5\x0a\x00\x10\x12\x02\02' +get_sn()  +b'\x01\x01'
+    msg += b'\x00\x00\x00\x00'
+    msg += b'\x3c\x00\x00\x00'
+    msg += correct_checksum(msg)
+    msg += b'\x15'
+    return msg
+
+@pytest.fixture
 def heartbeat_ind():
     msg  = b'\xa5\x01\x00\x10G\x00\x01\x00\x00\x00\x00\x00Y\x15'
     return msg
@@ -135,7 +171,7 @@ def test_snd_hb(config_tsun_inv1, heartbeat_ind):
     cld.close()
 
 @pytest.mark.asyncio
-async def test_snd_inv_data(config_tsun_inv1, inverter_ind_msg):
+async def test_snd_inv_data(config_tsun_inv1, inverter_ind_msg, inverter_rsp_msg):
     _ = config_tsun_inv1
     inv = InvStream()
     inv.db.set_db_def_value(Register.INVERTER_STATUS, 1)
@@ -146,11 +182,59 @@ async def test_snd_inv_data(config_tsun_inv1, inverter_ind_msg):
     inv.db.set_db_def_value(Register.GRID_FREQUENCY, 50.05)
     assert asyncio.get_running_loop() == inv.mb_timer.loop
     await inv.send_start_cmd(get_sn_int(), str_test_ip, False, inv.mb_first_timeout)
-    # inv.db.set_db_def_value(Register.DATA_UP_INTERVAL, 0.1)
+    inv.db.set_db_def_value(Register.DATA_UP_INTERVAL, 17)  # set test value
 
     cld = CldStream(inv)
     cld.time_ofs = 0x33e447a0
     cld.pkt_cnt = 0x802
-    cld.send_data_cb(0)
-    assert cld.ifc.tx_fifo.peek() == inverter_ind_msg
+    assert cld.data_up_inv == 17  # check test value
+    cld.data_up_inv = 0.1         # speedup test first data msg
+    cld._init_new_client_conn()
+    cld.data_up_inv = 0.5         # timeout for second data msg
+    await asyncio.sleep(0.2)
+    assert cld.ifc.tx_fifo.get() == inverter_ind_msg
+
+    cld.append_msg(inverter_rsp_msg)
+    cld.read()         # read complete msg, and dispatch msg
+
+    assert not cld.header_valid  # must be invalid, since msg was handled and buffer flushed
+    assert cld.msg_count == 1
+    assert cld.header_len==11
+    assert cld.snr == 2070233889
+    assert cld.unique_id == '2070233889'
+    assert cld.msg_recvd[0]['control']==0x1210
+    assert cld.msg_recvd[0]['seq']=='02:02'
+    assert cld.msg_recvd[0]['data_len']==0x0a
+    assert '02b0' == cld.db.get_db_value(Register.SENSOR_LIST, None)
+    assert cld.db.stat['proxy']['Unknown_Msg'] == 0
+
+    cld.close()
+
+@pytest.mark.asyncio
+async def test_rcv_invalid(config_tsun_inv1, inverter_ind_msg, inverter_rsp_msg):
+    _ = config_tsun_inv1
+    inv = InvStream()
+    assert asyncio.get_running_loop() == inv.mb_timer.loop
+    await inv.send_start_cmd(get_sn_int(), str_test_ip, False, inv.mb_first_timeout)
+    inv.db.set_db_def_value(Register.DATA_UP_INTERVAL, 17)  # set test value
+
+    cld = CldStream(inv)
+    cld._init_new_client_conn()
+    # cld.db.stat['proxy']['Unknown_Msg'] = 0
+
+    cld.append_msg(inverter_ind_msg)
+    cld.read()         # read complete msg, and dispatch msg
+
+    assert not cld.header_valid  # must be invalid, since msg was handled and buffer flushed
+    assert cld.msg_count == 1
+    assert cld.header_len==11
+    assert cld.snr == 2070233889
+    assert cld.unique_id == '2070233889'
+    assert cld.msg_recvd[0]['control']==0x4210
+    assert cld.msg_recvd[0]['seq']=='00:01'
+    assert cld.msg_recvd[0]['data_len']==0x199
+    assert '02b0' == cld.db.get_db_value(Register.SENSOR_LIST, None)
+    assert cld.db.stat['proxy']['Unknown_Msg'] == 1
+
+
     cld.close()

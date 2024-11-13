@@ -18,26 +18,27 @@ logger = logging.getLogger('msg')
 class SolarmanEmu(SolarmanBase):
     def __init__(self, addr, ifc: "AsyncIfc",
                  server_side: bool, client_mode: bool):
-        super().__init__(addr, ifc, server_side,
-                         self.send_modbus_cb,
+        super().__init__(addr, ifc, server_side=False,
+                         _send_modbus_cb=None,
                          mb_timeout=8)
         logging.debug('SolarmanEmu.init()')
         self.db = ifc.remote.stream.db
         self.snr = ifc.remote.stream.snr
         self.hb_timeout = 60
+        self.data_up_inv = self.db.get_db_value(Register.DATA_UP_INTERVAL)
         self.hb_timer = Timer(self.send_heartbeat_cb, self.node_id)
         self.data_timer = Timer(self.send_data_cb, self.node_id)
         self.pkt_cnt = 0
 
         self.switch = {
 
-            0x4210: self.msg_data_ind,   # real time data
+            0x4210: 'msg_data_ind',      # real time data
             0x1210: self.msg_response,   # at least every 5 minutes
 
-            0x4710: self.msg_hbeat_ind,  # heatbeat
+            0x4710: 'msg_hbeat_ind',     # heatbeat
             0x1710: self.msg_response,   # every 2 minutes
 
-            0x4110: self.msg_dev_ind,     # device data, sync start
+            0x4110: 'msg_dev_ind',        # device data, sync start
             0x1110: self.msg_response,    # every 3 hours
 
         }
@@ -72,20 +73,16 @@ class SolarmanEmu(SolarmanBase):
 
     def _set_serial_no(self, snr: int):
         logging.debug(f'SolarmanEmu._set_serial_no, snr: {snr}')
-        self.unique_id = snr
+        self.unique_id = str(snr)
 
     def _init_new_client_conn(self) -> bool:
         logging.debug('SolarmanEmu.init_new()')
-        self.data_timer.start(1)
+        self.data_timer.start(self.data_up_inv)
         return False
 
     def next_pkt_cnt(self):
         self.pkt_cnt = (self.pkt_cnt + 1) & 0xffffffff
         return self.pkt_cnt
-
-    def send_modbus_cb(self, pdu: bytearray, log_lvl: int, state: str):
-        logger.warning(f'[{self.node_id}] ignore MODBUS cmd,'
-                       ' cause we are in EMU mode')
 
     def send_heartbeat_cb(self, exp_cnt):
         self._build_header(0x4710)
@@ -96,10 +93,8 @@ class SolarmanEmu(SolarmanBase):
         self.ifc.tx_flush()
 
     def send_data_cb(self, exp_cnt):
-        data_up_inv = self.db.get_db_value(Register.DATA_UP_INTERVAL)
-
         self.hb_timer.start(self.hb_timeout)
-        self.data_timer.start(data_up_inv)
+        self.data_timer.start(self.data_up_inv)
         _len = 420
         ftype = 1
         build_msg = self.db.build(_len, 0x42, ftype)
@@ -129,15 +124,6 @@ class SolarmanEmu(SolarmanBase):
         self.hb_timeout = hb
         self.time_ofs = ts - self._emu_timestamp()
         self.hb_timer.start(self.hb_timeout)
-
-    def msg_data_ind(self):
-        return
-
-    def msg_hbeat_ind(self):  # heatbeat
-        return
-
-    def msg_dev_ind(self):     # device data, sync start
-        return
 
     def msg_unknown(self):
         logger.warning(f"EMU Unknow Msg: ID:{int(self.control):#04x}")

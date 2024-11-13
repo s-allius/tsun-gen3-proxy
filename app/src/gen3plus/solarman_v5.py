@@ -97,15 +97,22 @@ class SolarmanBase(Message):
             type += 'S'
         return switch.get(type, '???')
 
+    def get_fnc_handler(self, ctrl):
+        fnc = self.switch.get(ctrl, self.msg_unknown)
+        if callable(fnc):
+            return fnc, repr(fnc.__name__)
+        else:
+            return self.msg_unknown, repr(fnc)
+
     def _build_header(self, ctrl) -> None:
         '''build header for new transmit message'''
         self.send_msg_ofs = self.ifc.tx_len()
 
         self.ifc.tx_add(struct.pack(
             '<BHHHL', 0xA5, 0, ctrl, self.seq.get_send(), self.snr))
-        fnc = self.switch.get(ctrl, self.msg_unknown)
+        _fnc, _str = self.get_fnc_handler(ctrl)
         logger.info(self._flow_str(self.server_side, 'tx') +
-                    f' Ctl: {int(ctrl):#04x} Msg: {fnc.__name__!r}')
+                    f' Ctl: {int(ctrl):#04x} Msg: {_str}')
 
     def _finish_send_msg(self) -> None:
         '''finish the transmit message, set lenght and checksum'''
@@ -214,16 +221,16 @@ class SolarmanBase(Message):
         self.header_valid = False
 
     def __dispatch_msg(self) -> None:
-        fnc = self.switch.get(self.control, self.msg_unknown)
+        _fnc, _str = self.get_fnc_handler(self.control)
         if self.unique_id:
             logger.info(self._flow_str(self.server_side, 'rx') +
                         f' Ctl: {int(self.control):#04x}' +
-                        f' Msg: {fnc.__name__!r}')
-            fnc()
+                        f' Msg: {_str}')
+            _fnc()
         else:
             logger.info(self._flow_str(self.server_side, 'drop') +
                         f' Ctl: {int(self.control):#04x}' +
-                        f' Msg: {fnc.__name__!r}')
+                        f' Msg: {_str}')
 
     '''
     Message handler methods
@@ -427,10 +434,10 @@ class SolarmanV5(SolarmanBase):
             self.ifc.fwd_add(buffer[:buflen])
             self.ifc.fwd_log(logging.DEBUG, 'Store for forwarding:')
 
-            fnc = self.switch.get(self.control, self.msg_unknown)
+            _, _str = self.get_fnc_handler(self.control)
             logger.info(self._flow_str(self.server_side, 'forwrd') +
                         f' Ctl: {int(self.control):#04x}'
-                        f' Msg: {fnc.__name__!r}')
+                        f' Msg: {_str}')
 
     def _init_new_client_conn(self) -> bool:
         return False

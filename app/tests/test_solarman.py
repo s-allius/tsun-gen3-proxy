@@ -1806,3 +1806,30 @@ def test_timeout(config_tsun_inv1):
     assert SolarmanV5.MAX_DEF_IDLE_TIME == m._timeout()
     m.state = State.closed
     m.close()
+
+def test_fnc_dispatch():
+    def msg():
+        return
+    
+    _ = config_tsun_inv1
+    m = MemoryStream(b'')
+    m.switch[1] = msg
+    m.switch[2] = "msg"
+
+    _obj, _str = m.get_fnc_handler(1)
+    assert _obj == msg
+    assert _str == "'msg'"
+
+    _obj, _str = m.get_fnc_handler(2)
+    assert _obj == m.msg_unknown
+    assert _str == "'msg'"
+
+    _obj, _str = m.get_fnc_handler(3)
+    assert _obj == m.msg_unknown
+    assert _str == "'msg_unknown'"
+
+def test_timestamp():
+    m = MemoryStream(b'')
+    ts = m._timestamp()
+    ts_emu = m._emu_timestamp()
+    assert ts == ts_emu + 24*60*60
