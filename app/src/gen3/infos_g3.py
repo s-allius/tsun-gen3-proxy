@@ -75,7 +75,15 @@ class RegisterMap:
         0x00000258: {'reg': Register.EVENT_BF1},
         0x000002bc: {'reg': Register.EVENT_BF2},
         0x00000064: {'reg': Register.INVERTER_STATUS},
+
+        0x00000fa0: {'reg': Register.BOOT_STATUS},
+        0x00001004: {'reg': Register.DSP_STATUS},
+        0x000010cc: {'reg': Register.WORK_MODE},
+        0x000011f8: {'reg': Register.OUTPUT_SHUTDOWN},
         0x0000125c: {'reg': Register.MAX_DESIGNED_POWER},
+        0x000012c0: {'reg': Register.RATED_LEVEL},
+        0x00001324: {'reg': Register.INPUT_COEFFICIENT, 'ratio':  100/1024},
+        0x00001388: {'reg': Register.GRID_VOLT_CAL_COEF},
         0x00003200: {'reg': Register.OUTPUT_COEFFICIENT, 'ratio':  100/1024},
     }
 

@@ -104,12 +104,14 @@ class Message(ProtocolIfc):
         self._registry.append(weakref.ref(self))
 
         self.server_side = server_side
-        if server_side:
-            self.mb = Modbus(send_modbus_cb, mb_timeout)
-        else:
-            self.mb = None
         self.ifc = ifc
         self.node_id = node_id
+        if server_side:
+            self.mb = Modbus(send_modbus_cb, mb_timeout)
+            self.mb_timer = Timer(self.mb_timout_cb, self.node_id)
+        else:
+            self.mb = None
+            self.mb_timer = None
         self.header_valid = False
         self.header_len = 0
         self.data_len = 0
@@ -119,7 +121,6 @@ class Message(ProtocolIfc):
         self.state = State.init
         self.shutdown_started = False
         self.modbus_elms = 0    # for unit tests
-        self.mb_timer = Timer(self.mb_timout_cb, self.node_id)
         self.mb_timeout = self.MB_REGULAR_TIMEOUT
         self.mb_first_timeout = self.MB_START_TIMEOUT
         '''timer value for next Modbus polling request'''
@@ -188,8 +189,8 @@ class Message(ProtocolIfc):
             if self.db.get_db_value(Register.OUTPUT_POWER, 999) < 2:
                 self.db.set_db_def_value(Register.INVERTER_STATUS, 0)
                 self.new_data['env'] = True
+            self.mb_timer.close()
         self.state = State.closed
-        self.mb_timer.close()
         self.ifc.rx_set_cb(None)
         self.ifc.prot_set_timeout_cb(None)
         self.ifc.prot_set_init_new_client_conn_cb(None)
