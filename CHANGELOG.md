@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+## [0.11.1] - 2024-11-20
+
+- Bumps [aiohttp](https://github.com/aio-libs/aiohttp) from 3.10.5 to 3.10.11.
+
 ## [0.11.0] - 2024-10-13
 
 - fix healthcheck on infrastructure with IPv6 support [#196](https://github.com/s-allius/tsun-gen3-proxy/issues/196)
