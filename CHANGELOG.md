@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+- add PROD_COMPL_TYPE to trace
 - add SolarmanV5 messages builder
 - report inverter alarms and faults per MQTT [#7](https://github.com/s-allius/tsun-gen3-proxy/issues/7)
 

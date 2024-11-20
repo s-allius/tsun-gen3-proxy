@@ -44,11 +44,11 @@ class Modbus():
         0x2001: {'reg': Register.DSP_STATUS,           'fmt': '!H'},                 # noqa: E501
         0x2003: {'reg': Register.WORK_MODE,            'fmt': '!H'},
         0x2006: {'reg': Register.OUTPUT_SHUTDOWN,      'fmt': '!H'},
-        0x2007: {'reg': Register.MAX_DESIGNED_POWER,   'fmt': '!H', 'ratio':  1},  # noqa: E501
+        0x2007: {'reg': Register.MAX_DESIGNED_POWER,   'fmt': '!H', 'ratio':  1},    # noqa: E501
         0x2008: {'reg': Register.RATED_LEVEL,          'fmt': '!H'},
         0x2009: {'reg': Register.INPUT_COEFFICIENT,    'fmt': '!H', 'ratio':  100/1024},  # noqa: E501
         0x200a: {'reg': Register.GRID_VOLT_CAL_COEF,   'fmt': '!H'},
-
+        0x2010: {'reg': Register.PROD_COMPL_TYPE,      'fmt': '!H'},
         0x202c: {'reg': Register.OUTPUT_COEFFICIENT,   'fmt': '!H', 'ratio':  100/1024},  # noqa: E501
 
         0x3000: {'reg': Register.INVERTER_STATUS,      'fmt': '!H'},                 # noqa: E501

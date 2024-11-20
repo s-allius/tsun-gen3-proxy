@@ -84,6 +84,7 @@ class RegisterMap:
         0x000012c0: {'reg': Register.RATED_LEVEL},
         0x00001324: {'reg': Register.INPUT_COEFFICIENT, 'ratio':  100/1024},
         0x00001388: {'reg': Register.GRID_VOLT_CAL_COEF},
+        0x00002710: {'reg': Register.PROD_COMPL_TYPE},
         0x00003200: {'reg': Register.OUTPUT_COEFFICIENT, 'ratio':  100/1024},
     }
 

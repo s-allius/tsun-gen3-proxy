@@ -91,7 +91,8 @@ class RegisterMap:
         0x4201012c: {'reg': Register.GRID_VOLT_CAL_COEF,   'fmt': '!H'},
         0x4201012e: {'reg': None,                          'fmt': '!H', 'const':   1024},  # noqa: E501
         0x42010130: {'reg': None,                          'fmt': FMT_4_16BIT_VAL, 'const': (1024, 1, 0xffff, 1)},  # noqa: E501
-        0x42010138: {'reg': None,                          'fmt': FMT_4_16BIT_VAL, 'const': (6, 0x68, 0x68, 0x500)},  # noqa: E501
+        0x42010138: {'reg': Register.PROD_COMPL_TYPE,      'fmt': '!H'},
+        0x4201013a: {'reg': None,                          'fmt': FMT_3_16BIT_VAL, 'const': (0x68, 0x68, 0x500)},  # noqa: E501
         0x42010140: {'reg': None,                          'fmt': FMT_4_16BIT_VAL, 'const': (0x9cd, 0x7b6, 0x139c, 0x1324)},  # noqa: E501
         0x42010148: {'reg': None,                          'fmt': FMT_4_16BIT_VAL, 'const': (1, 0x7ae, 0x40f, 0x41)},  # noqa: E501
         0x42010150: {'reg': None,                          'fmt': FMT_4_16BIT_VAL, 'const': (0xf, 0xa64, 0xa64, 0x6)},  # noqa: E501

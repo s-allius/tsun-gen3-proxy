@@ -170,6 +170,7 @@ async def test_snd_inv_data(config_tsun_inv1, inverter_ind_msg, inverter_rsp_msg
     inv.db.set_db_def_value(Register.GRID_VOLTAGE, 224.8)
     inv.db.set_db_def_value(Register.GRID_CURRENT, 0.73)
     inv.db.set_db_def_value(Register.GRID_FREQUENCY, 50.05)
+    inv.db.set_db_def_value(Register.PROD_COMPL_TYPE, 6)
     assert asyncio.get_running_loop() == inv.mb_timer.loop
     await inv.send_start_cmd(get_sn_int(), str_test_ip, False, inv.mb_first_timeout)
     inv.db.set_db_def_value(Register.DATA_UP_INTERVAL, 17)  # set test value

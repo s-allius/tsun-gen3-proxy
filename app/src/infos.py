@@ -30,6 +30,7 @@ class Register(Enum):
     INPUT_COEFFICIENT = 28
     GRID_VOLT_CAL_COEF = 29
     OUTPUT_COEFFICIENT = 30
+    PROD_COMPL_TYPE = 31
     INVERTER_CNT = 50
     UNKNOWN_SNR = 51
     UNKNOWN_MSG = 52
@@ -511,6 +512,7 @@ class Infos:
         Register.OUTPUT_SHUTDOWN:    {'name': ['other', 'Output_Shutdown'],         'level': logging.DEBUG, 'unit': ''},  # noqa: E501
         Register.RATED_LEVEL:        {'name': ['other', 'Rated_Level'],             'level': logging.DEBUG, 'unit': ''},  # noqa: E501
         Register.GRID_VOLT_CAL_COEF: {'name': ['other', 'Grid_Volt_Cal_Coef'],      'level': logging.DEBUG, 'unit': ''},  # noqa: E501
+        Register.PROD_COMPL_TYPE:    {'name': ['other', 'Prod_Compliance_Type'],    'level': logging.INFO,  'unit': ''},  # noqa: E501
         Register.INV_UNKNOWN_1:      {'name': ['inv_unknown', 'Unknown_1'],         'level': logging.DEBUG, 'unit': ''},  # noqa: E501
 
     }
