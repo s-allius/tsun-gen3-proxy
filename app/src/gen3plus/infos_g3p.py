@@ -29,9 +29,11 @@ class RegisterMap:
         0x4102005c: {'reg': None,                          'fmt': '<B', 'const':   15},  # noqa: E501
         0x4102005e: {'reg': None,                          'fmt': '<B', 'const':    1},  # noqa: E501 No Of Sensors (ListLen)
         0x4102005f: {'reg': Register.SENSOR_LIST,          'fmt': '<H', 'func': Fmt.hex4},   # noqa: E501
-        0x41020061: {'reg': None,                          'fmt': '<BBB', 'const':  (15, 0, 255)},  # noqa: E501
+        0x41020061: {'reg': None,                          'fmt': '<HB', 'const':  (15, 255)},  # noqa: E501
         0x41020064: {'reg': Register.COLLECTOR_FW_VERSION, 'fmt': '!40s'},               # noqa: E501
-        0x4102008c: {'reg': None,                          'fmt': '<BB', 'const':    (254, 254)},  # noqa: E501
+        0x4102008c: {'reg': None,                          'fmt': '<BB', 'const':  (254, 254)},  # noqa: E501
+        0x4102008e: {'reg': None,                          'fmt': '<B'},                 # noqa: E501 Encryption Certificate File Status
+        0x4102008f: {'reg': None,                          'fmt': '!40s'},               # noqa: E501
         0x410200b7: {'reg': Register.SSID,                 'fmt': '!40s'},               # noqa: E501
 
         0x4201000c: {'reg': Register.SENSOR_LIST,          'fmt': '<H', 'func': Fmt.hex4},   # noqa: E501
