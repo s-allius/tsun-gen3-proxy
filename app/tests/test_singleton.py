@@ -2,15 +2,15 @@
 import pytest
 from singleton import Singleton
 
-class Test(metaclass=Singleton):
+class Example(metaclass=Singleton):
     def __init__(self):
         pass  # is a dummy test class
 
 def test_singleton_metaclass():
     Singleton._instances.clear()
-    a = Test()
+    a = Example()
     assert 1 == len(Singleton._instances)
-    b = Test()
+    b = Example()
     assert 1 == len(Singleton._instances)
     assert a is  b
     del a

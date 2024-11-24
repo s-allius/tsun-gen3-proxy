@@ -70,13 +70,13 @@ class FakeWriter():
     async def wait_closed(self):
         return
 
-class TestType(Enum):
+class MockType(Enum):
     RD_TEST_0_BYTES = 1
     RD_TEST_TIMEOUT = 2
     RD_TEST_EXCEPT = 3
 
 
-test  = TestType.RD_TEST_0_BYTES
+test  = MockType.RD_TEST_0_BYTES
 
 @pytest.fixture
 def patch_open_connection():
@@ -86,9 +86,9 @@ def patch_open_connection():
     
     def new_open(host: str, port: int):
         global test
-        if test == TestType.RD_TEST_TIMEOUT:
+        if test == MockType.RD_TEST_TIMEOUT:
             raise ConnectionRefusedError
-        elif test == TestType.RD_TEST_EXCEPT:
+        elif test == MockType.RD_TEST_EXCEPT:
             raise ValueError("Value cannot be negative") # Compliant
         return new_conn(None)
 
@@ -144,14 +144,14 @@ async def test_remote_except(config_conn, patch_open_connection):
     assert asyncio.get_running_loop()
 
     global test
-    test  = TestType.RD_TEST_TIMEOUT
+    test  = MockType.RD_TEST_TIMEOUT
 
     with InverterG3(FakeReader(), FakeWriter()) as inverter:
         await inverter.create_remote()
         await asyncio.sleep(0)
         assert inverter.remote.stream==None
 
-        test  = TestType.RD_TEST_EXCEPT
+        test  = MockType.RD_TEST_EXCEPT
         await inverter.create_remote()
         await asyncio.sleep(0)
         assert inverter.remote.stream==None
