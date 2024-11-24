@@ -3,7 +3,7 @@
 {
   "inverters": [
     {
-      "serial": "R17E760702080474",
+      "serial": "R17E760702080400",
       "node_id": "PV-Garage",
       "suggested_area": "Garage",
       "modbus_polling": false,

@@ -5,19 +5,31 @@ import os
 # Die Addon Konfiguration wird in der Datei /data/options.json bereitgestellt
 # Die Konfiguration wird in der Datei /home/tsun-proxy/config/config.toml gespeichert
 
+# Übernehme die Umgebungsvariablen
+# alternativ kann auch auf die homeassistant supervisor API zugegriffen werden
+
+data = {}
+data['mqtt.host'] = os.getenv('MQTT_HOST')
+data['mqtt.port'] = os.getenv('MQTT_PORT')
+data['mqtt.user'] = os.getenv('MQTT_USER')
+data['mqtt.passwd'] = os.getenv('MQTT_PASSWORD')
+
+
 # Lese die Add-On Konfiguration aus der Datei /data/options.json
 with open('/data/options.json') as json_file:
 #with open('options.json') as json_file:
-    data = json.load(json_file)
+    options_data = json.load(json_file)
+    data.update(options_data)
+
 
 # Schreibe die Add-On Konfiguration in die Datei /home/tsun-proxy/config/config.toml
 with open('/home/tsun-proxy/src/config/config.toml', 'w+') as f:
 #with open('./config/config.toml', 'w+') as f:
     f.write(f"""
-mqtt.host    = '{data.get('mqtt.host', '192.168.178.2')}' # URL or IP address of the mqtt broker
-mqtt.port    = {data.get('mqtt.port', 1883)}
-mqtt.user    = '{data.get('mqtt.user', 'mqtt-user')}'
-mqtt.passwd  = '{data.get('mqtt.passwd', 'marxI5-gunwaw-bemqos')}'
+mqtt.host    = '{data.get('mqtt.host')}' # URL or IP address of the mqtt broker
+mqtt.port    = {data.get('mqtt.port')}
+mqtt.user    = '{data.get('mqtt.user')}'
+mqtt.passwd  = '{data.get('mqtt.passwd')}'
 
 
 ha.auto_conf_prefix = '{data.get('ha.auto_conf_prefix', 'homeassistant')}'     # MQTT prefix for subscribing for homeassistant status updates

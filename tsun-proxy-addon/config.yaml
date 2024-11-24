@@ -1,6 +1,6 @@
 name: "TSUN-Proxy"
 description: "MQTT Proxy for TSUN Photovoltaic Inverters"
-version: "0.0.6"
+version: "0.0.7"
 slug: "tsun-proxy"
 init: false
 arch:
@@ -10,15 +10,19 @@ arch:
   - armv7
   - i386
 startup: services
+homeassistant_api: true
+services:
+  - mqtt:want
 ports:
-  #8000/tcp: 8000 # just for testpurpose
   8127/tcp: 8127
   5005/tcp: 5005
   10000/tcp: 10000
 
 # Definition of parameters in the configuration tab of the addon
 # parameters are available within the container as /data/options.json
-# and should become picked up by the proxy
+# and should become picked up by the proxy - current workarround as a transfer script
+# TODO: add further schema for remaining config parameters
+# TODO: implement direct reading of the configuration file
 schema:
   inverters:
     - serial: str
@@ -37,6 +41,12 @@ schema:
   tsun.enabled: bool
   solarman.enabled: bool
   inverters.allow_all: bool
+  # optionale parameter
+  # TODO besser strukturieren und vervollständigen
+  mqtt.host: str?
+  mqtt.port: int?
+  mqtt.user: str?
+  mqtt.passwd: password?
   ha.auto_conf_prefix: str? # suggeriert optionale konfigurationsoption -> es darf jedoch kein default unter "options" angegeben werden
   ha.discovery_prefix: str? # dito
   ha.entity_prefix: str? #dito

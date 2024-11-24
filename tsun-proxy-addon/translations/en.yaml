@@ -33,6 +33,22 @@ configuration:
       The proxy only usually accepts connections from known inverters.
       This can be switched off for test purposes and unknown serial
       numbers are also accepted.
+  mqtt.host:
+    name: MQTT Broker Host
+    description: >-
+      Hostname or IP address of the MQTT broker. if not set, the addon will try to connect to the Home Assistant MQTT broker
+  mqtt.port:
+    name: MQTT Broker Port
+    description: >-
+      Port of the MQTT broker. if not set, the addon will try to connect to the Home Assistant MQTT broker
+  mqtt.user:
+    name: MQTT Broker User
+    description: >-
+      User for the MQTT broker. if not set, the addon will try to connect to the Home Assistant MQTT broker
+  mqtt.passwd:
+    name: MQTT Broker Password
+    description: >-
+      Password for the MQTT broker. if not set, the addon will try to connect to the Home Assistant MQTT broker
   ha.auto_conf_prefix:
     name: MQTT prefix for subscribing for homeassistant status updates
   ha.discovery_prefix:
