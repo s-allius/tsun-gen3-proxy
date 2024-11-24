@@ -1,0 +1,50 @@
+---
+configuration:
+  inverters:
+    name: Inverters
+    description: >-
+      For each GEN3 inverter, the serial number of the inverter must be mapped to an MQTT
+      definition. To do this, the corresponding configuration block is started with
+      <16-digit serial number> so that all subsequent parameters are assigned
+      to this inverter. Further inverter-specific parameters (e.g. polling mode) can be set
+      in the configuration block
+
+      The serial numbers of all GEN3 inverters start with `R17`!
+
+      node_id            # MQTT replacement for inverters serial number
+      suggested_area     # suggested installation area for home-assistant
+      modbus_polling     # Disable optional MODBUS polling
+      pv1                # Optional, PV module descr
+      pv2                # Optional, PV module descr
+
+  tsun.enabled:
+    name: Connection to TSUN Cloud
+    description: >-
+      disable connecting to the tsun cloud avoids updates.
+      The Inverter become isolated from Internet if switched on.
+  solarman.enabled:
+    name: Connection to Solarman Cloud
+    description: >-
+      disables connecting to the Solarman cloud avoids updates.
+      The Inverter become isolated from Internet if switched on.
+  inverters.allow_all:
+    name: Allow all connections from all inverters
+    description: >-
+      The proxy only usually accepts connections from known inverters.
+      This can be switched off for test purposes and unknown serial
+      numbers are also accepted.
+  ha.auto_conf_prefix:
+    name: MQTT prefix for subscribing for homeassistant status updates
+  ha.discovery_prefix:
+    name: MQTT prefix for discovery topic
+  ha.entity_prefix:
+    name: MQTT topic prefix for publishing inverter values
+  ha.proxy_node_id:
+    name: MQTT node id, for the proxy_node_id
+  ha.proxy_unique_id:
+    name: MQTT unique id, to identify a proxy instance
+
+network:
+  8127/tcp: x...
+  5005/tcp: listening Port for TSUN GEN3 Devices
+  10000/tcp: listening Port for TSUN GEN3PLUS Devices

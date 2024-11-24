@@ -1,0 +1,4 @@
+    aiomqtt==2.3.0
+    schema==0.7.7
+    aiocron==1.8
+    aiohttp==3.10.5
