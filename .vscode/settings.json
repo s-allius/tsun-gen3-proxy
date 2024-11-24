@@ -3,7 +3,7 @@
     "app/src",
     ".venv/lib" ],
     "python.testing.pytestArgs": [
-        "-vv", 
+        "-v", 
         "--cov=app/src",
         "--cov-report=xml",
         "app",
@@ -20,5 +20,10 @@
     },
     "files.exclude": {
         "**/*.pyi": true
-    }
+    },
+    "python.analysis.typeEvaluation.deprecateTypingAliases": true,
+    "python.autoComplete.extraPaths": [
+        ".venv/lib"
+    ],
+    "coverage-gutters.coverageBaseDir": "tsun"
 }
