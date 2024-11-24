@@ -5,12 +5,12 @@ import aiomqtt
 import logging
 
 from mock import patch, Mock
-from app.src.async_stream import AsyncIfcImpl
-from app.src.singleton import Singleton
-from app.src.mqtt import Mqtt
-from app.src.modbus import Modbus
-from app.src.gen3plus.solarman_v5 import SolarmanV5
-from app.src.config import Config
+from async_stream import AsyncIfcImpl
+from singleton import Singleton
+from mqtt import Mqtt
+from modbus import Modbus
+from gen3plus.solarman_v5 import SolarmanV5
+from config import Config
 
 
 pytest_plugins = ('pytest_asyncio',)

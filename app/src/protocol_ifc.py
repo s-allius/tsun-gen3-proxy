@@ -1,11 +1,7 @@
 from abc import abstractmethod
 
-if __name__ == "app.src.protocol_ifc":
-    from app.src.iter_registry import AbstractIterMeta
-    from app.src.async_ifc import AsyncIfc
-else:  # pragma: no cover
-    from iter_registry import AbstractIterMeta
-    from async_ifc import AsyncIfc
+from async_ifc import AsyncIfc
+from iter_registry import AbstractIterMeta
 
 
 class ProtocolIfc(metaclass=AbstractIterMeta):

@@ -6,16 +6,10 @@ from asyncio import StreamReader, StreamWriter
 from typing import Self
 from itertools import count
 
-if __name__ == "app.src.async_stream":
-    from app.src.proxy import Proxy
-    from app.src.byte_fifo import ByteFifo
-    from app.src.async_ifc import AsyncIfc
-    from app.src.infos import Infos
-else:  # pragma: no cover
-    from proxy import Proxy
-    from byte_fifo import ByteFifo
-    from async_ifc import AsyncIfc
-    from infos import Infos
+from proxy import Proxy
+from byte_fifo import ByteFifo
+from async_ifc import AsyncIfc
+from infos import Infos
 
 
 import gc

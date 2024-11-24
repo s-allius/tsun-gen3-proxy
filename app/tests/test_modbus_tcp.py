@@ -5,14 +5,14 @@ from aiomqtt import MqttCodeError
 
 from mock import patch
 from enum import Enum
-from app.src.singleton import Singleton
-from app.src.config import Config
-from app.src.infos import Infos
-from app.src.mqtt import Mqtt
-from app.src.inverter_base import InverterBase
-from app.src.messages import Message, State
-from app.src.proxy import Proxy
-from app.src.modbus_tcp import ModbusConn, ModbusTcp
+from singleton import Singleton
+from config import Config
+from infos import Infos
+from mqtt import Mqtt
+from inverter_base import InverterBase
+from messages import Message, State
+from proxy import Proxy
+from modbus_tcp import ModbusConn, ModbusTcp
 
 
 pytest_plugins = ('pytest_asyncio',)

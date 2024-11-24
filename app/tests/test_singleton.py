@@ -1,6 +1,6 @@
 # test_with_pytest.py
 import pytest
-from app.src.singleton import Singleton
+from singleton import Singleton
 
 class Test(metaclass=Singleton):
     def __init__(self):

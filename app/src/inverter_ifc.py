@@ -2,10 +2,7 @@ from abc import abstractmethod
 import logging
 from asyncio import StreamReader, StreamWriter
 
-if __name__ == "app.src.inverter_ifc":
-    from app.src.iter_registry import AbstractIterMeta
-else:  # pragma: no cover
-    from iter_registry import AbstractIterMeta
+from iter_registry import AbstractIterMeta
 
 logger_mqtt = logging.getLogger('mqtt')
 

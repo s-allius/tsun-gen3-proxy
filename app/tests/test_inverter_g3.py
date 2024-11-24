@@ -5,15 +5,15 @@ import sys,gc
 
 from mock import patch
 from enum import Enum
-from app.src.infos import Infos
-from app.src.config import Config
-from app.src.proxy import Proxy
-from app.src.inverter_base import InverterBase
-from app.src.singleton import Singleton
-from app.src.gen3.inverter_g3 import InverterG3
-from app.src.async_stream import AsyncStream
+from infos import Infos
+from config import Config
+from proxy import Proxy
+from inverter_base import InverterBase
+from singleton import Singleton
+from gen3.inverter_g3 import InverterG3
+from async_stream import AsyncStream
 
-from app.tests.test_modbus_tcp import patch_mqtt_err, patch_mqtt_except, test_port, test_hostname
+from test_modbus_tcp import patch_mqtt_err, patch_mqtt_except, test_port, test_hostname
 
 pytest_plugins = ('pytest_asyncio',)
 

@@ -1,7 +1,7 @@
 # test_with_pytest.py
 import tomllib
 from schema import SchemaMissingKeyError
-from app.src.config import Config
+from config import Config
 
 class TstConfig(Config):
 

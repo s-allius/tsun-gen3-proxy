@@ -2,8 +2,8 @@
 import pytest
 import json, math
 import logging
-from app.src.infos import Register, ClrAtMidnight
-from app.src.infos import Infos, Fmt
+from infos import Register, ClrAtMidnight
+from infos import Infos, Fmt
 
 def test_statistic_counter():
     i = Infos()

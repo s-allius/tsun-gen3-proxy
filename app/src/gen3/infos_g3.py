@@ -3,10 +3,7 @@ import struct
 import logging
 from typing import Generator
 
-if __name__ == "app.src.gen3.infos_g3":
-    from app.src.infos import Infos, Register
-else:  # pragma: no cover
-    from infos import Infos, Register
+from infos import Infos, Register
 
 
 class RegisterMap:

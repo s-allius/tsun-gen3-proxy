@@ -16,10 +16,7 @@ import logging
 import asyncio
 from typing import Generator, Callable
 
-if __name__ == "app.src.modbus":
-    from app.src.infos import Register, Fmt
-else:  # pragma: no cover
-    from infos import Register, Fmt
+from infos import Register, Fmt
 
 logger = logging.getLogger('data')
 

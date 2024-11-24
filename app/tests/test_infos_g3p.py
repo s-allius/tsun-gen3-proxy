@@ -1,9 +1,9 @@
 
 # test_with_pytest.py
 import pytest, json, math, random
-from app.src.infos import Register
-from app.src.gen3plus.infos_g3p import InfosG3P
-from app.src.gen3plus.infos_g3p import RegisterMap
+from infos import Register
+from gen3plus.infos_g3p import InfosG3P
+from gen3plus.infos_g3p import RegisterMap
 
 @pytest.fixture(scope="session")
 def str_test_ip():
