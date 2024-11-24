@@ -1,9 +1,11 @@
 import json
 import os
 
-# Dieses file übernimmt die Add-On Konfiguration und schreibt sie in die Konfigurationsdatei des tsun-proxy
+# Dieses file übernimmt die Add-On Konfiguration und schreibt sie in die
+# Konfigurationsdatei des tsun-proxy
 # Die Addon Konfiguration wird in der Datei /data/options.json bereitgestellt
-# Die Konfiguration wird in der Datei /home/tsun-proxy/config/config.toml gespeichert
+# Die Konfiguration wird in der Datei /home/tsun-proxy/config/config.toml
+# gespeichert
 
 # Übernehme die Umgebungsvariablen
 # alternativ kann auch auf die homeassistant supervisor API zugegriffen werden
@@ -17,14 +19,14 @@ data['mqtt.passwd'] = os.getenv('MQTT_PASSWORD')
 
 # Lese die Add-On Konfiguration aus der Datei /data/options.json
 with open('/data/options.json') as json_file:
-#with open('options.json') as json_file:
+    # with open('options.json') as json_file:
     options_data = json.load(json_file)
     data.update(options_data)
 
 
-# Schreibe die Add-On Konfiguration in die Datei /home/tsun-proxy/config/config.toml
+# Schreibe die Add-On Konfiguration in die Datei /home/tsun-proxy/config/config.toml    # noqa: E501
 with open('/home/tsun-proxy/src/config/config.toml', 'w+') as f:
-#with open('./config/config.toml', 'w+') as f:
+    # with open('./config/config.toml', 'w+') as f:
     f.write(f"""
 mqtt.host    = '{data.get('mqtt.host')}' # URL or IP address of the mqtt broker
 mqtt.port    = {data.get('mqtt.port')}
@@ -32,9 +34,9 @@ mqtt.user    = '{data.get('mqtt.user')}'
 mqtt.passwd  = '{data.get('mqtt.passwd')}'
 
 
-ha.auto_conf_prefix = '{data.get('ha.auto_conf_prefix', 'homeassistant')}'     # MQTT prefix for subscribing for homeassistant status updates
-ha.discovery_prefix = '{data.get('ha.discovery_prefix', 'homeassistant')}'     # MQTT prefix for discovery topic
-ha.entity_prefix    = '{data.get('ha.entity_prefix', 'tsun')}'              # MQTT topic prefix for publishing inverter values
+ha.auto_conf_prefix = '{data.get('ha.auto_conf_prefix', 'homeassistant')}'     # MQTT prefix for subscribing for homeassistant status updates    # noqa: E501
+ha.discovery_prefix = '{data.get('ha.discovery_prefix', 'homeassistant')}'     # MQTT prefix for discovery topic                                 # noqa: E501
+ha.entity_prefix    = '{data.get('ha.entity_prefix', 'tsun')}'              # MQTT topic prefix for publishing inverter values                   # noqa: E501
 ha.proxy_node_id    = '{data.get('ha.proxy_node_id', 'proxy')}'             # MQTT node id, for the proxy_node_id
 ha.proxy_unique_id  = '{data.get('ha.proxy_unique_id', 'P170000000000001')}'  # MQTT unique id, to identify a proxy instance
 
@@ -58,7 +60,6 @@ inverters.allow_all = {str(data.get('inverters.allow_all', False)).lower()}
 node_id = '{inverter['node_id']}'
 suggested_area = '{inverter['suggested_area']}'
 modbus_polling = {str(inverter['modbus_polling']).lower()}
-pv1 = {{type = '{inverter['pv1_type']}', manufacturer = '{inverter['pv1_manufacturer']}'}}   # Optional, PV module descr
-pv2 = {{type = '{inverter['pv2_type']}', manufacturer = '{inverter['pv2_manufacturer']}'}}   # Optional, PV module descr
+pv1 = {{type = '{inverter['pv1_type']}', manufacturer = '{inverter['pv1_manufacturer']}'}}   # Optional, PV module descr    # noqa: E501
+pv2 = {{type = '{inverter['pv2_type']}', manufacturer = '{inverter['pv2_manufacturer']}'}}   # Optional, PV module descr    # noqa: E501
 """)
-
