@@ -1,6 +1,6 @@
 # test_with_pytest.py
 
-from app.src.byte_fifo import ByteFifo
+from byte_fifo import ByteFifo
 
 def test_fifo():
     read = ByteFifo()

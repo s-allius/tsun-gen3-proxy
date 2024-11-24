@@ -2,14 +2,9 @@ import asyncio
 import logging
 import json
 
-if __name__ == "app.src.proxy":
-    from app.src.config import Config
-    from app.src.mqtt import Mqtt
-    from app.src.infos import Infos
-else:  # pragma: no cover
-    from config import Config
-    from mqtt import Mqtt
-    from infos import Infos
+from config import Config
+from mqtt import Mqtt
+from infos import Infos
 
 logger_mqtt = logging.getLogger('mqtt')
 

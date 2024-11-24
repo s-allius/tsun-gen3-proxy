@@ -3,19 +3,11 @@ import weakref
 from typing import Callable
 from enum import Enum
 
-
-if __name__ == "app.src.messages":
-    from app.src.async_ifc import AsyncIfc
-    from app.src.protocol_ifc import ProtocolIfc
-    from app.src.infos import Infos, Register
-    from app.src.modbus import Modbus
-    from app.src.my_timer import Timer
-else:  # pragma: no cover
-    from async_ifc import AsyncIfc
-    from protocol_ifc import ProtocolIfc
-    from infos import Infos, Register
-    from modbus import Modbus
-    from my_timer import Timer
+from async_ifc import AsyncIfc
+from protocol_ifc import ProtocolIfc
+from infos import Infos, Register
+from modbus import Modbus
+from my_timer import Timer
 
 logger = logging.getLogger('msg')
 

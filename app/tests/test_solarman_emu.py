@@ -1,11 +1,13 @@
 import pytest
 import asyncio
-from app.src.async_stream import AsyncIfcImpl, StreamPtr
-from app.src.gen3plus.solarman_v5 import SolarmanV5, SolarmanBase
-from app.src.gen3plus.solarman_emu import SolarmanEmu
-from app.src.infos import Infos, Register
-from app.tests.test_solarman import FakeIfc, MemoryStream, get_sn_int, get_sn, correct_checksum, config_tsun_inv1, msg_modbus_rsp
-from app.tests.test_infos_g3p import str_test_ip, bytes_test_ip
+
+from async_stream import AsyncIfcImpl, StreamPtr
+from gen3plus.solarman_v5 import SolarmanV5, SolarmanBase
+from gen3plus.solarman_emu import SolarmanEmu
+from infos import Infos, Register
+
+from test_solarman import FakeIfc, MemoryStream, get_sn_int, get_sn, correct_checksum, config_tsun_inv1, msg_modbus_rsp
+from test_infos_g3p import str_test_ip, bytes_test_ip
 
 timestamp = 0x3224c8bc
 

@@ -4,20 +4,12 @@ from zoneinfo import ZoneInfo
 from datetime import datetime
 from tzlocal import get_localzone
 
-if __name__ == "app.src.gen3.talent":
-    from app.src.async_ifc import AsyncIfc
-    from app.src.messages import Message, State
-    from app.src.modbus import Modbus
-    from app.src.config import Config
-    from app.src.gen3.infos_g3 import InfosG3
-    from app.src.infos import Register
-else:  # pragma: no cover
-    from async_ifc import AsyncIfc
-    from messages import Message, State
-    from modbus import Modbus
-    from config import Config
-    from gen3.infos_g3 import InfosG3
-    from infos import Register
+from async_ifc import AsyncIfc
+from messages import Message, State
+from modbus import Modbus
+from config import Config
+from gen3.infos_g3 import InfosG3
+from infos import Register
 
 logger = logging.getLogger('msg')
 

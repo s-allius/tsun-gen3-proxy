@@ -1,10 +1,7 @@
 
 from typing import Generator
 
-if __name__ == "app.src.gen3plus.infos_g3p":
-    from app.src.infos import Infos, Register, ProxyMode, Fmt
-else:  # pragma: no cover
-    from infos import Infos, Register, ProxyMode, Fmt
+from infos import Infos, Register, ProxyMode, Fmt
 
 
 class RegisterMap:

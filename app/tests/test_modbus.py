@@ -1,8 +1,8 @@
 # test_with_pytest.py
 import pytest
 import asyncio
-from app.src.modbus import Modbus
-from app.src.infos import Infos, Register
+from modbus import Modbus
+from infos import Infos, Register
 
 pytest_plugins = ('pytest_asyncio',)
 
