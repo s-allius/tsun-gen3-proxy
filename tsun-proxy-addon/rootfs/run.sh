@@ -28,6 +28,7 @@ echo "Erstelle config.toml"
 python3 create_config_toml.py
 
 
+cd /proxy || exit
 
 echo "Starte Webserver"
 python3 server.py
