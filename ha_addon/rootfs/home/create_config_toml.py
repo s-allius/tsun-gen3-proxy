@@ -25,7 +25,7 @@ with open('/data/options.json') as json_file:
 
 
 # Schreibe die Add-On Konfiguration in die Datei /home/tsun-proxy/config/config.toml    # noqa: E501
-with open('/home/tsun-proxy/src/config/config.toml', 'w+') as f:
+with open('/home/config/config.toml', 'w+') as f:
     # with open('./config/config.toml', 'w+') as f:
     f.write(f"""
 mqtt.host    = '{data.get('mqtt.host')}' # URL or IP address of the mqtt broker

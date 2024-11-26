@@ -21,7 +21,7 @@ fi
 
 
 
-cd /home/tsun-proxy/src || exit
+cd /home || exit
 
 
 echo "Erstelle config.toml"
