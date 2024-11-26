@@ -3,7 +3,7 @@ __pycache__
 bin/**
 mosquitto/**
 homeassistant/**
-tsun-proxy-addon/rootfs/proxy/*
+ha_addon/rootfs/proxy/*
 tsun_proxy/**
 Doku/**
 .DS_Store

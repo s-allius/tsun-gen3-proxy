@@ -25,7 +25,7 @@ NC='\033[0m'
 
 if [[ $1 == addon ]] ;then
 echo Prepare AddOn 
-ADDON_PATH="tsun-proxy-addon/rootfs/proxy"
+ADDON_PATH="ha_addon/rootfs/proxy"
 SRC_PATH="app/src"
 CNF_PATH="app/config"
 
