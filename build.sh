@@ -23,25 +23,6 @@ BLUE='\033[0;34m'
 NC='\033[0m'
 
 
-if [[ $1 == addon ]] ;then
-echo Prepare AddOn 
-ADDON_PATH="ha_addon/rootfs/home/proxy"
-SRC_PATH="app/src"
-CNF_PATH="app/config"
-
-mkdir -p $ADDON_PATH
-rm -rf ${ADDON_PATH}/*
-mkdir $ADDON_PATH/gen3 $ADDON_PATH/gen3plus
-
-cp -a ${CNF_PATH}/*.toml ${ADDON_PATH}
-cp -a ${SRC_PATH}/*.ini ${ADDON_PATH}
-cp -a ${SRC_PATH}/*.py ${ADDON_PATH}
-cp -a ${SRC_PATH}/gen3/*.py ${ADDON_PATH}/gen3
-cp -a ${SRC_PATH}/gen3plus/*.py ${ADDON_PATH}/gen3plus
-
-exit 0
-fi
-
 if [[ $1 == debug ]] || [[ $1 == dev ]] ;then
 IMAGE=docker.io/sallius/${IMAGE}
 VERSION=${VERSION}+$1
@@ -51,7 +32,7 @@ echo 'login to ghcr.io'
 echo $GHCR_TOKEN | docker login ghcr.io -u s-allius --password-stdin
 else
 echo argument missing!
-echo try: $0 '[addon|debug|dev|preview|rc|rel]'
+echo try: $0 '[debug|dev|preview|rc|rel]'
 exit 1
 fi
 
