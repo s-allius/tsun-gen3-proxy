@@ -22,7 +22,6 @@ GREEN='\033[0;32m'
 BLUE='\033[0;34m'
 NC='\033[0m'
 
-
 if [[ $1 == debug ]] || [[ $1 == dev ]] ;then
 IMAGE=docker.io/sallius/${IMAGE}
 VERSION=${VERSION}+$1
