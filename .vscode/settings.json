@@ -3,9 +3,11 @@
         "-vv", 
         "app",
         "--cov=app/src",
+        "--cov=ha_addon/rootfs/home",
         "--cov-report=xml",
         "--cov-report=html",
-        "system_tests"
+        "system_tests",
+        "ha_addon"
     ],
     "python.testing.unittestEnabled": false,
     "python.testing.pytestEnabled": true,
