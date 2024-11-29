@@ -4,6 +4,7 @@ bin/**
 mosquitto/**
 homeassistant/**
 ha_addon/rootfs/home/proxy/*
+ha_addon/rootfs/requirements.txt
 tsun_proxy/**
 Doku/**
 .DS_Store
