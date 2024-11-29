@@ -5,9 +5,11 @@
     "python.testing.pytestArgs": [
         "-v", 
         "--cov=app/src",
+        "--cov=ha_addon/rootfs/home",
         "--cov-report=xml",
         "app",
-        "system_tests"
+        "system_tests",
+        "ha_addon"
     ],
     "python.testing.unittestEnabled": false,
     "python.testing.pytestEnabled": true,

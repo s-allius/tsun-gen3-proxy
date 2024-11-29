@@ -1,0 +1,78 @@
+name: "TSUN-Proxy"
+description: "MQTT Proxy for TSUN Photovoltaic Inverters"
+version: "0.0.7"
+slug: "tsun-proxy"
+init: false
+arch:
+  - aarch64
+  - amd64
+  - armhf
+  - armv7
+  - i386
+startup: services
+homeassistant_api: true
+services:
+  - mqtt:want
+ports:
+  8127/tcp: 8127
+  5005/tcp: 5005
+  10000/tcp: 10000
+
+# Definition of parameters in the configuration tab of the addon
+# parameters are available within the container as /data/options.json
+# and should become picked up by the proxy - current workarround as a transfer script
+# TODO: add further schema for remaining config parameters
+# TODO: implement direct reading of the configuration file
+schema:
+  inverters:
+    - serial: str
+      node_id: str
+      suggested_area: str
+      modbus_polling: bool
+      #strings:                   # leider funktioniert es nicht die folgenden 3 parameter im schema aufzulisten. möglicherweise wird die verschachtelung nicht unterstützt.
+      #  - string: str
+      #    type: str
+      #    manufacturer: str
+      # daher diese variante
+      pv1_manufacturer: str
+      pv1_type: str
+      pv2_manufacturer: str
+      pv2_type: str
+  tsun.enabled: bool
+  solarman.enabled: bool
+  inverters.allow_all: bool
+  # optionale parameter
+  # TODO besser strukturieren und vervollständigen
+  mqtt.host: str?
+  mqtt.port: int?
+  mqtt.user: str?
+  mqtt.passwd: password?
+  ha.auto_conf_prefix: str? # suggeriert optionale konfigurationsoption -> es darf jedoch kein default unter "options" angegeben werden
+  ha.discovery_prefix: str? # dito
+  ha.entity_prefix: str? #dito
+  ha.proxy_node_id: str? #dito
+  ha.proxy_unique_id: str? #dito
+
+# set default options for mandatory parameters
+# for optional parameters do not define any default value in the options dictionary.
+# If any default value is given, the option becomes a required value.
+options:
+  inverters:
+    - serial: R17E760702080400
+      node_id: PV-Garage
+      suggested_area: Garage
+      modbus_polling: false
+      #strings:
+      #  - string: PV1
+      #    type: SF-M18/144550
+      #    manufacturer: Shinefar
+      #  - string: PV2
+      #    type: SF-M18/144550
+      #    manufacturer: Shinefar
+      pv1_manufacturer: Shinefar
+      pv1_type: SF-M18/144550
+      pv2_manufacturer: Shinefar
+      pv2_type: SF-M18/144550
+  tsun.enabled: true # set default
+  solarman.enabled: true # set default
+  inverters.allow_all: false # set default
