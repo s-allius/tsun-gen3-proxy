@@ -1,7 +1,7 @@
-.PHONY: build clean
+.PHONY: build clean addon-dev
 
 # debug dev:
 # 	$(MAKE) -C app $@
 
-clean build:
+clean build addon-dev:
 	$(MAKE) -C ha_addon $@ 

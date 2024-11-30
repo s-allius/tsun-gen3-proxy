@@ -19,6 +19,9 @@ CNF_FILES := $(wildcard $(CNF_PROXY)/*.toml)
 TARGET_FILES = $(SRC_FILES:$(SRC_PROXY)/%=$(DST_PROXY)/%)
 CONFIG_FILES = $(CNF_FILES:$(CNF_PROXY)/%=$(DST_PROXY)/%)
 
+addon-dev:
+	docker buildx bake -f docker-bake.hcl dev
+
 build: rootfs
 
 clean:
@@ -27,7 +30,7 @@ clean:
 
 rootfs: $(TARGET_FILES) $(CONFIG_FILES) $(DST)/requirements.txt
 
-.PHONY: build clean rootfs
+.PHONY: addon-dev build clean rootfs 
 
 
 $(CONFIG_FILES): $(DST_PROXY)/% : $(CNF_PROXY)/%
