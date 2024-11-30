@@ -67,18 +67,16 @@ COPY rootfs/ /
 RUN chmod a+x /run.sh
 
 
-# no idea whether needed or not
-ENV SERVICE_NAME="tsun-proxy"
-ENV UID=1000
-ENV GID=1000
-ENV VERSION="0.0"
-
-
 
 #######################
 # 6 run app           #
 #######################
 
+ARG SERVICE_NAME
+ARG VERSION
+ENV SERVICE_NAME=${SERVICE_NAME}
+
+RUN echo ${VERSION} > /proxy-version.txt
 
 # command to run on container start
 CMD [ "/run.sh" ]
