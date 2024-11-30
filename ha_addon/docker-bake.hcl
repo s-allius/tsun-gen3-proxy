@@ -1,5 +1,5 @@
 variable "IMAGE" {
-    default = "docker.io/sallius/tsun-gen3-addon"
+    default = "tsun-gen3-addon"
 }
 variable "VERSION" {
     default = "0.0.0"
@@ -18,7 +18,7 @@ variable "DESCRIPTION" {
 }
 
 target "_common" {
-  context = ""
+  context = "."
   dockerfile = "Dockerfile"
   args = {
     VERSION = "${VERSION}"
@@ -29,6 +29,9 @@ target "_common" {
     "type =sbom,generator=docker/scout-sbom-indexer:latest"
   ]
   annotations = [
+    "index:io.hass.version=${VERSION}",
+    "index:io.hass.type=addon",
+    "index:io.hass.arch=armhf|aarch64|i386|amd64",
     "index:org.opencontainers.image.title=TSUN-Proxy",
     "index:org.opencontainers.image.authors=Stefan Allius",
     "index:org.opencontainers.image.created=${BUILD_DATE}",
@@ -39,6 +42,9 @@ target "_common" {
     "index:org.opencontainers.image.source=https://github.com/s-allius/tsun-gen3-proxy/ha_addon"
   ]
   labels = {
+    "io.hass.version" = "${VERSION}"
+    "io.hass.type" = "addon"
+    "io.hass.arch" = "armhf|aarch64|i386|amd64"
     "org.opencontainers.image.title" = "TSUN-Proxy"
     "org.opencontainers.image.authors" = "Stefan Allius"
     "org.opencontainers.image.created" = "${BUILD_DATE}"
