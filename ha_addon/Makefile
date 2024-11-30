@@ -1,4 +1,6 @@
 SHELL = /bin/sh
+IMAGE = tsun-gen3-addon
+
 
 # Folders
 SRC=../app
@@ -19,8 +21,16 @@ CNF_FILES := $(wildcard $(CNF_PROXY)/*.toml)
 TARGET_FILES = $(SRC_FILES:$(SRC_PROXY)/%=$(DST_PROXY)/%)
 CONFIG_FILES = $(CNF_FILES:$(CNF_PROXY)/%=$(DST_PROXY)/%)
 
-addon-dev:
-	docker buildx bake -f docker-bake.hcl dev
+export BUILD_DATE=${shell date -Iminutes}
+VERSION=0.7.1
+
+dev debug: build
+	@echo version: $(VERSION)  build-date: $(BUILD_DATE)   image: $(IMAGE)
+	export VERSION=$(VERSION) && \
+	export IMAGE=docker.io/sallius/$(IMAGE) && \
+	docker buildx bake -f docker-bake.hcl $@
+
+# --no-cache
 
 build: rootfs
 
@@ -30,7 +40,7 @@ clean:
 
 rootfs: $(TARGET_FILES) $(CONFIG_FILES) $(DST)/requirements.txt
 
-.PHONY: addon-dev build clean rootfs 
+.PHONY: debug dev build clean rootfs 
 
 
 $(CONFIG_FILES): $(DST_PROXY)/% : $(CNF_PROXY)/%
