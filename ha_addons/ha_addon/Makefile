@@ -21,16 +21,17 @@ CNF_FILES := $(wildcard $(CNF_PROXY)/*.toml)
 TARGET_FILES = $(SRC_FILES:$(SRC_PROXY)/%=$(DST_PROXY)/%)
 CONFIG_FILES = $(CNF_FILES:$(CNF_PROXY)/%=$(DST_PROXY)/%)
 
-export BUILD_DATE=${shell date -Iminutes}
-VERSION=0.7.1
+export BUILD_DATE := ${shell date -Iminutes}
+VERSION := $(shell cat $(SRC)/.version)
+export MAJOR  := $(shell echo $(VERSION) | cut -f1 -d.)
+
 
 dev debug: build
 	@echo version: $(VERSION)  build-date: $(BUILD_DATE)   image: $(IMAGE)
-	export VERSION=$(VERSION) && \
+	export VERSION=$(VERSION)-$@ && \
 	export IMAGE=docker.io/sallius/$(IMAGE) && \
 	docker buildx bake -f docker-bake.hcl $@
 
-# --no-cache
 
 build: rootfs
 
