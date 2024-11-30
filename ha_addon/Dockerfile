@@ -13,9 +13,6 @@
 # 1 Build Image      #
 ######################
 
-# opt for suitable build base. I opted for the recommended hassio-addon base
-
-#ARG BUILD_FROM="ghcr.io/hassio-addons/debian-base:latest"
 ARG BUILD_FROM="ghcr.io/hassio-addons/base:stable"
 FROM $BUILD_FROM
 

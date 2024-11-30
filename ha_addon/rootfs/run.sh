@@ -19,18 +19,18 @@ else
     export MQTT_PASSWORD
 fi
 
-# Erstelle Ordner für log und config
-mkdir /home/proxy/log
-mkdir /home/proxy/config
+
 
 cd /home || exit
 
+# Erstelle Ordner für log und config
+mkdir proxy/log
+mkdir proxy/config
 
-echo "Erstelle config.toml"
+echo "Create config.toml..."
 python3 create_config_toml.py
-
 
 cd /home/proxy || exit
 
-echo "Starte Webserver"
+echo "Start Proxyserver..."
 python3 server.py
