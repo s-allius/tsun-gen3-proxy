@@ -39,7 +39,7 @@ target "_common" {
     "index:org.opencontainers.image.revision=${BRANCH}",
     "index:org.opencontainers.image.description=${DESCRIPTION}",
     "index:org.opencontainers.image.licenses=BSD-3-Clause",
-    "index:org.opencontainers.image.source=https://github.com/s-allius/tsun-gen3-proxy/ha_addon"
+    "index:org.opencontainers.image.source=https://github.com/s-allius/tsun-gen3-proxy/ha_addons/ha_addon"
   ]
   labels = {
     "io.hass.version" = "${VERSION}"
@@ -52,7 +52,7 @@ target "_common" {
     "org.opencontainers.image.revision" = "${BRANCH}"
     "org.opencontainers.image.description" = "${DESCRIPTION}"
     "org.opencontainers.image.licenses" = "BSD-3-Clause"
-    "org.opencontainers.image.source" = "https://github.com/s-allius/tsun-gen3-proxy/ha_addon"
+    "org.opencontainers.image.source" = "https://github.com/s-allius/tsun-gen3-proxy/ha_addonsha_addon"
   }
   output = [
     "type=image,push=true"

@@ -4,7 +4,7 @@
 # 	$(MAKE) -C app $@
 
 clean build:
-	$(MAKE) -C ha_addon $@ 
+	$(MAKE) -C ha_addons/ha_addon $@ 
 
 addon-dev addon-debug:
-	$(MAKE) -C ha_addon $(patsubst addon-%,%,$@)
+	$(MAKE) -C ha_addons/ha_addon $(patsubst addon-%,%,$@)

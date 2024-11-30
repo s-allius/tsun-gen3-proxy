@@ -3,7 +3,7 @@ IMAGE = tsun-gen3-addon
 
 
 # Folders
-SRC=../app
+SRC=../../app
 SRC_PROXY=$(SRC)/src
 CNF_PROXY=$(SRC)/config
 
