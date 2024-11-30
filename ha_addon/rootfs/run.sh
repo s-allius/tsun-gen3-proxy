@@ -19,7 +19,9 @@ else
     export MQTT_PASSWORD
 fi
 
-
+# Erstelle Ordner für log und config
+mkdir /home/proxy/log
+mkdir /home/proxy/config
 
 cd /home || exit
 
