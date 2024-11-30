@@ -5,11 +5,11 @@
     "python.testing.pytestArgs": [
         "-v", 
         "--cov=app/src",
-        "--cov=ha_addon/rootfs/home",
+        "--cov=ha_addons/ha_addon/rootfs/home",
         "--cov-report=xml",
         "app",
         "system_tests",
-        "ha_addon"
+        "ha_addons"
     ],
     "python.testing.unittestEnabled": false,
     "python.testing.pytestEnabled": true,
@@ -27,5 +27,6 @@
     "python.autoComplete.extraPaths": [
         ".venv/lib"
     ],
-    "coverage-gutters.coverageBaseDir": "tsun"
+    "coverage-gutters.coverageBaseDir": "tsun",
+    "makefile.configureOnOpen": false
 }
