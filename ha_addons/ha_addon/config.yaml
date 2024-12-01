@@ -2,6 +2,7 @@ name: "TSUN-Proxy"
 description: "MQTT Proxy for TSUN Photovoltaic Inverters"
 version: "dev"
 image: docker.io/sallius/tsun-gen3-addon
+url: https://github.com/s-allius/tsun-gen3-proxy
 slug: "tsun-proxy"
 init: false
 arch:
@@ -21,24 +22,35 @@ ports:
 
 # Definition of parameters in the configuration tab of the addon
 # parameters are available within the container as /data/options.json
-# and should become picked up by the proxy - current workarround as a transfer script
-# TODO: add further schema for remaining config parameters
+# and should become picked up by the proxy - current workaround as a transfer script
+# TODO: check again for multi hierarchie parameters
 # TODO: implement direct reading of the configuration file
 schema:
   inverters:
     - serial: str
+      monitor_sn: int?
       node_id: str
       suggested_area: str
       modbus_polling: bool
-      #strings:                   # leider funktioniert es nicht die folgenden 3 parameter im schema aufzulisten. möglicherweise wird die verschachtelung nicht unterstützt.
+      client_mode_host: str?
+      client_mode_port: int?
+      #strings: # leider funktioniert es nicht die folgenden 3 parameter im schema aufzulisten. möglicherweise wird die verschachtelung nicht unterstützt.
       #  - string: str
       #    type: str
       #    manufacturer: str
       # daher diese variante
-      pv1_manufacturer: str
-      pv1_type: str
-      pv2_manufacturer: str
-      pv2_type: str
+      pv1_manufacturer: str?
+      pv1_type: str?
+      pv2_manufacturer: str?
+      pv2_type: str?
+      pv3_manufacturer: str?
+      pv3_type: str?
+      pv4_manufacturer: str?
+      pv4_type: str?
+      pv5_manufacturer: str?
+      pv5_type: str?
+      pv6_manufacturer: str?
+      pv6_type: str?
   tsun.enabled: bool
   solarman.enabled: bool
   inverters.allow_all: bool
@@ -53,6 +65,16 @@ schema:
   ha.entity_prefix: str? #dito
   ha.proxy_node_id: str? #dito
   ha.proxy_unique_id: str? #dito
+  tsun.host: str?
+  solarman.host: str?
+  gen3plus.at_acl.tsun.allow:
+    - str
+  gen3plus.at_acl.tsun.block:
+    - str?
+  gen3plus.at_acl.mqtt.allow:
+    - str
+  gen3plus.at_acl.mqtt.block:
+    - str?
 
 # set default options for mandatory parameters
 # for optional parameters do not define any default value in the options dictionary.
@@ -63,7 +85,7 @@ options:
       node_id: PV-Garage
       suggested_area: Garage
       modbus_polling: false
-      #strings:
+      # strings:
       #  - string: PV1
       #    type: SF-M18/144550
       #    manufacturer: Shinefar
@@ -77,3 +99,5 @@ options:
   tsun.enabled: true # set default
   solarman.enabled: true # set default
   inverters.allow_all: false # set default
+  tgen3plus.at_acl.sun.allow: ["AT+Z", "AT+UPURL", "AT+SUPDATE"]
+  gen3plus.at_acl.mqtt.allow: ["AT+"]
