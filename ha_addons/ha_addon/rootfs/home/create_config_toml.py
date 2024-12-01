@@ -10,24 +10,24 @@ import os
 # Übernehme die Umgebungsvariablen
 # alternativ kann auch auf die homeassistant supervisor API zugegriffen werden
 
-data = {}
-data['mqtt.host'] = os.getenv('MQTT_HOST')
-data['mqtt.port'] = os.getenv('MQTT_PORT')
-data['mqtt.user'] = os.getenv('MQTT_USER')
-data['mqtt.passwd'] = os.getenv('MQTT_PASSWORD')
 
+def create_config():
+    data = {}
+    data['mqtt.host'] = os.getenv('MQTT_HOST')
+    data['mqtt.port'] = os.getenv('MQTT_PORT')
+    data['mqtt.user'] = os.getenv('MQTT_USER')
+    data['mqtt.passwd'] = os.getenv('MQTT_PASSWORD')
 
-# Lese die Add-On Konfiguration aus der Datei /data/options.json
-with open('/data/options.json') as json_file:
+    # Lese die Add-On Konfiguration aus der Datei /data/options.json
     # with open('options.json') as json_file:
-    options_data = json.load(json_file)
-    data.update(options_data)
+    with open('/data/options.json') as json_file:
+        options_data = json.load(json_file)
+        data.update(options_data)
 
-
-# Schreibe die Add-On Konfiguration in die Datei /home/proxy/config/config.toml    # noqa: E501
-with open('/home/proxy/config/config.toml', 'w+') as f:
-    # with open('./config/config.toml', 'w+') as f:
-    f.write(f"""
+    # Schreibe die Add-On Konfiguration in die Datei /home/proxy/config/config.toml    # noqa: E501
+    with open('/home/proxy/config/config.toml', 'w+') as f:
+        # with open('./config/config.toml', 'w+') as f:
+        f.write(f"""
 mqtt.host    = '{data.get('mqtt.host')}' # URL or IP address of the mqtt broker
 mqtt.port    = {data.get('mqtt.port')}
 mqtt.user    = '{data.get('mqtt.user')}'
@@ -54,8 +54,8 @@ solarman.port    = {data.get('solarman.port', 10000)}
 inverters.allow_all = {str(data.get('inverters.allow_all', False)).lower()}
 """)
 
-    for inverter in data['inverters']:
-        f.write(f"""
+        for inverter in data['inverters']:
+            f.write(f"""
 [inverters."{inverter['serial']}"]
 node_id = '{inverter['node_id']}'
 suggested_area = '{inverter['suggested_area']}'
@@ -63,3 +63,7 @@ modbus_polling = {str(inverter['modbus_polling']).lower()}
 pv1 = {{type = '{inverter['pv1_type']}', manufacturer = '{inverter['pv1_manufacturer']}'}}   # Optional, PV module descr    # noqa: E501
 pv2 = {{type = '{inverter['pv2_type']}', manufacturer = '{inverter['pv2_manufacturer']}'}}   # Optional, PV module descr    # noqa: E501
 """)
+
+
+if __name__ == "__main__":
+    create_config()
