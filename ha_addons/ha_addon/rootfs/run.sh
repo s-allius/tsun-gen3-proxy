@@ -24,8 +24,8 @@ fi
 cd /home || exit
 
 # Erstelle Ordner für log und config
-mkdir proxy/log
-mkdir proxy/config
+mkdir -p proxy/log
+mkdir -p proxy/config
 
 echo "Create config.toml..."
 python3 create_config_toml.py
