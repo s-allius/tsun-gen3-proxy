@@ -1,6 +1,7 @@
 {
     "python.analysis.extraPaths": [
     "app/src",
+    "app/tests",
     ".venv/lib",
     "ha_addons/ha_addon/rootfs" ],
     "python.testing.pytestArgs": [

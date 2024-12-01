@@ -5,7 +5,8 @@ from mock import patch
 from config import Config
 
 from home.create_config_toml import create_config
-from app.tests.test_config import ConfigComplete, ConfigMinimum
+from test_config import ConfigComplete, ConfigMinimum
+
 
 
 class FakeBuffer:
@@ -52,6 +53,47 @@ def patch_open():
     with patch('builtins.open', new_open) as conn:
         yield conn
 
+@pytest.fixture
+def ConfigTomlEmpty():
+    return {
+        'gen3plus': {'at_acl': {'mqtt': {'allow': [], 'block': []},
+                                'tsun': {'allow': [], 'block': []}}},
+        'ha': {'auto_conf_prefix': 'homeassistant',
+               'discovery_prefix': 'homeassistant',
+               'entity_prefix': 'tsun',
+               'proxy_node_id': 'proxy',
+               'proxy_unique_id': 'P170000000000001'},
+        'inverters': {
+            'allow_all': False
+        },
+        'mqtt': {'host': 'mqtt', 'passwd': '', 'port': 1883, 'user': ''},
+        'solarman': {
+            'enabled': True,
+            'host': 'iot.talent-monitoring.com',
+            'port': 10000,
+        },
+        'tsun': {
+            'enabled': True,
+            'host': 'logger.talent-monitoring.com',
+            'port': 5005,
+        },
+    }
+
+def test_no_config(patch_open, ConfigTomlEmpty):
+    _ = patch_open
+    test_buffer.wr = ""
+    test_buffer.rd = ""  # empty buffer, no json
+    create_config()
+    cnf = tomllib.loads(test_buffer.wr)
+    assert cnf == ConfigTomlEmpty
+
+def test_empty_config(patch_open, ConfigTomlEmpty):
+    _ = patch_open
+    test_buffer.wr = ""
+    test_buffer.rd = "{}"  # empty json
+    create_config()
+    cnf = tomllib.loads(test_buffer.wr)
+    assert cnf == ConfigTomlEmpty
 
 def test_full_config(patch_open, ConfigComplete):
     _ = patch_open
@@ -95,8 +137,12 @@ def test_full_config(patch_open, ConfigComplete):
      "AT+UPURL",
      "AT+SUPDATE"
    ],
+   "gen3plus.at_acl.tsun.block": [
+   ],
    "gen3plus.at_acl.mqtt.allow": [
      "AT+"
+   ],
+   "gen3plus.at_acl.mqtt.block": [
    ]
 }
 """

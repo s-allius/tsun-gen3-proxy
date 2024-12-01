@@ -21,8 +21,11 @@ def create_config():
     # Lese die Add-On Konfiguration aus der Datei /data/options.json
     # with open('data/options.json') as json_file:
     with open('/data/options.json') as json_file:
-        options_data = json.load(json_file)
-        data.update(options_data)
+        try:
+            options_data = json.load(json_file)
+            data.update(options_data)
+        except json.JSONDecodeError:
+            pass
 
     # Schreibe die Add-On Konfiguration in die Datei /home/proxy/config/config.toml    # noqa: E501
     # with open('./config/config.toml', 'w+') as f:
@@ -54,8 +57,9 @@ solarman.port    = {data.get('solarman.port', 10000)}
 inverters.allow_all = {str(data.get('inverters.allow_all', False)).lower()}
 """)
 
-        for inverter in data['inverters']:
-            f.write(f"""
+        if 'inverters' in data:
+            for inverter in data['inverters']:
+                f.write(f"""
 [inverters."{inverter['serial']}"]
 node_id = '{inverter['node_id']}'
 suggested_area = '{inverter['suggested_area']}'
