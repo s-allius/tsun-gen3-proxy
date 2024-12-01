@@ -13,20 +13,20 @@ import os
 
 def create_config():
     data = {}
-    data['mqtt.host'] = os.getenv('MQTT_HOST')
-    data['mqtt.port'] = os.getenv('MQTT_PORT')
-    data['mqtt.user'] = os.getenv('MQTT_USER')
-    data['mqtt.passwd'] = os.getenv('MQTT_PASSWORD')
+    data['mqtt.host'] = os.getenv('MQTT_HOST', "mqtt")
+    data['mqtt.port'] = os.getenv('MQTT_PORT', 1883)
+    data['mqtt.user'] = os.getenv('MQTT_USER', "")
+    data['mqtt.passwd'] = os.getenv('MQTT_PASSWORD', "")
 
     # Lese die Add-On Konfiguration aus der Datei /data/options.json
-    #with open('data/options.json') as json_file:
+    # with open('data/options.json') as json_file:
     with open('/data/options.json') as json_file:
         options_data = json.load(json_file)
         data.update(options_data)
 
     # Schreibe die Add-On Konfiguration in die Datei /home/proxy/config/config.toml    # noqa: E501
+    # with open('./config/config.toml', 'w+') as f:
     with open('/home/proxy/config/config.toml', 'w+') as f:
-    #with open('./config/config.toml', 'w+') as f:
         f.write(f"""
 mqtt.host    = '{data.get('mqtt.host')}' # URL or IP address of the mqtt broker
 mqtt.port    = {data.get('mqtt.port')}
@@ -67,7 +67,7 @@ modbus_polling = {str(inverter['modbus_polling']).lower()}
 
 
 # check if inverter has 'pv1_type' and 'pv1_manufacturer' keys. if not, skip pv1
-{f"pv1 = {{type = '{inverter['pv1_type']}', manufacturer = '{inverter['pv1_manufacturer']}'}}" if 'pv1_type' in inverter  and 'pv1_manufacturer' in inverter else ''}
+{f"pv1 = {{type = '{inverter['pv1_type']}', manufacturer = '{inverter['pv1_manufacturer']}'}}" if 'pv1_type' in inverter and 'pv1_manufacturer' in inverter else ''}
 # check if inverter has 'pv2_type' and 'pv2_manufacturer' keys. if not, skip pv2
 {f"pv2 = {{type = '{inverter['pv2_type']}', manufacturer = '{inverter['pv2_manufacturer']}'}}" if 'pv2_type' in inverter and 'pv2_manufacturer' in inverter else ''}
 # check if inverter has 'pv3_type' and 'pv3_manufacturer' keys. if not, skip pv3
@@ -82,7 +82,29 @@ modbus_polling = {str(inverter['modbus_polling']).lower()}
 
 """)
 
-# TODO: add filters
+        # add filters
+        f.write("""
+[gen3plus.at_acl]
+# filter for received commands from the internet
+tsun.allow = [""")
+        if 'gen3plus.at_acl.tsun.allow' in data:
+            for rule in data['gen3plus.at_acl.tsun.allow']:
+                f.write(f"'{rule}',")
+        f.write("]\ntsun.block = [")
+        if 'gen3plus.at_acl.tsun.block' in data:
+            for rule in data['gen3plus.at_acl.tsun.block']:
+                f.write(f"'{rule}',")
+        f.write("""]
+# filter for received commands from the MQTT broker
+mqtt.allow = [""")
+        if 'gen3plus.at_acl.mqtt.allow' in data:
+            for rule in data['gen3plus.at_acl.mqtt.allow']:
+                f.write(f"'{rule}',")
+        f.write("]\nmqtt.block = [")
+        if 'gen3plus.at_acl.mqtt.block' in data:
+            for rule in data['gen3plus.at_acl.mqtt.block']:
+                f.write(f"'{rule}',")
+        f.write("]")
 
 
 if __name__ == "__main__":
