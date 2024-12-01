@@ -99,5 +99,5 @@ options:
   tsun.enabled: true # set default
   solarman.enabled: true # set default
   inverters.allow_all: false # set default
-  tgen3plus.at_acl.sun.allow: ["AT+Z", "AT+UPURL", "AT+SUPDATE"]
+  gen3plus.at_acl.tsun.allow: ["AT+Z", "AT+UPURL", "AT+SUPDATE"]
   gen3plus.at_acl.mqtt.allow: ["AT+"]
