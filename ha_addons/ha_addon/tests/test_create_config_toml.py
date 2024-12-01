@@ -5,6 +5,7 @@ from mock import patch
 from config import Config
 
 from home.create_config_toml import create_config
+from app.tests.test_config import ConfigComplete, ConfigMinimum
 
 
 class FakeBuffer:
@@ -52,10 +53,11 @@ def patch_open():
         yield conn
 
 
-def test_config(patch_open):
+def test_full_config(patch_open, ConfigComplete):
     _ = patch_open
+    test_buffer.wr = ""
     test_buffer.rd = """
- {
+{
    "inverters": [
      {
        "serial": "R170000000000001",
@@ -70,7 +72,7 @@ def test_config(patch_open):
      {
        "serial": "Y170000000000001",
        "monitor_sn": 2000000000,
-       "node_id": "PV-Garage",
+       "node_id": "PV-Garage2",
        "suggested_area": "Garage2",
        "modbus_polling": true,
        "client_mode_host": "InverterIP",
@@ -96,53 +98,45 @@ def test_config(patch_open):
    "gen3plus.at_acl.mqtt.allow": [
      "AT+"
    ]
- }
- """
+}
+"""
     create_config()
     cnf = tomllib.loads(test_buffer.wr)
 
     validated = Config.conf_schema.validate(cnf)
-    assert validated == {
-        'gen3plus': {
-            'at_acl': {
-                'mqtt': {'allow': ['AT+'], 'block': []},
-                'tsun': {'allow': ['AT+Z', 'AT+UPURL', 'AT+SUPDATE'],
-                         'block': []}
-            }
-        },
-        'tsun': {'enabled': True, 'host': 'logger.talent-monitoring.com',
-                 'port': 5005},
-        'solarman': {'enabled': True, 'host': 'iot.talent-monitoring.com',
-                     'port': 10000},
-        'mqtt': {'host': 'mqtt', 'port': 1883, 'user': None, 'passwd': None},
-        'ha': {'auto_conf_prefix': 'homeassistant',
-               'discovery_prefix': 'homeassistant',
-               'entity_prefix': 'tsun',
-               'proxy_node_id': 'proxy',
-               'proxy_unique_id': 'P170000000000001'},
-        'inverters': {
-            'allow_all': False,
-            'R170000000000001': {'node_id': 'PV-Garage/',
-                                 'modbus_polling': False,
-                                 'monitor_sn': 0,
-                                 'pv1': {'manufacturer': 'man1',
-                                         'type': 'type1'},
-                                 'pv2': {'manufacturer': 'man2',
-                                         'type': 'type2'},
-                                 'suggested_area': 'Garage',
-                                 'sensor_list': 688},
-            'Y170000000000001': {'modbus_polling': True,
-                                 'monitor_sn': 2000000000,
-                                 'node_id': 'PV-Garage/',
-                                 'pv1': {'manufacturer': 'man1',
-                                         'type': 'type1'},
-                                 'pv2': {'manufacturer': 'man2',
-                                         'type': 'type2'},
-                                 'pv3': {'manufacturer': 'man3',
-                                         'type': 'type3'},
-                                 'pv4': {'manufacturer': 'man4',
-                                         'type': 'type4'},
-                                 'suggested_area': 'Garage2',
-                                 'sensor_list': 688}
-        }
-    }
+    assert validated == ConfigComplete
+
+def test_minimum_config(patch_open, ConfigMinimum):
+    _ = patch_open
+    test_buffer.wr = ""
+    test_buffer.rd = """
+{
+   "inverters": [
+     {
+       "serial": "R170000000000001",
+       "monitor_sn": 0,
+       "node_id": "",
+       "suggested_area": "",
+       "modbus_polling": true,
+       "client_mode_host": "InverterIP",
+       "client_mode_port": 1234
+     }
+   ],
+   "tsun.enabled": true,
+   "solarman.enabled": true,
+   "inverters.allow_all": true,
+   "gen3plus.at_acl.tsun.allow": [
+     "AT+Z",
+     "AT+UPURL",
+     "AT+SUPDATE"
+   ],
+   "gen3plus.at_acl.mqtt.allow": [
+     "AT+"
+   ]
+}
+"""
+    create_config()
+    cnf = tomllib.loads(test_buffer.wr)
+
+    validated = Config.conf_schema.validate(cnf)
+    assert validated == ConfigMinimum
