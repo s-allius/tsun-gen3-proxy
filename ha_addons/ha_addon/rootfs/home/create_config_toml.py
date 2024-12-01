@@ -19,14 +19,14 @@ def create_config():
     data['mqtt.passwd'] = os.getenv('MQTT_PASSWORD')
 
     # Lese die Add-On Konfiguration aus der Datei /data/options.json
-    # with open('options.json') as json_file:
+    #with open('data/options.json') as json_file:
     with open('/data/options.json') as json_file:
         options_data = json.load(json_file)
         data.update(options_data)
 
     # Schreibe die Add-On Konfiguration in die Datei /home/proxy/config/config.toml    # noqa: E501
     with open('/home/proxy/config/config.toml', 'w+') as f:
-        # with open('./config/config.toml', 'w+') as f:
+    #with open('./config/config.toml', 'w+') as f:
         f.write(f"""
 mqtt.host    = '{data.get('mqtt.host')}' # URL or IP address of the mqtt broker
 mqtt.port    = {data.get('mqtt.port')}
@@ -60,9 +60,29 @@ inverters.allow_all = {str(data.get('inverters.allow_all', False)).lower()}
 node_id = '{inverter['node_id']}'
 suggested_area = '{inverter['suggested_area']}'
 modbus_polling = {str(inverter['modbus_polling']).lower()}
-pv1 = {{type = '{inverter['pv1_type']}', manufacturer = '{inverter['pv1_manufacturer']}'}}   # Optional, PV module descr    # noqa: E501
-pv2 = {{type = '{inverter['pv2_type']}', manufacturer = '{inverter['pv2_manufacturer']}'}}   # Optional, PV module descr    # noqa: E501
+
+# check if inverter has monitor_sn key. if not, skip monitor_sn
+{f"monitor_sn = '{inverter['monitor_sn']}'" if 'monitor_sn' in inverter else ''}
+
+
+
+# check if inverter has 'pv1_type' and 'pv1_manufacturer' keys. if not, skip pv1
+{f"pv1 = {{type = '{inverter['pv1_type']}', manufacturer = '{inverter['pv1_manufacturer']}'}}" if 'pv1_type' in inverter  and 'pv1_manufacturer' in inverter else ''}
+# check if inverter has 'pv2_type' and 'pv2_manufacturer' keys. if not, skip pv2
+{f"pv2 = {{type = '{inverter['pv2_type']}', manufacturer = '{inverter['pv2_manufacturer']}'}}" if 'pv2_type' in inverter and 'pv2_manufacturer' in inverter else ''}
+# check if inverter has 'pv3_type' and 'pv3_manufacturer' keys. if not, skip pv3
+{f"pv3 = {{type = '{inverter['pv3_type']}', manufacturer = '{inverter['pv3_manufacturer']}'}}" if 'pv3_type' in inverter and 'pv3_manufacturer' in inverter else ''}
+# check if inverter has 'pv4_type' and 'pv4_manufacturer' keys. if not, skip pv4
+{f"pv4 = {{type = '{inverter['pv4_type']}', manufacturer = '{inverter['pv4_manufacturer']}'}}" if 'pv4_type' in inverter and 'pv4_manufacturer' in inverter else ''}
+# check if inverter has 'pv5_type' and 'pv5_manufacturer' keys. if not, skip pv5
+{f"pv5 = {{type = '{inverter['pv5_type']}', manufacturer = '{inverter['pv5_manufacturer']}'}}" if 'pv5_type' in inverter and 'pv5_manufacturer' in inverter else ''}
+# check if inverter has 'pv6_type' and 'pv6_manufacturer' keys. if not, skip pv6
+{f"pv6 = {{type = '{inverter['pv6_type']}', manufacturer = '{inverter['pv6_manufacturer']}'}}" if 'pv6_type' in inverter and 'pv6_manufacturer' in inverter else ''}
+
+
 """)
+
+# TODO: add filters
 
 
 if __name__ == "__main__":
