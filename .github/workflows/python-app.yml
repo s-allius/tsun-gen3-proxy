@@ -31,7 +31,7 @@ env:
 jobs:
   build:
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     steps:
     - uses: actions/checkout@v4
@@ -58,7 +58,7 @@ jobs:
         coverage report
     - name: Analyze with SonarCloud
       if: ${{ env.SONAR_TOKEN != 0 }}
-      uses: SonarSource/sonarcloud-github-action@v3.1.0
+      uses: SonarSource/sonarqube-scan-action@v4
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
