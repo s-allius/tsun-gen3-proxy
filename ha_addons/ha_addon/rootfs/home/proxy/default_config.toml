@@ -1,0 +1,177 @@
+##########################################################################################
+###
+###          T S U N  -  G E N 3  -   P R O X Y
+### 
+###                from   Stefan Allius
+###
+##########################################################################################
+###
+###   The readme will give you an overview of the project:
+###   https://s-allius.github.io/tsun-gen3-proxy/
+###
+###   The proxy supports different operation modes. Select the proper mode 
+###   which depends on your inverter type and you inverter firmware. 
+###   Please read: 
+###   https://github.com/s-allius/tsun-gen3-proxy/wiki/Operation-Modes-Overview
+###
+###   Here you will find a description of all configuration options:
+###   https://github.com/s-allius/tsun-gen3-proxy/wiki/Configuration-details
+###
+###   The configration uses the TOML format, which aims to be easy to read due to 
+###   obvious semantics. You find more details here: https://toml.io/en/v1.0.0
+###
+##########################################################################################
+
+
+##########################################################################################
+##
+## MQTT broker configuration
+##
+## In this block, you must configure the connection to your MQTT broker and specify the
+## required credentials. As the proxy does not currently support an encrypted connection
+## to the MQTT broker, it is strongly recommended that you do not use a public broker.
+##
+## https://github.com/s-allius/tsun-gen3-proxy/wiki/Configuration-details#mqtt-broker-account
+##
+
+mqtt.host    = 'mqtt'   # URL or IP address of the mqtt broker
+mqtt.port    = 1883
+mqtt.user    = ''
+mqtt.passwd  = ''
+
+
+##########################################################################################
+##
+## HOME ASSISTANT
+##
+## The proxy supports the MQTT autoconfiguration of Home Assistant (HA). The default 
+## values match the HA default configuration. If you need to change these or want to use
+## a different MQTT client, you can adjust the prefixes of the MQTT topics below.
+##
+## https://github.com/s-allius/tsun-gen3-proxy/wiki/Configuration-details#home-assistant
+##
+
+ha.auto_conf_prefix = 'homeassistant'       # MQTT prefix for subscribing for homeassistant status updates
+ha.discovery_prefix = 'homeassistant'       # MQTT prefix for discovery topic 
+ha.entity_prefix    = 'tsun'                # MQTT topic prefix for publishing inverter values
+ha.proxy_node_id    = 'proxy'               # MQTT node id, for the proxy_node_id
+ha.proxy_unique_id  = 'P170000000000001'    # MQTT unique id, to identify a proxy instance
+
+
+##########################################################################################
+##
+## GEN3 Proxy Mode Configuration
+##
+## In this block, you can configure an optional connection to the TSUN cloud for GEN3
+## inverters. This connection is only required if you want send data to the TSUN cloud
+## to use the TSUN APPs or receive firmware updates.  
+##
+## https://github.com/s-allius/tsun-gen3-proxy/wiki/Configuration-details#tsun-cloud-for-gen3-inverter-only
+##
+
+tsun.enabled = true   # false: disables connecting to the tsun cloud, and avoids updates
+tsun.host    = 'logger.talent-monitoring.com'
+tsun.port    = 5005
+
+
+##########################################################################################
+##
+## GEN3PLUS Proxy Mode Configuration
+##
+## In this block, you can configure an optional connection to the TSUN cloud for GEN3PLUS
+## inverters. This connection is only required if you want send data to the TSUN cloud
+## to use the TSUN APPs or receive firmware updates.  
+##
+## https://github.com/s-allius/tsun-gen3-proxy/wiki/Configuration-details#solarman-cloud-for-gen3plus-inverter-only
+##
+
+solarman.enabled = true   # false: disables connecting to the tsun cloud, and avoids updates
+solarman.host    = 'iot.talent-monitoring.com'
+solarman.port    = 10000
+
+
+##########################################################################################
+###
+### Inverter Definitions
+###
+### The proxy supports the simultaneous operation of several inverters, even of different
+### types. A configuration block must be defined for each inverter, in which all necessary
+### parameters must be specified. These depend on the operation mode used and also differ
+### slightly depending on the inverter type.
+###
+### In addition, the PV modules can be defined at the individual inputs for documentation
+### purposes, whereby these are displayed in Home Assistant.
+###
+### The proxy only accepts connections from known inverters. This can be switched off for
+### test purposes and unknown serial numbers are also accepted. 
+###
+
+inverters.allow_all = false   # only allow known inverters
+
+
+##########################################################################################
+##
+## For each GEN3 inverter, the serial number of the inverter must be mapped to an MQTT
+## definition. To do this, the corresponding configuration block is started with
+## `[Inverter.“<16-digit serial number>”]` so that all subsequent parameters are assigned
+## to this inverter. Further inverter-specific parameters (e.g. polling mode) can be set
+## in the configuration block
+##
+## The serial numbers of all GEN3 inverters start with `R17`!
+##
+
+[inverters."R170000000000001"]
+node_id = ''                 # MQTT replacement for inverters serial number  
+suggested_area = ''          # suggested installation area for home-assistant
+modbus_polling = false       # Disable optional MODBUS polling
+pv1 = {type = 'RSM40-8-395M', manufacturer = 'Risen'}   # Optional, PV module descr
+pv2 = {type = 'RSM40-8-395M', manufacturer = 'Risen'}   # Optional, PV module descr
+
+
+##########################################################################################
+##
+## For each GEN3PLUS inverter, the serial number of the inverter must be mapped to an MQTT
+## definition. To do this, the corresponding configuration block is started with
+## `[Inverter.“<16-digit serial number>”]` so that all subsequent parameters are assigned
+## to this inverter. Further inverter-specific parameters (e.g. polling mode, client mode)
+## can be set in the configuration block
+## 
+## The serial numbers of all GEN3PLUS inverters start with `Y17` or Y47! Each GEN3PLUS
+## inverter is supplied with a “Monitoring SN:”. This can be found on a sticker enclosed
+## with the inverter.
+##
+
+[inverters."Y170000000000001"]
+monitor_sn = 2000000000      # The GEN3PLUS "Monitoring SN:"
+node_id = ''                 # MQTT replacement for inverters serial number  
+suggested_area = ''          # suggested installation place for home-assistant
+modbus_polling = true        # Enable optional MODBUS polling
+
+# if your inverter supports SSL connections you must use the client_mode. Pls, uncomment
+# the next line and configure the fixed IP of your inverter
+#client_mode = {host = '192.168.0.1', port = 8899}  
+
+pv1 = {type = 'RSM40-8-410M', manufacturer = 'Risen'}   # Optional, PV module descr
+pv2 = {type = 'RSM40-8-410M', manufacturer = 'Risen'}   # Optional, PV module descr
+pv3 = {type = 'RSM40-8-410M', manufacturer = 'Risen'}   # Optional, PV module descr
+pv4 = {type = 'RSM40-8-410M', manufacturer = 'Risen'}   # Optional, PV module descr
+
+
+##########################################################################################
+###
+### If the proxy mode is configured, commands from TSUN can be sent to the inverter via
+### this connection or parameters (e.g. network credentials) can be queried. Filters can
+### then be configured for the AT+ commands from the TSUN Cloud so that only certain
+### accesses are permitted.
+###
+### An overview of all known AT+ commands can be found here:
+### https://github.com/s-allius/tsun-gen3-proxy/wiki/AT--commands
+###
+
+[gen3plus.at_acl]
+# filter for received commands from the internet
+tsun.allow = ['AT+Z', 'AT+UPURL', 'AT+SUPDATE']
+tsun.block = []
+# filter for received commands from the MQTT broker
+mqtt.allow = ['AT+']
+mqtt.block = []

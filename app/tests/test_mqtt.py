@@ -75,7 +75,7 @@ def test_native_client(test_hostname, test_port):
     import paho.mqtt.client as mqtt
     import threading
 
-    c = mqtt.Client()
+    c = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
     c.loop_start()
     try:
         # Just make sure the client connects successfully
