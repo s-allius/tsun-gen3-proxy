@@ -8,7 +8,7 @@ on:
     branches: [ "main", "dev-*", "*/issue*" ]
     paths-ignore:
     - '**.md' # Do no build on *.md changes
-    # - '**.yml' # Do no build on *.yml changes
+    - '**.yml' # Do no build on *.yml changes
     - '**.yaml' # Do no build on *.yaml changes
     - '**.yuml' # Do no build on *.yuml changes
     - '**.svg' # Do no build on *.svg changes
@@ -31,7 +31,7 @@ env:
 jobs:
   build:
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     steps:
     - uses: actions/checkout@v4
