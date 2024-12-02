@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+- migrate paho.mqtt CallbackAPIVersion to VERSION2 [#224](https://github.com/s-allius/tsun-gen3-proxy/issues/224)
 - add initial support for home assistant add-ons from @mime24
 - add PROD_COMPL_TYPE to trace
 - add SolarmanV5 messages builder
