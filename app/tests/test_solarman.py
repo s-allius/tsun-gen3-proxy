@@ -5,12 +5,12 @@ import asyncio
 import logging
 import random
 from math import isclose
-from app.src.async_stream import AsyncIfcImpl, StreamPtr
-from app.src.gen3plus.solarman_v5 import SolarmanV5
-from app.src.config import Config
-from app.src.infos import Infos, Register
-from app.src.modbus import Modbus
-from app.src.messages import State, Message
+from async_stream import AsyncIfcImpl, StreamPtr
+from gen3plus.solarman_v5 import SolarmanV5, SolarmanBase
+from config import Config
+from infos import Infos, Register
+from modbus import Modbus
+from messages import State, Message
 
 
 pytest_plugins = ('pytest_asyncio',)
@@ -36,6 +36,9 @@ class FakeIfc(AsyncIfcImpl):
     def __init__(self):
         super().__init__()
         self.remote = StreamPtr(None)
+
+    async def create_remote(self):
+        await asyncio.sleep(0)
 
 class MemoryStream(SolarmanV5):
     def __init__(self, msg, chunks = (0,), server_side: bool = True):
@@ -109,7 +112,7 @@ class MemoryStream(SolarmanV5):
         c.ifc.remote.stream = self
         return c
 
-    def _SolarmanV5__flush_recv_msg(self) -> None:
+    def _SolarmanBase__flush_recv_msg(self) -> None:
         self.msg_recvd.append(
             {
                 'control': self.control,
@@ -117,7 +120,7 @@ class MemoryStream(SolarmanV5):
                 'data_len': self.data_len
             }
         )
-        super()._SolarmanV5__flush_recv_msg()
+        super()._SolarmanBase__flush_recv_msg()
         self.msg_count += 1
 
 
@@ -1102,7 +1105,7 @@ def test_sync_start_ind(config_tsun_inv1, sync_start_ind_msg, sync_start_rsp_msg
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
 
     m.seq.server_side = False  # simulate forawding to TSUN cloud
-    m._update_header(m.ifc.fwd_fifo.peek())
+    m._SolarmanBase__update_header(m.ifc.fwd_fifo.peek())
     assert str(m.seq) == '0d:0e'  # value after forwarding indication
     assert m.ifc.fwd_fifo.get()==sync_start_fwd_msg
 
@@ -1768,7 +1771,7 @@ async def test_start_client_mode(config_tsun_inv1, str_test_ip):
     assert m.no_forwarding == False
     assert m.mb_timer.tim == None
     assert asyncio.get_running_loop() == m.mb_timer.loop
-    await m.send_start_cmd(get_sn_int(), str_test_ip, m.mb_first_timeout)
+    await m.send_start_cmd(get_sn_int(), str_test_ip, False, m.mb_first_timeout)
     assert m.sent_pdu==bytearray(b'\xa5\x17\x00\x10E\x01\x00!Ce{\x02\xb0\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x030\x00\x000J\xde\xf1\x15')
     assert m.db.get_db_value(Register.IP_ADDRESS) == str_test_ip
     assert isclose(m.db.get_db_value(Register.POLLING_INTERVAL), 0.5)
@@ -1803,3 +1806,30 @@ def test_timeout(config_tsun_inv1):
     assert SolarmanV5.MAX_DEF_IDLE_TIME == m._timeout()
     m.state = State.closed
     m.close()
+
+def test_fnc_dispatch():
+    def msg():
+        return
+    
+    _ = config_tsun_inv1
+    m = MemoryStream(b'')
+    m.switch[1] = msg
+    m.switch[2] = "msg"
+
+    _obj, _str = m.get_fnc_handler(1)
+    assert _obj == msg
+    assert _str == "'msg'"
+
+    _obj, _str = m.get_fnc_handler(2)
+    assert _obj == m.msg_unknown
+    assert _str == "'msg'"
+
+    _obj, _str = m.get_fnc_handler(3)
+    assert _obj == m.msg_unknown
+    assert _str == "'msg_unknown'"
+
+def test_timestamp():
+    m = MemoryStream(b'')
+    ts = m._timestamp()
+    ts_emu = m._emu_timestamp()
+    assert ts == ts_emu + 24*60*60

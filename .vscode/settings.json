@@ -1,11 +1,13 @@
 {
+    "python.analysis.extraPaths": [
+    "app/src",
+    ".venv/lib" ],
     "python.testing.pytestArgs": [
-        "-vv", 
-        "app",
+        "-v", 
         "--cov=app/src",
         "--cov=ha_addon/rootfs/home",
         "--cov-report=xml",
-        "--cov-report=html",
+        "app",
         "system_tests",
         "ha_addon"
     ],
@@ -20,5 +22,10 @@
     },
     "files.exclude": {
         "**/*.pyi": true
-    }
+    },
+    "python.analysis.typeEvaluation.deprecateTypingAliases": true,
+    "python.autoComplete.extraPaths": [
+        ".venv/lib"
+    ],
+    "coverage-gutters.coverageBaseDir": "tsun"
 }

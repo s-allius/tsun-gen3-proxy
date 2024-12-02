@@ -7,8 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+- add PROD_COMPL_TYPE to trace
+- add SolarmanV5 messages builder
+- report inverter alarms and faults per MQTT [#7](https://github.com/s-allius/tsun-gen3-proxy/issues/7)
+
 ## [0.11.1] - 2024-11-20
 
+- fix pytest setup that can be startet from the rootdir
+  - support python venv environment
+  - add pytest.ini
+  - move common settings from .vscode/settings.json into pytest.ini
+  - add missing requirements
+  - fix import paths for pytests
 - Bumps [aiohttp](https://github.com/aio-libs/aiohttp) from 3.10.5 to 3.10.11.
 
 ## [0.11.0] - 2024-10-13

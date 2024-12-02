@@ -7,22 +7,13 @@ import gc
 from aiomqtt import MqttCodeError
 from asyncio import StreamReader, StreamWriter
 
-if __name__ == "app.src.inverter_base":
-    from app.src.inverter_ifc import InverterIfc
-    from app.src.proxy import Proxy
-    from app.src.async_stream import StreamPtr
-    from app.src.async_stream import AsyncStreamClient
-    from app.src.async_stream import AsyncStreamServer
-    from app.src.config import Config
-    from app.src.infos import Infos
-else:  # pragma: no cover
-    from inverter_ifc import InverterIfc
-    from proxy import Proxy
-    from async_stream import StreamPtr
-    from async_stream import AsyncStreamClient
-    from async_stream import AsyncStreamServer
-    from config import Config
-    from infos import Infos
+from inverter_ifc import InverterIfc
+from proxy import Proxy
+from async_stream import StreamPtr
+from async_stream import AsyncStreamClient
+from async_stream import AsyncStreamServer
+from config import Config
+from infos import Infos
 
 logger_mqtt = logging.getLogger('mqtt')
 
@@ -31,12 +22,16 @@ class InverterBase(InverterIfc, Proxy):
 
     def __init__(self, reader: StreamReader, writer: StreamWriter,
                  config_id: str, prot_class,
-                 client_mode: bool = False):
+                 client_mode: bool = False,
+                 remote_prot_class=None):
         Proxy.__init__(self)
         self._registry.append(weakref.ref(self))
         self.addr = writer.get_extra_info('peername')
         self.config_id = config_id
-        self.prot_class = prot_class
+        if remote_prot_class:
+            self.prot_class = remote_prot_class
+        else:
+            self.prot_class = prot_class
         self.__ha_restarts = -1
         self.remote = StreamPtr(None)
         ifc = AsyncStreamServer(reader, writer,
@@ -45,7 +40,7 @@ class InverterBase(InverterIfc, Proxy):
                                 self.remote)
 
         self.local = StreamPtr(
-            self.prot_class(self.addr, ifc, True, client_mode), ifc
+            prot_class(self.addr, ifc, True, client_mode), ifc
         )
 
     def __enter__(self):

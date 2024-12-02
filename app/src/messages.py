@@ -3,15 +3,11 @@ import weakref
 from typing import Callable
 from enum import Enum
 
-
-if __name__ == "app.src.messages":
-    from app.src.protocol_ifc import ProtocolIfc
-    from app.src.infos import Infos, Register
-    from app.src.modbus import Modbus
-else:  # pragma: no cover
-    from protocol_ifc import ProtocolIfc
-    from infos import Infos, Register
-    from modbus import Modbus
+from async_ifc import AsyncIfc
+from protocol_ifc import ProtocolIfc
+from infos import Infos, Register
+from modbus import Modbus
+from my_timer import Timer
 
 logger = logging.getLogger('msg')
 
@@ -89,26 +85,38 @@ class Message(ProtocolIfc):
     '''maximum time without a received msg from the inverter in sec'''
     MAX_DEF_IDLE_TIME = 360
     '''maximum default time without a received msg in sec'''
+    MB_START_TIMEOUT = 40
+    '''start delay for Modbus polling in server mode'''
+    MB_REGULAR_TIMEOUT = 60
+    '''regular Modbus polling time in server mode'''
 
-    def __init__(self, server_side: bool, send_modbus_cb:
-                 Callable[[bytes, int, str], None], mb_timeout: int):
+    def __init__(self, node_id, ifc: "AsyncIfc", server_side: bool,
+                 send_modbus_cb: Callable[[bytes, int, str], None],
+                 mb_timeout: int):
         self._registry.append(weakref.ref(self))
 
         self.server_side = server_side
+        self.ifc = ifc
+        self.node_id = node_id
         if server_side:
             self.mb = Modbus(send_modbus_cb, mb_timeout)
+            self.mb_timer = Timer(self.mb_timout_cb, self.node_id)
         else:
             self.mb = None
-
+            self.mb_timer = None
         self.header_valid = False
         self.header_len = 0
         self.data_len = 0
         self.unique_id = 0
-        self._node_id = ''
         self.sug_area = ''
         self.new_data = {}
         self.state = State.init
         self.shutdown_started = False
+        self.modbus_elms = 0    # for unit tests
+        self.mb_timeout = self.MB_REGULAR_TIMEOUT
+        self.mb_first_timeout = self.MB_START_TIMEOUT
+        '''timer value for next Modbus polling request'''
+        self.modbus_polling = False
 
     @property
     def node_id(self):
@@ -152,10 +160,35 @@ class Message(ProtocolIfc):
             to = self.MAX_DEF_IDLE_TIME
         return to
 
+    def _send_modbus_cmd(self, func, addr, val, log_lvl) -> None:
+        if self.state != State.up:
+            logger.log(log_lvl, f'[{self.node_id}] ignore MODBUS cmd,'
+                       ' as the state is not UP')
+            return
+        self.mb.build_msg(Modbus.INV_ADDR, func, addr, val, log_lvl)
+
+    async def send_modbus_cmd(self, func, addr, val, log_lvl) -> None:
+        self._send_modbus_cmd(func, addr, val, log_lvl)
+
     '''
     Our puplic methods
     '''
     def close(self) -> None:
+        if self.server_side:
+            # set inverter state to offline, if output power is very low
+            logging.debug('close power: '
+                          f'{self.db.get_db_value(Register.OUTPUT_POWER, -1)}')
+            if self.db.get_db_value(Register.OUTPUT_POWER, 999) < 2:
+                self.db.set_db_def_value(Register.INVERTER_STATUS, 0)
+                self.new_data['env'] = True
+            self.mb_timer.close()
+        self.state = State.closed
+        self.ifc.rx_set_cb(None)
+        self.ifc.prot_set_timeout_cb(None)
+        self.ifc.prot_set_init_new_client_conn_cb(None)
+        self.ifc.prot_set_update_header_cb(None)
+        self.ifc = None
+
         if self.mb:
             self.mb.close()
             self.mb = None
