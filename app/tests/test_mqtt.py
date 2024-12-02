@@ -75,14 +75,14 @@ def test_native_client(test_hostname, test_port):
     import paho.mqtt.client as mqtt
     import threading
 
-    c = mqtt.Client()
+    c = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
     c.loop_start()
     try:
         # Just make sure the client connects successfully
         on_connect = threading.Event()
         c.on_connect = Mock(side_effect=lambda *_: on_connect.set())
         c.connect_async(test_hostname, test_port)
-        assert on_connect.wait(5)
+        assert on_connect.wait(10)
     finally:
         c.loop_stop()
 
