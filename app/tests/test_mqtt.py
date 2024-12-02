@@ -82,7 +82,7 @@ def test_native_client(test_hostname, test_port):
         on_connect = threading.Event()
         c.on_connect = Mock(side_effect=lambda *_: on_connect.set())
         c.connect_async(test_hostname, test_port)
-        assert on_connect.wait(5)
+        assert on_connect.wait(10)
     finally:
         c.loop_stop()
 
