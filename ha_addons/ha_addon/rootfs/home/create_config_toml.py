@@ -37,11 +37,11 @@ mqtt.user    = '{data.get('mqtt.user')}'
 mqtt.passwd  = '{data.get('mqtt.passwd')}'
 
 
-ha.auto_conf_prefix = '{data.get('ha.auto_conf_prefix', 'homeassistant')}'     # MQTT prefix for subscribing for homeassistant status updates    # noqa: E501
-ha.discovery_prefix = '{data.get('ha.discovery_prefix', 'homeassistant')}'     # MQTT prefix for discovery topic                                 # noqa: E501
-ha.entity_prefix    = '{data.get('ha.entity_prefix', 'tsun')}'              # MQTT topic prefix for publishing inverter values                   # noqa: E501
-ha.proxy_node_id    = '{data.get('ha.proxy_node_id', 'proxy')}'             # MQTT node id, for the proxy_node_id
-ha.proxy_unique_id  = '{data.get('ha.proxy_unique_id', 'P170000000000001')}'  # MQTT unique id, to identify a proxy instance
+ha.auto_conf_prefix = '{data.get('ha.auto_conf_prefix', 'homeassistant')}'     # MQTT prefix for subscribing for homeassistant status updates
+ha.discovery_prefix = '{data.get('ha.discovery_prefix', 'homeassistant')}'     # MQTT prefix for discovery topic
+ha.entity_prefix    = '{data.get('ha.entity_prefix', 'tsun')}'                 # MQTT topic prefix for publishing inverter values
+ha.proxy_node_id    = '{data.get('ha.proxy_node_id', 'proxy')}'                # MQTT node id, for the proxy_node_id
+ha.proxy_unique_id  = '{data.get('ha.proxy_unique_id', 'P170000000000001')}'   # MQTT unique id, to identify a proxy instance
 
 
 tsun.enabled = {str(data.get('tsun.enabled', True)).lower()}
@@ -55,7 +55,7 @@ solarman.port    = {data.get('solarman.port', 10000)}
 
 
 inverters.allow_all = {str(data.get('inverters.allow_all', False)).lower()}
-""")
+""")   # noqa: E501
 
         if 'inverters' in data:
             for inverter in data['inverters']:
@@ -84,7 +84,7 @@ modbus_polling = {str(inverter['modbus_polling']).lower()}
 {f"pv6 = {{type = '{inverter['pv6_type']}', manufacturer = '{inverter['pv6_manufacturer']}'}}" if 'pv6_type' in inverter and 'pv6_manufacturer' in inverter else ''}
 
 
-""")
+""")   # noqa: E501
 
         # add filters
         f.write("""
@@ -111,5 +111,5 @@ mqtt.allow = [""")
         f.write("]")
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":   # pragma: no cover
     create_config()

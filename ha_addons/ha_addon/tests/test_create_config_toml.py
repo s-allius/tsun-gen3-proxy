@@ -138,11 +138,13 @@ def test_full_config(patch_open, ConfigComplete):
      "AT+SUPDATE"
    ],
    "gen3plus.at_acl.tsun.block": [
+     "AT+SUPDATE"
    ],
    "gen3plus.at_acl.mqtt.allow": [
      "AT+"
    ],
    "gen3plus.at_acl.mqtt.block": [
+      "AT+SUPDATE"
    ]
 }
 """

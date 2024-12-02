@@ -28,9 +28,9 @@ def ConfigComplete():
     return {
         'gen3plus': {
             'at_acl': {
-                'mqtt': {'allow': ['AT+'], 'block': []},
+                'mqtt': {'allow': ['AT+'], 'block': ['AT+SUPDATE']},
                 'tsun': {'allow': ['AT+Z', 'AT+UPURL', 'AT+SUPDATE'],
-                         'block': []}
+                         'block': ['AT+SUPDATE']}
             }
         },
         'tsun': {'enabled': True, 'host': 'logger.talent-monitoring.com',
@@ -132,8 +132,8 @@ def test_default_config():
 
 def test_full_config(ConfigComplete):
     cnf = {'tsun': {'enabled': True, 'host': 'logger.talent-monitoring.com', 'port': 5005}, 
-           'gen3plus': {'at_acl': {'mqtt': {'allow': ['AT+'], 'block': []},
-                                   'tsun': {'allow': ['AT+Z', 'AT+UPURL', 'AT+SUPDATE'], 'block': []}}},
+           'gen3plus': {'at_acl': {'mqtt': {'allow': ['AT+'], 'block': ['AT+SUPDATE']},
+                                   'tsun': {'allow': ['AT+Z', 'AT+UPURL', 'AT+SUPDATE'], 'block': ['AT+SUPDATE']}}},
            'solarman': {'enabled': True, 'host': 'iot.talent-monitoring.com', 'port': 10000}, 
            'mqtt': {'host': 'mqtt', 'port': 1883, 'user': '', 'passwd': ''}, 
            'ha': {'auto_conf_prefix': 'homeassistant', 'discovery_prefix': 'homeassistant', 'entity_prefix': 'tsun', 'proxy_node_id': 'proxy', 'proxy_unique_id': 'P170000000000001'}, 
