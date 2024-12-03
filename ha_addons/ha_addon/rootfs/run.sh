@@ -23,12 +23,16 @@ fi
 
 cd /home || exit
 
+# Erstelle Ordner für log und config
+mkdir -p proxy/log
+mkdir -p proxy/config
 
-echo "Erstelle config.toml"
+echo "Create config.toml..."
 python3 create_config_toml.py
-
 
 cd /home/proxy || exit
 
-echo "Starte Webserver"
+export VERSION=$(cat /proxy-version.txt)
+
+echo "Start Proxyserver..."
 python3 server.py

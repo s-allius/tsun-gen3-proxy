@@ -1,20 +1,22 @@
 {
     "python.analysis.extraPaths": [
     "app/src",
-    ".venv/lib" ],
+    "app/tests",
+    ".venv/lib",
+    "ha_addons/ha_addon/rootfs" ],
     "python.testing.pytestArgs": [
-        "-v", 
+        "-vvv", 
         "--cov=app/src",
-        "--cov=ha_addon/rootfs/home",
+        "--cov=ha_addons/ha_addon/rootfs",
         "--cov-report=xml",
         "app",
         "system_tests",
-        "ha_addon"
+        "ha_addons"
     ],
     "python.testing.unittestEnabled": false,
     "python.testing.pytestEnabled": true,
     "flake8.args": [
-        "--extend-exclude=app/tests/*.py system_tests/*.py"   
+        "--extend-exclude=app/tests/*.py system_tests/*.py ha_addons/ha_addon/tests/*.py"   
     ],
     "sonarlint.connectedMode.project": {
         "connectionId": "s-allius",
@@ -27,5 +29,6 @@
     "python.autoComplete.extraPaths": [
         ".venv/lib"
     ],
-    "coverage-gutters.coverageBaseDir": "tsun"
+    "coverage-gutters.coverageBaseDir": "tsun",
+    "makefile.configureOnOpen": false
 }

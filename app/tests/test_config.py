@@ -1,4 +1,5 @@
 # test_with_pytest.py
+import pytest
 import tomllib
 from schema import SchemaMissingKeyError
 from cnf.config import Config, ConfigIfc
@@ -21,6 +22,77 @@ def test_empty_config():
         assert False
     except SchemaMissingKeyError:
         pass
+
+@pytest.fixture
+def ConfigComplete():
+    return {
+        'gen3plus': {
+            'at_acl': {
+                'mqtt': {'allow': ['AT+'], 'block': ['AT+SUPDATE']},
+                'tsun': {'allow': ['AT+Z', 'AT+UPURL', 'AT+SUPDATE'],
+                         'block': ['AT+SUPDATE']}
+            }
+        },
+        'tsun': {'enabled': True, 'host': 'logger.talent-monitoring.com',
+                 'port': 5005},
+        'solarman': {'enabled': True, 'host': 'iot.talent-monitoring.com',
+                     'port': 10000},
+        'mqtt': {'host': 'mqtt', 'port': 1883, 'user': None, 'passwd': None},
+        'ha': {'auto_conf_prefix': 'homeassistant',
+               'discovery_prefix': 'homeassistant',
+               'entity_prefix': 'tsun',
+               'proxy_node_id': 'proxy',
+               'proxy_unique_id': 'P170000000000001'},
+        'inverters': {
+            'allow_all': False,
+            'R170000000000001': {'node_id': 'PV-Garage/',
+                                 'modbus_polling': False,
+                                 'monitor_sn': 0,
+                                 'pv1': {'manufacturer': 'man1',
+                                         'type': 'type1'},
+                                 'pv2': {'manufacturer': 'man2',
+                                         'type': 'type2'},
+                                 'suggested_area': 'Garage',
+                                 'sensor_list': 688},
+            'Y170000000000001': {'modbus_polling': True,
+                                 'monitor_sn': 2000000000,
+                                 'node_id': 'PV-Garage2/',
+                                 'pv1': {'manufacturer': 'man1',
+                                         'type': 'type1'},
+                                 'pv2': {'manufacturer': 'man2',
+                                         'type': 'type2'},
+                                 'pv3': {'manufacturer': 'man3',
+                                         'type': 'type3'},
+                                 'pv4': {'manufacturer': 'man4',
+                                         'type': 'type4'},
+                                 'suggested_area': 'Garage2',
+                                 'sensor_list': 688}
+        }
+    }
+
+@pytest.fixture
+def ConfigMinimum():
+    return {
+        'gen3plus': {
+            'at_acl': {
+                'mqtt': {'allow': ['AT+'], 'block': []},
+                'tsun': {'allow': ['AT+Z', 'AT+UPURL', 'AT+SUPDATE'],
+                         'block': []}
+            }
+        },
+        'tsun': {'enabled': True, 'host': 'logger.talent-monitoring.com',
+                 'port': 5005},
+        'solarman': {'enabled': True, 'host': 'iot.talent-monitoring.com', 'port': 10000},
+        'mqtt': {'host': 'mqtt', 'port': 1883, 'user': None, 'passwd': None},
+        'ha': {'auto_conf_prefix': 'homeassistant', 'discovery_prefix': 'homeassistant', 'entity_prefix': 'tsun', 'proxy_node_id': 'proxy', 'proxy_unique_id': 'P170000000000001'},
+        'inverters': {
+            'allow_all': True,
+            'R170000000000001': {'node_id': '',
+                                 'modbus_polling': True,
+                                 'monitor_sn': 0,
+                                 'suggested_area': '',
+                                 'sensor_list': 688}}}
+
 
 def test_default_config():
     with open("app/config/default_config.toml", "rb") as f:
@@ -58,23 +130,23 @@ def test_default_config():
                                  'suggested_area': '', 
                                  'sensor_list': 688}}}
 
-def test_full_config():
+def test_full_config(ConfigComplete):
     cnf = {'tsun': {'enabled': True, 'host': 'logger.talent-monitoring.com', 'port': 5005}, 
-           'gen3plus': {'at_acl': {'mqtt': {'allow': ['AT+'], 'block': []},
-                                   'tsun': {'allow': ['AT+Z', 'AT+UPURL', 'AT+SUPDATE'], 'block': []}}},
+           'gen3plus': {'at_acl': {'mqtt': {'allow': ['AT+'], 'block': ['AT+SUPDATE']},
+                                   'tsun': {'allow': ['AT+Z', 'AT+UPURL', 'AT+SUPDATE'], 'block': ['AT+SUPDATE']}}},
            'solarman': {'enabled': True, 'host': 'iot.talent-monitoring.com', 'port': 10000}, 
            'mqtt': {'host': 'mqtt', 'port': 1883, 'user': '', 'passwd': ''}, 
            'ha': {'auto_conf_prefix': 'homeassistant', 'discovery_prefix': 'homeassistant', 'entity_prefix': 'tsun', 'proxy_node_id': 'proxy', 'proxy_unique_id': 'P170000000000001'}, 
-           'inverters': {'allow_all': True, 
-                         'R170000000000001': {'modbus_polling': True, 'node_id': '', 'sensor_list': 0, 'suggested_area': '', 'pv1': {'type': 'type1', 'manufacturer': 'man1'}, 'pv2': {'type': 'type2', 'manufacturer': 'man2'}, 'pv3': {'type': 'type3', 'manufacturer': 'man3'}}, 
-                         'Y170000000000001': {'modbus_polling': True, 'monitor_sn': 2000000000, 'node_id': '', 'sensor_list': 0x1511, 'suggested_area': ''}}}
+           'inverters': {'allow_all': False, 
+                         'R170000000000001': {'modbus_polling': False, 'node_id': 'PV-Garage/', 'sensor_list': 0x02B0, 'suggested_area': 'Garage', 'pv1': {'type': 'type1', 'manufacturer': 'man1'}, 'pv2': {'type': 'type2', 'manufacturer': 'man2'}}, 
+                         'Y170000000000001': {'modbus_polling': True, 'monitor_sn': 2000000000, 'node_id': 'PV-Garage2/', 'sensor_list': 0x02B0, 'suggested_area': 'Garage2', 'pv1': {'type': 'type1', 'manufacturer': 'man1'}, 'pv2': {'type': 'type2', 'manufacturer': 'man2'}, 'pv3': {'type': 'type3', 'manufacturer': 'man3'}, 'pv4': {'type': 'type4', 'manufacturer': 'man4'}}}}
     try:
         validated = Config.conf_schema.validate(cnf)
     except Exception:
         assert False
-    assert validated == {'gen3plus': {'at_acl': {'mqtt': {'allow': ['AT+'], 'block': []}, 'tsun': {'allow': ['AT+Z', 'AT+UPURL', 'AT+SUPDATE'], 'block': []}}}, 'tsun': {'enabled': True, 'host': 'logger.talent-monitoring.com', 'port': 5005}, 'solarman': {'enabled': True, 'host': 'iot.talent-monitoring.com', 'port': 10000}, 'mqtt': {'host': 'mqtt', 'port': 1883, 'user': None, 'passwd': None}, 'ha': {'auto_conf_prefix': 'homeassistant', 'discovery_prefix': 'homeassistant', 'entity_prefix': 'tsun', 'proxy_node_id': 'proxy', 'proxy_unique_id': 'P170000000000001'}, 'inverters': {'allow_all': True, 'R170000000000001': {'node_id': '', 'modbus_polling': True, 'monitor_sn': 0, 'pv1': {'manufacturer': 'man1','type': 'type1'},'pv2': {'manufacturer': 'man2','type': 'type2'},'pv3': {'manufacturer': 'man3','type': 'type3'}, 'suggested_area': '', 'sensor_list': 0}, 'Y170000000000001': {'modbus_polling': True, 'monitor_sn': 2000000000, 'node_id': '', 'suggested_area': '', 'sensor_list': 5393}}}
+    assert validated == ConfigComplete
 
-def test_mininum_config():
+def test_mininum_config(ConfigMinimum):
     cnf = {'tsun': {'enabled': True, 'host': 'logger.talent-monitoring.com', 'port': 5005}, 
            'gen3plus': {'at_acl': {'mqtt': {'allow': ['AT+']},
                                    'tsun': {'allow': ['AT+Z', 'AT+UPURL', 'AT+SUPDATE']}}},
@@ -89,7 +161,7 @@ def test_mininum_config():
         validated = Config.conf_schema.validate(cnf)
     except Exception:
         assert False
-    assert validated == {'gen3plus': {'at_acl': {'mqtt': {'allow': ['AT+'], 'block': []}, 'tsun': {'allow': ['AT+Z', 'AT+UPURL', 'AT+SUPDATE'], 'block': []}}}, 'tsun': {'enabled': True, 'host': 'logger.talent-monitoring.com', 'port': 5005}, 'solarman': {'enabled': True, 'host': 'iot.talent-monitoring.com', 'port': 10000}, 'mqtt': {'host': 'mqtt', 'port': 1883, 'user': None, 'passwd': None}, 'ha': {'auto_conf_prefix': 'homeassistant', 'discovery_prefix': 'homeassistant', 'entity_prefix': 'tsun', 'proxy_node_id': 'proxy', 'proxy_unique_id': 'P170000000000001'}, 'inverters': {'allow_all': True, 'R170000000000001': {'node_id': '', 'modbus_polling': True, 'monitor_sn': 0, 'suggested_area': '', 'sensor_list': 688}}}
+    assert validated == ConfigMinimum
 
 def test_read_empty():
     cnf = {}
