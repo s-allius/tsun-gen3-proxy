@@ -1,9 +1,15 @@
 '''Config module handles the proxy configuration in the config.toml file'''
 
-import shutil
 import tomllib
 import logging
+from abc import ABC, abstractmethod
 from schema import Schema, And, Or, Use, Optional
+
+
+class ConfigIfc(ABC):
+    @abstractmethod
+    def get_config(cls) -> dict:  # pragma: no cover
+        pass
 
 
 class Config():
@@ -12,8 +18,6 @@ class Config():
     Read config.toml file and sanitize it with read().
     Get named parts of the config with get()'''
 
-    act_config = {}
-    def_config = {}
     conf_schema = Schema({
         'tsun': {
             'enabled': Use(bool),
@@ -93,38 +97,14 @@ class Config():
     )
 
     @classmethod
-    def class_init(cls) -> None | str:  # pragma: no cover
-        try:
-            # make the default config transparaent by copying it
-            # in the config.example file
-            logging.debug('Copy Default Config to config.example.toml')
-
-            shutil.copy2("default_config.toml",
-                         "config/config.example.toml")
-        except Exception:
-            pass
-        err_str = cls.read()
-        del cls.conf_schema
-        return err_str
+    def init(cls, ifc: ConfigIfc, path='') -> None | str:
+        cls.ifc = ifc
+        cls.act_config = {}
+        cls.def_config = {}
+        return cls.read(path)
 
     @classmethod
-    def _read_config_file(cls) -> dict:  # pragma: no cover
-        usr_config = {}
-
-        try:
-            with open("config/config.toml", "rb") as f:
-                usr_config = tomllib.load(f)
-        except Exception as error:
-            err = f'Config.read: {error}'
-            logging.error(err)
-            logging.info(
-                '\n  To create the missing config.toml file, '
-                'you can rename the template config.example.toml\n'
-                '  and customize it for your scenario.\n')
-        return usr_config
-
-    @classmethod
-    def read(cls, path='') -> None | str:
+    def read(cls, path) -> None | str:
         '''Read config file, merge it with the default config
         and sanitize the result'''
         err = None
@@ -140,7 +120,7 @@ class Config():
 
             # overwrite the default values, with values from
             # the config.toml file
-            usr_config = cls._read_config_file()
+            usr_config = cls.ifc.get_config()
 
             # merge the default and the user config
             config = def_config.copy()
