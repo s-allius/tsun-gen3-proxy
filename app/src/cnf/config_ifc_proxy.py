@@ -18,11 +18,11 @@ class ConfigIfcProxy(ConfigIfc):
         except Exception:
             pass
 
-    def get_config(self) -> dict:  # pragma: no cover
+    def get_config(self, cnf_file="config/config.toml") -> dict:
         usr_config = {}
 
         try:
-            with open("config/config.toml", "rb") as f:
+            with open(cnf_file, "rb") as f:
                 usr_config = tomllib.load(f)
         except Exception as error:
             err = f'Config.read: {error}'
