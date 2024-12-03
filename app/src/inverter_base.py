@@ -12,7 +12,7 @@ from proxy import Proxy
 from async_stream import StreamPtr
 from async_stream import AsyncStreamClient
 from async_stream import AsyncStreamServer
-from config.config import Config
+from cnf.config import Config
 from infos import Infos
 
 logger_mqtt = logging.getLogger('mqtt')

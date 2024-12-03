@@ -7,7 +7,7 @@ from tzlocal import get_localzone
 from async_ifc import AsyncIfc
 from messages import Message, State
 from modbus import Modbus
-from config.config import Config
+from cnf.config import Config
 from gen3.infos_g3 import InfosG3
 from infos import Register
 

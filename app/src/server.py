@@ -10,7 +10,7 @@ from inverter_ifc import InverterIfc
 from gen3.inverter_g3 import InverterG3
 from gen3plus.inverter_g3p import InverterG3P
 from scheduler import Schedule
-from config.config import Config
+from cnf.config import Config, ConfigIfcProxy
 from modbus_tcp import ModbusTcp
 
 routes = web.RouteTableDef()
@@ -149,7 +149,7 @@ if __name__ == "__main__":
     asyncio.set_event_loop(loop)
 
     # read config file
-    ConfigErr = Config.class_init()
+    ConfigErr = Config.init(ConfigIfcProxy())
     if ConfigErr is not None:
         logging.info(f'ConfigErr: {ConfigErr}')
     Proxy.class_init()
