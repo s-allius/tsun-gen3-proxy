@@ -2,7 +2,7 @@
 import pytest
 import tomllib
 from mock import patch
-from config import Config
+from cnf.config import Config
 
 from home.create_config_toml import create_config
 from test_config import ConfigComplete, ConfigMinimum

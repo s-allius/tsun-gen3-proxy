@@ -16,6 +16,7 @@ DST_PROXY=$(DST)/home/proxy
 # collect source files 
 SRC_FILES := $(wildcard $(SRC_PROXY)/*.py)\
  $(wildcard $(SRC_PROXY)/*.ini)\
+ $(wildcard $(SRC_PROXY)/cnf/*.py)\
  $(wildcard $(SRC_PROXY)/gen3/*.py)\
  $(wildcard $(SRC_PROXY)/gen3plus/*.py)
 CNF_FILES := $(wildcard $(CNF_PROXY)/*.toml)
