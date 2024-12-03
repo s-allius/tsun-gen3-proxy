@@ -3,7 +3,7 @@
 import shutil
 import tomllib
 import logging
-from config import ConfigIfc
+from cnf.config import ConfigIfc
 
 
 class ConfigIfcProxy(ConfigIfc):
