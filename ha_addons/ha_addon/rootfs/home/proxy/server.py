@@ -10,7 +10,7 @@ from inverter_ifc import InverterIfc
 from gen3.inverter_g3 import InverterG3
 from gen3plus.inverter_g3p import InverterG3P
 from scheduler import Schedule
-from config.config import Config
+from config import Config
 from modbus_tcp import ModbusTcp
 
 routes = web.RouteTableDef()

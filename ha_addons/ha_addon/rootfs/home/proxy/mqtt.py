@@ -5,7 +5,7 @@ import traceback
 
 from modbus import Modbus
 from messages import Message
-from config.config import Config
+from config import Config
 from singleton import Singleton
 
 logger_mqtt = logging.getLogger('mqtt')

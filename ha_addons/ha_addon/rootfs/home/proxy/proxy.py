@@ -2,7 +2,7 @@ import asyncio
 import logging
 import json
 
-from config.config import Config
+from config import Config
 from mqtt import Mqtt
 from infos import Infos
 
