@@ -16,7 +16,7 @@
     "python.testing.unittestEnabled": false,
     "python.testing.pytestEnabled": true,
     "flake8.args": [
-        "--extend-exclude=app/tests/*.py system_tests/*.py ha_addons/ha_addon/tests/*.py"   
+        "--extend-exclude=app/tests/*.py,system_tests/*.py,ha_addons/ha_addon/tests/*.py"   
     ],
     "sonarlint.connectedMode.project": {
         "connectionId": "s-allius",

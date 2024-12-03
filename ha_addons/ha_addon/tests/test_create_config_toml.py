@@ -8,7 +8,6 @@ from home.create_config_toml import create_config
 from test_config import ConfigComplete, ConfigMinimum
 
 
-
 class FakeBuffer:
     rd = bytearray()
     wr = str()
@@ -53,6 +52,7 @@ def patch_open():
     with patch('builtins.open', new_open) as conn:
         yield conn
 
+
 @pytest.fixture
 def ConfigTomlEmpty():
     return {
@@ -79,6 +79,7 @@ def ConfigTomlEmpty():
         },
     }
 
+
 def test_no_config(patch_open, ConfigTomlEmpty):
     _ = patch_open
     test_buffer.wr = ""
@@ -87,6 +88,7 @@ def test_no_config(patch_open, ConfigTomlEmpty):
     cnf = tomllib.loads(test_buffer.wr)
     assert cnf == ConfigTomlEmpty
 
+
 def test_empty_config(patch_open, ConfigTomlEmpty):
     _ = patch_open
     test_buffer.wr = ""
@@ -94,6 +96,7 @@ def test_empty_config(patch_open, ConfigTomlEmpty):
     create_config()
     cnf = tomllib.loads(test_buffer.wr)
     assert cnf == ConfigTomlEmpty
+
 
 def test_full_config(patch_open, ConfigComplete):
     _ = patch_open
@@ -153,6 +156,7 @@ def test_full_config(patch_open, ConfigComplete):
 
     validated = Config.conf_schema.validate(cnf)
     assert validated == ConfigComplete
+
 
 def test_minimum_config(patch_open, ConfigMinimum):
     _ = patch_open
