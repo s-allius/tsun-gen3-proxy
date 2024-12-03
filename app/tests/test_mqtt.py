@@ -10,7 +10,7 @@ from singleton import Singleton
 from mqtt import Mqtt
 from modbus import Modbus
 from gen3plus.solarman_v5 import SolarmanV5
-from config.config import Config
+from cnf.config import Config
 
 
 pytest_plugins = ('pytest_asyncio',)

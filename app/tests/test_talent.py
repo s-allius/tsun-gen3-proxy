@@ -3,7 +3,7 @@ import pytest, logging, asyncio
 from math import isclose
 from async_stream import AsyncIfcImpl, StreamPtr
 from gen3.talent import Talent, Control
-from config.config import Config
+from cnf.config import Config
 from infos import Infos, Register
 from modbus import Modbus
 from messages import State

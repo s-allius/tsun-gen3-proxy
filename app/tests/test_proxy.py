@@ -9,7 +9,7 @@ from singleton import Singleton
 from proxy import Proxy
 from mqtt import Mqtt
 from gen3plus.solarman_v5 import SolarmanV5
-from config.config import Config
+from cnf.config import Config
 
 
 pytest_plugins = ('pytest_asyncio',)
