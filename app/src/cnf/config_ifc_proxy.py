@@ -7,7 +7,7 @@ from cnf.config import ConfigIfc
 
 
 class ConfigIfcProxy(ConfigIfc):
-    def __init__(self):
+    def __init__(self):   # pragma: no cover
         try:
             # make the default config transparaent by copying it
             # in the config.example file
