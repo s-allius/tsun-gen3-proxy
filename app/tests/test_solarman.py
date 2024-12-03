@@ -7,7 +7,7 @@ import random
 from math import isclose
 from async_stream import AsyncIfcImpl, StreamPtr
 from gen3plus.solarman_v5 import SolarmanV5, SolarmanBase
-from config import Config
+from cnf.config import Config
 from infos import Infos, Register
 from modbus import Modbus
 from messages import State, Message

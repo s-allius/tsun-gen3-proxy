@@ -2,7 +2,7 @@ import logging
 import traceback
 import asyncio
 
-from config import Config
+from cnf.config import Config
 from gen3plus.inverter_g3p import InverterG3P
 from infos import Infos
 
