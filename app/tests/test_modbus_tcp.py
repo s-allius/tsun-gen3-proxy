@@ -6,7 +6,7 @@ from aiomqtt import MqttCodeError
 from mock import patch
 from enum import Enum
 from singleton import Singleton
-from config import Config
+from config.config import Config
 from infos import Infos
 from mqtt import Mqtt
 from inverter_base import InverterBase

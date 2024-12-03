@@ -6,7 +6,7 @@ from datetime import datetime
 
 from async_ifc import AsyncIfc
 from messages import hex_dump_memory, Message, State
-from config import Config
+from config.config import Config
 from modbus import Modbus
 from gen3plus.infos_g3p import InfosG3P
 from infos import Register, Fmt

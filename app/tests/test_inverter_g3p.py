@@ -5,7 +5,7 @@ import asyncio
 from mock import patch
 from enum import Enum
 from infos import Infos
-from config import Config
+from config.config import Config
 from proxy import Proxy
 from inverter_base import InverterBase
 from singleton import Singleton
