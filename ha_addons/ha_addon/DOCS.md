@@ -8,13 +8,14 @@ The optional connection to the TSUN Cloud can be disabled!
 
 ## Pre-requisites
 1. This Add-on requires an MQTT broker to work.
-For a typical installation, we recommend the Mosquitto add-on running on your Home Assistant.
+For a typical installation, we recommend the [Mosquitto add-on][Mosquitto] running on your Home Assistant.
 
 2. You need to loop the proxy into the connection between the inverter and the TSUN Cloud, 
 you must adapt the DNS record within the network that your inverter uses. You need a mapping 
 from logger.talent-monitoring.com and/or iot.talent-monitoring.com to the IP address of your 
 Home Assistant.
-This can be done, for example, by adding a local DNS record to AdGuard Home Add-on.
+This can be done, for example, by adding a local DNS record to [AdGuard Home Add-on][AdGuard] 
+(navigate to `filters` on the AdGuard panel and add an entry under `custom filtering rules`).
 
 
 
@@ -153,3 +154,5 @@ SOFTWARE.
 [semver]: http://semver.org/spec/v2.0.0.htm
 [bsd]: https://opensource.org/licenses/BSD-3-Clause
 [eclipse]: https://www.eclipse.org/org/documents/edl-v10.php
+[Mosquitto]: https://github.com/home-assistant/addons/blob/master/mosquitto/DOCS.md
+[AdGuard]: https://github.com/hassio-addons/addon-adguard-home
