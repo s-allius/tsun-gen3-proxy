@@ -35,4 +35,4 @@ cd /home/proxy || exit
 export VERSION=$(cat /proxy-version.txt)
 
 echo "Start Proxyserver..."
-python3 server.py
+python3 server.py --add_on
