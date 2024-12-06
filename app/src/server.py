@@ -2,6 +2,7 @@ import logging
 import asyncio
 import signal
 import os
+import argparse
 from asyncio import StreamReader, StreamWriter
 from aiohttp import web
 from logging import config  # noqa F401
@@ -11,7 +12,9 @@ from gen3.inverter_g3 import InverterG3
 from gen3plus.inverter_g3p import InverterG3P
 from scheduler import Schedule
 from cnf.config import Config
-from cnf.config_ifc_proxy import ConfigIfcProxy
+from cnf.config_read_env import ConfigReadEnv
+from cnf.config_read_toml import ConfigReadToml
+from cnf.config_read_json import ConfigReadJson
 from modbus_tcp import ModbusTcp
 
 routes = web.RouteTableDef()
@@ -127,6 +130,10 @@ def get_log_level() -> int:
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--add_on', action='store_true')
+    args = parser.parse_args()
+    args.add_on
     #
     # Setup our daily, rotating logger
     #
@@ -135,6 +142,7 @@ if __name__ == "__main__":
 
     logging.config.fileConfig('logging.ini')
     logging.info(f'Server "{serv_name} - {version}" will be started')
+    logging.info(f"AddOn: {args.add_on}")
 
     # set lowest-severity for 'root', 'msg', 'conn' and 'data' logger
     log_level = get_log_level()
@@ -150,9 +158,18 @@ if __name__ == "__main__":
     asyncio.set_event_loop(loop)
 
     # read config file
-    ConfigErr = Config.init(ConfigIfcProxy())
+    Config.init(ConfigReadToml("default_config.toml"))
+    Config.add(ConfigReadEnv())
+    if args.add_on:
+        cnf_ifc = ConfigReadJson("/data/options.json")
+    else:
+        cnf_ifc = ConfigReadToml("config/config.toml")
+    Config.add(cnf_ifc)
+    ConfigErr = Config.parse()
+
     if ConfigErr is not None:
         logging.info(f'ConfigErr: {ConfigErr}')
+
     Proxy.class_init()
     Schedule.start()
     ModbusTcp(loop)
