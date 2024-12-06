@@ -1,6 +1,6 @@
 '''Config module handles the proxy configuration in the config.toml file'''
 
-import tomllib
+import shutil
 import logging
 from abc import ABC, abstractmethod
 from schema import Schema, And, Or, Use, Optional
@@ -8,8 +8,19 @@ from schema import Schema, And, Or, Use, Optional
 
 class ConfigIfc(ABC):
     @abstractmethod
-    def get_config(cls) -> dict:  # pragma: no cover
+    def add_config(cls) -> dict:  # pragma: no cover
         pass
+
+    def _extend_key(self, conf, key, val):
+        lst = key.split('.')
+        d = conf
+        for i, idx in enumerate(lst, 1):
+            if i == len(lst):
+                d[idx] = val
+                break
+            if idx not in d:
+                d[idx] = {}
+            d = d[idx]
 
 
 class Config():
@@ -17,8 +28,6 @@ class Config():
 
     Read config.toml file and sanitize it with read().
     Get named parts of the config with get()'''
-    act_config = {}
-    def_config = {}
 
     conf_schema = Schema({
         'tsun': {
@@ -34,8 +43,10 @@ class Config():
         'mqtt': {
             'host': Use(str),
             'port': And(Use(int), lambda n: 1024 <= n <= 65535),
-            'user': And(Use(str), Use(lambda s: s if len(s) > 0 else None)),
-            'passwd': And(Use(str), Use(lambda s: s if len(s) > 0 else None))
+            'user': Or(None, And(Use(str),
+                                 Use(lambda s: s if len(s) > 0 else None))),
+            'passwd': Or(None, And(Use(str),
+                                   Use(lambda s: s if len(s) > 0 else None)))
         },
         'ha': {
             'auto_conf_prefix': Use(str),
@@ -99,52 +110,56 @@ class Config():
     )
 
     @classmethod
-    def init(cls, ifc: ConfigIfc, path='') -> None | str:
-        cls.ifc = ifc
+    def init(cls, def_reader: ConfigIfc) -> None | str:
+        cls.readers = []
         cls.act_config = {}
         cls.def_config = {}
-        return cls.read(path)
+        cls.err = None
+        try:
+            # make the default config transparaent by copying it
+            # in the config.example file
+            logging.info('Copy Default Config to config.example.toml')
+
+            shutil.copy2("default_config.toml",
+                         "config/config.example.toml")
+        except Exception:
+            pass
+
+        # read example config file as default configuration
+        try:
+            def_config = def_reader.add_config()
+            cls.def_config = cls.conf_schema.validate(def_config)
+        except Exception as error:
+            cls.err = f'Config.read: {error}'
+            logging.error(cls.err)
+        cls.act_config = cls.def_config.copy()
 
     @classmethod
-    def read(cls, path) -> None | str:
+    def add(cls, reader: ConfigIfc):
+        cls.readers.append(reader)
+
+    @classmethod
+    def parse(cls) -> None | str:
         '''Read config file, merge it with the default config
         and sanitize the result'''
-        err = None
-        config = {}
-        logger = logging.getLogger('data')
-
-        try:
-            # read example config file as default configuration
-            cls.def_config = {}
-            with open(f"{path}default_config.toml", "rb") as f:
-                def_config = tomllib.load(f)
-                cls.def_config = cls.conf_schema.validate(def_config)
-
-            # overwrite the default values, with values from
-            # the config.toml file
-            usr_config = cls.ifc.get_config()
-
-            # merge the default and the user config
-            config = def_config.copy()
-            for key in ['tsun', 'solarman', 'mqtt', 'ha', 'inverters',
-                        'gen3plus']:
-                if key in usr_config:
-                    config[key] |= usr_config[key]
-
+        cls.act_config = cls.def_config.copy()
+        for reader in cls.readers:
             try:
+                rd_config = reader.add_config()
+                config = cls.act_config.copy()
+
+                for key in ['tsun', 'solarman', 'mqtt', 'ha', 'inverters',
+                            'gen3plus']:
+                    if key in rd_config:
+                        config[key] = config[key] | rd_config[key]
+                        # config[key] |= rd_config[key]
+
                 cls.act_config = cls.conf_schema.validate(config)
+
             except Exception as error:
-                err = f'Config.read: {error}'
-                logging.error(err)
-
-            # logging.debug(f'Readed config: "{cls.act_config}" ')
-
-        except Exception as error:
-            err = f'Config.read: {error}'
-            logger.error(err)
-            cls.act_config = {}
-
-        return err
+                cls.err = f'Config.read: {error}'
+                logging.error(cls.err)
+        return cls.err
 
     @classmethod
     def get(cls, member: str = None):
