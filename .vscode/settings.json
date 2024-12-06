@@ -5,7 +5,8 @@
     ".venv/lib",
     "ha_addons/ha_addon/rootfs" ],
     "python.testing.pytestArgs": [
-        "-vvv", 
+        "-vvv",
+        "--cov-config=.coveragerc_vscode",
         "--cov=app/src",
         "--cov=ha_addons/ha_addon/rootfs",
         "--cov-report=xml",
