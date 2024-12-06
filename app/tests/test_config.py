@@ -36,6 +36,8 @@ class FakeOptionsFile(FakeFile):
 
 def patch_open():
     def new_open(file: str, OpenTextMode="rb"):
+        if file == "_no__file__no_":
+            raise FileNotFoundError
         return FakeOptionsFile(OpenTextMode)
 
     with patch('builtins.open', new_open) as conn:
@@ -260,7 +262,14 @@ def test_no_file2():
     Config.add(ConfigReadToml("default_config.toml"))
     err = Config.parse()
     assert err == "Config.read: [Errno 2] No such file or directory: 'default_config.toml'"
-    
+
+def test_no_file3():
+    Config.init(ConfigReadToml("app/config/default_config.toml"))
+    assert Config.err == None
+    Config.add(ConfigReadToml("_no__file__no_"))
+    err = Config.parse()
+    assert err == None
+
 def test_read_cnf1():
     test_buffer.rd = "solarman.enabled = false"
     

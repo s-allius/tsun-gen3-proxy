@@ -49,6 +49,8 @@ class FakeOptionsFile(FakeFile):
 
 def patch_open():
     def new_open(file: str, OpenTextMode="r"):
+        if file == "_no__file__no_":
+            raise FileNotFoundError
         return FakeOptionsFile(OpenTextMode)
 
     with patch('builtins.open', new_open) as conn:
@@ -87,6 +89,18 @@ def test_no_config(ConfigDefault):
     Config.init(ConfigReadToml("app/config/default_config.toml"))
     for _ in patch_open():
         Config.add(ConfigReadJson())
+        err = Config.parse()
+
+    assert err == 'Config.read: Expecting value: line 1 column 1 (char 0)'
+    cnf = Config.get()
+    assert cnf == ConfigDefault
+
+def test_no_file(ConfigDefault):
+    test_buffer.rd = ""  # empty buffer, no json
+    
+    Config.init(ConfigReadToml("app/config/default_config.toml"))
+    for _ in patch_open():
+        Config.add(ConfigReadJson("_no__file__no_"))
         err = Config.parse()
 
     assert err == 'Config.read: Expecting value: line 1 column 1 (char 0)'

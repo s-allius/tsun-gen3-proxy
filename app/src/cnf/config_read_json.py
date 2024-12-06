@@ -42,7 +42,12 @@ class ConfigReadJson(ConfigIfc):
         return conf
 
     def add_config(self) -> dict:
-        with open(self.cnf_file) as f:
-            data = json.load(f)
-            return self.convert_to_obj(data)
+        try:
+            with open(self.cnf_file) as f:
+                data = json.load(f)
+                return self.convert_to_obj(data)
+
+        except FileNotFoundError:
+            pass
+
         return {}

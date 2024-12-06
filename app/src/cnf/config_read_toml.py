@@ -9,8 +9,11 @@ class ConfigReadToml(ConfigIfc):
         self.cnf_file = cnf_file
 
     def add_config(self) -> dict:
+        try:
+            with open(self.cnf_file, "rb") as f:
+                return tomllib.load(f)
 
-        with open(self.cnf_file, "rb") as f:
-            return tomllib.load(f)
+        except FileNotFoundError:
+            pass
 
         return {}
