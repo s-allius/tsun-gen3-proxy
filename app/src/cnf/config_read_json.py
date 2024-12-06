@@ -45,4 +45,3 @@ class ConfigReadJson(ConfigIfc):
         with open(self.cnf_file) as f:
             data = json.load(f)
             return self.convert_to_obj(data)
-        return {}

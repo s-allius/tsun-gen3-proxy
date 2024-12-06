@@ -155,7 +155,8 @@ class Config():
                         # config[key] |= rd_config[key]
 
                 cls.act_config = cls.conf_schema.validate(config)
-
+            except FileNotFoundError:
+                pass
             except Exception as error:
                 cls.err = f'Config.read: {error}'
                 logging.error(cls.err)
