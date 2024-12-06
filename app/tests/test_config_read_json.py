@@ -7,7 +7,6 @@ from cnf.config import Config
 from cnf.config_read_json import ConfigReadJson
 from cnf.config_read_toml import ConfigReadToml
 
-from home.create_config_toml import create_config
 from test_config import ConfigDefault, ConfigComplete, ConfigMinimum
 
 
