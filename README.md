@@ -28,6 +28,9 @@ Through this, the inverter then establishes a connection to the proxy and the pr
 
 By means of `docker` a simple installation and operation is possible. By using `docker-composer`, a complete stack of proxy, `MQTT-brocker` and `home-assistant` can be started easily.
 
+Alternatively you can run the TSUN-Proxy as a Home Assistant Add-on. The installation of this add-on is pretty straightforward and not different in comparison to installing any other custom Home Assistant add-on.
+Follow the Instructions mentioned in the add-on subdirectory `ha_addons`. 
+
 <br>
 ℹ️ This project is not related to the company TSUN. It is a private initiative that aims to connect TSUN inverters with an MQTT broker. There is no support and no warranty from TSUN.
 <br><br>
@@ -65,11 +68,20 @@ Here are some screenshots of how the inverter is displayed in the Home Assistant
 
 ## Requirements
 
+### for Docker Installation
 - A running Docker engine to host the container
 - Ability to loop the proxy into the connection between the inverter and the TSUN cloud
 
+### for Home Assistant Add-on Installation
+- Running Home Assistant on Home Assistant OS or Supervised. Container and Core installations doesn't support add-ons. 
+- Ability to loop the proxy into the connection between the inverter and the TSUN cloud
+
+
+
+
 # Getting Started
 
+## for Docker Installation
 To run the proxy, you first need to create the image. You can do this quite simply as follows:
 
 ```sh
@@ -95,7 +107,21 @@ With this information we can customize the `docker run`` statement:
 docker run  --dns '8.8.8.8' --env 'UID=1050' -p '5005:5005' -p '10000:10000' -v ./config:/home/tsun-proxy/config -v ./log:/home/tsun-proxy/log tsun-proxy
 ```
 
+## for Home Assistant Add-on Installation
+
+1. Add the repository URL to the Home Assistant add-on store
+2. Reload the add-on store page
+3. Click the "Install" button to install the add-on.
+
+
+
 # Configuration
+```txt
+❗The following describtion applies to docker installation. For Home Assistant Add-on installation, the 
+configuration is done via the Home Assistant UI. Some options are not required, nor is the e creation of a 
+config.toml file.. For general understandment of the configuration, you can read the following describtion.
+```
+
 
 The configuration consists of several parts. First, the container and the proxy itself must be configured, and then the connection of the inverter to the proxy must be set up, which is done differently depending on the inverter generation
 
