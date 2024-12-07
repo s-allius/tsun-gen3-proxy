@@ -76,7 +76,7 @@ def test_native_client(test_hostname, test_port):
     """
     global NO_MOSQUITTO_TEST
     if NO_MOSQUITTO_TEST:
-        pytest.skip()  # skip the test, since Mosquitto is not reliable
+        pytest.skip('skipping, since Mosquitto is not reliable at the moment')
 
     import paho.mqtt.client as mqtt
     import threading
@@ -90,7 +90,7 @@ def test_native_client(test_hostname, test_port):
         c.connect_async(test_hostname, test_port)
         if not on_connect.wait(3):
             NO_MOSQUITTO_TEST = True  # skip all mosquitto tests
-            pytest.skip()
+            pytest.skip('skipping, since Mosquitto is not reliable at the moment')
     finally:
         c.loop_stop()
 
@@ -98,7 +98,7 @@ def test_native_client(test_hostname, test_port):
 async def test_mqtt_connection(config_mqtt_conn):
     global NO_MOSQUITTO_TEST
     if NO_MOSQUITTO_TEST:
-        pytest.skip()  # skip the test, since Mosquitto is not reliable
+        pytest.skip('skipping, since Mosquitto is not reliable at the moment')
 
     _ = config_mqtt_conn
     assert asyncio.get_running_loop()
@@ -124,7 +124,7 @@ async def test_mqtt_connection(config_mqtt_conn):
 async def test_ha_reconnect(config_mqtt_conn):
     global NO_MOSQUITTO_TEST
     if NO_MOSQUITTO_TEST:
-        pytest.skip()  # skip the test, since Mosquitto is not reliable
+        pytest.skip('skipping, since Mosquitto is not reliable at the moment')
 
     _ = config_mqtt_conn
     on_connect =  asyncio.Event()
