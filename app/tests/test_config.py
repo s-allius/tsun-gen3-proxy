@@ -320,7 +320,7 @@ def test_read_cnf3(ConfigDefault):
         ConfigReadToml()
         err = Config.parse()
 
-    assert err == 'Config.read: Key \'solarman\' error:\nKey \'port\' error:\nint(\'FALSE\') raised ValueError("invalid literal for int() with base 10: \'FALSE\'")'
+    assert err == 'error: Key \'solarman\' error:\nKey \'port\' error:\nint(\'FALSE\') raised ValueError("invalid literal for int() with base 10: \'FALSE\'")'
     cnf = Config.get()
     assert cnf == ConfigDefault
 

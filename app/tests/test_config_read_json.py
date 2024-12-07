@@ -91,7 +91,7 @@ def test_no_config(ConfigDefault):
         ConfigReadJson()
         err = Config.parse()
 
-    assert err == 'Config.read: Expecting value: line 1 column 1 (char 0)'
+    assert err == 'error: Expecting value: line 1 column 1 (char 0)'
     cnf = Config.get()
     assert cnf == ConfigDefault
 
