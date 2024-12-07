@@ -159,12 +159,9 @@ if __name__ == "__main__":
 
     # read config file
     Config.init(ConfigReadToml("default_config.toml"))
-    Config.add(ConfigReadEnv())
-    if args.add_on:
-        cnf_ifc = ConfigReadJson("/data/options.json")
-    else:
-        cnf_ifc = ConfigReadToml("config/config.toml")
-    Config.add(cnf_ifc)
+    ConfigReadEnv()
+    ConfigReadJson("/data/options.json")
+    ConfigReadToml("config/config.toml")
     ConfigErr = Config.parse()
 
     if ConfigErr is not None:

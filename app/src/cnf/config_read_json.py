@@ -16,6 +16,7 @@ from cnf.config import ConfigIfc
 class ConfigReadJson(ConfigIfc):
     def __init__(self, cnf_file='/data/options.json'):
         self.cnf_file = cnf_file
+        super().__init__()
 
     def convert_inv(self, conf, inv):
         if 'serial' in inv:

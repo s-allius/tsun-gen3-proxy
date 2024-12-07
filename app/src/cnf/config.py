@@ -7,6 +7,9 @@ from schema import Schema, And, Or, Use, Optional
 
 
 class ConfigIfc(ABC):
+    def __init__(self):
+        Config.add(self)
+
     @abstractmethod
     def add_config(cls) -> dict:  # pragma: no cover
         pass
@@ -28,9 +31,6 @@ class Config():
 
     Read config.toml file and sanitize it with read().
     Get named parts of the config with get()'''
-
-    act_config = {}
-    def_config = {}
 
     conf_schema = Schema({
         'tsun': {
@@ -114,10 +114,8 @@ class Config():
 
     @classmethod
     def init(cls, def_reader: ConfigIfc) -> None | str:
-        cls.readers = []
-        cls.act_config = {}
-        cls.def_config = {}
         cls.err = None
+        cls.def_config = {}
         try:
             # make the default config transparaent by copying it
             # in the config.example file
@@ -139,30 +137,31 @@ class Config():
 
     @classmethod
     def add(cls, reader: ConfigIfc):
-        cls.readers.append(reader)
+        if hasattr(cls, 'def_config'):
+            cls._parse(reader)
 
     @classmethod
     def parse(cls) -> None | str:
+        return cls.err
+
+    @classmethod
+    def _parse(cls, reader) -> None | str:
         '''Read config file, merge it with the default config
         and sanitize the result'''
-        cls.act_config = cls.def_config.copy()
-        for reader in cls.readers:
-            try:
-                rd_config = reader.add_config()
-                config = cls.act_config.copy()
-
-                for key in ['tsun', 'solarman', 'mqtt', 'ha', 'inverters',
-                            'gen3plus']:
-                    if key in rd_config:
-                        config[key] = config[key] | rd_config[key]
-                        # config[key] |= rd_config[key]
-
-                cls.act_config = cls.conf_schema.validate(config)
-            except FileNotFoundError:
-                pass
-            except Exception as error:
-                cls.err = f'Config.read: {error}'
-                logging.error(cls.err)
+        try:
+            rd_config = reader.add_config()
+            config = cls.act_config.copy()
+            for key in ['tsun', 'solarman', 'mqtt', 'ha', 'inverters',
+                        'gen3plus']:
+                if key in rd_config:
+                    config[key] = config[key] | rd_config[key]
+                    # config[key] |= rd_config[key]
+            cls.act_config = cls.conf_schema.validate(config)
+        except FileNotFoundError:
+            pass
+        except Exception as error:
+            cls.err = f'Config.read: {error}'
+            logging.error(cls.err)
         return cls.err
 
     @classmethod
