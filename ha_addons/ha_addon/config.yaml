@@ -39,18 +39,18 @@ schema:
       #    type: str
       #    manufacturer: str
       # daher diese variante
-      pv1_manufacturer: str?
-      pv1_type: str?
-      pv2_manufacturer: str?
-      pv2_type: str?
-      pv3_manufacturer: str?
-      pv3_type: str?
-      pv4_manufacturer: str?
-      pv4_type: str?
-      pv5_manufacturer: str?
-      pv5_type: str?
-      pv6_manufacturer: str?
-      pv6_type: str?
+      pv1.manufacturer: str?
+      pv1.type: str?
+      pv2.manufacturer: str?
+      pv2.type: str?
+      pv3.manufacturer: str?
+      pv3.type: str?
+      pv4.manufacturer: str?
+      pv4.type: str?
+      pv5.manufacturer: str?
+      pv5.type: str?
+      pv6.manufacturer: str?
+      pv6.type: str?
   tsun.enabled: bool
   solarman.enabled: bool
   inverters.allow_all: bool
@@ -92,10 +92,10 @@ options:
       #  - string: PV2
       #    type: SF-M18/144550
       #    manufacturer: Shinefar
-      pv1_manufacturer: Shinefar
-      pv1_type: SF-M18/144550
-      pv2_manufacturer: Shinefar
-      pv2_type: SF-M18/144550
+      pv1.manufacturer: Shinefar
+      pv1.type: SF-M18/144550
+      pv2.manufacturer: Shinefar
+      pv2.type: SF-M18/144550
   tsun.enabled: true # set default
   solarman.enabled: true # set default
   inverters.allow_all: false # set default
