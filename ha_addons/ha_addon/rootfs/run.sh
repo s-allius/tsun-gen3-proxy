@@ -27,12 +27,9 @@ cd /home || exit
 mkdir -p proxy/log
 mkdir -p proxy/config
 
-echo "Create config.toml..."
-python3 create_config_toml.py
-
 cd /home/proxy || exit
 
 export VERSION=$(cat /proxy-version.txt)
 
 echo "Start Proxyserver..."
-python3 server.py --add_on
+python3 server.py --json_config=/data/options.json
