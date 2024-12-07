@@ -55,10 +55,10 @@ inverters:
     node_id: PV-Garage
     suggested_area: Garage
     modbus_polling: false
-    pv1_manufacturer: Shinefar
-    pv1_type: SF-M18/144550
-    pv2_manufacturer: Shinefar
-    pv2_type: SF-M18/144550
+    pv1.manufacturer: Shinefar
+    pv1.type: SF-M18/144550
+    pv2.manufacturer: Shinefar
+    pv2.type: SF-M18/144550
 ```
 
 **Note**: _This is just an example, you need to replace the values with your own!_
@@ -72,14 +72,14 @@ inverters:
     node_id: PV-Garage
     suggested_area: Garage
     modbus_polling: true
-    pv1_manufacturer: Shinefar
-    pv1_type: SF-M18/144550
-    pv2_manufacturer: Shinefar
-    pv2_type: SF-M18/144550
-    pv3_manufacturer: Shinefar
-    pv3_type: SF-M18/144550
-    pv4_manufacturer: Shinefar
-    pv4_type: SF-M18/144550
+    pv1.manufacturer: Shinefar
+    pv1.type: SF-M18/144550
+    pv2.manufacturer: Shinefar
+    pv2.type: SF-M18/144550
+    pv3.manufacturer: Shinefar
+    pv3.type: SF-M18/144550
+    pv4.manufacturer: Shinefar
+    pv4.type: SF-M18/144550
 ```
 
 **Note**: _This is just an example, you need to replace the values with your own!_
