@@ -29,6 +29,9 @@ class Config():
     Read config.toml file and sanitize it with read().
     Get named parts of the config with get()'''
 
+    act_config = {}
+    def_config = {}
+
     conf_schema = Schema({
         'tsun': {
             'enabled': Use(bool),
