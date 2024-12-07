@@ -12,7 +12,7 @@ from modbus import Modbus
 from gen3plus.solarman_v5 import SolarmanV5
 from cnf.config import Config
 
-NO_MOSQUITTO_TEST = True
+NO_MOSQUITTO_TEST = False
 '''disable all tests with connections to test.mosquitto.org'''
 
 pytest_plugins = ('pytest_asyncio',)
@@ -71,10 +71,12 @@ def spy_modbus_cmd_client():
 
 def test_native_client(test_hostname, test_port):
     """Sanity check: Make sure the paho-mqtt client can connect to the test
-    MQTT server.
+    MQTT server. Otherwise the test set NO_MOSQUITTO_TEST to True and disable
+    all test cases which depends on the test.mosquitto.org server
     """
+    global NO_MOSQUITTO_TEST
     if NO_MOSQUITTO_TEST:
-        pytest.skip()
+        pytest.skip()  # skip the test, since Mosquitto is not reliable
 
     import paho.mqtt.client as mqtt
     import threading
@@ -86,14 +88,17 @@ def test_native_client(test_hostname, test_port):
         on_connect = threading.Event()
         c.on_connect = Mock(side_effect=lambda *_: on_connect.set())
         c.connect_async(test_hostname, test_port)
-        assert on_connect.wait(10)
+        if not on_connect.wait(3):
+            NO_MOSQUITTO_TEST = True  # skip all mosquitto tests
+            pytest.skip()
     finally:
         c.loop_stop()
 
 @pytest.mark.asyncio
 async def test_mqtt_connection(config_mqtt_conn):
+    global NO_MOSQUITTO_TEST
     if NO_MOSQUITTO_TEST:
-        pytest.skip()
+        pytest.skip()  # skip the test, since Mosquitto is not reliable
 
     _ = config_mqtt_conn
     assert asyncio.get_running_loop()
@@ -117,8 +122,9 @@ async def test_mqtt_connection(config_mqtt_conn):
 
 @pytest.mark.asyncio
 async def test_ha_reconnect(config_mqtt_conn):
+    global NO_MOSQUITTO_TEST
     if NO_MOSQUITTO_TEST:
-        pytest.skip()
+        pytest.skip()  # skip the test, since Mosquitto is not reliable
 
     _ = config_mqtt_conn
     on_connect =  asyncio.Event()
