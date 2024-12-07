@@ -107,6 +107,18 @@ def test_no_file(ConfigDefault):
     cnf = Config.get()
     assert cnf == ConfigDefault
 
+def test_invalid_filename(ConfigDefault):
+    test_buffer.rd = ""  # empty buffer, no json
+    
+    Config.init(ConfigReadToml("app/config/default_config.toml"))
+    for _ in patch_open():
+        ConfigReadJson(None)
+        err = Config.get_error()
+
+    assert err == None
+    cnf = Config.get()
+    assert cnf == ConfigDefault
+
 def test_cnv1():
     tst = {
    "gen3plus.at_acl.mqtt.block": [

@@ -6,7 +6,7 @@ from cnf.config import ConfigIfc
 
 class ConfigReadToml(ConfigIfc):
     '''Reader for toml config files'''
-    def __init__(self, cnf_file="config/config.toml"):
+    def __init__(self, cnf_file):
         '''Read a toml file and add the settings to the config'''
         if not isinstance(cnf_file, str):
             return
