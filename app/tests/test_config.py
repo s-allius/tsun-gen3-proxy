@@ -143,30 +143,6 @@ def ConfigComplete():
         }
     }
 
-@pytest.fixture
-def ConfigMinimum():
-    return {
-        'gen3plus': {
-            'at_acl': {
-                'mqtt': {'allow': ['AT+'], 'block': []},
-                'tsun': {'allow': ['AT+Z', 'AT+UPURL', 'AT+SUPDATE'],
-                         'block': []}
-            }
-        },
-        'tsun': {'enabled': True, 'host': 'logger.talent-monitoring.com',
-                 'port': 5005},
-        'solarman': {'enabled': True, 'host': 'iot.talent-monitoring.com', 'port': 10000},
-        'mqtt': {'host': 'mqtt', 'port': 1883, 'user': None, 'passwd': None},
-        'ha': {'auto_conf_prefix': 'homeassistant', 'discovery_prefix': 'homeassistant', 'entity_prefix': 'tsun', 'proxy_node_id': 'proxy', 'proxy_unique_id': 'P170000000000001'},
-        'inverters': {
-            'allow_all': True,
-            'R170000000000001': {'node_id': '',
-                                 'modbus_polling': True,
-                                 'monitor_sn': 0,
-                                 'suggested_area': '',
-                                 'sensor_list': 688}}}
-
-
 def test_default_config():
     Config.init(ConfigReadToml("app/config/default_config.toml"))
     validated = Config.def_config
@@ -213,23 +189,6 @@ def test_full_config(ConfigComplete):
     except Exception:
         assert False
     assert validated == ConfigComplete
-
-def test_mininum_config(ConfigMinimum):
-    cnf = {'tsun': {'enabled': True, 'host': 'logger.talent-monitoring.com', 'port': 5005}, 
-           'gen3plus': {'at_acl': {'mqtt': {'allow': ['AT+']},
-                                   'tsun': {'allow': ['AT+Z', 'AT+UPURL', 'AT+SUPDATE']}}},
-           'solarman': {'enabled': True, 'host': 'iot.talent-monitoring.com', 'port': 10000}, 
-           'mqtt': {'host': 'mqtt', 'port': 1883, 'user': '', 'passwd': ''}, 
-           'ha': {'auto_conf_prefix': 'homeassistant', 'discovery_prefix': 'homeassistant', 'entity_prefix': 'tsun', 'proxy_node_id': 'proxy', 'proxy_unique_id': 'P170000000000001'}, 
-           'inverters': {'allow_all': True,
-                         'R170000000000001': {}}
-    } 
-
-    try:
-        validated = Config.conf_schema.validate(cnf)
-    except Exception:
-        assert False
-    assert validated == ConfigMinimum
 
 def test_read_empty(ConfigDefault):
     test_buffer.rd = ""

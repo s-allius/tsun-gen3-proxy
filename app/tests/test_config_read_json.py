@@ -7,7 +7,7 @@ from cnf.config import Config
 from cnf.config_read_json import ConfigReadJson
 from cnf.config_read_toml import ConfigReadToml
 
-from test_config import ConfigDefault, ConfigComplete, ConfigMinimum
+from test_config import ConfigDefault, ConfigComplete
 
 
 class CnfIfc(ConfigReadJson):
@@ -334,40 +334,3 @@ def test_full_config(ConfigComplete):
     assert err == None
     cnf = Config.get()
     assert cnf == ConfigComplete
-
-# 
-# def test_minimum_config(ConfigMinimum):
-#     test_buffer.rd = """
-# {
-#    "inverters": [
-#      {
-#        "serial": "R170000000000001",
-#        "monitor_sn": 0,
-#        "node_id": "",
-#        "suggested_area": "",
-#        "modbus_polling": true,
-#        "client_mode_host": "InverterIP",
-#        "client_mode_port": 1234
-#      }
-#    ],
-#    "tsun.enabled": true,
-#    "solarman.enabled": true,
-#    "inverters.allow_all": true,
-#    "gen3plus.at_acl.tsun.allow": [
-#      "AT+Z",
-#      "AT+UPURL",
-#      "AT+SUPDATE"
-#    ],
-#    "gen3plus.at_acl.mqtt.allow": [
-#      "AT+"
-#    ]
-# }
-# """
-#     Config.init(ConfigReadToml("app/config/default_config.toml"))
-#     for _ in patch_open():
-#         Config.add(ConfigReadJson())
-#         err = Config.parse()
-#     # assert err == None
-#     cnf = Config.get()
-#     assert cnf == ConfigMinimum
-# 
