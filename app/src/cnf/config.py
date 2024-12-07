@@ -11,7 +11,11 @@ class ConfigIfc(ABC):
         Config.add(self)
 
     @abstractmethod
-    def add_config(cls) -> dict:  # pragma: no cover
+    def add_config(self) -> dict:
+        pass
+
+    @abstractmethod
+    def descr(self) -> str:
         pass
 
     def _extend_key(self, conf, key, val):
@@ -119,7 +123,7 @@ class Config():
         try:
             # make the default config transparaent by copying it
             # in the config.example file
-            logging.info('Copy Default Config to config.example.toml')
+            logging.debug('Copy Default Config to config.example.toml')
 
             shutil.copy2("default_config.toml",
                          "config/config.example.toml")
@@ -130,9 +134,12 @@ class Config():
         try:
             def_config = def_reader.add_config()
             cls.def_config = cls.conf_schema.validate(def_config)
+            logging.info(f'Read from {def_reader.descr()} => ok')
         except Exception as error:
             cls.err = f'Config.read: {error}'
-            logging.error(cls.err)
+            logging.error(
+                f"Can't read from {def_reader.descr()} => error\n  {error}")
+
         cls.act_config = cls.def_config.copy()
 
     @classmethod
@@ -148,6 +155,7 @@ class Config():
     def _parse(cls, reader) -> None | str:
         '''Read config file, merge it with the default config
         and sanitize the result'''
+        res = 'ok'
         try:
             rd_config = reader.add_config()
             config = cls.act_config.copy()
@@ -158,10 +166,14 @@ class Config():
                     # config[key] |= rd_config[key]
             cls.act_config = cls.conf_schema.validate(config)
         except FileNotFoundError:
+            res = 'n/a'
             pass
         except Exception as error:
-            cls.err = f'Config.read: {error}'
-            logging.error(cls.err)
+            cls.err = f'error: {error}'
+            logging.error(
+                f"Can't read from {reader.descr()} => error\n  {error}")
+
+        logging.info(f'Read from {reader.descr()} => {res}')
         return cls.err
 
     @classmethod

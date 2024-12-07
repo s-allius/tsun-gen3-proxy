@@ -15,6 +15,8 @@ from cnf.config import ConfigIfc
 
 class ConfigReadJson(ConfigIfc):
     def __init__(self, cnf_file='/data/options.json'):
+        if not isinstance(cnf_file, str):
+            return
         self.cnf_file = cnf_file
         super().__init__()
 
@@ -46,3 +48,6 @@ class ConfigReadJson(ConfigIfc):
         with open(self.cnf_file) as f:
             data = json.load(f)
             return self.convert_to_obj(data)
+
+    def descr(self):
+        return self.cnf_file

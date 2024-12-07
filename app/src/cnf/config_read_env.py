@@ -28,3 +28,6 @@ class ConfigReadEnv(ConfigIfc):
             if val:
                 self._extend_key(conf, key, val)
         return conf
+
+    def descr(self):
+        return "Read environment"
