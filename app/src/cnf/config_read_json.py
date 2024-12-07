@@ -1,20 +1,13 @@
-'''Config module handles the proxy configuration in the config.toml file'''
+'''Config Reader module which handles *.json config files'''
 
 import json
 from cnf.config import ConfigIfc
 
-# Dieses file übernimmt die Add-On Konfiguration und schreibt sie in die
-# Konfigurationsdatei des tsun-proxy
-# Die Addon Konfiguration wird in der Datei /data/options.json bereitgestellt
-# Die Konfiguration wird in der Datei /home/proxy/config/config.toml
-# gespeichert
-
-# Übernehme die Umgebungsvariablen
-# alternativ kann auch auf die homeassistant supervisor API zugegriffen werden
-
 
 class ConfigReadJson(ConfigIfc):
+    '''Reader for json config files'''
     def __init__(self, cnf_file='/data/options.json'):
+        '''Read a json file and add the settings to the config'''
         if not isinstance(cnf_file, str):
             return
         self.cnf_file = cnf_file
@@ -44,7 +37,7 @@ class ConfigReadJson(ConfigIfc):
                 self._extend_key(conf, key, val)
         return conf
 
-    def add_config(self) -> dict:
+    def get_config(self) -> dict:
         with open(self.cnf_file) as f:
             data = json.load(f)
             return self.convert_to_obj(data)

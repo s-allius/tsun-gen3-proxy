@@ -89,7 +89,7 @@ def test_no_config(ConfigDefault):
     Config.init(ConfigReadToml("app/config/default_config.toml"))
     for _ in patch_open():
         ConfigReadJson()
-        err = Config.parse()
+        err = Config.get_error()
 
     assert err == 'error: Expecting value: line 1 column 1 (char 0)'
     cnf = Config.get()
@@ -101,7 +101,7 @@ def test_no_file(ConfigDefault):
     Config.init(ConfigReadToml("app/config/default_config.toml"))
     for _ in patch_open():
         ConfigReadJson("_no__file__no_")
-        err = Config.parse()
+        err = Config.get_error()
 
     assert err == None
     cnf = Config.get()
@@ -266,7 +266,7 @@ def test_empty_config(ConfigDefault):
     Config.init(ConfigReadToml("app/config/default_config.toml"))
     for _ in patch_open():
         ConfigReadJson()
-        err = Config.parse()
+        err = Config.get_error()
 
     assert err == None
     cnf = Config.get()
@@ -329,7 +329,7 @@ def test_full_config(ConfigComplete):
     Config.init(ConfigReadToml("app/config/default_config.toml"))
     for _ in patch_open():
         ConfigReadJson()
-        err = Config.parse()
+        err = Config.get_error()
 
     assert err == None
     cnf = Config.get()

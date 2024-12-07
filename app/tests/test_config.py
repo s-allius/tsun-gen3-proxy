@@ -196,7 +196,7 @@ def test_read_empty(ConfigDefault):
     Config.init(ConfigReadToml("app/config/default_config.toml"))
     for _ in patch_open():
         ConfigReadToml()
-        err = Config.parse()
+        err = Config.get_error()
 
     assert err == None
     cnf = Config.get()
@@ -208,7 +208,7 @@ def test_read_empty(ConfigDefault):
 
 def test_no_file():
     Config.init(ConfigReadToml("default_config.toml"))
-    err = Config.parse()
+    err = Config.get_error()
     assert err == "Config.read: [Errno 2] No such file or directory: 'default_config.toml'"
     cnf = Config.get()
     assert cnf == {}    
@@ -219,7 +219,7 @@ def test_no_file2():
     Config.init(ConfigReadToml("app/config/default_config.toml"))
     assert Config.err == None
     ConfigReadToml("_no__file__no_")
-    err = Config.parse()
+    err = Config.get_error()
     assert err == None
 
 def test_read_cnf1():
@@ -228,7 +228,7 @@ def test_read_cnf1():
     Config.init(ConfigReadToml("app/config/default_config.toml"))
     for _ in patch_open():
         ConfigReadToml()
-        err = Config.parse()
+        err = Config.get_error()
 
     assert err == None
     cnf = Config.get()
@@ -275,7 +275,7 @@ def test_read_cnf2():
     Config.init(ConfigReadToml("app/config/default_config.toml"))
     for _ in patch_open():
         ConfigReadToml()
-        err = Config.parse()
+        err = Config.get_error()
 
     assert err == None
     cnf = Config.get()
@@ -318,7 +318,7 @@ def test_read_cnf3(ConfigDefault):
     Config.init(ConfigReadToml("app/config/default_config.toml"))
     for _ in patch_open():
         ConfigReadToml()
-        err = Config.parse()
+        err = Config.get_error()
 
     assert err == 'error: Key \'solarman\' error:\nKey \'port\' error:\nint(\'FALSE\') raised ValueError("invalid literal for int() with base 10: \'FALSE\'")'
     cnf = Config.get()
@@ -330,7 +330,7 @@ def test_read_cnf4():
     Config.init(ConfigReadToml("app/config/default_config.toml"))
     for _ in patch_open():
         ConfigReadToml()
-        err = Config.parse()
+        err = Config.get_error()
 
     assert err == None
     cnf = Config.get()
@@ -373,7 +373,7 @@ def test_read_cnf5():
     Config.init(ConfigReadToml("app/config/default_config.toml"))
     for _ in patch_open():
         ConfigReadToml()
-        err = Config.parse()
+        err = Config.get_error()
     assert err != None
 
 def test_read_cnf6():
@@ -382,5 +382,5 @@ def test_read_cnf6():
     Config.init(ConfigReadToml("app/config/default_config.toml"))
     for _ in patch_open():
         ConfigReadToml()
-        err = Config.parse()
+        err = Config.get_error()
     assert err != None

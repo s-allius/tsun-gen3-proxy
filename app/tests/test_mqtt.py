@@ -74,7 +74,7 @@ def test_native_client(test_hostname, test_port):
     MQTT server.
     """
     if NO_MOSQUITTO_TEST:
-        return
+        pytest.skip()
 
     import paho.mqtt.client as mqtt
     import threading
@@ -93,7 +93,7 @@ def test_native_client(test_hostname, test_port):
 @pytest.mark.asyncio
 async def test_mqtt_connection(config_mqtt_conn):
     if NO_MOSQUITTO_TEST:
-        return
+        pytest.skip()
 
     _ = config_mqtt_conn
     assert asyncio.get_running_loop()
@@ -118,7 +118,7 @@ async def test_mqtt_connection(config_mqtt_conn):
 @pytest.mark.asyncio
 async def test_ha_reconnect(config_mqtt_conn):
     if NO_MOSQUITTO_TEST:
-        return
+        pytest.skip()
 
     _ = config_mqtt_conn
     on_connect =  asyncio.Event()

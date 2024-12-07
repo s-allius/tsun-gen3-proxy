@@ -1,4 +1,4 @@
-'''Config module handles the proxy configuration in the config.toml file'''
+'''Config module handles the proxy configuration'''
 
 import shutil
 import logging
@@ -7,18 +7,22 @@ from schema import Schema, And, Or, Use, Optional
 
 
 class ConfigIfc(ABC):
+    '''Abstract basis class for config readers'''
     def __init__(self):
         Config.add(self)
 
     @abstractmethod
-    def add_config(self) -> dict:
+    def get_config(self) -> dict:    # pragma: no cover
+        '''get the unverified config from the reader'''
         pass
 
     @abstractmethod
-    def descr(self) -> str:
+    def descr(self) -> str:          # pragma: no cover
+        '''return a descriction of the source, e.g. the file name'''
         pass
 
     def _extend_key(self, conf, key, val):
+        '''split a dotted dict key into a hierarchical dict tree '''
         lst = key.split('.')
         d = conf
         for i, idx in enumerate(lst, 1):
@@ -31,10 +35,13 @@ class ConfigIfc(ABC):
 
 
 class Config():
-    '''Static class Config is reads and sanitize the config.
+    '''Static class Config build and sanitize the internal config dictenary.
 
-    Read config.toml file and sanitize it with read().
-    Get named parts of the config with get()'''
+ Using config readers, a partial configuration is added to config.
+ Config readers are a derivation of the abstract ConfigIfc reader.
+ When a config reader is instantiated, theits `get_config` method is
+ called automatically and afterwards the config will be merged.
+    '''
 
     conf_schema = Schema({
         'tsun': {
@@ -118,6 +125,10 @@ class Config():
 
     @classmethod
     def init(cls, def_reader: ConfigIfc) -> None | str:
+        '''Initialise the Proxy-Config
+
+Copy the internal default config file into the config directory
+and initialise the Config with the default configuration '''
         cls.err = None
         cls.def_config = {}
         try:
@@ -132,7 +143,7 @@ class Config():
 
         # read example config file as default configuration
         try:
-            def_config = def_reader.add_config()
+            def_config = def_reader.get_config()
             cls.def_config = cls.conf_schema.validate(def_config)
             logging.info(f'Read from {def_reader.descr()} => ok')
         except Exception as error:
@@ -144,30 +155,36 @@ class Config():
 
     @classmethod
     def add(cls, reader: ConfigIfc):
+        '''Merge the config from the Config Reader into the config
+
+Checks if a default config exists. If no default configuration exists,
+the Config.init  method has not yet been called.This is normal for the very
+first Config Reader which creates the default config and must be ignored
+here. The default config reader is handled in the Config.init method'''
         if hasattr(cls, 'def_config'):
-            cls._parse(reader)
+            cls.__parse(reader)
 
     @classmethod
-    def parse(cls) -> None | str:
+    def get_error(cls) -> None | str:
+        '''return the last error as a string or None if there is no error'''
         return cls.err
 
     @classmethod
-    def _parse(cls, reader) -> None | str:
-        '''Read config file, merge it with the default config
+    def __parse(cls, reader) -> None | str:
+        '''Read config from the reader, merge it with the default config
         and sanitize the result'''
         res = 'ok'
         try:
-            rd_config = reader.add_config()
+            rd_config = reader.get_config()
             config = cls.act_config.copy()
             for key in ['tsun', 'solarman', 'mqtt', 'ha', 'inverters',
                         'gen3plus']:
                 if key in rd_config:
                     config[key] = config[key] | rd_config[key]
-                    # config[key] |= rd_config[key]
+
             cls.act_config = cls.conf_schema.validate(config)
         except FileNotFoundError:
             res = 'n/a'
-            pass
         except Exception as error:
             cls.err = f'error: {error}'
             logging.error(

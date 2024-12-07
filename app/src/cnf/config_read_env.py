@@ -1,21 +1,13 @@
-'''Config module handles the proxy configuration in the config.toml file'''
+'''Config Reader module which handles config values from the environment'''
 
 import os
 from cnf.config import ConfigIfc
 
-# Dieses file übernimmt die Add-On Konfiguration und schreibt sie in die
-# Konfigurationsdatei des tsun-proxy
-# Die Addon Konfiguration wird in der Datei /data/options.json bereitgestellt
-# Die Konfiguration wird in der Datei /home/proxy/config/config.toml
-# gespeichert
-
-# Übernehme die Umgebungsvariablen
-# alternativ kann auch auf die homeassistant supervisor API zugegriffen werden
-
 
 class ConfigReadEnv(ConfigIfc):
+    '''Reader for environment values of the configuration'''
 
-    def add_config(self) -> dict:
+    def get_config(self) -> dict:
         conf = {}
         data = [
             ('mqtt.host', 'MQTT_HOST'),

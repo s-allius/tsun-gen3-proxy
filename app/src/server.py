@@ -176,7 +176,7 @@ if __name__ == "__main__":
     ConfigReadToml(args.config_path + "config.toml")
     ConfigReadJson(args.json_config)
     ConfigReadToml(args.toml_config)
-    ConfigErr = Config.parse()
+    ConfigErr = Config.get_error()
 
     if ConfigErr is not None:
         logging.info(f'ConfigErr: {ConfigErr}')
