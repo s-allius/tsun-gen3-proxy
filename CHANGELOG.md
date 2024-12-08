@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+- make the configuration more flexible, add command line args to control this
+- fix the python path so we don't need special import paths for unit tests anymore
+- support test coverager in vscode
+- upgrade SonarQube action to version 4
+- update github action to Ubuntu 24-04
 - add initial support for home assistant add-ons from @mime24
 - github action: use ubuntu 24.04 and sonar-scanner-action 4 [#222](https://github.com/s-allius/tsun-gen3-proxy/issues/222)
 - migrate paho.mqtt CallbackAPIVersion to VERSION2 [#224](https://github.com/s-allius/tsun-gen3-proxy/issues/224)
