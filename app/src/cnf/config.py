@@ -25,7 +25,7 @@ class ConfigIfc(ABC):
         '''split a dotted dict key into a hierarchical dict tree '''
         lst = key.split('.')
         d = conf
-        for i, idx in enumerate(lst, 1):
+        for i, idx in enumerate(lst, 1):  # pragma: no branch
             if i == len(lst):
                 d[idx] = val
                 break
