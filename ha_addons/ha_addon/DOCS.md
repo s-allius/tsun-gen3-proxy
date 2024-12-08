@@ -1,29 +1,27 @@
 # Home Assistant Add-on: TSUN Proxy
 
-[TSUN Proxy][tsunproxy] enables a reliable connection between TSUN third generation 
-inverters and an MQTT broker. With the proxy, you can easily retrieve real-time values 
-such as power, current and daily energy and integrate the inverter into Home Assistant. 
-This works even without an internet connection. 
+[TSUN Proxy][tsunproxy] enables a reliable connection between TSUN third generation
+inverters and an MQTT broker. With the proxy, you can easily retrieve real-time values
+such as power, current and daily energy and integrate the inverter into Home Assistant.
+This works even without an internet connection.
 The optional connection to the TSUN Cloud can be disabled!
 
 ## Pre-requisites
+
 1. This Add-on requires an MQTT broker to work.
 For a typical installation, we recommend the [Mosquitto add-on][Mosquitto] running on your Home Assistant.
 
-2. You need to loop the proxy into the connection between the inverter and the TSUN Cloud, 
-you must adapt the DNS record within the network that your inverter uses. You need a mapping 
-from logger.talent-monitoring.com and/or iot.talent-monitoring.com to the IP address of your 
+2. You need to loop the proxy into the connection between the inverter and the TSUN Cloud,
+you must adapt the DNS record within the network that your inverter uses. You need a mapping
+from logger.talent-monitoring.com and/or iot.talent-monitoring.com to the IP address of your
 Home Assistant.
-This can be done, for example, by adding a local DNS record to [AdGuard Home Add-on][AdGuard] 
+This can be done, for example, by adding a local DNS record to [AdGuard Home Add-on][AdGuard]
 (navigate to `filters` on the AdGuard panel and add an entry under `custom filtering rules`).
-
-
 
 ## Installation
 
 The installation of this add-on is pretty straightforward and not different in
 comparison to installing any other Home Assistant add-on.
-
 
 1. Add the repository URL to the Home Assistant add-on store
 2. Reload the add-on store page
@@ -33,14 +31,14 @@ comparison to installing any other Home Assistant add-on.
 6. Check the logs of the "TSUN-Proxy" add-on to see if everything went well.
 
 _Please note, the add-on is pre-configured to connect with
-Home Assistants default MQTT Broker. There is no need to configure any MQTT parameters 
-if you're running an MOSQUITTO add-on. Home Assistant communication and TSUN Cloud URL 
+Home Assistants default MQTT Broker. There is no need to configure any MQTT parameters
+if you're running an MOSQUITTO add-on. Home Assistant communication and TSUN Cloud URL
 and Ports are also pre-configured._
 
 This automatic handling of the TSUN Cloud and MQTT Broker conflicts with the
 [TSUN Proxy official documentation][tsunproxy]. The official documentation
-will state `mqtt.host`, `mqtt.port`, `mqtt.user`, `mqtt.passwd` `solarman.host`, 
-`solarman.port` `tsun.host`, `tsun.port` and Home Assistant options are required. 
+will state `mqtt.host`, `mqtt.port`, `mqtt.user`, `mqtt.passwd` `solarman.host`,
+`solarman.port` `tsun.host`, `tsun.port` and Home Assistant options are required.
 For the add-on, however, this isn't needed.
 
 ## Configuration
@@ -84,9 +82,6 @@ inverters:
 
 **Note**: _This is just an example, you need to replace the values with your own!_
 
-
-
-
 ## MQQT settings
 
 By default, this add-on requires no `mqtt` config from the user. **This is not an error!**
@@ -126,10 +121,11 @@ The original setup of this repository is by [Stefan Allius][author].
 We're very happy to receive contributions to this project! You can get started by reading [CONTRIBUTING.md][contribute].
 
 ## License
+
 This project is licensed under the [BSD 3-clause License][bsd].
 
-Note the aiomqtt library used is based on the paho-mqtt library, which has a dual license. 
-One of the licenses is the so-called [Eclipse Distribution License v1.0.][eclipse] 
+Note the aiomqtt library used is based on the paho-mqtt library, which has a dual license.
+One of the licenses is the so-called [Eclipse Distribution License v1.0.][eclipse]
 It is almost word-for-word identical to the BSD 3-clause License. The only differences are:
 
 - One use of "COPYRIGHT OWNER" (EDL) instead of "COPYRIGHT HOLDER" (BSD)
