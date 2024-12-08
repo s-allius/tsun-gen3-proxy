@@ -10,16 +10,25 @@
 
 
 ######################
-# 1 Build Image      #
+# 1 Build Base Image #
 ######################
 
 ARG BUILD_FROM="ghcr.io/hassio-addons/base:stable"
-FROM $BUILD_FROM
+FROM $BUILD_FROM AS base
 
+# Installiere Python, pip und virtuelle Umgebungstools
+# RUN apk add --no-cache python3 py3-pip py3-virtualenv
+RUN apk add --no-cache python3 py3-pip
 
 #######################
 # 2 Modify Image      #
 #######################
+FROM base AS builder
+COPY rootfs/requirements.txt /root/
+
+RUN apk add --no-cache build-base && \
+    python -m pip install --no-cache-dir -U pip wheel && \
+    python -OO -m pip wheel --no-cache-dir --wheel-dir=/root/wheels -r /root/requirements.txt
 
 
 
@@ -27,19 +36,19 @@ FROM $BUILD_FROM
 #######################
 # 3 Install apps      #
 #######################
-
+FROM base AS runtime
 
 
 # Installiere Python, pip und virtuelle Umgebungstools
-RUN apk add --no-cache python3 py3-pip py3-virtualenv
+# RUN apk add --no-cache python3 py3-pip py3-virtualenv
 
 # Erstelle ein virtuelles Umfeld und aktiviere es
-RUN python3 -m venv /opt/venv
+# RUN python3 -m venv /opt/venv
 
-RUN . /opt/venv/bin/activate
+# RUN . /opt/venv/bin/activate
 
 # Stelle sicher, dass das Add-on das virtuelle Umfeld nutzt
-ENV PATH="/opt/venv/bin:$PATH"
+# ENV PATH="/opt/venv/bin:$PATH"
 
 
 
@@ -48,11 +57,15 @@ ENV PATH="/opt/venv/bin:$PATH"
 #######################
 
 
-# Kopiere die requirements.txt Datei in das Image
-COPY rootfs/requirements.txt /tmp/requirements.txt
+# install the requirements from the wheels packages from the builder stage 
+# and unistall python packages and alpine package manger to reduce attack surface
 
-#  installiere die Pakete aus requirements.txt
-RUN pip install --no-cache-dir -r /tmp/requirements.txt
+# --no-cache-dir ??
+COPY --from=builder /root/wheels /root/wheels
+RUN python -m pip install --no-cache --no-index /root/wheels/* && \
+    rm -rf /root/wheels && \
+    python -m pip uninstall --yes wheel pip && \
+    apk --purge del apk-tools
 
 
 #######################
