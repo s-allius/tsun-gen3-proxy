@@ -301,14 +301,28 @@ def test_cnv6():
             "serial": "Y170000000000001",
             "node_id": "PV-Garage2/",
         }],
+    }
+    tst2 = {
        "inverters": [{
             "serial": "Y170000000000001",
             "node_id": "PV-Garden/",
         }],
     }
     cnf = ConfigReadJson()
-    obj = cnf.convert_to_obj(tst)
-    assert obj == {
+    conf = {}
+    for key, val in tst.items():
+        cnf.convert_inv_arr(conf, key, val)
+
+    assert conf == {
+        'inverters': {
+            'Y170000000000001': {'node_id': 'PV-Garage2/'}
+        },
+    }
+
+    for key, val in tst2.items():
+        cnf.convert_inv_arr(conf, key, val)
+
+    assert conf == {
         'inverters': {
             'Y170000000000001': {'node_id': 'PV-Garden/'}
         },
