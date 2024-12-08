@@ -2,8 +2,8 @@
 import pytest
 import json, math
 import logging
-from app.src.infos import Register, ClrAtMidnight
-from app.src.infos import Infos
+from infos import Register, ClrAtMidnight
+from infos import Infos, Fmt
 
 def test_statistic_counter():
     i = Infos()
@@ -17,13 +17,13 @@ def test_statistic_counter():
     assert val == None or val == 0
 
     i.static_init()                # initialize counter
-    assert json.dumps(i.stat) == json.dumps({"proxy": {"Inverter_Cnt": 0, "Unknown_SNR": 0, "Unknown_Msg": 0, "Invalid_Data_Type": 0, "Internal_Error": 0,"Unknown_Ctrl": 0, "OTA_Start_Msg": 0, "SW_Exception": 0, "Invalid_Msg_Format": 0, "AT_Command": 0, "AT_Command_Blocked": 0, "Modbus_Command": 0}})
+    assert json.dumps(i.stat) == json.dumps({"proxy": {"Inverter_Cnt": 0, "Cloud_Conn_Cnt": 0, "Unknown_SNR": 0, "Unknown_Msg": 0, "Invalid_Data_Type": 0, "Internal_Error": 0,"Unknown_Ctrl": 0, "OTA_Start_Msg": 0, "SW_Exception": 0, "Invalid_Msg_Format": 0, "AT_Command": 0, "AT_Command_Blocked": 0, "Modbus_Command": 0}})
                                             
     val = i.dev_value(Register.INVERTER_CNT)  # valid and initiliazed addr
     assert val == 0
 
     i.inc_counter('Inverter_Cnt')
-    assert json.dumps(i.stat) == json.dumps({"proxy": {"Inverter_Cnt": 1, "Unknown_SNR": 0, "Unknown_Msg": 0, "Invalid_Data_Type": 0, "Internal_Error": 0,"Unknown_Ctrl": 0, "OTA_Start_Msg": 0, "SW_Exception": 0, "Invalid_Msg_Format": 0, "AT_Command": 0, "AT_Command_Blocked": 0, "Modbus_Command": 0}})
+    assert json.dumps(i.stat) == json.dumps({"proxy": {"Inverter_Cnt": 1, "Cloud_Conn_Cnt": 0, "Unknown_SNR": 0, "Unknown_Msg": 0, "Invalid_Data_Type": 0, "Internal_Error": 0,"Unknown_Ctrl": 0, "OTA_Start_Msg": 0, "SW_Exception": 0, "Invalid_Msg_Format": 0, "AT_Command": 0, "AT_Command_Blocked": 0, "Modbus_Command": 0}})
     val = i.dev_value(Register.INVERTER_CNT)
     assert val == 1
 
@@ -256,3 +256,24 @@ def test_key_obj():
     assert level == logging.DEBUG
     assert unit == 'kWh'
     assert must_incr == True
+
+def test_hex4_cnv():
+    tst_val = (0x12ef, )
+    string = Fmt.hex4(tst_val)
+    assert string == '12ef'
+    val = Fmt.hex4(string, reverse=True)
+    assert val == tst_val[0]
+
+def test_mac_cnv():
+    tst_val = (0x12, 0x34,  0x67, 0x89, 0xcd, 0xef)
+    string = Fmt.mac(tst_val)
+    assert string == '12:34:67:89:cd:ef'
+    val = Fmt.mac(string, reverse=True)
+    assert val == tst_val
+
+def test_version_cnv():
+    tst_val = (0x123f, )
+    string = Fmt.version(tst_val)
+    assert string == 'V1.2.3F'
+    val = Fmt.version(string, reverse=True)
+    assert val == tst_val[0]

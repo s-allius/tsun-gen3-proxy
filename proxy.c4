@@ -1,0 +1,20 @@
+model {
+    extend home.logger.proxy {
+        component webserver 'http server'
+        component inverter 'inverter'
+        component local 'local connection'
+        component remote 'remote connection'
+        component r-ifc 'async-ifc'
+        component l-ifc 'async-ifc'
+        component prot 'Protocol' 'SolarmanV5 or Talent'
+        component config 'config' 'reads the file confg.toml'
+        component mqtt
+        inverter -> local
+        inverter -> remote
+        remote -> r-ifc
+        remote -> prot
+        local -> l-ifc
+        local -> prot
+        prot -> mqtt
+    }
+}

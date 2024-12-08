@@ -1,8 +1,8 @@
 # test_with_pytest.py
 import pytest
 import asyncio
-from app.src.modbus import Modbus
-from app.src.infos import Infos, Register
+from modbus import Modbus
+from infos import Infos, Register
 
 pytest_plugins = ('pytest_asyncio',)
 
@@ -77,9 +77,10 @@ def test_recv_resp_crc_err():
     mb.last_fcode = 3   
     mb.last_reg = 0x300e
     mb.last_len = 2
+    mb.set_node_id('test')
     # check matching response, but with CRC error
     call = 0
-    for key, update, val in mb.recv_resp(mb.db, b'\x01\x03\x04\x01\x2c\x00\x46\xbb\xf3', 'test'):
+    for key, update, val in mb.recv_resp(mb.db, b'\x01\x03\x04\x01\x2c\x00\x46\xbb\xf3'):
         call += 1
     assert mb.err == 1
     assert 0 == call
@@ -97,10 +98,11 @@ def test_recv_resp_invalid_addr():
     mb.last_fcode = 3   
     mb.last_reg = 0x300e
     mb.last_len = 2
+    mb.set_node_id('test')
 
     # check not matching response, with wrong server addr
     call = 0
-    for key, update in mb.recv_resp(mb.db, b'\x02\x03\x04\x01\x2c\x00\x46\x88\xf4', 'test'):
+    for key, update in mb.recv_resp(mb.db, b'\x02\x03\x04\x01\x2c\x00\x46\x88\xf4'):
         call += 1
     assert mb.err == 2
     assert 0 == call
@@ -120,7 +122,8 @@ def test_recv_recv_fcode():
    
     # check not matching response, with wrong function code
     call = 0
-    for key, update, val in mb.recv_resp(mb.db, b'\x01\x03\x04\x01\x2c\x00\x46\xbb\xf4', 'test'):
+    mb.set_node_id('test')
+    for key, update, val in mb.recv_resp(mb.db, b'\x01\x03\x04\x01\x2c\x00\x46\xbb\xf4'):
         call += 1
 
     assert mb.err == 3
@@ -142,7 +145,8 @@ def test_recv_resp_len():
 
     # check not matching response, with wrong data length
     call = 0
-    for key, update, _ in mb.recv_resp(mb.db, b'\x01\x03\x04\x01\x2c\x00\x46\xbb\xf4', 'test'):
+    mb.set_node_id('test')
+    for key, update, _ in mb.recv_resp(mb.db, b'\x01\x03\x04\x01\x2c\x00\x46\xbb\xf4'):
         call += 1
 
     assert mb.err == 4
@@ -161,7 +165,8 @@ def test_recv_unexpect_resp():
    
     # check unexpected response, which must be dropped
     call = 0
-    for key, update, val in mb.recv_resp(mb.db, b'\x01\x03\x04\x01\x2c\x00\x46\xbb\xf4', 'test'):
+    mb.set_node_id('test')
+    for key, update, val in mb.recv_resp(mb.db, b'\x01\x03\x04\x01\x2c\x00\x46\xbb\xf4'):
         call += 1
 
     assert mb.err == 5
@@ -177,8 +182,9 @@ def test_parse_resp():
     assert mb.req_pend
 
     call = 0
+    mb.set_node_id('test')
     exp_result = ['V0.0.2C', 4.4, 0.7, 0.7, 30]
-    for key, update, val in mb.recv_resp(mb.db, b'\x01\x03\x0c\x01\x2c\x00\x2c\x00\x2c\x00\x46\x00\x46\x00\x46\x32\xc8', 'test'):
+    for key, update, val in mb.recv_resp(mb.db, b'\x01\x03\x0c\x01\x2c\x00\x2c\x00\x2c\x00\x46\x00\x46\x00\x46\x32\xc8'):
         if key == 'grid':
             assert update == True
         elif key == 'inverter':
@@ -226,8 +232,9 @@ def test_queue2():
     assert mb.send_calls == 1
     assert mb.pdu == b'\x01\x030\x07\x00\x06{\t'
     call = 0
+    mb.set_node_id('test')
     exp_result = ['V0.0.2C', 4.4, 0.7, 0.7, 30]
-    for key, update, val in mb.recv_resp(mb.db, b'\x01\x03\x0c\x01\x2c\x00\x2c\x00\x2c\x00\x46\x00\x46\x00\x46\x32\xc8', 'test'):
+    for key, update, val in mb.recv_resp(mb.db, b'\x01\x03\x0c\x01\x2c\x00\x2c\x00\x2c\x00\x46\x00\x46\x00\x46\x32\xc8'):
         if key == 'grid':
             assert update == True
         elif key == 'inverter':
@@ -245,14 +252,14 @@ def test_queue2():
     assert mb.send_calls == 2
     assert mb.pdu == b'\x01\x06\x20\x08\x00\x04\x02\x0b'
 
-    for key, update, val in mb.recv_resp(mb.db, b'\x01\x06\x20\x08\x00\x04\x02\x0b', 'test'):
+    for key, update, val in mb.recv_resp(mb.db, b'\x01\x06\x20\x08\x00\x04\x02\x0b'):
         pass  # call generator mb.recv_resp()
 
     assert mb.que.qsize() == 0
     assert mb.send_calls == 3
     assert mb.pdu == b'\x01\x030\x07\x00\x06{\t'
     call = 0
-    for key, update, val in mb.recv_resp(mb.db, b'\x01\x03\x0c\x01\x2c\x00\x2c\x00\x2c\x00\x46\x00\x46\x00\x46\x32\xc8', 'test'):
+    for key, update, val in mb.recv_resp(mb.db, b'\x01\x03\x0c\x01\x2c\x00\x2c\x00\x2c\x00\x46\x00\x46\x00\x46\x32\xc8'):
         call += 1
     assert 0 == mb.err
     assert 5 == call
@@ -276,8 +283,9 @@ def test_queue3():
     assert mb.recv_responses == 0
 
     call = 0
+    mb.set_node_id('test')
     exp_result = ['V0.0.2C', 4.4, 0.7, 0.7, 30]
-    for key, update, val in mb.recv_resp(mb.db, b'\x01\x03\x0c\x01\x2c\x00\x2c\x00\x2c\x00\x46\x00\x46\x00\x46\x32\xc8', 'test'):
+    for key, update, val in mb.recv_resp(mb.db, b'\x01\x03\x0c\x01\x2c\x00\x2c\x00\x2c\x00\x46\x00\x46\x00\x46\x32\xc8'):
         if key == 'grid':
             assert update == True
         elif key == 'inverter':
@@ -296,7 +304,7 @@ def test_queue3():
     assert mb.send_calls == 2
     assert mb.pdu == b'\x01\x06\x20\x08\x00\x04\x02\x0b'
 
-    for key, update, val in mb.recv_resp(mb.db, b'\x01\x06\x20\x08\x00\x04\x02\x0b', 'test'):
+    for key, update, val in mb.recv_resp(mb.db, b'\x01\x06\x20\x08\x00\x04\x02\x0b'):
         pass  # no code in loop is OK; calling the generator is the purpose
     assert 0 == mb.err
     assert mb.recv_responses == 2
@@ -305,7 +313,7 @@ def test_queue3():
     assert mb.send_calls == 3
     assert mb.pdu == b'\x01\x030\x07\x00\x06{\t'
     call = 0
-    for key, update, val in mb.recv_resp(mb.db, b'\x01\x03\x0c\x01\x2c\x00\x2c\x00\x2c\x00\x46\x00\x46\x00\x46\x32\xc8', 'test'):
+    for key, update, val in mb.recv_resp(mb.db, b'\x01\x03\x0c\x01\x2c\x00\x2c\x00\x2c\x00\x46\x00\x46\x00\x46\x32\xc8'):
         call += 1
     assert 0 == mb.err
     assert mb.recv_responses == 2
@@ -373,7 +381,8 @@ def test_recv_unknown_data():
 
     # check matching response, but with CRC error
     call = 0
-    for key, update, val in mb.recv_resp(mb.db, b'\x01\x03\x04\x01\x2c\x00\x46\xbb\xf4', 'test'):
+    mb.set_node_id('test')
+    for key, update, val in mb.recv_resp(mb.db, b'\x01\x03\x04\x01\x2c\x00\x46\xbb\xf4'):
         call += 1
     assert mb.err == 0
     assert 0 == call

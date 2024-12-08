@@ -2,6 +2,7 @@ import logging
 import asyncio
 import signal
 import os
+import argparse
 from asyncio import StreamReader, StreamWriter
 from aiohttp import web
 from logging import config  # noqa F401
@@ -10,7 +11,10 @@ from inverter_ifc import InverterIfc
 from gen3.inverter_g3 import InverterG3
 from gen3plus.inverter_g3p import InverterG3P
 from scheduler import Schedule
-from config import Config
+from cnf.config import Config
+from cnf.config_read_env import ConfigReadEnv
+from cnf.config_read_toml import ConfigReadToml
+from cnf.config_read_json import ConfigReadJson
 from modbus_tcp import ModbusTcp
 
 routes = web.RouteTableDef()
@@ -116,6 +120,8 @@ def get_log_level() -> int:
     '''checks if LOG_LVL is set in the environment and returns the
     corresponding logging.LOG_LEVEL'''
     log_level = os.getenv('LOG_LVL', 'INFO')
+    logging.info(f"LOG_LVL    : {log_level}")
+
     if log_level == 'DEBUG':
         log_level = logging.DEBUG
     elif log_level == 'WARN':
@@ -125,7 +131,17 @@ def get_log_level() -> int:
     return log_level
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":   # pragma: no cover
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-p', '--config_path', type=str,
+                        default='./config/',
+                        help='set path for the configuration files')
+    parser.add_argument('-j', '--json_config', type=str,
+                        help='read user config from json-file')
+    parser.add_argument('-t', '--toml_config', type=str,
+                        help='read user config from toml-file')
+    parser.add_argument('--add_on', action='store_true')
+    args = parser.parse_args()
     #
     # Setup our daily, rotating logger
     #
@@ -134,9 +150,14 @@ if __name__ == "__main__":
 
     logging.config.fileConfig('logging.ini')
     logging.info(f'Server "{serv_name} - {version}" will be started')
+    logging.info(f"AddOn: {args.add_on}")
+    logging.info(f"config_path: {args.config_path}")
+    logging.info(f"json_config: {args.json_config}")
+    logging.info(f"toml_config: {args.toml_config}")
+    log_level = get_log_level()
+    logging.info('******')
 
     # set lowest-severity for 'root', 'msg', 'conn' and 'data' logger
-    log_level = get_log_level()
     logging.getLogger().setLevel(log_level)
     logging.getLogger('msg').setLevel(log_level)
     logging.getLogger('conn').setLevel(log_level)
@@ -149,9 +170,18 @@ if __name__ == "__main__":
     asyncio.set_event_loop(loop)
 
     # read config file
-    ConfigErr = Config.class_init()
+    Config.init(ConfigReadToml("default_config.toml"))
+    ConfigReadEnv()
+    ConfigReadJson(args.config_path + "config.json")
+    ConfigReadToml(args.config_path + "config.toml")
+    ConfigReadJson(args.json_config)
+    ConfigReadToml(args.toml_config)
+    ConfigErr = Config.get_error()
+
     if ConfigErr is not None:
         logging.info(f'ConfigErr: {ConfigErr}')
+    logging.info('******')
+
     Proxy.class_init()
     Schedule.start()
     ModbusTcp(loop)

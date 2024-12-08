@@ -7,8 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+- make the configuration more flexible, add command line args to control this
+- fix the python path so we don't need special import paths for unit tests anymore
+- support test coverager in vscode
+- upgrade SonarQube action to version 4
+- update github action to Ubuntu 24-04
+- add initial support for home assistant add-ons from @mime24
+- github action: use ubuntu 24.04 and sonar-scanner-action 4 [#222](https://github.com/s-allius/tsun-gen3-proxy/issues/222)
+- migrate paho.mqtt CallbackAPIVersion to VERSION2 [#224](https://github.com/s-allius/tsun-gen3-proxy/issues/224)
+- add PROD_COMPL_TYPE to trace
+- add SolarmanV5 messages builder
+- report inverter alarms and faults per MQTT [#7](https://github.com/s-allius/tsun-gen3-proxy/issues/7)
+
 ## [0.11.1] - 2024-11-20
 
+- fix pytest setup that can be startet from the rootdir
+  - support python venv environment
+  - add pytest.ini
+  - move common settings from .vscode/settings.json into pytest.ini
+  - add missing requirements
+  - fix import paths for pytests
 - Bumps [aiohttp](https://github.com/aio-libs/aiohttp) from 3.10.5 to 3.10.11.
 
 ## [0.11.0] - 2024-10-13

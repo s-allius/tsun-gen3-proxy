@@ -4,14 +4,14 @@ import asyncio
 
 from mock import patch
 from enum import Enum
-from app.src.infos import Infos
-from app.src.config import Config
-from app.src.proxy import Proxy
-from app.src.inverter_base import InverterBase
-from app.src.singleton import Singleton
-from app.src.gen3plus.inverter_g3p import InverterG3P
+from infos import Infos
+from cnf.config import Config
+from proxy import Proxy
+from inverter_base import InverterBase
+from singleton import Singleton
+from gen3plus.inverter_g3p import InverterG3P
 
-from app.tests.test_modbus_tcp import patch_mqtt_err, patch_mqtt_except, test_port, test_hostname
+from test_modbus_tcp import patch_mqtt_err, patch_mqtt_except, test_port, test_hostname
 
 
 pytest_plugins = ('pytest_asyncio',)
@@ -69,13 +69,13 @@ class FakeWriter():
     async def wait_closed(self):
         return
 
-class TestType(Enum):
+class MockType(Enum):
     RD_TEST_0_BYTES = 1
     RD_TEST_TIMEOUT = 2
     RD_TEST_EXCEPT = 3
 
 
-test  = TestType.RD_TEST_0_BYTES
+test  = MockType.RD_TEST_0_BYTES
 
 @pytest.fixture
 def patch_open_connection():
@@ -85,9 +85,9 @@ def patch_open_connection():
     
     def new_open(host: str, port: int):
         global test
-        if test == TestType.RD_TEST_TIMEOUT:
+        if test == MockType.RD_TEST_TIMEOUT:
             raise ConnectionRefusedError
-        elif test == TestType.RD_TEST_EXCEPT:
+        elif test == MockType.RD_TEST_EXCEPT:
             raise ValueError("Value cannot be negative") # Compliant
         return new_conn(None)
 
@@ -121,14 +121,14 @@ async def test_remote_except(config_conn, patch_open_connection):
     assert asyncio.get_running_loop()
     
     global test
-    test  = TestType.RD_TEST_TIMEOUT
+    test  = MockType.RD_TEST_TIMEOUT
 
     with InverterG3P(FakeReader(), FakeWriter(), client_mode=False) as inverter:
         await inverter.create_remote()
         await asyncio.sleep(0)
         assert inverter.remote.stream==None
 
-        test  = TestType.RD_TEST_EXCEPT
+        test  = MockType.RD_TEST_EXCEPT
         await inverter.create_remote()
         await asyncio.sleep(0)
         assert inverter.remote.stream==None
@@ -144,7 +144,7 @@ async def test_mqtt_publish(config_conn, patch_open_connection):
     with InverterG3P(FakeReader(), FakeWriter(), client_mode=False) as inverter:
         stream = inverter.local.stream
         await inverter.async_publ_mqtt()  # check call with invalid unique_id   
-        stream._SolarmanV5__set_serial_no(snr= 123344)
+        stream._set_serial_no(snr= 123344)
 
         stream.new_data['inverter'] = True
         stream.db.db['inverter'] = {}
@@ -171,7 +171,7 @@ async def test_mqtt_err(config_conn, patch_open_connection, patch_mqtt_err):
 
     with InverterG3P(FakeReader(), FakeWriter(), client_mode=False) as inverter:
         stream = inverter.local.stream
-        stream._SolarmanV5__set_serial_no(snr= 123344)    
+        stream._set_serial_no(snr= 123344)    
         stream.new_data['inverter'] = True
         stream.db.db['inverter'] = {}
         await inverter.async_publ_mqtt()
@@ -188,7 +188,7 @@ async def test_mqtt_except(config_conn, patch_open_connection, patch_mqtt_except
 
     with InverterG3P(FakeReader(), FakeWriter(), client_mode=False) as inverter:
         stream = inverter.local.stream
-        stream._SolarmanV5__set_serial_no(snr= 123344)
+        stream._set_serial_no(snr= 123344)
 
         stream.new_data['inverter'] = True
         stream.db.db['inverter'] = {}

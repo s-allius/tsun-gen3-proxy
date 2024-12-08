@@ -5,14 +5,14 @@ import gc
 
 from mock import patch
 from enum import Enum
-from app.src.infos import Infos
-from app.src.config import Config
-from app.src.gen3.talent import Talent
-from app.src.inverter_base import InverterBase
-from app.src.singleton import Singleton
-from app.src.async_stream import AsyncStream, AsyncStreamClient
+from infos import Infos
+from cnf.config import Config
+from gen3.talent import Talent
+from inverter_base import InverterBase
+from singleton import Singleton
+from async_stream import AsyncStream, AsyncStreamClient
 
-from app.tests.test_modbus_tcp import patch_mqtt_err, patch_mqtt_except, test_port, test_hostname
+from test_modbus_tcp import patch_mqtt_err, patch_mqtt_except, test_port, test_hostname
 
 pytest_plugins = ('pytest_asyncio',)
 
@@ -69,13 +69,13 @@ class FakeWriter():
     async def wait_closed(self):
         return
 
-class TestType(Enum):
+class MockType(Enum):
     RD_TEST_0_BYTES = 1
     RD_TEST_TIMEOUT = 2
     RD_TEST_EXCEPT = 3
 
 
-test  = TestType.RD_TEST_0_BYTES
+test  = MockType.RD_TEST_0_BYTES
 
 @pytest.fixture
 def patch_open_connection():
@@ -85,9 +85,9 @@ def patch_open_connection():
     
     def new_open(host: str, port: int):
         global test
-        if test == TestType.RD_TEST_TIMEOUT:
+        if test == MockType.RD_TEST_TIMEOUT:
             raise ConnectionRefusedError
-        elif test == TestType.RD_TEST_EXCEPT:
+        elif test == MockType.RD_TEST_EXCEPT:
             raise ValueError("Value cannot be negative") # Compliant
         return new_conn(None)
 

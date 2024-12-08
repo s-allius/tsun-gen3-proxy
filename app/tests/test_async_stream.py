@@ -4,12 +4,13 @@ import asyncio
 import gc
 import time
 
-from app.src.infos import Infos
-from app.src.inverter_base import InverterBase
-from app.src.async_stream import AsyncStreamServer, AsyncStreamClient, StreamPtr
-from app.src.messages import Message
-from app.tests.test_modbus_tcp import FakeReader, FakeWriter
-from app.tests.test_inverter_base import config_conn, patch_open_connection
+from infos import Infos
+from inverter_base import InverterBase
+from async_stream import AsyncStreamServer, AsyncStreamClient, StreamPtr
+from messages import Message
+
+from test_modbus_tcp import FakeReader, FakeWriter
+from test_inverter_base import config_conn, patch_open_connection
 
 pytest_plugins = ('pytest_asyncio',)
 
@@ -17,9 +18,12 @@ pytest_plugins = ('pytest_asyncio',)
 Infos.static_init()
 
 class FakeProto(Message):
-    def __init__(self, server_side):
-        super().__init__(server_side, None, 10)
+    def __init__(self, ifc, server_side):
+        super().__init__('G3F', ifc, server_side, None, 10)
         self.conn_no = 0
+
+    def mb_timout_cb(self, exp_cnt):
+        pass  # empty callback
 
 def fake_reader_fwd():
     reader = FakeReader()
@@ -337,6 +341,7 @@ def create_remote(remote, test_type, with_close_hdr:bool = False):
         elif test_type == TestType.FWD_RUNTIME_ERROR_NO_STREAM:
             remote.stream = None
             raise RuntimeError("Peer closed")
+        return True
 
     def close():
         return
@@ -349,7 +354,7 @@ def create_remote(remote, test_type, with_close_hdr:bool = False):
         FakeReader(), FakeWriter(), StreamPtr(None), close_hndl)
     remote.ifc.prot_set_update_header_cb(update_hdr)
     remote.ifc.prot_set_init_new_client_conn_cb(callback)
-    remote.stream = FakeProto(False)
+    remote.stream = FakeProto(remote.ifc, False)
 
 @pytest.mark.asyncio
 async def test_forward():
@@ -528,5 +533,41 @@ async def test_forward_runtime_error3():
     ifc =  AsyncStreamServer(fake_reader_fwd(), FakeWriter(), None, _create_remote, remote)
     ifc.fwd_add(b'test-forward_msg')
     await ifc.server_loop()
+    assert cnt == 1
+    del ifc
+
+@pytest.mark.asyncio
+async def test_forward_resp():
+    assert asyncio.get_running_loop()
+    remote = StreamPtr(None)
+    cnt = 0
+
+    def _close_cb():
+        nonlocal cnt, remote, ifc
+        cnt += 1
+    
+    cnt = 0
+    ifc =  AsyncStreamClient(fake_reader_fwd(), FakeWriter(), remote, _close_cb)
+    create_remote(remote, TestType.FWD_NO_EXCPT)
+    ifc.fwd_add(b'test-forward_msg')
+    await ifc.client_loop('')
+    assert cnt == 1
+    del ifc
+
+@pytest.mark.asyncio
+async def test_forward_resp2():
+    assert asyncio.get_running_loop()
+    remote = StreamPtr(None)
+    cnt = 0
+
+    def _close_cb():
+        nonlocal cnt, remote, ifc
+        cnt += 1
+    
+    cnt = 0
+    ifc =  AsyncStreamClient(fake_reader_fwd(), FakeWriter(), None, _close_cb)
+    create_remote(remote, TestType.FWD_NO_EXCPT)
+    ifc.fwd_add(b'test-forward_msg')
+    await ifc.client_loop('')
     assert cnt == 1
     del ifc

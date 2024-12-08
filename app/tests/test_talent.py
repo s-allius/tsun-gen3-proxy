@@ -1,12 +1,12 @@
 # test_with_pytest.py
 import pytest, logging, asyncio
 from math import isclose
-from app.src.async_stream import AsyncIfcImpl, StreamPtr
-from app.src.gen3.talent import Talent, Control
-from app.src.config import Config
-from app.src.infos import Infos, Register
-from app.src.modbus import Modbus
-from app.src.messages import State
+from async_stream import AsyncIfcImpl, StreamPtr
+from gen3.talent import Talent, Control
+from cnf.config import Config
+from infos import Infos, Register
+from modbus import Modbus
+from messages import State
 
  
 pytest_plugins = ('pytest_asyncio',)

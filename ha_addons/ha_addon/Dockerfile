@@ -13,10 +13,7 @@
 # 1 Build Image      #
 ######################
 
-# opt for suitable build base. I opted for the recommended hassio-addon base
-
-#ARG BUILD_FROM="ghcr.io/hassio-addons/debian-base:latest"
-ARG BUILD_FROM="ghcr.io/hassio-addons/base:latest"
+ARG BUILD_FROM="ghcr.io/hassio-addons/base:stable"
 FROM $BUILD_FROM
 
 
@@ -70,18 +67,16 @@ COPY rootfs/ /
 RUN chmod a+x /run.sh
 
 
-# no idea whether needed or not
-ENV SERVICE_NAME="tsun-proxy"
-ENV UID=1000
-ENV GID=1000
-ENV VERSION="0.0"
-
-
 
 #######################
 # 6 run app           #
 #######################
 
+ARG SERVICE_NAME
+ARG VERSION
+ENV SERVICE_NAME=${SERVICE_NAME}
+
+RUN echo ${VERSION} > /proxy-version.txt
 
 # command to run on container start
 CMD [ "/run.sh" ]
@@ -90,8 +85,3 @@ CMD [ "/run.sh" ]
 
 #######################
 
-# Labels
-LABEL  \
-    io.hass.version="VERSION"  \
-    io.hass.type="addon"  \
-    io.hass.arch="armhf|aarch64|i386|amd64"
