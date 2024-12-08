@@ -301,8 +301,6 @@ def test_cnv6():
             "serial": "Y170000000000001",
             "node_id": "PV-Garage2/",
         }],
-    }
-    tst2 = {
        "inverters": [{
             "serial": "Y170000000000001",
             "node_id": "PV-Garden/",
@@ -310,12 +308,6 @@ def test_cnv6():
     }
     cnf = ConfigReadJson()
     obj = cnf.convert_to_obj(tst)
-    assert obj == {
-        'inverters': {
-            'Y170000000000001': {'node_id': 'PV-Garage2/'}
-        },
-    }
-    obj = cnf.convert_to_obj(tst2)
     assert obj == {
         'inverters': {
             'Y170000000000001': {'node_id': 'PV-Garden/'}
