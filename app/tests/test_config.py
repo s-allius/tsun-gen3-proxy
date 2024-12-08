@@ -1,8 +1,47 @@
 # test_with_pytest.py
 import pytest
-import tomllib
+import json
+from mock import patch
 from schema import SchemaMissingKeyError
 from cnf.config import Config, ConfigIfc
+from cnf.config_read_toml import ConfigReadToml
+
+class FakeBuffer:
+    rd = str()
+
+test_buffer = FakeBuffer
+
+
+class FakeFile():
+    def __init__(self):
+        self.buf = test_buffer
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc, tb):
+        pass
+
+
+class FakeOptionsFile(FakeFile):
+    def __init__(self, OpenTextMode):
+        super().__init__()
+        self.bin_mode = 'b' in OpenTextMode
+
+    def read(self):
+        if self.bin_mode:
+            return bytearray(self.buf.rd.encode('utf-8')).copy()
+        else:
+            return self.buf.rd.copy()
+
+def patch_open():
+    def new_open(file: str, OpenTextMode="rb"):
+        if file == "_no__file__no_":
+            raise FileNotFoundError
+        return FakeOptionsFile(OpenTextMode)
+
+    with patch('builtins.open', new_open) as conn:
+        yield conn
 
 class TstConfig(ConfigIfc):
 
@@ -11,7 +50,7 @@ class TstConfig(ConfigIfc):
         cls.act_config = cnf
 
     @classmethod
-    def get_config(cls) -> dict:
+    def add_config(cls) -> dict:
         return cls.act_config
 
 
@@ -22,6 +61,40 @@ def test_empty_config():
         assert False
     except SchemaMissingKeyError:
         pass
+
+@pytest.fixture
+def ConfigDefault():
+    return {'gen3plus': {'at_acl': {'mqtt': {'allow': ['AT+'], 'block': []}, 'tsun': {'allow': ['AT+Z', 'AT+UPURL', 'AT+SUPDATE'], 'block': []}}}, 'tsun': {'enabled': True, 'host': 'logger.talent-monitoring.com', 'port': 5005}, 'solarman': {'enabled': True, 'host': 'iot.talent-monitoring.com', 'port': 10000}, 'mqtt': {'host': 'mqtt', 'port': 1883, 'user': None, 'passwd': None}, 'ha': {'auto_conf_prefix': 'homeassistant', 'discovery_prefix': 'homeassistant', 'entity_prefix': 'tsun', 'proxy_node_id': 'proxy', 'proxy_unique_id': 'P170000000000001'},
+                   'inverters': {
+                       'allow_all': False,
+                       'R170000000000001': {
+                           'suggested_area': '', 
+                           'modbus_polling': False, 
+                           'monitor_sn': 0, 
+                           'node_id': '', 
+                           'pv1': {'manufacturer': 'Risen',
+                                   'type': 'RSM40-8-395M'},
+                           'pv2': {'manufacturer': 'Risen',
+                                   'type': 'RSM40-8-395M'},
+                           'sensor_list': 688
+                       }, 
+                       'Y170000000000001': {
+                           'modbus_polling': True, 
+                           'monitor_sn': 2000000000, 
+                           'suggested_area': '', 
+                           'node_id': '', 
+                           'pv1': {'manufacturer': 'Risen',
+                                   'type': 'RSM40-8-410M'},
+                           'pv2': {'manufacturer': 'Risen',
+                                   'type': 'RSM40-8-410M'},
+                           'pv3': {'manufacturer': 'Risen',
+                                   'type': 'RSM40-8-410M'},
+                           'pv4': {'manufacturer': 'Risen',
+                                   'type': 'RSM40-8-410M'},
+                           'sensor_list': 688
+                       }
+                    }
+                  }
 
 @pytest.fixture
 def ConfigComplete():
@@ -70,38 +143,9 @@ def ConfigComplete():
         }
     }
 
-@pytest.fixture
-def ConfigMinimum():
-    return {
-        'gen3plus': {
-            'at_acl': {
-                'mqtt': {'allow': ['AT+'], 'block': []},
-                'tsun': {'allow': ['AT+Z', 'AT+UPURL', 'AT+SUPDATE'],
-                         'block': []}
-            }
-        },
-        'tsun': {'enabled': True, 'host': 'logger.talent-monitoring.com',
-                 'port': 5005},
-        'solarman': {'enabled': True, 'host': 'iot.talent-monitoring.com', 'port': 10000},
-        'mqtt': {'host': 'mqtt', 'port': 1883, 'user': None, 'passwd': None},
-        'ha': {'auto_conf_prefix': 'homeassistant', 'discovery_prefix': 'homeassistant', 'entity_prefix': 'tsun', 'proxy_node_id': 'proxy', 'proxy_unique_id': 'P170000000000001'},
-        'inverters': {
-            'allow_all': True,
-            'R170000000000001': {'node_id': '',
-                                 'modbus_polling': True,
-                                 'monitor_sn': 0,
-                                 'suggested_area': '',
-                                 'sensor_list': 688}}}
-
-
 def test_default_config():
-    with open("app/config/default_config.toml", "rb") as f:
-        cnf = tomllib.load(f)
-
-    try:
-        validated = Config.conf_schema.validate(cnf)
-    except Exception:
-        assert False
+    Config.init(ConfigReadToml("app/config/default_config.toml"))
+    validated = Config.def_config
     assert validated == {'gen3plus': {'at_acl': {'mqtt': {'allow': ['AT+'], 'block': []}, 'tsun': {'allow': ['AT+Z', 'AT+UPURL', 'AT+SUPDATE'], 'block': []}}}, 'tsun': {'enabled': True, 'host': 'logger.talent-monitoring.com', 'port': 5005}, 'solarman': {'enabled': True, 'host': 'iot.talent-monitoring.com', 'port': 10000}, 'mqtt': {'host': 'mqtt', 'port': 1883, 'user': None, 'passwd': None}, 'ha': {'auto_conf_prefix': 'homeassistant', 'discovery_prefix': 'homeassistant', 'entity_prefix': 'tsun', 'proxy_node_id': 'proxy', 'proxy_unique_id': 'P170000000000001'},
                          'inverters': {
                              'allow_all': False, 
@@ -146,76 +190,53 @@ def test_full_config(ConfigComplete):
         assert False
     assert validated == ConfigComplete
 
-def test_mininum_config(ConfigMinimum):
-    cnf = {'tsun': {'enabled': True, 'host': 'logger.talent-monitoring.com', 'port': 5005}, 
-           'gen3plus': {'at_acl': {'mqtt': {'allow': ['AT+']},
-                                   'tsun': {'allow': ['AT+Z', 'AT+UPURL', 'AT+SUPDATE']}}},
-           'solarman': {'enabled': True, 'host': 'iot.talent-monitoring.com', 'port': 10000}, 
-           'mqtt': {'host': 'mqtt', 'port': 1883, 'user': '', 'passwd': ''}, 
-           'ha': {'auto_conf_prefix': 'homeassistant', 'discovery_prefix': 'homeassistant', 'entity_prefix': 'tsun', 'proxy_node_id': 'proxy', 'proxy_unique_id': 'P170000000000001'}, 
-           'inverters': {'allow_all': True,
-                         'R170000000000001': {}}
-    } 
+def test_read_empty(ConfigDefault):
+    test_buffer.rd = ""
+    
+    Config.init(ConfigReadToml("app/config/default_config.toml"))
+    for _ in patch_open():
+        ConfigReadToml("config/config.toml")
+        err = Config.get_error()
 
-    try:
-        validated = Config.conf_schema.validate(cnf)
-    except Exception:
-        assert False
-    assert validated == ConfigMinimum
-
-def test_read_empty():
-    cnf = {}
-    err = Config.init(TstConfig(cnf), 'app/config/')
     assert err == None
     cnf = Config.get()
-    assert cnf == {'gen3plus': {'at_acl': {'mqtt': {'allow': ['AT+'], 'block': []}, 'tsun': {'allow': ['AT+Z', 'AT+UPURL', 'AT+SUPDATE'], 'block': []}}}, 'tsun': {'enabled': True, 'host': 'logger.talent-monitoring.com', 'port': 5005}, 'solarman': {'enabled': True, 'host': 'iot.talent-monitoring.com', 'port': 10000}, 'mqtt': {'host': 'mqtt', 'port': 1883, 'user': None, 'passwd': None}, 'ha': {'auto_conf_prefix': 'homeassistant', 'discovery_prefix': 'homeassistant', 'entity_prefix': 'tsun', 'proxy_node_id': 'proxy', 'proxy_unique_id': 'P170000000000001'},
-                   'inverters': {
-                       'allow_all': False,
-                       'R170000000000001': {
-                           'suggested_area': '', 
-                           'modbus_polling': False, 
-                           'monitor_sn': 0, 
-                           'node_id': '', 
-                           'pv1': {'manufacturer': 'Risen',
-                                   'type': 'RSM40-8-395M'},
-                           'pv2': {'manufacturer': 'Risen',
-                                   'type': 'RSM40-8-395M'},
-                           'sensor_list': 688
-                       }, 
-                       'Y170000000000001': {
-                           'modbus_polling': True, 
-                           'monitor_sn': 2000000000, 
-                           'suggested_area': '', 
-                           'node_id': '', 
-                           'pv1': {'manufacturer': 'Risen',
-                                   'type': 'RSM40-8-410M'},
-                           'pv2': {'manufacturer': 'Risen',
-                                   'type': 'RSM40-8-410M'},
-                           'pv3': {'manufacturer': 'Risen',
-                                   'type': 'RSM40-8-410M'},
-                           'pv4': {'manufacturer': 'Risen',
-                                   'type': 'RSM40-8-410M'},
-                           'sensor_list': 688
-                       }
-                    }
-                  }
+    assert cnf == ConfigDefault
     
     defcnf = Config.def_config.get('solarman') 
     assert defcnf == {'enabled': True, 'host': 'iot.talent-monitoring.com', 'port': 10000}
     assert True == Config.is_default('solarman')
 
 def test_no_file():
-    cnf = {}
-    err = Config.init(TstConfig(cnf), '')
+    Config.init(ConfigReadToml("default_config.toml"))
+    err = Config.get_error()
     assert err == "Config.read: [Errno 2] No such file or directory: 'default_config.toml'"
     cnf = Config.get()
     assert cnf == {}    
     defcnf = Config.def_config.get('solarman') 
     assert defcnf == None
 
+def test_no_file2():
+    Config.init(ConfigReadToml("app/config/default_config.toml"))
+    assert Config.err == None
+    ConfigReadToml("_no__file__no_")
+    err = Config.get_error()
+    assert err == None
+
+def test_invalid_filename():
+    Config.init(ConfigReadToml("app/config/default_config.toml"))
+    assert Config.err == None
+    ConfigReadToml(None)
+    err = Config.get_error()
+    assert err == None
+
 def test_read_cnf1():
-    cnf = {'solarman' : {'enabled': False}}
-    err = Config.init(TstConfig(cnf), 'app/config/')
+    test_buffer.rd = "solarman.enabled = false"
+    
+    Config.init(ConfigReadToml("app/config/default_config.toml"))
+    for _ in patch_open():
+        ConfigReadToml("config/config.toml")
+        err = Config.get_error()
+
     assert err == None
     cnf = Config.get()
     assert cnf == {'gen3plus': {'at_acl': {'mqtt': {'allow': ['AT+'], 'block': []}, 'tsun': {'allow': ['AT+Z', 'AT+UPURL', 'AT+SUPDATE'], 'block': []}}}, 'tsun': {'enabled': True, 'host': 'logger.talent-monitoring.com', 'port': 5005}, 'solarman': {'enabled': False, 'host': 'iot.talent-monitoring.com', 'port': 10000}, 'mqtt': {'host': 'mqtt', 'port': 1883, 'user': None, 'passwd': None}, 'ha': {'auto_conf_prefix': 'homeassistant', 'discovery_prefix': 'homeassistant', 'entity_prefix': 'tsun', 'proxy_node_id': 'proxy', 'proxy_unique_id': 'P170000000000001'},
@@ -256,8 +277,13 @@ def test_read_cnf1():
     assert False == Config.is_default('solarman')
                    
 def test_read_cnf2():
-    cnf = {'solarman' : {'enabled': 'FALSE'}}
-    err = Config.init(TstConfig(cnf), 'app/config/')
+    test_buffer.rd = "solarman.enabled = 'FALSE'"
+    
+    Config.init(ConfigReadToml("app/config/default_config.toml"))
+    for _ in patch_open():
+        ConfigReadToml("config/config.toml")
+        err = Config.get_error()
+
     assert err == None
     cnf = Config.get()
     assert cnf == {'gen3plus': {'at_acl': {'mqtt': {'allow': ['AT+'], 'block': []}, 'tsun': {'allow': ['AT+Z', 'AT+UPURL', 'AT+SUPDATE'], 'block': []}}}, 'tsun': {'enabled': True, 'host': 'logger.talent-monitoring.com', 'port': 5005}, 'solarman': {'enabled': True, 'host': 'iot.talent-monitoring.com', 'port': 10000}, 'mqtt': {'host': 'mqtt', 'port': 1883, 'user': None, 'passwd': None}, 'ha': {'auto_conf_prefix': 'homeassistant', 'discovery_prefix': 'homeassistant', 'entity_prefix': 'tsun', 'proxy_node_id': 'proxy', 'proxy_unique_id': 'P170000000000001'},
@@ -293,16 +319,26 @@ def test_read_cnf2():
                   }
     assert True == Config.is_default('solarman')
 
-def test_read_cnf3():
-    cnf = {'solarman' : {'port': 'FALSE'}}
-    err = Config.init(TstConfig(cnf), 'app/config/')
-    assert err == 'Config.read: Key \'solarman\' error:\nKey \'port\' error:\nint(\'FALSE\') raised ValueError("invalid literal for int() with base 10: \'FALSE\'")'
+def test_read_cnf3(ConfigDefault):
+    test_buffer.rd = "solarman.port = 'FALSE'"
+    
+    Config.init(ConfigReadToml("app/config/default_config.toml"))
+    for _ in patch_open():
+        ConfigReadToml("config/config.toml")
+        err = Config.get_error()
+
+    assert err == 'error: Key \'solarman\' error:\nKey \'port\' error:\nint(\'FALSE\') raised ValueError("invalid literal for int() with base 10: \'FALSE\'")'
     cnf = Config.get()
-    assert cnf == {}
+    assert cnf == ConfigDefault
 
 def test_read_cnf4():
-    cnf = {'solarman' : {'port': 5000}}
-    err = Config.init(TstConfig(cnf), 'app/config/')
+    test_buffer.rd = "solarman.port = 5000"
+    
+    Config.init(ConfigReadToml("app/config/default_config.toml"))
+    for _ in patch_open():
+        ConfigReadToml("config/config.toml")
+        err = Config.get_error()
+
     assert err == None
     cnf = Config.get()
     assert cnf == {'gen3plus': {'at_acl': {'mqtt': {'allow': ['AT+'], 'block': []}, 'tsun': {'allow': ['AT+Z', 'AT+UPURL', 'AT+SUPDATE'], 'block': []}}}, 'tsun': {'enabled': True, 'host': 'logger.talent-monitoring.com', 'port': 5005}, 'solarman': {'enabled': True, 'host': 'iot.talent-monitoring.com', 'port': 5000}, 'mqtt': {'host': 'mqtt', 'port': 1883, 'user': None, 'passwd': None}, 'ha': {'auto_conf_prefix': 'homeassistant', 'discovery_prefix': 'homeassistant', 'entity_prefix': 'tsun', 'proxy_node_id': 'proxy', 'proxy_unique_id': 'P170000000000001'},
@@ -339,11 +375,19 @@ def test_read_cnf4():
     assert False == Config.is_default('solarman')
 
 def test_read_cnf5():
-    cnf = {'solarman' : {'port': 1023}}
-    err = Config.init(TstConfig(cnf), 'app/config/')
+    test_buffer.rd = "solarman.port = 1023"
+    
+    Config.init(ConfigReadToml("app/config/default_config.toml"))
+    for _ in patch_open():
+        ConfigReadToml("config/config.toml")
+        err = Config.get_error()
     assert err != None
 
 def test_read_cnf6():
-    cnf = {'solarman' : {'port': 65536}}
-    err = Config.init(TstConfig(cnf), 'app/config/')
+    test_buffer.rd = "solarman.port = 65536"
+    
+    Config.init(ConfigReadToml("app/config/default_config.toml"))
+    for _ in patch_open():
+        ConfigReadToml("config/config.toml")
+        err = Config.get_error()
     assert err != None
