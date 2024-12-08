@@ -12,6 +12,8 @@ from modbus import Modbus
 from gen3plus.solarman_v5 import SolarmanV5
 from cnf.config import Config
 
+NO_MOSQUITTO_TEST = False
+'''disable all tests with connections to test.mosquitto.org'''
 
 pytest_plugins = ('pytest_asyncio',)
 
@@ -69,8 +71,12 @@ def spy_modbus_cmd_client():
 
 def test_native_client(test_hostname, test_port):
     """Sanity check: Make sure the paho-mqtt client can connect to the test
-    MQTT server.
+    MQTT server. Otherwise the test set NO_MOSQUITTO_TEST to True and disable
+    all test cases which depends on the test.mosquitto.org server
     """
+    global NO_MOSQUITTO_TEST
+    if NO_MOSQUITTO_TEST:
+        pytest.skip('skipping, since Mosquitto is not reliable at the moment')
 
     import paho.mqtt.client as mqtt
     import threading
@@ -82,9 +88,61 @@ def test_native_client(test_hostname, test_port):
         on_connect = threading.Event()
         c.on_connect = Mock(side_effect=lambda *_: on_connect.set())
         c.connect_async(test_hostname, test_port)
-        assert on_connect.wait(10)
+        if not on_connect.wait(3):
+            NO_MOSQUITTO_TEST = True  # skip all mosquitto tests
+            pytest.skip('skipping, since Mosquitto is not reliable at the moment')
     finally:
         c.loop_stop()
+
+@pytest.mark.asyncio
+async def test_mqtt_connection(config_mqtt_conn):
+    global NO_MOSQUITTO_TEST
+    if NO_MOSQUITTO_TEST:
+        pytest.skip('skipping, since Mosquitto is not reliable at the moment')
+
+    _ = config_mqtt_conn
+    assert asyncio.get_running_loop()
+
+    on_connect =  asyncio.Event()
+    async def cb():
+        on_connect.set()
+
+    try:
+        m = Mqtt(cb)
+        assert m.task
+        assert await asyncio.wait_for(on_connect.wait(), 5)
+        # await asyncio.sleep(1)
+        assert 0 == m.ha_restarts
+        await m.publish('homeassistant/status', 'online')
+    except TimeoutError:
+        assert False
+    finally:
+        await m.close()
+        await m.publish('homeassistant/status', 'online')
+
+@pytest.mark.asyncio
+async def test_ha_reconnect(config_mqtt_conn):
+    global NO_MOSQUITTO_TEST
+    if NO_MOSQUITTO_TEST:
+        pytest.skip('skipping, since Mosquitto is not reliable at the moment')
+
+    _ = config_mqtt_conn
+    on_connect =  asyncio.Event()
+    async def cb():
+        on_connect.set()
+
+    try:
+        m = Mqtt(cb)
+        msg = aiomqtt.Message(topic= 'homeassistant/status', payload= b'offline', qos= 0, retain = False, mid= 0, properties= None)
+        await m.dispatch_msg(msg)
+        assert not on_connect.is_set()
+
+        msg = aiomqtt.Message(topic= 'homeassistant/status', payload= b'online', qos= 0, retain = False, mid= 0, properties= None)
+        await m.dispatch_msg(msg)
+        assert on_connect.is_set()
+
+    finally:
+        await m.close()
 
 @pytest.mark.asyncio
 async def test_mqtt_no_config(config_no_conn):
@@ -109,29 +167,6 @@ async def test_mqtt_no_config(config_no_conn):
         assert False
     finally:
         await m.close()
-
-@pytest.mark.asyncio
-async def test_mqtt_connection(config_mqtt_conn):
-    _ = config_mqtt_conn
-    assert asyncio.get_running_loop()
-
-    on_connect =  asyncio.Event()
-    async def cb():
-        on_connect.set()
-
-    try:
-        m = Mqtt(cb)
-        assert m.task
-        assert await asyncio.wait_for(on_connect.wait(), 5)
-        # await asyncio.sleep(1)
-        assert 0 == m.ha_restarts
-        await m.publish('homeassistant/status', 'online')
-    except TimeoutError:
-        assert False
-    finally:
-        await m.close()
-        await m.publish('homeassistant/status', 'online')
-
 
 @pytest.mark.asyncio
 async def test_msg_dispatch(config_mqtt_conn, spy_modbus_cmd):
@@ -206,26 +241,6 @@ async def test_msg_ignore_client_conn(config_mqtt_conn, spy_modbus_cmd_client):
         msg = aiomqtt.Message(topic= 'tsun/inv_1/rated_load', payload= b'2', qos= 0, retain = False, mid= 0, properties= None)
         await m.dispatch_msg(msg)
         spy.assert_not_called()
-    finally:
-        await m.close()
-
-@pytest.mark.asyncio
-async def test_ha_reconnect(config_mqtt_conn):
-    _ = config_mqtt_conn
-    on_connect =  asyncio.Event()
-    async def cb():
-        on_connect.set()
-
-    try:
-        m = Mqtt(cb)
-        msg = aiomqtt.Message(topic= 'homeassistant/status', payload= b'offline', qos= 0, retain = False, mid= 0, properties= None)
-        await m.dispatch_msg(msg)
-        assert not on_connect.is_set()
-
-        msg = aiomqtt.Message(topic= 'homeassistant/status', payload= b'online', qos= 0, retain = False, mid= 0, properties= None)
-        await m.dispatch_msg(msg)
-        assert on_connect.is_set()
-
     finally:
         await m.close()
 
