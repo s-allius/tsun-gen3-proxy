@@ -118,6 +118,7 @@ def test_invalid_filename(ConfigDefault):
     assert cnf == ConfigDefault
 
 def test_cnv1():
+    """test dotted key converting"""
     tst = {
    "gen3plus.at_acl.mqtt.block": [
       "AT+SUPDATE",
@@ -141,6 +142,7 @@ def test_cnv1():
     }
 
 def test_cnv2():
+    """test a valid list with serials in inverters"""
     tst = {
    "inverters": [
      {
@@ -162,6 +164,7 @@ def test_cnv2():
     }
 
 def test_cnv3():
+    """test the combination of a list and a scalar in inverters"""
     tst = {
    "inverters": [
      {
@@ -268,6 +271,55 @@ def test_cnv4():
                       'allow_all': False},
         'solarman': {'enabled': True},
         'tsun': {'enabled': True}
+    }
+
+def test_cnv5():
+    """test a invalid list with missing serials"""
+    tst = {
+   "inverters": [
+     {
+       "node_id": "PV-Garage1/",
+     },
+     {
+       "serial": "Y170000000000001",
+       "node_id": "PV-Garage2/",
+     }
+   ],
+}
+    cnf = ConfigReadJson()
+    obj = cnf.convert_to_obj(tst)
+    assert obj == {
+        'inverters': {
+            'Y170000000000001': {'node_id': 'PV-Garage2/'}
+        },
+    }
+
+def test_cnv6():
+    """test overwritting a value in inverters"""
+    tst = {
+       "inverters": [{
+            "serial": "Y170000000000001",
+            "node_id": "PV-Garage2/",
+        }],
+    }
+    tst2 = {
+       "inverters": [{
+            "serial": "Y170000000000001",
+            "node_id": "PV-Garden/",
+        }],
+    }
+    cnf = ConfigReadJson()
+    obj = cnf.convert_to_obj(tst)
+    assert obj == {
+        'inverters': {
+            'Y170000000000001': {'node_id': 'PV-Garage2/'}
+        },
+    }
+    obj = cnf.convert_to_obj(tst2)
+    assert obj == {
+        'inverters': {
+            'Y170000000000001': {'node_id': 'PV-Garden/'}
+        },
     }
 
 def test_empty_config(ConfigDefault):
