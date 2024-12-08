@@ -1,7 +1,5 @@
 # test_with_pytest.py
 import pytest
-import tomllib
-import json
 from mock import patch
 from cnf.config import Config
 from cnf.config_read_json import ConfigReadJson
