@@ -11,11 +11,11 @@
     <a href="https://libraries.io/pypi/aiocron"><img alt="Supported aiocron versions" src="https://img.shields.io/badge/aiocron-1.8-lightblue.svg"></a>
     <a href="https://toml.io/en/v1.0.0"><img alt="Supported toml versions" src="https://img.shields.io/badge/toml-1.0.0-lightblue.svg"></a>
     <br>
-    <a href="https://sonarcloud.io/component_measures?id=s-allius_tsun-gen3-proxy&metric=alert_status"><img src="https://sonarcloud.io/api/project_badges/measure?project=s-allius_tsun-gen3-proxy&metric=alert_status"></a>
-    <a href="https://sonarcloud.io/component_measures?id=s-allius_tsun-gen3-proxy&metric=bugs"><img src="https://sonarcloud.io/api/project_badges/measure?project=s-allius_tsun-gen3-proxy&metric=bugs"></a>
-    <a href="https://sonarcloud.io/component_measures?id=s-allius_tsun-gen3-proxy&metric=code_smells"><img src="https://sonarcloud.io/api/project_badges/measure?project=s-allius_tsun-gen3-proxy&metric=code_smells"></a>
+    <a href="https://sonarcloud.io/component_measures?id=s-allius_tsun-gen3-proxy&metric=alert_status"><img alt="The quality gate status" src="https://sonarcloud.io/api/project_badges/measure?project=s-allius_tsun-gen3-proxy&metric=alert_status"></a>
+    <a href="https://sonarcloud.io/component_measures?id=s-allius_tsun-gen3-proxy&metric=bugs"><img alt="No of bugs" src="https://sonarcloud.io/api/project_badges/measure?project=s-allius_tsun-gen3-proxy&metric=bugs"></a>
+    <a href="https://sonarcloud.io/component_measures?id=s-allius_tsun-gen3-proxy&metric=code_smells"><img alt="No of code-smells" src="https://sonarcloud.io/api/project_badges/measure?project=s-allius_tsun-gen3-proxy&metric=code_smells"></a>
     <br>
-    <a href="https://sonarcloud.io/component_measures?id=s-allius_tsun-gen3-proxy&metric=coverage"><img src="https://sonarcloud.io/api/project_badges/measure?project=s-allius_tsun-gen3-proxy&metric=coverage"></a>
+    <a href="https://sonarcloud.io/component_measures?id=s-allius_tsun-gen3-proxy&metric=coverage"><img alt="Test coverage in percent" src="https://sonarcloud.io/api/project_badges/measure?project=s-allius_tsun-gen3-proxy&metric=coverage"></a>
 </p>
 
 # Overview
