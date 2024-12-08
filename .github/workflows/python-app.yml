@@ -54,7 +54,7 @@ jobs:
         flake8 --exit-zero --ignore=C901,E121,E123,E126,E133,E226,E241,E242,E704,W503,W504,W505 --format=pylint --output-file=output_flake.txt --exclude=*.pyc app/src/
     - name: Test with pytest
       run: |
-        python -m pytest app --cov=app/src --cov-report=xml
+        python -m pytest app --cov=app/src --cov-config=.cover_ghaction_rc --cov-report=xml
         coverage report
     - name: Analyze with SonarCloud
       if: ${{ env.SONAR_TOKEN != 0 }}
