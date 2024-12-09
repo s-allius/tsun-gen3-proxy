@@ -14,41 +14,36 @@
 ######################
 
 ARG BUILD_FROM="ghcr.io/hassio-addons/base:stable"
+# hadolint ignore=DL3006
 FROM $BUILD_FROM AS base
 
 # Installiere Python, pip und virtuelle Umgebungstools
-# RUN apk add --no-cache python3 py3-pip py3-virtualenv
-RUN apk add --no-cache python3 py3-pip
+RUN apk add --no-cache python3=3.12.8-r1 py3-pip=24.3.1-r0
+
+
 
 #######################
-# 2 Modify Image      #
+# 2 Build wheel       #
 #######################
 FROM base AS builder
+
 COPY rootfs/requirements.txt /root/
 
-RUN apk add --no-cache build-base && \
-    python -m pip install --no-cache-dir -U pip wheel && \
+RUN apk add --no-cache build-base=0.5-r3 && \
+    python -m pip install --no-cache-dir wheel==0.45.1 && \
     python -OO -m pip wheel --no-cache-dir --wheel-dir=/root/wheels -r /root/requirements.txt
 
 
 
 
 #######################
-# 3 Install apps      #
+# 3 Build runtime     #
 #######################
 FROM base AS runtime
 
-
-# Installiere Python, pip und virtuelle Umgebungstools
-# RUN apk add --no-cache python3 py3-pip py3-virtualenv
-
-# Erstelle ein virtuelles Umfeld und aktiviere es
-# RUN python3 -m venv /opt/venv
-
-# RUN . /opt/venv/bin/activate
-
-# Stelle sicher, dass das Add-on das virtuelle Umfeld nutzt
-# ENV PATH="/opt/venv/bin:$PATH"
+ARG SERVICE_NAME
+ARG VERSION
+ENV SERVICE_NAME=${SERVICE_NAME}
 
 
 
@@ -56,13 +51,11 @@ FROM base AS runtime
 # 4 Install libraries #
 #######################
 
-
 # install the requirements from the wheels packages from the builder stage 
 # and unistall python packages and alpine package manger to reduce attack surface
 
-# --no-cache-dir ??
 COPY --from=builder /root/wheels /root/wheels
-RUN python -m pip install --no-cache --no-index /root/wheels/* && \
+RUN python -m pip install --no-cache-dir --no-cache --no-index /root/wheels/* && \
     rm -rf /root/wheels && \
     python -m pip uninstall --yes wheel pip && \
     apk --purge del apk-tools
@@ -72,12 +65,7 @@ RUN python -m pip install --no-cache --no-index /root/wheels/* && \
 # 5 copy data         #
 #######################
 
-
-# Add rootfs
 COPY rootfs/ /
-
-# make run.sh executable
-RUN chmod a+x /run.sh
 
 
 
@@ -85,11 +73,9 @@ RUN chmod a+x /run.sh
 # 6 run app           #
 #######################
 
-ARG SERVICE_NAME
-ARG VERSION
-ENV SERVICE_NAME=${SERVICE_NAME}
-
-RUN echo ${VERSION} > /proxy-version.txt
+# make run.sh executable
+RUN chmod a+x /run.sh && \
+    echo ${VERSION} > /proxy-version.txt
 
 # command to run on container start
 CMD [ "/run.sh" ]
