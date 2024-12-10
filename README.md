@@ -110,6 +110,7 @@ docker run  --dns '8.8.8.8' --env 'UID=1050' -p '5005:5005' -p '10000:10000' -v 
 ## for Home Assistant Add-on Installation
 
 1. Add the repository URL to the Home Assistant add-on store
+[![Add repository on my Home Assistant][repository-badge]][repository-url]
 2. Reload the add-on store page
 3. Click the "Install" button to install the add-on.
 
@@ -431,3 +432,6 @@ We're very happy to receive contributions to this project! You can get started b
 ## Changelog
 
 The changelog lives in [CHANGELOG.md](https://github.com/s-allius/tsun-gen3-proxy/blob/main/CHANGELOG.md). It follows the principles of [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
+
+[repository-badge]: https://img.shields.io/badge/Add%20repository%20to%20my-Home%20Assistant-41BDF5?logo=home-assistant&style=for-the-badge
+[repository-url]: https://my.home-assistant.io/redirect/supervisor_add_addon_repository/?repository_url=https%3A%2F%2Fgithub.com%2Fs-allius%2Ftsun-gen3-proxy
