@@ -24,6 +24,7 @@ The installation of this add-on is pretty straightforward and not different in
 comparison to installing any other Home Assistant add-on.
 
 1. Add the repository URL to the Home Assistant add-on store
+[![Add repository on my Home Assistant][repository-badge]][repository-url]
 2. Reload the add-on store page
 3. Click the "Install" button to install the add-on.
 4. Add your inverter configuration to the add-on configuration
@@ -152,3 +153,5 @@ SOFTWARE.
 [eclipse]: https://www.eclipse.org/org/documents/edl-v10.php
 [Mosquitto]: https://github.com/home-assistant/addons/blob/master/mosquitto/DOCS.md
 [AdGuard]: https://github.com/hassio-addons/addon-adguard-home
+[repository-badge]: https://img.shields.io/badge/Add%20repository%20to%20my-Home%20Assistant-41BDF5?logo=home-assistant&style=for-the-badge
+[repository-url]: https://my.home-assistant.io/redirect/supervisor_add_addon_repository/?repository_url=https%3A%2F%2Fgithub.com%2Fs-allius%2Ftsun-gen3-proxy
