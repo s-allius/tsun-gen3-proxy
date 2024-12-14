@@ -18,7 +18,7 @@ variable "DESCRIPTION" {
 }
 
 target "_common" {
-  context = "app"
+  context = "."
   dockerfile = "Dockerfile"
   args = {
     VERSION = "${VERSION}"
