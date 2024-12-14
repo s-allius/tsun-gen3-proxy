@@ -1,5 +1,6 @@
 import logging
 import asyncio
+import logging.handlers
 import signal
 import os
 import argparse
@@ -133,14 +134,19 @@ def get_log_level() -> int:
 
 if __name__ == "__main__":   # pragma: no cover
     parser = argparse.ArgumentParser()
-    parser.add_argument('-p', '--config_path', type=str,
+    parser.add_argument('-c', '--config_path', type=str,
                         default='./config/',
                         help='set path for the configuration files')
     parser.add_argument('-j', '--json_config', type=str,
                         help='read user config from json-file')
     parser.add_argument('-t', '--toml_config', type=str,
                         help='read user config from toml-file')
-    parser.add_argument('--add_on', action='store_true')
+    parser.add_argument('-l', '--log_path', type=str,
+                        default='log/',
+                        help='set path for the logging files')
+    parser.add_argument('-b', '--log_backups', type=int,
+                        default=0,
+                        help='set max number of daily log-files')
     args = parser.parse_args()
     #
     # Setup our daily, rotating logger
@@ -148,12 +154,16 @@ if __name__ == "__main__":   # pragma: no cover
     serv_name = os.getenv('SERVICE_NAME', 'proxy')
     version = os.getenv('VERSION', 'unknown')
 
+    setattr(logging.handlers, "log_path", args.log_path)
+    setattr(logging.handlers, "log_backups", args.log_backups)
+
     logging.config.fileConfig('logging.ini')
     logging.info(f'Server "{serv_name} - {version}" will be started')
-    logging.info(f"AddOn: {args.add_on}")
     logging.info(f"config_path: {args.config_path}")
     logging.info(f"json_config: {args.json_config}")
     logging.info(f"toml_config: {args.toml_config}")
+    logging.info(f"log_path:    {args.log_path}")
+    logging.info(f"log_backups: {args.log_backups} days")
     log_level = get_log_level()
     logging.info('******')
 
