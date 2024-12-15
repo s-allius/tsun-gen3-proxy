@@ -4,5 +4,5 @@
     "description": "MQTT Proxy for TSUN Photovoltaic Inverters",
     "slug": "tsun-proxy",
     "advanced": false,
-    "stage": "stabil"
+    "stage": "stable"
 }
