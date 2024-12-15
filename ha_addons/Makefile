@@ -1,7 +1,7 @@
 #!make
 include ../.env
 
-.PHONY: debug dev build clean rootfs repro
+.PHONY: debug dev build clean rootfs repro rc rel
 
 SHELL = /bin/sh
 JINJA = jinja2
@@ -47,7 +47,7 @@ dev debug: build
 	export IMAGE=$(PRIVAT_CONTAINER_REGISTRY)$(IMAGE) && \
 	docker buildx bake -f docker-bake.hcl $@
 
-rc: build
+rc rel: build
 	@echo version: $(VERSION)  build-date: $(BUILD_DATE)   image: $(PUBLIC_CONTAINER_REGISTRY)$(IMAGE)
 	@echo login at $(PUBLIC_URL) as $(PUBLIC_USER)
 	@DO_LOGIN="$(shell echo $(PUBLIC_CR_KEY) | docker login $(PUBLIC_URL) -u $(PUBLIC_USER) --password-stdin)"
@@ -56,7 +56,7 @@ rc: build
 	docker buildx bake -f docker-bake.hcl $@
 
 
-build: rootfs $(ADDON_PATH)/config.yaml
+build: rootfs $(ADDON_PATH)/config.yaml repro
 
 clean:
 	rm -r -f $(DST_PROXY)
@@ -107,7 +107,7 @@ INST=$(INST_BASE)/ha_addon_dev
 repro_files = DOCS.md icon.png logo.png translations/en.yaml
 repro_templates = config.yaml
 repro_subdirs = translations
-repro_vers = debug dev
+repro_vers = debug dev rel
 
 repro_all_files := $(foreach dir,$(repro_vers), $(foreach file,$(repro_files),$(INST_BASE)/ha_addon_$(dir)/$(file)))
 repro_all_templates := $(foreach dir,$(repro_vers), $(foreach file,$(repro_templates),$(INST_BASE)/ha_addon_$(dir)/$(file)))
@@ -118,14 +118,15 @@ repro: $(repro_all_subdirs)  $(repro_all_templates) $(repro_all_files)
 $(repro_all_subdirs) :
 	mkdir -p $@
 
-$(repro_all_templates) : $(INST_BASE)/ha_addon_%/config.yaml: $(TEMPL)/config.jinja $(TEMPL)/%_data.json
-	$(JINJA) --strict --format=json $^ -o $@
+$(repro_all_templates) : $(INST_BASE)/ha_addon_%/config.yaml: $(TEMPL)/config.jinja $(TEMPL)/%_data.json $(SRC)/.version
+	$(JINJA) --strict -D AppVersion=$(VERSION) $< $(filter %.json,$^) -o $@
 
 
 $(filter $(INST_BASE)/ha_addon_debug/%,$(repro_all_files)) : $(INST_BASE)/ha_addon_debug/% : ha_addon/%
 	cp $< $@
-
 $(filter $(INST_BASE)/ha_addon_dev/%,$(repro_all_files)) : $(INST_BASE)/ha_addon_dev/% : ha_addon/%
+	cp $< $@
+$(filter $(INST_BASE)/ha_addon_rel/%,$(repro_all_files)) : $(INST_BASE)/ha_addon_rel/% : ha_addon/%
 	cp $< $@
 
 

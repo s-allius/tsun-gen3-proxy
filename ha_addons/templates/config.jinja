@@ -1,6 +1,6 @@
 name: {{name}}
 description: {{description}}
-version: {{version}}
+version: {% if version is defined and version|length %} {{version}} {% else %} {{AppVersion}} {% endif %}
 image: docker.io/sallius/tsun-gen3-addon
 url: https://github.com/s-allius/tsun-gen3-proxy
 slug: {{slug}}
