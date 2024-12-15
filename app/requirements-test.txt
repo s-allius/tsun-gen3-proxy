@@ -1,7 +1,9 @@
     flake8
+    hadolint
     pytest
     pytest-asyncio
     pytest-cov
     python-dotenv
     mock
     coverage
+    jinja2-cli
