@@ -1,0 +1,7 @@
+
+{
+    "name": "TSUN-Proxy (Debug)",
+    "description": "MQTT Proxy for TSUN Photovoltaic Inverters with Debug Logging",
+    "version": "debug",
+    "slug": "tsun-proxy-debug"
+}

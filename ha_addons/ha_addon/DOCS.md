@@ -142,7 +142,6 @@ SOFTWARE.
 
 [tsunproxy]: https://github.com/s-allius/tsun-gen3-proxy
 [discussions]: https://github.com/s-allius/tsun-gen3-proxy/discussions
-[addon-badge]: https://my.home-assistant.io/badges/supervisor_addon.svg
 [author]: https://github.com/s-allius
 [discord-ha]: https://discord.gg/c5DvZ4e
 [issue]: https://github.com/s-allius/tsun-gen3-proxy/issues
