@@ -117,9 +117,10 @@ docker run  --dns '8.8.8.8' --env 'UID=1050' -p '5005:5005' -p '10000:10000' -v 
 # Configuration
 
 ```txt
-❗The following describtion applies to docker installation. For Home Assistant Add-on installation, the 
-configuration is done via the Home Assistant UI. Some options are not required, nor is the e creation of a 
-config.toml file.. For general understandment of the configuration, you can read the following describtion.
+❗The following description applies to the Docker installation. When installing the Home Assistant add-on, the 
+configuration is carried out via the Home Assistant UI. Some of the options described below are not required for 
+this. Additionally, creating a config.toml file is not necessary. However, for a general understanding of the 
+configuration and functionality, it is helpful to read the following description.
 ```
 
 The configuration consists of several parts. First, the container and the proxy itself must be configured, and then the connection of the inverter to the proxy must be set up, which is done differently depending on the inverter generation
