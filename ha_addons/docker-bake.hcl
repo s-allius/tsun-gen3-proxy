@@ -18,7 +18,7 @@ variable "DESCRIPTION" {
 }
 
 target "_common" {
-  context = "."
+  context = "ha_addon"
   dockerfile = "Dockerfile"
   args = {
     VERSION = "${VERSION}"

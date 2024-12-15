@@ -5,3 +5,4 @@
     python-dotenv
     mock
     coverage
+    jinja2-cli

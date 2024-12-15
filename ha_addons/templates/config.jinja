@@ -1,16 +1,15 @@
-name: "TSUN-Proxy"
-description: "MQTT Proxy for TSUN Photovoltaic Inverters"
-version: "dev"
+name: {{name}}
+description: {{description}}
+version: {% if version is defined and version|length %} {{version}} {% else %} {{AppVersion}} {% endif %}
 image: docker.io/sallius/tsun-gen3-addon
 url: https://github.com/s-allius/tsun-gen3-proxy
-slug: "tsun-proxy"
+slug: {{slug}}
 init: false
 arch:
   - aarch64
   - amd64
   - armhf
   - armv7
-  - i386
 startup: services
 homeassistant_api: true
 services:
