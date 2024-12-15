@@ -2,5 +2,7 @@
 {
     "name": "TSUN-Proxy",
     "description": "MQTT Proxy for TSUN Photovoltaic Inverters",
-    "slug": "tsun-proxy"
+    "slug": "tsun-proxy",
+    "advanced": false,
+    "stage": "stabil"
 }
