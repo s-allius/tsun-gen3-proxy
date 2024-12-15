@@ -21,9 +21,9 @@ map:
 services:
   - mqtt:want
 ports:
-  8127/tcp: 8127
   5005/tcp: 5005
   10000/tcp: 10000
+watchdog: "http://[HOST]:[PORT:8127]/-/healthy"
 
 # Definition of parameters in the configuration tab of the addon
 # parameters are available within the container as /data/options.json
