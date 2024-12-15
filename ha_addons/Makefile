@@ -1,7 +1,7 @@
 #!make
 include ../.env
 
-.PHONY: debug dev build clean rootfs 
+.PHONY: debug dev build clean rootfs repro
 
 SHELL = /bin/sh
 JINJA = jinja2
@@ -104,6 +104,28 @@ FORCE : ;
 # 
 
 INST=$(INST_BASE)/ha_addon_dev
-debug : INST=$(INST_BASE)/ha_addon_debug
-rc :    INST=$(INST_BASE)/ha_addon_rc
-rel :   INST=$(INST_BASE)/ha_addon
+repro_files = DOCS.md icon.png logo.png translations/en.yaml
+repro_templates = config.yaml
+repro_subdirs = translations
+repro_vers = debug dev
+
+repro_all_files := $(foreach dir,$(repro_vers), $(foreach file,$(repro_files),$(INST_BASE)/ha_addon_$(dir)/$(file)))
+repro_all_templates := $(foreach dir,$(repro_vers), $(foreach file,$(repro_templates),$(INST_BASE)/ha_addon_$(dir)/$(file)))
+repro_all_subdirs := $(foreach dir,$(repro_vers), $(foreach file,$(repro_subdirs),$(INST_BASE)/ha_addon_$(dir)/$(file)))
+
+repro: $(repro_all_subdirs)  $(repro_all_templates) $(repro_all_files)
+
+$(repro_all_subdirs) :
+	mkdir -p $@
+
+$(repro_all_templates) : $(INST_BASE)/ha_addon_%/config.yaml: $(TEMPL)/config.jinja $(TEMPL)/%_data.json
+	$(JINJA) --strict --format=json $^ -o $@
+
+
+$(filter $(INST_BASE)/ha_addon_debug/%,$(repro_all_files)) : $(INST_BASE)/ha_addon_debug/% : ha_addon/%
+	cp $< $@
+
+$(filter $(INST_BASE)/ha_addon_dev/%,$(repro_all_files)) : $(INST_BASE)/ha_addon_dev/% : ha_addon/%
+	cp $< $@
+
+
