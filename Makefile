@@ -4,10 +4,10 @@ debug dev preview rc rel:
 	$(MAKE) -C app $@
 
 clean build:
-	$(MAKE) -C ha_addons/ha_addon $@ 
+	$(MAKE) -C ha_addons $@ 
 
 addon-dev addon-debug addon-rc:
-	$(MAKE) -C ha_addons/ha_addon $(patsubst addon-%,%,$@)
+	$(MAKE) -C ha_addons $(patsubst addon-%,%,$@)
 
 check-docker-compose:
 	docker-compose config -q
