@@ -13,6 +13,9 @@ arch:
   - i386
 startup: services
 homeassistant_api: true
+map:
+  - type: addon_config
+    path: /homeassistant/tsun-proxy
 services:
   - mqtt:want
 ports:
