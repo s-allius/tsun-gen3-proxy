@@ -16,6 +16,7 @@ homeassistant_api: true
 map:
   - type: addon_config
     path: /homeassistant/tsun-proxy
+    read_only: False
 services:
   - mqtt:want
 ports:
