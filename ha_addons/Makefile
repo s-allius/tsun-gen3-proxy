@@ -1,9 +1,11 @@
 #!make
 include ../.env
 
-SHELL = /bin/sh
-IMAGE = tsun-gen3-addon
+.PHONY: debug dev build clean rootfs 
 
+SHELL = /bin/sh
+JINJA = jinja2
+IMAGE = tsun-gen3-addon
 
 
 # Folders
@@ -17,7 +19,6 @@ DST_PROXY=$(DST)/home/proxy
 
 INST_BASE=../../ha-addons/ha-addons
 
-JINJA=jinja2
 TEMPL=templates
 
 # collect source files 
@@ -39,14 +40,6 @@ export MAJOR  := $(shell echo $(VERSION) | cut -f1 -d.)
 PUBLIC_URL := $(shell echo $(PUBLIC_CONTAINER_REGISTRY) | cut -f1 -d/)
 PUBLIC_USER :=$(shell echo $(PUBLIC_CONTAINER_REGISTRY) | cut -f2 -d/)
 
-STAGE=dev
-INST=$(INST_BASE)/ha_addon_dev
-debug : STAGE=debug
-debug : INST=$(INST_BASE)/ha_addon_debug
-rc :  STAGE=rc
-rc :  INST=$(INST_BASE)/ha_addon_rc
-rel : STAGE=rel
-rel : INST=$(INST_BASE)/ha_addon
 
 dev debug: build
 	@echo version: $(VERSION)  build-date: $(BUILD_DATE)   image: $(PRIVAT_CONTAINER_REGISTRY)$(IMAGE)
@@ -71,20 +64,17 @@ clean:
 	rm -f $(ADDON_PATH)/config.yaml
 	rm -f $(TEMPL)/.data.json
 
+#
+# Build rootfs and config.yaml as local add-on
+# The rootfs is needed to build the add-on Dockercontainers
+# 
+
 rootfs: $(TARGET_FILES) $(CONFIG_FILES) $(DST)/requirements.txt
 
-
-.PHONY: debug dev build clean rootfs 
-
-$(ADDON_PATH)/%.yaml: $(TEMPL)/%.jinja $(TEMPL)/.data.json
-	$(JINJA) --strict --format=json $^ -o $@
-	mkdir -p $(INST)
-	cp $@ $(INST)/$(@F)
-
-$(TEMPL)/.data.json: FORCE
-	rsync --checksum $(TEMPL)/$(STAGE)_data.json $@
-
-FORCE : ;
+STAGE=dev
+debug : STAGE=debug
+rc :  STAGE=rc
+rel : STAGE=rel
 
 $(CONFIG_FILES): $(DST_PROXY)/% : $(CNF_PROXY)/%
 	@echo Copy $< to $@
@@ -99,3 +89,21 @@ $(TARGET_FILES): $(DST_PROXY)/% : $(SRC_PROXY)/%
 $(DST)/requirements.txt : $(SRC)/requirements.txt
 	@echo Copy $< to $@
 	@cp $< $@
+
+$(ADDON_PATH)/%.yaml: $(TEMPL)/%.jinja $(TEMPL)/.data.json
+	$(JINJA) --strict --format=json $^ -o $@
+
+$(TEMPL)/.data.json: FORCE
+	rsync --checksum $(TEMPL)/$(STAGE)_data.json $@
+
+FORCE : ;
+
+
+#
+# Build repository for Home Assistant Add-On
+# 
+
+INST=$(INST_BASE)/ha_addon_dev
+debug : INST=$(INST_BASE)/ha_addon_debug
+rc :    INST=$(INST_BASE)/ha_addon_rc
+rel :   INST=$(INST_BASE)/ha_addon
