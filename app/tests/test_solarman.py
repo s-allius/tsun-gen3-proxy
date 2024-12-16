@@ -5,12 +5,12 @@ import asyncio
 import logging
 import random
 from math import isclose
-from app.src.async_stream import AsyncIfcImpl, StreamPtr
-from app.src.gen3plus.solarman_v5 import SolarmanV5, SolarmanBase
-from app.src.config import Config
-from app.src.infos import Infos, Register
-from app.src.modbus import Modbus
-from app.src.messages import State, Message
+from async_stream import AsyncIfcImpl, StreamPtr
+from gen3plus.solarman_v5 import SolarmanV5, SolarmanBase
+from cnf.config import Config
+from infos import Infos, Register
+from modbus import Modbus
+from messages import State, Message
 
 
 pytest_plugins = ('pytest_asyncio',)

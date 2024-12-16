@@ -1,8 +1,4 @@
-
-if __name__ == "app.src.byte_fifo":
-    from app.src.messages import hex_dump_str, hex_dump_memory
-else:  # pragma: no cover
-    from messages import hex_dump_str, hex_dump_memory
+from messages import hex_dump_str, hex_dump_memory
 
 
 class ByteFifo:

@@ -1,11 +1,15 @@
 __pycache__
 .pytest_cache
+.venv/**
 bin/**
 mosquitto/**
 homeassistant/**
+ha_addons/ha_addon/rootfs/home/proxy/*
+ha_addons/ha_addon/rootfs/requirements.txt
 tsun_proxy/**
 Doku/**
 .DS_Store
 .coverage
 .env
+.venv
 coverage.xml

@@ -4,12 +4,13 @@ import asyncio
 import gc
 import time
 
-from app.src.infos import Infos
-from app.src.inverter_base import InverterBase
-from app.src.async_stream import AsyncStreamServer, AsyncStreamClient, StreamPtr
-from app.src.messages import Message
-from app.tests.test_modbus_tcp import FakeReader, FakeWriter
-from app.tests.test_inverter_base import config_conn, patch_open_connection
+from infos import Infos
+from inverter_base import InverterBase
+from async_stream import AsyncStreamServer, AsyncStreamClient, StreamPtr
+from messages import Message
+
+from test_modbus_tcp import FakeReader, FakeWriter
+from test_inverter_base import config_conn, patch_open_connection
 
 pytest_plugins = ('pytest_asyncio',)
 
@@ -541,7 +542,7 @@ async def test_forward_resp():
     remote = StreamPtr(None)
     cnt = 0
 
-    async def _close_cb():
+    def _close_cb():
         nonlocal cnt, remote, ifc
         cnt += 1
     
@@ -550,7 +551,7 @@ async def test_forward_resp():
     create_remote(remote, TestType.FWD_NO_EXCPT)
     ifc.fwd_add(b'test-forward_msg')
     await ifc.client_loop('')
-    assert cnt == 0
+    assert cnt == 1
     del ifc
 
 @pytest.mark.asyncio
@@ -559,7 +560,7 @@ async def test_forward_resp2():
     remote = StreamPtr(None)
     cnt = 0
 
-    async def _close_cb():
+    def _close_cb():
         nonlocal cnt, remote, ifc
         cnt += 1
     
@@ -568,5 +569,5 @@ async def test_forward_resp2():
     create_remote(remote, TestType.FWD_NO_EXCPT)
     ifc.fwd_add(b'test-forward_msg')
     await ifc.client_loop('')
-    assert cnt == 0
+    assert cnt == 1
     del ifc

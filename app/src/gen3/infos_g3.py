@@ -3,10 +3,7 @@ import struct
 import logging
 from typing import Generator
 
-if __name__ == "app.src.gen3.infos_g3":
-    from app.src.infos import Infos, Register
-else:  # pragma: no cover
-    from infos import Infos, Register
+from infos import Infos, Register
 
 
 class RegisterMap:
@@ -84,6 +81,7 @@ class RegisterMap:
         0x000012c0: {'reg': Register.RATED_LEVEL},
         0x00001324: {'reg': Register.INPUT_COEFFICIENT, 'ratio':  100/1024},
         0x00001388: {'reg': Register.GRID_VOLT_CAL_COEF},
+        0x00002710: {'reg': Register.PROD_COMPL_TYPE},
         0x00003200: {'reg': Register.OUTPUT_COEFFICIENT, 'ratio':  100/1024},
     }
 

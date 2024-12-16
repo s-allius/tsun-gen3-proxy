@@ -7,22 +7,13 @@ import gc
 from aiomqtt import MqttCodeError
 from asyncio import StreamReader, StreamWriter
 
-if __name__ == "app.src.inverter_base":
-    from app.src.inverter_ifc import InverterIfc
-    from app.src.proxy import Proxy
-    from app.src.async_stream import StreamPtr
-    from app.src.async_stream import AsyncStreamClient
-    from app.src.async_stream import AsyncStreamServer
-    from app.src.config import Config
-    from app.src.infos import Infos
-else:  # pragma: no cover
-    from inverter_ifc import InverterIfc
-    from proxy import Proxy
-    from async_stream import StreamPtr
-    from async_stream import AsyncStreamClient
-    from async_stream import AsyncStreamServer
-    from config import Config
-    from infos import Infos
+from inverter_ifc import InverterIfc
+from proxy import Proxy
+from async_stream import StreamPtr
+from async_stream import AsyncStreamClient
+from async_stream import AsyncStreamServer
+from cnf.config import Config
+from infos import Infos
 
 logger_mqtt = logging.getLogger('mqtt')
 

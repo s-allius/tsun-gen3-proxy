@@ -4,20 +4,12 @@ import time
 import asyncio
 from datetime import datetime
 
-if __name__ == "app.src.gen3plus.solarman_v5":
-    from app.src.async_ifc import AsyncIfc
-    from app.src.messages import hex_dump_memory, Message, State
-    from app.src.modbus import Modbus
-    from app.src.config import Config
-    from app.src.gen3plus.infos_g3p import InfosG3P
-    from app.src.infos import Register, Fmt
-else:  # pragma: no cover
-    from async_ifc import AsyncIfc
-    from messages import hex_dump_memory, Message, State
-    from config import Config
-    from modbus import Modbus
-    from gen3plus.infos_g3p import InfosG3P
-    from infos import Register, Fmt
+from async_ifc import AsyncIfc
+from messages import hex_dump_memory, Message, State
+from cnf.config import Config
+from modbus import Modbus
+from gen3plus.infos_g3p import InfosG3P
+from infos import Register, Fmt
 
 logger = logging.getLogger('msg')
 

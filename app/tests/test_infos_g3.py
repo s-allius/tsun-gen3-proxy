@@ -1,7 +1,7 @@
 # test_with_pytest.py
 import pytest, json, math
-from app.src.infos import Register
-from app.src.gen3.infos_g3 import InfosG3, RegisterMap
+from infos import Register
+from gen3.infos_g3 import InfosG3, RegisterMap
 
 @pytest.fixture
 def contr_data_seq(): # Get Time Request message

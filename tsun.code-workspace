@@ -5,6 +5,10 @@
 		},
 		{
 			"path": "../wiki"
+		},
+		{
+			"name": "ha-addons",
+			"path": "../ha-addons/ha-addons"
 		}
 	],
 	"settings": {}

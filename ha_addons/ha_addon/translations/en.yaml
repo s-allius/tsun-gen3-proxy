@@ -1,0 +1,85 @@
+---
+configuration:
+  inverters:
+    name: Inverters
+    description: >+
+      For each GEN3 inverter, the serial number of the inverter must be mapped to an MQTT
+      definition. To do this, the corresponding configuration block is started with
+      <16-digit serial number> so that all subsequent parameters are assigned
+      to this inverter. Further inverter-specific parameters (e.g. polling mode) can be set
+      in the configuration block
+
+      The serial numbers of all GEN3 inverters start with `R17`!
+
+      monitor_sn         # The GEN3PLUS "Monitoring SN:"
+      node_id            # MQTT replacement for inverters serial number
+      suggested_area     # suggested installation area for home-assistant
+      modbus_polling     # Disable optional MODBUS polling
+      pv1                # Optional, PV module descr
+      pv2                # Optional, PV module descr
+
+  tsun.enabled:
+    name: Connection to TSUN Cloud - for GEN3 inverter only
+    description: >-
+      switch on/off connection to the TSUN cloud
+      This connection is only required if you want send data to the TSUN cloud
+      eg. to use the TSUN APPs or receive firmware updates.
+      
+      on - normal proxy operation
+      off - The Inverter become isolated from Internet
+  solarman.enabled:
+    name: Connection to Solarman Cloud - for GEN3PLUS inverter only
+    description: >-
+      switch on/off connection to the Solarman cloud
+      This connection is only required if you want send data to the Solarman cloud
+      eg. to use the Solarman APPs or receive firmware updates.
+      
+      on - normal proxy operation
+      off - The Inverter become isolated from Internet
+  inverters.allow_all:
+    name: Allow all connections from all inverters
+    description: >-
+      The proxy only usually accepts connections from known inverters.
+      Switch on for test purposes and unknown serial numbers.
+  mqtt.host:
+    name: MQTT Broker Host
+    description: >-
+      Hostname or IP address of the MQTT broker. if not set, the addon will try to connect to the Home Assistant MQTT broker
+  mqtt.port:
+    name: MQTT Broker Port
+    description: >-
+      Port of the MQTT broker. if not set, the addon will try to connect to the Home Assistant MQTT broker
+  mqtt.user:
+    name: MQTT Broker User
+    description: >-
+      User for the MQTT broker. if not set, the addon will try to connect to the Home Assistant MQTT broker
+  mqtt.passwd:
+    name: MQTT Broker Password
+    description: >-
+      Password for the MQTT broker. if not set, the addon will try to connect to the Home Assistant MQTT broker
+  ha.auto_conf_prefix:
+    name: MQTT prefix for subscribing for homeassistant status updates
+  ha.discovery_prefix:
+    name: MQTT prefix for discovery topic
+  ha.entity_prefix:
+    name: MQTT topic prefix for publishing inverter values
+  ha.proxy_node_id:
+    name: MQTT node id, for the proxy_node_id
+  ha.proxy_unique_id:
+    name: MQTT unique id, to identify a proxy instance
+  tsun.host:
+    name: TSUN Cloud Host
+    description: >-
+      Hostname or IP address of the TSUN cloud. if not set, the addon will try to connect to the cloud default
+      on logger.talent-monitoring.com
+  solarman.host:
+    name: Solarman Cloud Host
+    description: >-
+      Hostname or IP address of the Solarman cloud. if not set, the addon will try to connect to the cloud default
+      on iot.talent-monitoring.com
+
+
+network:
+  8127/tcp: x...
+  5005/tcp: listening Port for TSUN GEN3 Devices
+  10000/tcp: listening Port for TSUN GEN3PLUS Devices

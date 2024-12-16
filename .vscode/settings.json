@@ -1,16 +1,20 @@
 {
+    "python.analysis.extraPaths": [
+        "app/src",
+        "app/tests",
+        ".venv/lib",
+    ],
     "python.testing.pytestArgs": [
-        "-vv", 
-        "app",
+        "-vvv",
         "--cov=app/src",
         "--cov-report=xml",
-        "--cov-report=html",
+        "app",
         "system_tests"
     ],
     "python.testing.unittestEnabled": false,
     "python.testing.pytestEnabled": true,
     "flake8.args": [
-        "--extend-exclude=app/tests/*.py system_tests/*.py"   
+        "--extend-exclude=app/tests/*.py,system_tests/*.py"   
     ],
     "sonarlint.connectedMode.project": {
         "connectionId": "s-allius",
@@ -18,5 +22,11 @@
     },
     "files.exclude": {
         "**/*.pyi": true
-    }
+    },
+    "python.analysis.typeEvaluation.deprecateTypingAliases": true,
+    "python.autoComplete.extraPaths": [
+        ".venv/lib"
+    ],
+    "coverage-gutters.coverageBaseDir": "tsun",
+    "makefile.configureOnOpen": false
 }

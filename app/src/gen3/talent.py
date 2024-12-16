@@ -4,20 +4,12 @@ from zoneinfo import ZoneInfo
 from datetime import datetime
 from tzlocal import get_localzone
 
-if __name__ == "app.src.gen3.talent":
-    from app.src.async_ifc import AsyncIfc
-    from app.src.messages import Message, State
-    from app.src.modbus import Modbus
-    from app.src.config import Config
-    from app.src.gen3.infos_g3 import InfosG3
-    from app.src.infos import Register
-else:  # pragma: no cover
-    from async_ifc import AsyncIfc
-    from messages import Message, State
-    from modbus import Modbus
-    from config import Config
-    from gen3.infos_g3 import InfosG3
-    from infos import Register
+from async_ifc import AsyncIfc
+from messages import Message, State
+from modbus import Modbus
+from cnf.config import Config
+from gen3.infos_g3 import InfosG3
+from infos import Register
 
 logger = logging.getLogger('msg')
 
@@ -457,7 +449,7 @@ class Talent(Message):
             self.__build_header(0x99)
             self.ifc.tx_add(b'\x01')
             self.__finish_send_msg()
-            self.__process_data()
+            self.__process_data(False)
 
         elif self.ctrl.is_resp():
             return  # ignore received response
@@ -472,7 +464,7 @@ class Talent(Message):
             self.__build_header(0x99)
             self.ifc.tx_add(b'\x01')
             self.__finish_send_msg()
-            self.__process_data()
+            self.__process_data(True)
             self.state = State.up  # allow MODBUS cmds
             if (self.modbus_polling):
                 self.mb_timer.start(self.mb_first_timeout)
@@ -487,8 +479,14 @@ class Talent(Message):
 
         self.forward()
 
-    def __process_data(self):
+    def __process_data(self, ignore_replay: bool):
         msg_hdr_len, ts = self.parse_msg_header()
+        if ignore_replay:
+            age = self._utc() - self._utcfromts(ts)
+            age = age/(3600*24)
+            logger.debug(f"Age: {age} days")
+            if age > 1:
+                return
 
         for key, update in self.db.parse(self.ifc.rx_peek(), self.header_len
                                          + msg_hdr_len, self.node_id):

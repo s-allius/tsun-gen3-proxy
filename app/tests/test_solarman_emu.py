@@ -1,11 +1,13 @@
 import pytest
 import asyncio
-from app.src.async_stream import AsyncIfcImpl, StreamPtr
-from app.src.gen3plus.solarman_v5 import SolarmanV5, SolarmanBase
-from app.src.gen3plus.solarman_emu import SolarmanEmu
-from app.src.infos import Infos, Register
-from app.tests.test_solarman import FakeIfc, MemoryStream, get_sn_int, get_sn, correct_checksum, config_tsun_inv1, msg_modbus_rsp
-from app.tests.test_infos_g3p import str_test_ip, bytes_test_ip
+
+from async_stream import AsyncIfcImpl, StreamPtr
+from gen3plus.solarman_v5 import SolarmanV5, SolarmanBase
+from gen3plus.solarman_emu import SolarmanEmu
+from infos import Infos, Register
+
+from test_solarman import FakeIfc, MemoryStream, get_sn_int, get_sn, correct_checksum, config_tsun_inv1, msg_modbus_rsp
+from test_infos_g3p import str_test_ip, bytes_test_ip
 
 timestamp = 0x3224c8bc
 
@@ -170,6 +172,7 @@ async def test_snd_inv_data(config_tsun_inv1, inverter_ind_msg, inverter_rsp_msg
     inv.db.set_db_def_value(Register.GRID_VOLTAGE, 224.8)
     inv.db.set_db_def_value(Register.GRID_CURRENT, 0.73)
     inv.db.set_db_def_value(Register.GRID_FREQUENCY, 50.05)
+    inv.db.set_db_def_value(Register.PROD_COMPL_TYPE, 6)
     assert asyncio.get_running_loop() == inv.mb_timer.loop
     await inv.send_start_cmd(get_sn_int(), str_test_ip, False, inv.mb_first_timeout)
     inv.db.set_db_def_value(Register.DATA_UP_INTERVAL, 17)  # set test value

@@ -1,10 +1,7 @@
 
 from typing import Generator
 
-if __name__ == "app.src.gen3plus.infos_g3p":
-    from app.src.infos import Infos, Register, ProxyMode, Fmt
-else:  # pragma: no cover
-    from infos import Infos, Register, ProxyMode, Fmt
+from infos import Infos, Register, ProxyMode, Fmt
 
 
 class RegisterMap:
@@ -29,9 +26,11 @@ class RegisterMap:
         0x4102005c: {'reg': None,                          'fmt': '<B', 'const':   15},  # noqa: E501
         0x4102005e: {'reg': None,                          'fmt': '<B', 'const':    1},  # noqa: E501 No Of Sensors (ListLen)
         0x4102005f: {'reg': Register.SENSOR_LIST,          'fmt': '<H', 'func': Fmt.hex4},   # noqa: E501
-        0x41020061: {'reg': None,                          'fmt': '<BBB', 'const':  (15, 0, 255)},  # noqa: E501
+        0x41020061: {'reg': None,                          'fmt': '<HB', 'const':  (15, 255)},  # noqa: E501
         0x41020064: {'reg': Register.COLLECTOR_FW_VERSION, 'fmt': '!40s'},               # noqa: E501
-        0x4102008c: {'reg': None,                          'fmt': '<BB', 'const':    (254, 254)},  # noqa: E501
+        0x4102008c: {'reg': None,                          'fmt': '<BB', 'const':  (254, 254)},  # noqa: E501
+        0x4102008e: {'reg': None,                          'fmt': '<B'},                 # noqa: E501 Encryption Certificate File Status
+        0x4102008f: {'reg': None,                          'fmt': '!40s'},               # noqa: E501
         0x410200b7: {'reg': Register.SSID,                 'fmt': '!40s'},               # noqa: E501
 
         0x4201000c: {'reg': Register.SENSOR_LIST,          'fmt': '<H', 'func': Fmt.hex4},   # noqa: E501
@@ -91,7 +90,8 @@ class RegisterMap:
         0x4201012c: {'reg': Register.GRID_VOLT_CAL_COEF,   'fmt': '!H'},
         0x4201012e: {'reg': None,                          'fmt': '!H', 'const':   1024},  # noqa: E501
         0x42010130: {'reg': None,                          'fmt': FMT_4_16BIT_VAL, 'const': (1024, 1, 0xffff, 1)},  # noqa: E501
-        0x42010138: {'reg': None,                          'fmt': FMT_4_16BIT_VAL, 'const': (6, 0x68, 0x68, 0x500)},  # noqa: E501
+        0x42010138: {'reg': Register.PROD_COMPL_TYPE,      'fmt': '!H'},
+        0x4201013a: {'reg': None,                          'fmt': FMT_3_16BIT_VAL, 'const': (0x68, 0x68, 0x500)},  # noqa: E501
         0x42010140: {'reg': None,                          'fmt': FMT_4_16BIT_VAL, 'const': (0x9cd, 0x7b6, 0x139c, 0x1324)},  # noqa: E501
         0x42010148: {'reg': None,                          'fmt': FMT_4_16BIT_VAL, 'const': (1, 0x7ae, 0x40f, 0x41)},  # noqa: E501
         0x42010150: {'reg': None,                          'fmt': FMT_4_16BIT_VAL, 'const': (0xf, 0xa64, 0xa64, 0x6)},  # noqa: E501

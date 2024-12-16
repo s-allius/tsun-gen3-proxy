@@ -1,16 +1,10 @@
 import logging
 import struct
 
-if __name__ == "app.src.gen3plus.solarman_emu":
-    from app.src.async_ifc import AsyncIfc
-    from app.src.gen3plus.solarman_v5 import SolarmanBase
-    from app.src.my_timer import Timer
-    from app.src.infos import Register
-else:  # pragma: no cover
-    from async_ifc import AsyncIfc
-    from gen3plus.solarman_v5 import SolarmanBase
-    from my_timer import Timer
-    from infos import Register
+from async_ifc import AsyncIfc
+from gen3plus.solarman_v5 import SolarmanBase
+from my_timer import Timer
+from infos import Register
 
 logger = logging.getLogger('msg')
 

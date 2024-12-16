@@ -9,13 +9,13 @@
     <a href="https://www.python.org/downloads/release/python-3120/"><img alt="Supported Python versions" src="https://img.shields.io/badge/python-3.12-blue.svg"></a>
     <a href="https://sbtinstruments.github.io/aiomqtt/introduction.html"><img alt="Supported aiomqtt versions" src="https://img.shields.io/badge/aiomqtt-2.3.0-lightblue.svg"></a>
     <a href="https://libraries.io/pypi/aiocron"><img alt="Supported aiocron versions" src="https://img.shields.io/badge/aiocron-1.8-lightblue.svg"></a>
-    <a href="https://toml.io/en/v1.0.0"><img alt="Supported toml versions" src="https://img.shields.io/badge/toml-1.0.0-lightblue.svg"></a>   
+    <a href="https://toml.io/en/v1.0.0"><img alt="Supported toml versions" src="https://img.shields.io/badge/toml-1.0.0-lightblue.svg"></a>
     <br>
-    <a href="https://sonarcloud.io/component_measures?id=s-allius_tsun-gen3-proxy&metric=alert_status"><img src="https://sonarcloud.io/api/project_badges/measure?project=s-allius_tsun-gen3-proxy&metric=alert_status"></a>
-    <a href="https://sonarcloud.io/component_measures?id=s-allius_tsun-gen3-proxy&metric=bugs"><img src="https://sonarcloud.io/api/project_badges/measure?project=s-allius_tsun-gen3-proxy&metric=bugs"></a>
-    <a href="https://sonarcloud.io/component_measures?id=s-allius_tsun-gen3-proxy&metric=code_smells"><img src="https://sonarcloud.io/api/project_badges/measure?project=s-allius_tsun-gen3-proxy&metric=code_smells"></a>
+    <a href="https://sonarcloud.io/component_measures?id=s-allius_tsun-gen3-proxy&metric=alert_status"><img alt="The quality gate status" src="https://sonarcloud.io/api/project_badges/measure?project=s-allius_tsun-gen3-proxy&metric=alert_status"></a>
+    <a href="https://sonarcloud.io/component_measures?id=s-allius_tsun-gen3-proxy&metric=bugs"><img alt="No of bugs" src="https://sonarcloud.io/api/project_badges/measure?project=s-allius_tsun-gen3-proxy&metric=bugs"></a>
+    <a href="https://sonarcloud.io/component_measures?id=s-allius_tsun-gen3-proxy&metric=code_smells"><img alt="No of code-smells" src="https://sonarcloud.io/api/project_badges/measure?project=s-allius_tsun-gen3-proxy&metric=code_smells"></a>
     <br>
-    <a href="https://sonarcloud.io/component_measures?id=s-allius_tsun-gen3-proxy&metric=coverage"><img src="https://sonarcloud.io/api/project_badges/measure?project=s-allius_tsun-gen3-proxy&metric=coverage"></a>
+    <a href="https://sonarcloud.io/component_measures?id=s-allius_tsun-gen3-proxy&metric=coverage"><img alt="Test coverage in percent" src="https://sonarcloud.io/api/project_badges/measure?project=s-allius_tsun-gen3-proxy&metric=coverage"></a>
 </p>
 
 # Overview
@@ -27,6 +27,9 @@ In detail, the inverter establishes a TCP connection to the TSUN cloud to transm
 Through this, the inverter then establishes a connection to the proxy and the proxy establishes another connection to the TSUN Cloud. The transmitted data is interpreted by the proxy and then passed on to both the TSUN Cloud and the MQTT broker. The connection to the TSUN Cloud is optional and can be switched off in the configuration (default is on). Then no more data is sent to the Internet, but no more remote updates of firmware and operating parameters (e.g. rated power, grid parameters) are possible.
 
 By means of `docker` a simple installation and operation is possible. By using `docker-composer`, a complete stack of proxy, `MQTT-brocker` and `home-assistant` can be started easily.
+
+Alternatively you can run the TSUN-Proxy as a Home Assistant Add-on. The installation of this add-on is pretty straightforward and not different in comparison to installing any other custom Home Assistant add-on.
+Follow the Instructions mentioned in the add-on subdirectory `ha_addons`.
 
 <br>
 ℹ️ This project is not related to the company TSUN. It is a private initiative that aims to connect TSUN inverters with an MQTT broker. There is no support and no warranty from TSUN.
@@ -65,10 +68,19 @@ Here are some screenshots of how the inverter is displayed in the Home Assistant
 
 ## Requirements
 
+### for Docker Installation
+
 - A running Docker engine to host the container
 - Ability to loop the proxy into the connection between the inverter and the TSUN cloud
 
+### for Home Assistant Add-on Installation
+
+- Running Home Assistant on Home Assistant OS or Supervised. Container and Core installations doesn't support add-ons.
+- Ability to loop the proxy into the connection between the inverter and the TSUN cloud
+
 # Getting Started
+
+## for Docker Installation
 
 To run the proxy, you first need to create the image. You can do this quite simply as follows:
 
@@ -95,7 +107,21 @@ With this information we can customize the `docker run`` statement:
 docker run  --dns '8.8.8.8' --env 'UID=1050' -p '5005:5005' -p '10000:10000' -v ./config:/home/tsun-proxy/config -v ./log:/home/tsun-proxy/log tsun-proxy
 ```
 
+## for Home Assistant Add-on Installation
+
+1. Add the repository URL to the Home Assistant add-on store
+[![Add repository on my Home Assistant][repository-badge]][repository-url]
+2. Reload the add-on store page
+3. Click the "Install" button to install the add-on.
+
 # Configuration
+
+```txt
+❗The following description applies to the Docker installation. When installing the Home Assistant add-on, the 
+configuration is carried out via the Home Assistant UI. Some of the options described below are not required for 
+this. Additionally, creating a config.toml file is not necessary. However, for a general understanding of the 
+configuration and functionality, it is helpful to read the following description.
+```
 
 The configuration consists of several parts. First, the container and the proxy itself must be configured, and then the connection of the inverter to the proxy must be set up, which is done differently depending on the inverter generation
 
@@ -320,7 +346,6 @@ In this case, you MUST NOT change the port or the host address, as this may caus
 require a complete reset. Use the configuration in client mode instead.
 ```
 
-
 If access to the web interface does not work, it can also be redirected via DNS redirection, as is necessary for the GEN3 inverters.
 
 ## Client Mode (GEN3PLUS only)
@@ -408,3 +433,6 @@ We're very happy to receive contributions to this project! You can get started b
 ## Changelog
 
 The changelog lives in [CHANGELOG.md](https://github.com/s-allius/tsun-gen3-proxy/blob/main/CHANGELOG.md). It follows the principles of [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
+
+[repository-badge]: https://img.shields.io/badge/Add%20repository%20to%20my-Home%20Assistant-41BDF5?logo=home-assistant&style=for-the-badge
+[repository-url]: https://my.home-assistant.io/redirect/supervisor_add_addon_repository/?repository_url=https%3A%2F%2Fgithub.com%2Fs-allius%2Ftsun-gen3-proxy
