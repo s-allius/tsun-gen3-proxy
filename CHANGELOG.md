@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+- path for logs is now configurable by cli args
+- configure the number of keeped logfiles by cli args
+- add DOCS.md for add-ons
+- pin library version und update them with renovate
+- build config.yaml for add-ons by a jinja2 template
+- use gnu make to build proxy and add-on
 - make the configuration more flexible, add command line args to control this
 - fix the python path so we don't need special import paths for unit tests anymore
 - support test coverager in vscode
