@@ -299,37 +299,53 @@ class Infos:
     {% set result = 'noAlarm'%}
   {%else%}
     {% set result = '' %}
-    {% if val_int | bitwise_and(1)%}{% set result = result + 'Bit1, '%}
+    {% if val_int | bitwise_and(1)%}
+        {% set result = result + 'HBridgeFault, '%}
     {% endif %}
-    {% if val_int | bitwise_and(2)%}{% set result = result + 'Bit2, '%}
+    {% if val_int | bitwise_and(2)%}
+        {% set result = result + 'DriVoltageFault, '%}
     {% endif %}
-    {% if val_int | bitwise_and(3)%}{% set result = result + 'Bit3, '%}
+    {% if val_int | bitwise_and(3)%}
+        {% set result = result + 'GFDI-Fault, '%}
     {% endif %}
-    {% if val_int | bitwise_and(4)%}{% set result = result + 'Bit4, '%}
+    {% if val_int | bitwise_and(4)%}
+        {% set result = result + 'OverTemp, '%}
     {% endif %}
-    {% if val_int | bitwise_and(5)%}{% set result = result + 'Bit5, '%}
+    {% if val_int | bitwise_and(5)%}
+        {% set result = result + 'CommLose, '%}
     {% endif %}
-    {% if val_int | bitwise_and(6)%}{% set result = result + 'Bit6, '%}
+    {% if val_int | bitwise_and(6)%}
+        {% set result = result + 'Bit6, '%}
     {% endif %}
-    {% if val_int | bitwise_and(7)%}{% set result = result + 'Bit7, '%}
+    {% if val_int | bitwise_and(7)%}
+        {% set result = result + 'Bit7, '%}
     {% endif %}
-    {% if val_int | bitwise_and(8)%}{% set result = result + 'Bit8, '%}
+    {% if val_int | bitwise_and(8)%}
+        {% set result = result + 'EEPROM-Fault, '%}
     {% endif %}
-    {% if val_int | bitwise_and(9)%}{% set result = result + 'noUtility, '%}
+    {% if val_int | bitwise_and(9)%}
+        {% set result = result + 'NoUtility, '%}
     {% endif %}
-    {% if val_int | bitwise_and(10)%}{% set result = result + 'Bit10, '%}
+    {% if val_int | bitwise_and(10)%}
+        {% set result = result + 'VG_Offset, '%}
     {% endif %}
-    {% if val_int | bitwise_and(11)%}{% set result = result + 'Bit11, '%}
+    {% if val_int | bitwise_and(11)%}
+        {% set result = result + 'Relais_Open, '%}
     {% endif %}
-    {% if val_int | bitwise_and(12)%}{% set result = result + 'Bit12, '%}
+    {% if val_int | bitwise_and(12)%}
+        {% set result = result + 'Relais_Short, '%}
     {% endif %}
-    {% if val_int | bitwise_and(13)%}{% set result = result + 'Bit13, '%}
+    {% if val_int | bitwise_and(13)%}
+        {% set result = result + 'GridVoltOverRating, '%}
     {% endif %}
-    {% if val_int | bitwise_and(14)%}{% set result = result + 'Bit14, '%}
+    {% if val_int | bitwise_and(14)%}
+        {% set result = result + 'GridVoltUnderRating, '%}
     {% endif %}
-    {% if val_int | bitwise_and(15)%}{% set result = result + 'Bit15, '%}
+    {% if val_int | bitwise_and(15)%}
+        {% set result = result + 'GridFreqOverRating, '%}
     {% endif %}
-    {% if val_int | bitwise_and(16)%}{% set result = result + 'Bit16, '%}
+    {% if val_int | bitwise_and(16)%}
+        {% set result = result + 'GridFreqUnderRating, '%}
     {% endif %}
   {% endif %}
   {{ result }}
@@ -345,15 +361,20 @@ class Infos:
     {% set result = 'noFault'%}
   {%else%}
     {% set result = '' %}
-    {% if val_int | bitwise_and(1)%}{% set result = result + 'Bit1, '%}
+    {% if val_int | bitwise_and(1)%}
+        {% set result = result + 'PVOV-Fault (PV OverVolt), '%}
     {% endif %}
-    {% if val_int | bitwise_and(2)%}{% set result = result + 'Bit2, '%}
+    {% if val_int | bitwise_and(2)%}
+        {% set result = result + 'PVLV-Fault (PV LowVolt), '%}
     {% endif %}
-    {% if val_int | bitwise_and(3)%}{% set result = result + 'Bit3, '%}
+    {% if val_int | bitwise_and(3)%}
+        {% set result = result + 'PV OI-Fault (PV OverCurrent), '%}
     {% endif %}
-    {% if val_int | bitwise_and(4)%}{% set result = result + 'Bit4, '%}
+    {% if val_int | bitwise_and(4)%}
+        {% set result = result + 'PV OFV-Fault, '%}
     {% endif %}
-    {% if val_int | bitwise_and(5)%}{% set result = result + 'Bit5, '%}
+    {% if val_int | bitwise_and(5)%}
+        {% set result = result + 'DC ShortCircuitFault, '%}
     {% endif %}
     {% if val_int | bitwise_and(6)%}{% set result = result + 'Bit6, '%}
     {% endif %}
