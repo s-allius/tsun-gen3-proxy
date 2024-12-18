@@ -17,6 +17,10 @@ configuration:
       node_id            # MQTT-Ersatz für die Seriennummer des Wechselrichters
       suggested_area     # Vorgeschlagener Installationsbereich für Home-Assistant
       modbus_polling     # Optionale MODBUS-Polling deaktivieren
+      client_mode        # Optionaler Client-Mode - nur für GEN3PLUS
+        host             # Wechselrichter IP-Adresse für den Client-Mode
+        port             # Wechselrichter Port, default 8899
+        forward          # Sende die Daten an die Cloud, default False
       pv1                # Optional, PV Module Beschreibung
       pv2                # Optional, PV Module Beschreibung
 
