@@ -1,26 +1,27 @@
 ---
 configuration:
   inverters:
-    name: Inverters
+    name: Wechselrichter
     description: >+
-      For each GEN3 inverter, the serial number of the inverter must be mapped to an MQTT
-      definition. To do this, the corresponding configuration block is started with
-      <16-digit serial number> so that all subsequent parameters are assigned
-      to this inverter. Further inverter-specific parameters (e.g. polling mode) can be set
-      in the configuration block
+      Für jeden Wechselrichter muss die Seriennummer des Wechselrichters einer MQTT
+      Definition zugeordnet werden. Dazu wird der entsprechende Konfigurationsblock mit der
+      <16-stellige Seriennummer> gestartet, so dass alle nachfolgenden Parameter diesem 
+      Wechselricher zugeordnet sind.
+      Weitere wechselrichterspezifische Parameter (z.B. Polling Mode) können im 
+      Konfigurationsblock gesetzt werden.
 
-      The serial numbers of all GEN3 inverters start with `R17` and that of the GEN3PLUS
-      inverters with ‘Y17’ or ‘47’!
+      Die Seriennummer der GEN3 Wechselrichter beginnne mit `R17` und die der GEN3PLUS
+      Wechselrichter mir `Y17`oder `47`!
 
-      monitor_sn         # The GEN3PLUS "Monitoring SN:"
-      node_id            # MQTT replacement for inverters serial number
-      suggested_area     # suggested installation area for home-assistant
-      modbus_polling     # Disable optional MODBUS polling
-      pv1                # Optional, PV module descr
-      pv2                # Optional, PV module descr
+      monitor_sn         # Die GEN3PLUS "Monitoring SN:"
+      node_id            # MQTT-Ersatz für die Seriennummer des Wechselrichters
+      suggested_area     # Vorgeschlagener Installationsbereich für Home-Assistant
+      modbus_polling     # Optionale MODBUS-Polling deaktivieren
+      pv1                # Optional, PV Module Beschreibung
+      pv2                # Optional, PV Module Beschreibung
 
   tsun.enabled:
-    name: Connection to TSUN Cloud - for GEN3 inverter only
+    name: Verbindung zur TSUN Cloud - nur für GEN3-Wechselrichter
     description: >-
       switch on/off connection to the TSUN cloud
       This connection is only required if you want send data to the TSUN cloud

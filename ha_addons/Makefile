@@ -104,7 +104,7 @@ FORCE : ;
 # 
 
 INST=$(INST_BASE)/ha_addon_dev
-repro_files = DOCS.md icon.png logo.png translations/en.yaml
+repro_files = DOCS.md icon.png logo.png translations/de.yaml translations/en.yaml
 repro_templates = config.yaml
 repro_subdirs = translations
 repro_vers = debug dev rel
