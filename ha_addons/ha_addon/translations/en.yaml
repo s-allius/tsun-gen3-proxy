@@ -16,6 +16,10 @@ configuration:
       node_id            # MQTT replacement for inverters serial number
       suggested_area     # suggested installation area for home-assistant
       modbus_polling     # Disable optional MODBUS polling
+      client_mode        # Optional, Client-Mode - only for GEN3PLUS
+        host             # Hostname or IP address of the inverter for the Client-Mode
+        port             # Port of the inverter, default 8899
+        forward          # Send the data to the cloud, default False
       pv1                # Optional, PV module descr
       pv2                # Optional, PV module descr
 
