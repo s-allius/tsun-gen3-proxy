@@ -301,7 +301,7 @@ modbus_polling = true        # Enable optional MODBUS polling
 
 # if your inverter supports SSL connections you must use the client_mode. Pls, uncomment
 # the next line and configure the fixed IP of your inverter
-#client_mode = {host = '192.168.0.1', port = 8899}       
+#client_mode = {host = '192.168.0.1', port = 8899, forward = true}  
 
 pv1 = {type = 'RSM40-8-410M', manufacturer = 'Risen'}   # Optional, PV module descr
 pv2 = {type = 'RSM40-8-410M', manufacturer = 'Risen'}   # Optional, PV module descr
