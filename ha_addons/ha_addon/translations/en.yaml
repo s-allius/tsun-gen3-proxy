@@ -80,7 +80,7 @@ configuration:
   gen3plus.at_acl.tsun.block:
       name: TSUN GEN3 ACL block
       description: >-
-          List of blocked TSUN GEN3 AT commands
+          List of blocked TSUN GEN3PLUS AT commands
   gen3plus.at_acl.mqtt.allow:
       name: MQTT GEN3PLUS ACL allow
       description: >-
