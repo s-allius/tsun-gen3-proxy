@@ -73,7 +73,22 @@ configuration:
     description: >-
       Hostname or IP address of the Solarman cloud. if not set, the addon will try to connect to the cloud 
       on iot.talent-monitoring.com
-
+  gen3plus.at_acl.tsun.allow:
+      name: TSUN GEN3PLUS ACL allow
+      description: >-
+        List of allowed TSUN GEN3PLUS AT commands
+  gen3plus.at_acl.tsun.block:
+      name: TSUN GEN3 ACL block
+      description: >-
+          List of blocked TSUN GEN3 AT commands
+  gen3plus.at_acl.mqtt.allow:
+      name: MQTT GEN3PLUS ACL allow
+      description: >-
+        List of allowed MQTT GEN3PLUS commands
+  gen3plus.at_acl.mqtt.block:
+      name: MQTT GEN3PLUS ACL block
+      description: >-
+          List of blocked MQTT GEN3PLUS commands
 
 network:
   5005/tcp: listening Port for TSUN GEN3 Devices
