@@ -71,6 +71,9 @@ inverters:
     node_id: PV-Garage
     suggested_area: Garage
     modbus_polling: true
+    client_mode.host: 192.168.x.x
+    client_mode.port: 8899
+    client_mode.forward: true
     pv1.manufacturer: Shinefar
     pv1.type: SF-M18/144550
     pv2.manufacturer: Shinefar
