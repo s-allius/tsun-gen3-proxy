@@ -142,7 +142,7 @@ def main():   # pragma: no cover
     parser.add_argument('-t', '--toml_config', type=str,
                         help='read user config from toml-file')
     parser.add_argument('-l', '--log_path', type=str,
-                        default='log/',
+                        default='./log/',
                         help='set path for the logging files')
     parser.add_argument('-b', '--log_backups', type=int,
                         default=0,
@@ -159,11 +159,15 @@ def main():   # pragma: no cover
 
     logging.config.fileConfig('logging.ini')
     logging.info(f'Server "{serv_name} - {version}" will be started')
+    logging.info(f'current dir: {os.getcwd()}')
     logging.info(f"config_path: {args.config_path}")
     logging.info(f"json_config: {args.json_config}")
     logging.info(f"toml_config: {args.toml_config}")
     logging.info(f"log_path:    {args.log_path}")
-    logging.info(f"log_backups: {args.log_backups} days")
+    if args.log_backups == 0:
+        logging.info("log_backups: unlimited")
+    else:
+        logging.info(f"log_backups: {args.log_backups} days")
     log_level = get_log_level()
     logging.info('******')
 
@@ -204,6 +208,7 @@ def main():   # pragma: no cover
     # and we can't receive and handle the UNIX signals!
     #
     for inv_class, port in [(InverterG3, 5005), (InverterG3P, 10000)]:
+        logging.info(f'listen on port: {port} for inverters')
         loop.create_task(asyncio.start_server(lambda r, w, i=inv_class:
                                               handle_client(r, w, i),
                                               '0.0.0.0', port))

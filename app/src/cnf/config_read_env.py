@@ -22,4 +22,4 @@ class ConfigReadEnv(ConfigIfc):
         return conf
 
     def descr(self):
-        return "Read environment"
+        return "environment"

@@ -5,83 +5,91 @@ configuration:
     description: >+
       Für jeden Wechselrichter muss die Seriennummer des Wechselrichters einer MQTT
       Definition zugeordnet werden. Dazu wird der entsprechende Konfigurationsblock mit der
-      <16-stellige Seriennummer> gestartet, so dass alle nachfolgenden Parameter diesem 
-      Wechselricher zugeordnet sind.
+      16-stellige Seriennummer gestartet, so dass alle nachfolgenden Parameter diesem 
+      Wechselrichter zugeordnet sind.
       Weitere wechselrichterspezifische Parameter (z.B. Polling Mode) können im 
       Konfigurationsblock gesetzt werden.
 
-      Die Seriennummer der GEN3 Wechselrichter beginnne mit `R17` und die der GEN3PLUS
+      Die Seriennummer der GEN3 Wechselrichter beginnen mit `R17` und die der GEN3PLUS
       Wechselrichter mir `Y17`oder `47`!
 
-      monitor_sn         # Die GEN3PLUS "Monitoring SN:"
-      node_id            # MQTT-Ersatz für die Seriennummer des Wechselrichters
-      suggested_area     # Vorgeschlagener Installationsbereich für Home-Assistant
-      modbus_polling     # Optionale MODBUS-Polling deaktivieren
-      pv1                # Optional, PV Module Beschreibung
-      pv2                # Optional, PV Module Beschreibung
+      Siehe Beispielkonfiguration im Dokumentations-Tab
 
   tsun.enabled:
     name: Verbindung zur TSUN Cloud - nur für GEN3-Wechselrichter
-    description: >-
-      switch on/off connection to the TSUN cloud
-      This connection is only required if you want send data to the TSUN cloud
-      eg. to use the TSUN APPs or receive firmware updates.
+    description: >+
+      Schaltet die Verbindung zur TSUN Cloud ein/aus.
+      Diese Verbindung ist erforderlich, wenn Sie Daten an die TSUN Cloud senden möchten,
+      z.B. um die TSUN-Apps zu nutzen oder Firmware-Updates zu erhalten.
       
-      on - normal proxy operation
-      off - The Inverter become isolated from Internet
+      ein => normaler Proxy-Betrieb.
+      aus => Der Wechselrichter wird vom Internet isoliert.
   solarman.enabled:
-    name: Connection to Solarman Cloud - for GEN3PLUS inverter only
-    description: >-
-      switch on/off connection to the Solarman cloud
-      This connection is only required if you want send data to the Solarman cloud
-      eg. to use the Solarman APPs or receive firmware updates.
+    name: Verbindung zur Solarman Cloud - nur für GEN3PLUS Wechselrichter
+    description: >+
+      Schaltet die Verbindung zur Solarman Cloud ein/aus.
+      Diese Verbindung ist erforderlich, wenn Sie Daten an die Solarman Cloud senden möchten,
+      z.B. um die Solarman Apps zu nutzen oder Firmware-Updates zu erhalten.
       
-      on - normal proxy operation
-      off - The Inverter become isolated from Internet
+      ein => normaler Proxy-Betrieb.
+      aus => Der Wechselrichter wird vom Internet isoliert.
   inverters.allow_all:
-    name: Allow all connections from all inverters
+    name: Erlaube Verbindungen von sämtlichen Wechselrichtern
     description: >-
-      The proxy only usually accepts connections from known inverters.
-      Switch on for test purposes and unknown serial numbers.
+      Der Proxy akzeptiert normalerweise nur Verbindungen von konfigurierten Wechselrichtern.
+      Schalten Sie dies für Testzwecke und unbekannte Seriennummern ein.
   mqtt.host:
     name: MQTT Broker Host
     description: >-
-      Hostname or IP address of the MQTT broker. if not set, the addon will try to connect to the Home Assistant MQTT broker
+      Hostname oder IP-Adresse des MQTT-Brokers. Wenn nicht gesetzt, versucht das Addon, eine Verbindung zum Home Assistant MQTT-Broker herzustellen.
   mqtt.port:
     name: MQTT Broker Port
     description: >-
-      Port of the MQTT broker. if not set, the addon will try to connect to the Home Assistant MQTT broker
+      Port des MQTT-Brokers. Wenn nicht gesetzt, versucht das Addon, eine Verbindung zum Home Assistant MQTT-Broker herzustellen.
   mqtt.user:
-    name: MQTT Broker User
+    name: MQTT Broker Benutzer
     description: >-
-      User for the MQTT broker. if not set, the addon will try to connect to the Home Assistant MQTT broker
+      Benutzer für den MQTT-Broker. Wenn nicht gesetzt, versucht das Addon, eine Verbindung zum Home Assistant MQTT-Broker herzustellen.
   mqtt.passwd:
-    name: MQTT Broker Password
+    name: MQTT Broker Passwort
     description: >-
-      Password for the MQTT broker. if not set, the addon will try to connect to the Home Assistant MQTT broker
+      Passwort für den MQTT-Broker. Wenn nicht gesetzt, versucht das Addon, eine Verbindung zum Home Assistant MQTT-Broker herzustellen.
   ha.auto_conf_prefix:
-    name: MQTT prefix for subscribing for homeassistant status updates
+    name: MQTT-Präfix für das Abonnieren von Home Assistant-Statusaktualisierungen
   ha.discovery_prefix:
-    name: MQTT prefix for discovery topic
+    name: MQTT-Präfix für das discovery topic
   ha.entity_prefix:
-    name: MQTT topic prefix for publishing inverter values
+    name: MQTT-Themenpräfix für die Veröffentlichung von Wechselrichterwerten
   ha.proxy_node_id:
-    name: MQTT node id, for the proxy_node_id
+    name: MQTT-Knoten-ID für die proxy_node_id
   ha.proxy_unique_id:
-    name: MQTT unique id, to identify a proxy instance
+    name: MQTT-eindeutige ID zur Identifizierung einer Proxy-Instanz
   tsun.host:
     name: TSUN Cloud Host
     description: >-
-      Hostname or IP address of the TSUN cloud. if not set, the addon will try to connect to the cloud default
-      on logger.talent-monitoring.com
+      Hostname oder IP-Adresse der TSUN-Cloud. Wenn nicht gesetzt, versucht das Addon, eine Verbindung zur Cloud logger.talent-monitoring.com herzustellen.
   solarman.host:
     name: Solarman Cloud Host
     description: >-
-      Hostname or IP address of the Solarman cloud. if not set, the addon will try to connect to the cloud default
-      on iot.talent-monitoring.com
+      Hostname oder IP-Adresse der Solarman-Cloud. Wenn nicht gesetzt, versucht das Addon, eine Verbindung zur Cloud iot.talent-monitoring.com herzustellen.
+  gen3plus.at_acl.tsun.allow:
+      name: TSUN GEN3PLUS ACL allow
+      description: >-
+        Liste erlaubter AT-Befehle für TSUN GEN3PLUS
+  gen3plus.at_acl.tsun.block:
+      name: TSUN GEN3 ACL block
+      description: >-
+          Liste blockierter AT-Befehle für TSUN GEN3PLUS
+  gen3plus.at_acl.mqtt.allow:
+      name: MQTT GEN3PLUS ACL allow
+      description: >-
+        Liste erlaubter MQTT-Befehle für GEN3PLUS
+  gen3plus.at_acl.mqtt.block:
+      name: MQTT GEN3PLUS ACL block
+      description: >-
+          Liste blockierter MQTT-Befehle für GEN3PLUS
 
 
 network:
-  8127/tcp: x...
-  5005/tcp: listening Port for TSUN GEN3 Devices
-  10000/tcp: listening Port for TSUN GEN3PLUS Devices
+  5005/tcp: listening Port für TSUN GEN3 Wechselrichter
+  10000/tcp: listening Port für TSUN GEN3PLUS Wechselrichter
