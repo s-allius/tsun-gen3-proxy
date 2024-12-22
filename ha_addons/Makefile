@@ -105,15 +105,17 @@ FORCE : ;
 
 INST=$(INST_BASE)/ha_addon_dev
 repro_files = DOCS.md icon.png logo.png translations/de.yaml translations/en.yaml
+repro_root = CHANGELOG.md 
 repro_templates = config.yaml
 repro_subdirs = translations
 repro_vers = debug dev rel
 
 repro_all_files := $(foreach dir,$(repro_vers), $(foreach file,$(repro_files),$(INST_BASE)/ha_addon_$(dir)/$(file)))
+repro_root_files := $(foreach dir,$(repro_vers), $(foreach file,$(repro_root),$(INST_BASE)/ha_addon_$(dir)/$(file)))
 repro_all_templates := $(foreach dir,$(repro_vers), $(foreach file,$(repro_templates),$(INST_BASE)/ha_addon_$(dir)/$(file)))
 repro_all_subdirs := $(foreach dir,$(repro_vers), $(foreach file,$(repro_subdirs),$(INST_BASE)/ha_addon_$(dir)/$(file)))
 
-repro: $(repro_all_subdirs)  $(repro_all_templates) $(repro_all_files)
+repro: $(repro_all_subdirs)  $(repro_all_templates) $(repro_all_files) $(repro_root_files)
 
 $(repro_all_subdirs) :
 	mkdir -p $@
@@ -121,6 +123,8 @@ $(repro_all_subdirs) :
 $(repro_all_templates) : $(INST_BASE)/ha_addon_%/config.yaml: $(TEMPL)/config.jinja $(TEMPL)/%_data.json $(SRC)/.version
 	$(JINJA) --strict -D AppVersion=$(VERSION) $< $(filter %.json,$^) -o $@
 
+$(repro_root_files) : %/CHANGELOG.md : ../CHANGELOG.md
+	cp $< $@
 
 $(filter $(INST_BASE)/ha_addon_debug/%,$(repro_all_files)) : $(INST_BASE)/ha_addon_debug/% : ha_addon/%
 	cp $< $@
