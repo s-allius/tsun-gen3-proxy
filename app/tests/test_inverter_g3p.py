@@ -58,7 +58,7 @@ class FakeWriter():
         return
     def get_extra_info(self, sel: str):
         if sel == 'peername':
-            return 'remote.intern'
+            return ('47.1.2.3', 10000)
         elif sel == 'sockname':
             return 'sock:1234'
         assert False
@@ -94,7 +94,8 @@ def patch_open_connection():
     with patch.object(asyncio, 'open_connection', new_open) as conn:
         yield conn
 
-def test_method_calls():
+def test_method_calls(config_conn):
+    _ = config_conn
     reader = FakeReader()
     writer =  FakeWriter()
     InverterBase._registry.clear()

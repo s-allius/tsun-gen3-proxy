@@ -82,7 +82,7 @@ async def handle_client(reader: StreamReader, writer: StreamWriter, inv_class):
         await inv.local.ifc.server_loop()
 
 
-async def handle_shutdown(web_task):
+async def handle_shutdown(loop, web_task):
     '''Close all TCP connections and stop the event loop'''
 
     logging.info('Shutdown due to SIGTERM')
@@ -132,7 +132,7 @@ def get_log_level() -> int:
     return log_level
 
 
-if __name__ == "__main__":   # pragma: no cover
+def main():   # pragma: no cover
     parser = argparse.ArgumentParser()
     parser.add_argument('-c', '--config_path', type=str,
                         default='./config/',
@@ -194,6 +194,8 @@ if __name__ == "__main__":   # pragma: no cover
 
     if ConfigErr is not None:
         logging.info(f'ConfigErr: {ConfigErr}')
+        return
+
     logging.info('******')
 
     Proxy.class_init()
@@ -219,11 +221,12 @@ if __name__ == "__main__":   # pragma: no cover
     for signame in ('SIGINT', 'SIGTERM'):
         loop.add_signal_handler(getattr(signal, signame),
                                 lambda loop=loop: asyncio.create_task(
-                                    handle_shutdown(web_task)))
+                                    handle_shutdown(loop, web_task)))
 
     loop.set_debug(log_level == logging.DEBUG)
     try:
         if ConfigErr is None:
+            global proxy_is_up
             proxy_is_up = True
         loop.run_forever()
     except KeyboardInterrupt:
@@ -234,3 +237,7 @@ if __name__ == "__main__":   # pragma: no cover
         logging.debug('Close event loop')
         loop.close()
         logging.info(f'Finally, exit Server "{serv_name}"')
+
+
+if __name__ == "__main__":
+    main()
