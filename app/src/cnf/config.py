@@ -189,6 +189,7 @@ here. The default config reader is handled in the Config.init method'''
             cls.err = f'error: {error}'
             logging.error(
                 f"Can't read from {reader.descr()} => error\n  {error}")
+            return cls.err
 
         logging.info(f'Read from {reader.descr()} => {res}')
         return cls.err
