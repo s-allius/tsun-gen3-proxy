@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+- detect usage of a local DNS resolver [#37](https://github.com/s-allius/tsun-gen3-proxy/issues/37)
 - path for logs is now configurable by cli args
 - configure the number of keeped logfiles by cli args
 - add DOCS.md for add-ons
