@@ -91,7 +91,7 @@ $(DST)/requirements.txt : $(SRC)/requirements.txt
 	@cp $< $@
 
 $(ADDON_PATH)/%.yaml: $(TEMPL)/%.jinja $(TEMPL)/.data.json
-	$(JINJA) --strict --format=json $^ -o $@
+	$(JINJA) --strict -D AppVersion=$(VERSION) --format=json $^ -o $@
 
 $(TEMPL)/.data.json: FORCE
 	rsync --checksum $(TEMPL)/$(STAGE)_data.json $@
@@ -121,7 +121,7 @@ $(repro_all_subdirs) :
 	mkdir -p $@
 
 $(repro_all_templates) : $(INST_BASE)/ha_addon_%/config.yaml: $(TEMPL)/config.jinja $(TEMPL)/%_data.json $(SRC)/.version
-	$(JINJA) --strict -D AppVersion=$(VERSION) $< $(filter %.json,$^) -o $@
+	$(JINJA) --strict -D AppVersion=$(VERSION)-$* $< $(filter %.json,$^) -o $@
 
 $(repro_root_files) : %/CHANGELOG.md : ../CHANGELOG.md
 	cp $< $@
