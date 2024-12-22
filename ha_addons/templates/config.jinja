@@ -1,24 +1,31 @@
-name: "TSUN-Proxy"
-description: "MQTT Proxy for TSUN Photovoltaic Inverters"
-version: "dev"
+name: {{name}}
+description: {{description}}
+version: {% if version is defined and version|length %} {{version}} {% else %} {{AppVersion}} {% endif %}
 image: docker.io/sallius/tsun-gen3-addon
 url: https://github.com/s-allius/tsun-gen3-proxy
-slug: "tsun-proxy"
+slug: {{slug}}
+advanced: {{advanced}}
+stage: {{stage}}
 init: false
 arch:
   - aarch64
   - amd64
   - armhf
   - armv7
-  - i386
 startup: services
 homeassistant_api: true
+map:
+  - type: addon_config
+    path: /homeassistant/tsun-proxy
+    read_only: False
 services:
   - mqtt:want
 ports:
-  8127/tcp: 8127
   5005/tcp: 5005
   10000/tcp: 10000
+
+# FIXME: we disabled the watchdog due to exceptions in the ha supervisor. See: https://github.com/s-allius/tsun-gen3-proxy/issues/249
+# watchdog: "http://[HOST]:[PORT:8127]/-/healthy"
 
 # Definition of parameters in the configuration tab of the addon
 # parameters are available within the container as /data/options.json
@@ -32,8 +39,9 @@ schema:
       node_id: str
       suggested_area: str
       modbus_polling: bool
-      client_mode_host: str?
-      client_mode_port: int?
+      client_mode.host: str?
+      client_mode.port: int?
+      client_mode.forward: bool?
       #strings: # leider funktioniert es nicht die folgenden 3 parameter im schema aufzulisten. möglicherweise wird die verschachtelung nicht unterstützt.
       #  - string: str
       #    type: str

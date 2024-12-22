@@ -54,11 +54,12 @@ class FakeReader():
 
 
 class FakeWriter():
+    peer = ('47.1.2.3', 10000)
     def write(self, buf: bytes):
         return
     def get_extra_info(self, sel: str):
         if sel == 'peername':
-            return 'remote.intern'
+            return self.peer
         elif sel == 'sockname':
             return 'sock:1234'
         assert False
@@ -235,6 +236,118 @@ async def test_remote_conn(config_conn, patch_open_connection):
     assert inverter.healthy()
     del inverter
 
+    cnt = 0
+    for inv in InverterBase:
+        print(f'InverterBase refs:{gc.get_referrers(inv)}')
+        cnt += 1
+    assert cnt == 0
+
+@pytest.mark.asyncio
+async def test_remote_conn_to_private(config_conn, patch_open_connection):
+    '''check DNS resolving of the TSUN FQDN to a local address'''
+    _ = config_conn
+    _ = patch_open_connection
+    assert asyncio.get_running_loop()
+    InverterBase._registry.clear()
+    reader = FakeReader()
+    writer =  FakeWriter()
+    FakeWriter.peer = ("192.168.0.1", 10000)
+
+    with InverterBase(reader, writer, 'tsun', Talent) as inverter:
+        assert inverter.local.stream
+        assert inverter.local.ifc
+        await inverter.create_remote()
+        await asyncio.sleep(0)
+        assert not Config.act_config['tsun']['enabled']
+        assert inverter.remote.stream
+        assert inverter.remote.ifc
+        assert inverter.local.ifc.healthy()
+
+    # outside context manager the unhealth AsyncStream is released
+    FakeWriter.peer = ("47.1.2.3", 10000)
+    cnt = 0
+    for inv in InverterBase:
+        assert inv.healthy()  # inverter is healthy again (without the unhealty AsyncStream)
+        cnt += 1
+        del inv
+    assert cnt == 1
+
+    del inverter
+    cnt = 0
+    for inv in InverterBase:
+        print(f'InverterBase refs:{gc.get_referrers(inv)}')
+        cnt += 1
+    assert cnt == 0
+
+
+@pytest.mark.asyncio
+async def test_remote_conn_to_loopback(config_conn, patch_open_connection):
+    '''check DNS resolving of the TSUN FQDN to the loopback address'''
+    _ = config_conn
+    _ = patch_open_connection
+    assert asyncio.get_running_loop()
+    InverterBase._registry.clear()
+    reader = FakeReader()
+    writer =  FakeWriter()
+    FakeWriter.peer = ("127.0.0.1", 10000)
+
+    with InverterBase(reader, writer, 'tsun', Talent) as inverter:
+        assert inverter.local.stream
+        assert inverter.local.ifc
+        await inverter.create_remote()
+        await asyncio.sleep(0)
+        assert not Config.act_config['tsun']['enabled']
+        assert inverter.remote.stream
+        assert inverter.remote.ifc
+        assert inverter.local.ifc.healthy()
+
+    # outside context manager the unhealth AsyncStream is released
+    FakeWriter.peer = ("47.1.2.3", 10000)
+    cnt = 0
+    for inv in InverterBase:
+        assert inv.healthy()  # inverter is healthy again (without the unhealty AsyncStream)
+        cnt += 1
+        del inv
+    assert cnt == 1
+
+    del inverter
+    cnt = 0
+    for inv in InverterBase:
+        print(f'InverterBase refs:{gc.get_referrers(inv)}')
+        cnt += 1
+    assert cnt == 0
+
+@pytest.mark.asyncio
+async def test_remote_conn_to_None(config_conn, patch_open_connection):
+    '''check if get_extra_info() return None in case of an error'''
+    _ = config_conn
+    _ = patch_open_connection
+    assert asyncio.get_running_loop()
+    InverterBase._registry.clear()
+    reader = FakeReader()
+    writer =  FakeWriter()
+    FakeWriter.peer = None
+
+    with InverterBase(reader, writer, 'tsun', Talent) as inverter:
+        assert inverter.local.stream
+        assert inverter.local.ifc
+        await inverter.create_remote()
+        await asyncio.sleep(0)
+        assert Config.act_config['tsun']['enabled']
+        assert inverter.remote.stream
+        assert inverter.remote.ifc
+        assert inverter.local.ifc.healthy()
+
+    # outside context manager the unhealth AsyncStream is released
+    FakeWriter.peer = ("47.1.2.3", 10000)
+    cnt = 0
+    for inv in InverterBase:
+        assert inv.healthy()  # inverter is healthy again (without the unhealty AsyncStream)
+        cnt += 1
+        del inv
+    assert cnt == 1
+
+    del inverter
     cnt = 0
     for inv in InverterBase:
         print(f'InverterBase refs:{gc.get_referrers(inv)}')

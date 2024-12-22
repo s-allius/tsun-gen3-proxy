@@ -7,9 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+## [0.12.0] - 2024-12-22
+
+- add hadolint configuration
+- detect usage of a local DNS resolver [#37](https://github.com/s-allius/tsun-gen3-proxy/issues/37)
+- path for logs is now configurable by cli args
+- configure the number of keeped logfiles by cli args
+- add DOCS.md and CHANGELOG.md for add-ons
+- pin library version und update them with renovate
+- build config.yaml for add-ons by a jinja2 template
+- use gnu make to build proxy and add-on
 - make the configuration more flexible, add command line args to control this
 - fix the python path so we don't need special import paths for unit tests anymore
-- support test coverager in vscode
+- add emulator mode [#205](https://github.com/s-allius/tsun-gen3-proxy/issues/205)
+- ignore inverter replays which a older than 1 day [#246](https://github.com/s-allius/tsun-gen3-proxy/issues/246)
+- support test coverage in vscode
 - upgrade SonarQube action to version 4
 - update github action to Ubuntu 24-04
 - add initial support for home assistant add-ons from @mime24

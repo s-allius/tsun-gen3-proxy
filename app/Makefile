@@ -1,12 +1,12 @@
 #!make
-include ../../.env
+include ../.env
 
 SHELL = /bin/sh
-IMAGE = tsun-gen3-addon
+IMAGE = tsun-gen3-proxy
 
 
 # Folders
-SRC=../../app
+SRC=.
 SRC_PROXY=$(SRC)/src
 CNF_PROXY=$(SRC)/config
 
@@ -33,13 +33,13 @@ PUBLIC_URL := $(shell echo $(PUBLIC_CONTAINER_REGISTRY) | cut -f1 -d/)
 PUBLIC_USER :=$(shell echo $(PUBLIC_CONTAINER_REGISTRY) | cut -f2 -d/)
 
 
-dev debug: build
+dev debug:
 	@echo version: $(VERSION)  build-date: $(BUILD_DATE)   image: $(PRIVAT_CONTAINER_REGISTRY)$(IMAGE)
 	export VERSION=$(VERSION)-$@ && \
 	export IMAGE=$(PRIVAT_CONTAINER_REGISTRY)$(IMAGE) && \
 	docker buildx bake -f docker-bake.hcl $@
 
-rc: build
+preview rc rel:
 	@echo version: $(VERSION)  build-date: $(BUILD_DATE)   image: $(PUBLIC_CONTAINER_REGISTRY)$(IMAGE)
 	@echo login at $(PUBLIC_URL) as $(PUBLIC_USER)
 	@DO_LOGIN="$(shell echo $(PUBLIC_CR_KEY) | docker login $(PUBLIC_URL) -u $(PUBLIC_USER) --password-stdin)"
@@ -48,15 +48,8 @@ rc: build
 	docker buildx bake -f docker-bake.hcl $@
 
 
-build: rootfs
 
-clean:
-	rm -r -f $(DST_PROXY)
-	rm -f $(DST)/requirements.txt
-
-rootfs: $(TARGET_FILES) $(CONFIG_FILES) $(DST)/requirements.txt
-
-.PHONY: debug dev build clean rootfs 
+.PHONY: debug dev preview rc rel
 
 
 $(CONFIG_FILES): $(DST_PROXY)/% : $(CNF_PROXY)/%

@@ -1,5 +1,6 @@
 import logging
 import asyncio
+import logging.handlers
 import signal
 import os
 import argparse
@@ -81,7 +82,7 @@ async def handle_client(reader: StreamReader, writer: StreamWriter, inv_class):
         await inv.local.ifc.server_loop()
 
 
-async def handle_shutdown(web_task):
+async def handle_shutdown(loop, web_task):
     '''Close all TCP connections and stop the event loop'''
 
     logging.info('Shutdown due to SIGTERM')
@@ -131,16 +132,21 @@ def get_log_level() -> int:
     return log_level
 
 
-if __name__ == "__main__":   # pragma: no cover
+def main():   # pragma: no cover
     parser = argparse.ArgumentParser()
-    parser.add_argument('-p', '--config_path', type=str,
+    parser.add_argument('-c', '--config_path', type=str,
                         default='./config/',
                         help='set path for the configuration files')
     parser.add_argument('-j', '--json_config', type=str,
                         help='read user config from json-file')
     parser.add_argument('-t', '--toml_config', type=str,
                         help='read user config from toml-file')
-    parser.add_argument('--add_on', action='store_true')
+    parser.add_argument('-l', '--log_path', type=str,
+                        default='./log/',
+                        help='set path for the logging files')
+    parser.add_argument('-b', '--log_backups', type=int,
+                        default=0,
+                        help='set max number of daily log-files')
     args = parser.parse_args()
     #
     # Setup our daily, rotating logger
@@ -148,12 +154,20 @@ if __name__ == "__main__":   # pragma: no cover
     serv_name = os.getenv('SERVICE_NAME', 'proxy')
     version = os.getenv('VERSION', 'unknown')
 
+    setattr(logging.handlers, "log_path", args.log_path)
+    setattr(logging.handlers, "log_backups", args.log_backups)
+
     logging.config.fileConfig('logging.ini')
     logging.info(f'Server "{serv_name} - {version}" will be started')
-    logging.info(f"AddOn: {args.add_on}")
+    logging.info(f'current dir: {os.getcwd()}')
     logging.info(f"config_path: {args.config_path}")
     logging.info(f"json_config: {args.json_config}")
     logging.info(f"toml_config: {args.toml_config}")
+    logging.info(f"log_path:    {args.log_path}")
+    if args.log_backups == 0:
+        logging.info("log_backups: unlimited")
+    else:
+        logging.info(f"log_backups: {args.log_backups} days")
     log_level = get_log_level()
     logging.info('******')
 
@@ -176,10 +190,12 @@ if __name__ == "__main__":   # pragma: no cover
     ConfigReadToml(args.config_path + "config.toml")
     ConfigReadJson(args.json_config)
     ConfigReadToml(args.toml_config)
-    ConfigErr = Config.get_error()
+    config_err = Config.get_error()
 
-    if ConfigErr is not None:
-        logging.info(f'ConfigErr: {ConfigErr}')
+    if config_err is not None:
+        logging.info(f'config_err: {config_err}')
+        return
+
     logging.info('******')
 
     Proxy.class_init()
@@ -192,6 +208,7 @@ if __name__ == "__main__":   # pragma: no cover
     # and we can't receive and handle the UNIX signals!
     #
     for inv_class, port in [(InverterG3, 5005), (InverterG3P, 10000)]:
+        logging.info(f'listen on port: {port} for inverters')
         loop.create_task(asyncio.start_server(lambda r, w, i=inv_class:
                                               handle_client(r, w, i),
                                               '0.0.0.0', port))
@@ -204,12 +221,12 @@ if __name__ == "__main__":   # pragma: no cover
     for signame in ('SIGINT', 'SIGTERM'):
         loop.add_signal_handler(getattr(signal, signame),
                                 lambda loop=loop: asyncio.create_task(
-                                    handle_shutdown(web_task)))
+                                    handle_shutdown(loop, web_task)))
 
     loop.set_debug(log_level == logging.DEBUG)
     try:
-        if ConfigErr is None:
-            proxy_is_up = True
+        global proxy_is_up
+        proxy_is_up = True
         loop.run_forever()
     except KeyboardInterrupt:
         pass
@@ -219,3 +236,7 @@ if __name__ == "__main__":   # pragma: no cover
         logging.debug('Close event loop')
         loop.close()
         logging.info(f'Finally, exit Server "{serv_name}"')
+
+
+if __name__ == "__main__":  # pragma: no cover
+    main()
