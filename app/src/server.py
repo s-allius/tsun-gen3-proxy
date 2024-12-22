@@ -186,10 +186,10 @@ def main():   # pragma: no cover
     ConfigReadToml(args.config_path + "config.toml")
     ConfigReadJson(args.json_config)
     ConfigReadToml(args.toml_config)
-    ConfigErr = Config.get_error()
+    config_err = Config.get_error()
 
-    if ConfigErr is not None:
-        logging.info(f'ConfigErr: {ConfigErr}')
+    if config_err is not None:
+        logging.info(f'config_err: {config_err}')
         return
 
     logging.info('******')
@@ -220,9 +220,8 @@ def main():   # pragma: no cover
 
     loop.set_debug(log_level == logging.DEBUG)
     try:
-        if ConfigErr is None:
-            global proxy_is_up
-            proxy_is_up = True
+        global proxy_is_up
+        proxy_is_up = True
         loop.run_forever()
     except KeyboardInterrupt:
         pass
