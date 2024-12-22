@@ -6,6 +6,7 @@ import json
 import gc
 from aiomqtt import MqttCodeError
 from asyncio import StreamReader, StreamWriter
+from ipaddress import ip_address
 
 from inverter_ifc import InverterIfc
 from proxy import Proxy
@@ -101,6 +102,20 @@ class InverterBase(InverterIfc, Proxy):
             logging.info(f'[{stream.node_id}] Connect to {addr}')
             connect = asyncio.open_connection(host, port)
             reader, writer = await connect
+            r_addr = writer.get_extra_info('peername')
+            if r_addr is not None:
+                (ip, _) = r_addr
+                if ip_address(ip).is_private:
+                    logging.error(
+                        f"""resolve {host} to {ip}, which is a private IP!
+\u001B[31m  Check your DNS settings and use a public DNS resolver!
+
+  To prevent a possible loop, forwarding to local IP addresses is
+  not supported and is deactivated for subsequent connections
+\u001B[0m
+""")
+                    Config.act_config[self.config_id]['enabled'] = False
+
             ifc = AsyncStreamClient(
                 reader, writer, self.local, self.__del_remote)
 
