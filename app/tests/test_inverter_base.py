@@ -58,7 +58,7 @@ class FakeWriter():
         return
     def get_extra_info(self, sel: str):
         if sel == 'peername':
-            return 'remote.intern'
+            return ('47.1.2.3', '10000')
         elif sel == 'sockname':
             return 'sock:1234'
         assert False
