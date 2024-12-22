@@ -39,8 +39,9 @@ schema:
       node_id: str
       suggested_area: str
       modbus_polling: bool
-      client_mode_host: str?
-      client_mode_port: int?
+      client_mode.host: str?
+      client_mode.port: int?
+      client_mode.forward: bool?
       #strings: # leider funktioniert es nicht die folgenden 3 parameter im schema aufzulisten. möglicherweise wird die verschachtelung nicht unterstützt.
       #  - string: str
       #    type: str
