@@ -44,7 +44,7 @@ def test_extend_key():
     assert conf == {'': 'testuser'}
 
 def test_read_env_config():
-    Config.init(ConfigReadToml("app/config/default_config.toml"))
+    Config.init(ConfigReadToml("app/src/cnf/default_config.toml"))
     assert Config.get('mqtt') == {'host': 'mqtt', 'port': 1883, 'user': None, 'passwd': None}
     for _ in patch_getenv():
 
