@@ -3,6 +3,7 @@
     "name": "TSUN-Proxy (Dev)",
     "description": "MQTT Proxy for TSUN Photovoltaic Inverters",
     "version": "dev",
+    "image": "docker.io/sallius/tsun-gen3-addon",
     "slug": "tsun-proxy-dev",
     "advanced": false,
     "stage": "experimental"

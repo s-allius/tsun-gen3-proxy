@@ -2,6 +2,7 @@
 {
     "name": "TSUN-Proxy",
     "description": "MQTT Proxy for TSUN Photovoltaic Inverters",
+    "image": "ghcr.io/s-allius/tsun-gen3-addon",
     "slug": "tsun-proxy",
     "advanced": false,
     "stage": "stable"
