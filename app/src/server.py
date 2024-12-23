@@ -156,8 +156,10 @@ def main():   # pragma: no cover
 
     setattr(logging.handlers, "log_path", args.log_path)
     setattr(logging.handlers, "log_backups", args.log_backups)
+    os.makedirs(args.log_path, exist_ok=True)
 
-    logging.config.fileConfig('logging.ini')
+    src_dir = os.path.dirname(__file__) + '/'
+    logging.config.fileConfig(src_dir + 'logging.ini')
     logging.info(f'Server "{serv_name} - {version}" will be started')
     logging.info(f'current dir: {os.getcwd()}')
     logging.info(f"config_path: {args.config_path}")
@@ -184,7 +186,7 @@ def main():   # pragma: no cover
     asyncio.set_event_loop(loop)
 
     # read config file
-    Config.init(ConfigReadToml("default_config.toml"))
+    Config.init(ConfigReadToml(src_dir + "cnf/default_config.toml"))
     ConfigReadEnv()
     ConfigReadJson(args.config_path + "config.json")
     ConfigReadToml(args.config_path + "config.toml")

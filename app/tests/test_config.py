@@ -144,7 +144,7 @@ def ConfigComplete():
     }
 
 def test_default_config():
-    Config.init(ConfigReadToml("app/config/default_config.toml"))
+    Config.init(ConfigReadToml("app/src/cnf/default_config.toml"))
     validated = Config.def_config
     assert validated == {'gen3plus': {'at_acl': {'mqtt': {'allow': ['AT+'], 'block': []}, 'tsun': {'allow': ['AT+Z', 'AT+UPURL', 'AT+SUPDATE'], 'block': []}}}, 'tsun': {'enabled': True, 'host': 'logger.talent-monitoring.com', 'port': 5005}, 'solarman': {'enabled': True, 'host': 'iot.talent-monitoring.com', 'port': 10000}, 'mqtt': {'host': 'mqtt', 'port': 1883, 'user': None, 'passwd': None}, 'ha': {'auto_conf_prefix': 'homeassistant', 'discovery_prefix': 'homeassistant', 'entity_prefix': 'tsun', 'proxy_node_id': 'proxy', 'proxy_unique_id': 'P170000000000001'},
                          'inverters': {
@@ -193,7 +193,7 @@ def test_full_config(ConfigComplete):
 def test_read_empty(ConfigDefault):
     test_buffer.rd = ""
     
-    Config.init(ConfigReadToml("app/config/default_config.toml"))
+    Config.init(ConfigReadToml("app/src/cnf/default_config.toml"))
     for _ in patch_open():
         ConfigReadToml("config/config.toml")
         err = Config.get_error()
@@ -216,14 +216,14 @@ def test_no_file():
     assert defcnf == None
 
 def test_no_file2():
-    Config.init(ConfigReadToml("app/config/default_config.toml"))
+    Config.init(ConfigReadToml("app/src/cnf/default_config.toml"))
     assert Config.err == None
     ConfigReadToml("_no__file__no_")
     err = Config.get_error()
     assert err == None
 
 def test_invalid_filename():
-    Config.init(ConfigReadToml("app/config/default_config.toml"))
+    Config.init(ConfigReadToml("app/src/cnf/default_config.toml"))
     assert Config.err == None
     ConfigReadToml(None)
     err = Config.get_error()
@@ -232,7 +232,7 @@ def test_invalid_filename():
 def test_read_cnf1():
     test_buffer.rd = "solarman.enabled = false"
     
-    Config.init(ConfigReadToml("app/config/default_config.toml"))
+    Config.init(ConfigReadToml("app/src/cnf/default_config.toml"))
     for _ in patch_open():
         ConfigReadToml("config/config.toml")
         err = Config.get_error()
@@ -279,7 +279,7 @@ def test_read_cnf1():
 def test_read_cnf2():
     test_buffer.rd = "solarman.enabled = 'FALSE'"
     
-    Config.init(ConfigReadToml("app/config/default_config.toml"))
+    Config.init(ConfigReadToml("app/src/cnf/default_config.toml"))
     for _ in patch_open():
         ConfigReadToml("config/config.toml")
         err = Config.get_error()
@@ -322,7 +322,7 @@ def test_read_cnf2():
 def test_read_cnf3(ConfigDefault):
     test_buffer.rd = "solarman.port = 'FALSE'"
     
-    Config.init(ConfigReadToml("app/config/default_config.toml"))
+    Config.init(ConfigReadToml("app/src/cnf/default_config.toml"))
     for _ in patch_open():
         ConfigReadToml("config/config.toml")
         err = Config.get_error()
@@ -334,7 +334,7 @@ def test_read_cnf3(ConfigDefault):
 def test_read_cnf4():
     test_buffer.rd = "solarman.port = 5000"
     
-    Config.init(ConfigReadToml("app/config/default_config.toml"))
+    Config.init(ConfigReadToml("app/src/cnf/default_config.toml"))
     for _ in patch_open():
         ConfigReadToml("config/config.toml")
         err = Config.get_error()
@@ -377,7 +377,7 @@ def test_read_cnf4():
 def test_read_cnf5():
     test_buffer.rd = "solarman.port = 1023"
     
-    Config.init(ConfigReadToml("app/config/default_config.toml"))
+    Config.init(ConfigReadToml("app/src/cnf/default_config.toml"))
     for _ in patch_open():
         ConfigReadToml("config/config.toml")
         err = Config.get_error()
@@ -386,7 +386,7 @@ def test_read_cnf5():
 def test_read_cnf6():
     test_buffer.rd = "solarman.port = 65536"
     
-    Config.init(ConfigReadToml("app/config/default_config.toml"))
+    Config.init(ConfigReadToml("app/src/cnf/default_config.toml"))
     for _ in patch_open():
         ConfigReadToml("config/config.toml")
         err = Config.get_error()
