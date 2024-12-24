@@ -15,7 +15,7 @@
 ###   https://github.com/s-allius/tsun-gen3-proxy/wiki/Operation-Modes-Overview
 ###
 ###   Here you will find a description of all configuration options:
-###   https://github.com/s-allius/tsun-gen3-proxy/wiki/Configuration-details
+###   https://github.com/s-allius/tsun-gen3-proxy/wiki/Configuration-toml
 ###
 ###   The configration uses the TOML format, which aims to be easy to read due to 
 ###   obvious semantics. You find more details here: https://toml.io/en/v1.0.0
@@ -31,7 +31,7 @@
 ## required credentials. As the proxy does not currently support an encrypted connection
 ## to the MQTT broker, it is strongly recommended that you do not use a public broker.
 ##
-## https://github.com/s-allius/tsun-gen3-proxy/wiki/Configuration-details#mqtt-broker-account
+## https://github.com/s-allius/tsun-gen3-proxy/wiki/Configuration-toml#mqtt-broker-account
 ##
 
 mqtt.host    = 'mqtt'   # URL or IP address of the mqtt broker
@@ -48,7 +48,7 @@ mqtt.passwd  = ''
 ## values match the HA default configuration. If you need to change these or want to use
 ## a different MQTT client, you can adjust the prefixes of the MQTT topics below.
 ##
-## https://github.com/s-allius/tsun-gen3-proxy/wiki/Configuration-details#home-assistant
+## https://github.com/s-allius/tsun-gen3-proxy/wiki/Configuration-toml#home-assistant
 ##
 
 ha.auto_conf_prefix = 'homeassistant'       # MQTT prefix for subscribing for homeassistant status updates
@@ -66,7 +66,7 @@ ha.proxy_unique_id  = 'P170000000000001'    # MQTT unique id, to identify a prox
 ## inverters. This connection is only required if you want send data to the TSUN cloud
 ## to use the TSUN APPs or receive firmware updates.  
 ##
-## https://github.com/s-allius/tsun-gen3-proxy/wiki/Configuration-details#tsun-cloud-for-gen3-inverter-only
+## https://github.com/s-allius/tsun-gen3-proxy/wiki/Configuration-toml#tsun-cloud-for-gen3-inverter-only
 ##
 
 tsun.enabled = true   # false: disables connecting to the tsun cloud, and avoids updates
@@ -82,7 +82,7 @@ tsun.port    = 5005
 ## inverters. This connection is only required if you want send data to the TSUN cloud
 ## to use the TSUN APPs or receive firmware updates.  
 ##
-## https://github.com/s-allius/tsun-gen3-proxy/wiki/Configuration-details#solarman-cloud-for-gen3plus-inverter-only
+## https://github.com/s-allius/tsun-gen3-proxy/wiki/Configuration-toml#solarman-cloud-for-gen3plus-inverter-only
 ##
 
 solarman.enabled = true   # false: disables connecting to the tsun cloud, and avoids updates
