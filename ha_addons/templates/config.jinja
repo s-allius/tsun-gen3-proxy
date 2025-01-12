@@ -34,7 +34,7 @@ ports:
 
 schema:
   inverters:
-    - serial: match(^.{16}$)
+    - serial: match(^(R17|Y17|Y47).{13}$)
       monitor_sn: int?
       node_id: str
       suggested_area: str
