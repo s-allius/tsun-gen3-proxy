@@ -67,7 +67,7 @@ Example add-on configuration for GEN3PLUS inverters:
 ```yaml
 inverters:
   - serial: Y17000000000000
-    monitor_sn: '2000000000'
+    monitor_sn: 2000000000
     node_id: PV-Garage
     suggested_area: Garage
     modbus_polling: true
