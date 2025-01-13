@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+## [0.12.1] - 2025-01-13
+
+- addon: add syntax check to config parameters
+- addon: bump base image version to v17.0.2
+
 ## [0.12.0] - 2024-12-22
 
 - add hadolint configuration
