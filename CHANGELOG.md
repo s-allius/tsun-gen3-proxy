@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.12.1] - 2025-01-13
 
+- addon: bump base image version to v17.1.0
 - addon: add syntax check to config parameters
 - addon: bump base image version to v17.0.2
 
