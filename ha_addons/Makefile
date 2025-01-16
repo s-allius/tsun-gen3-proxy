@@ -109,7 +109,7 @@ repro_files = DOCS.md icon.png logo.png translations/de.yaml translations/en.yam
 repro_root = CHANGELOG.md 
 repro_templates = config.yaml
 repro_subdirs = translations rootfs
-repro_vers = debug dev rel
+repro_vers = debug dev rc rel
 
 repro_all_files := $(foreach dir,$(repro_vers), $(foreach file,$(repro_files),$(INST_BASE)/ha_addon_$(dir)/$(file)))
 repro_root_files := $(foreach dir,$(repro_vers), $(foreach file,$(repro_root),$(INST_BASE)/ha_addon_$(dir)/$(file)))
@@ -130,6 +130,8 @@ $(repro_root_files) : %/CHANGELOG.md : ../CHANGELOG.md
 $(filter $(INST_BASE)/ha_addon_debug/%,$(repro_all_files)) : $(INST_BASE)/ha_addon_debug/% : ha_addon/%
 	cp $< $@
 $(filter $(INST_BASE)/ha_addon_dev/%,$(repro_all_files)) : $(INST_BASE)/ha_addon_dev/% : ha_addon/%
+	cp $< $@
+$(filter $(INST_BASE)/ha_addon_rc/%,$(repro_all_files)) : $(INST_BASE)/ha_addon_rc/% : ha_addon/%
 	cp $< $@
 $(filter $(INST_BASE)/ha_addon_rel/%,$(repro_all_files)) : $(INST_BASE)/ha_addon_rel/% : ha_addon/%
 	cp $< $@

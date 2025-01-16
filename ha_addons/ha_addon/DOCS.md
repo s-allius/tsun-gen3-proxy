@@ -67,7 +67,7 @@ Example add-on configuration for GEN3PLUS inverters:
 ```yaml
 inverters:
   - serial: Y17000000000000
-    monitor_sn: '2000000000'
+    monitor_sn: 2000000000
     node_id: PV-Garage
     suggested_area: Garage
     modbus_polling: true
@@ -159,4 +159,4 @@ SOFTWARE.
 [AdGuard]: https://github.com/hassio-addons/addon-adguard-home
 [repository-badge]: https://img.shields.io/badge/Add%20repository%20to%20my-Home%20Assistant-41BDF5?logo=home-assistant&style=for-the-badge
 [repository-url]: https://my.home-assistant.io/redirect/supervisor_add_addon_repository/?repository_url=https%3A%2F%2Fgithub.com%2Fs-allius%2Fha-addons
-[configdetails]: https://github.com/s-allius/tsun-gen3-proxy/wiki/Configuration-details
+[configdetails]: https://github.com/s-allius/tsun-gen3-proxy/wiki/Configuration-toml

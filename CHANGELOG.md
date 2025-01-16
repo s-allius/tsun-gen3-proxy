@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - fix the path handling for logging.ini and default_config.toml [#180](https://github.com/s-allius/tsun-gen3-proxy/issues/180)
 
+## [0.12.1] - 2025-01-13
+
+- addon: bump base image version to v17.1.0
+- addon: add syntax check to config parameters
+- addon: bump base image version to v17.0.2
+
 ## [0.12.0] - 2024-12-22
 
 - add hadolint configuration
