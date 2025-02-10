@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+- add initial DCU support
+- update AddOn base docker image to version 17.1.2
+- update aiohttp to version 3.11.12
 - fix the path handling for logging.ini and default_config.toml [#180](https://github.com/s-allius/tsun-gen3-proxy/issues/180)
 
 ## [0.12.1] - 2025-01-13

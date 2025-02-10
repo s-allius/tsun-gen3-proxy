@@ -105,7 +105,7 @@ def test_parse_4210(inverter_data: bytes):
     i = InfosG3P(client_mode=False)
     i.db.clear()
     
-    for key, update in i.parse (inverter_data, 0x42, 1):
+    for key, update in i.parse (inverter_data, 0x42, 1, 0x02b0):
         pass  #  side effect is calling generator i.parse()
 
     assert json.dumps(i.db) == json.dumps({
@@ -127,10 +127,10 @@ def test_build_4210(inverter_data: bytes):
     i = InfosG3P(client_mode=False)
     i.db.clear()
     
-    for key, update in i.parse (inverter_data, 0x42, 1):
+    for key, update in i.parse (inverter_data, 0x42, 1, 0x02b0):
         pass  #  side effect is calling generator i.parse()
 
-    build_msg = i.build(len(inverter_data), 0x42, 1)
+    build_msg = i.build(len(inverter_data), 0x42, 1, 0x02b0)
     for i in range(11, 31):
         build_msg[i] = inverter_data[i]
     assert inverter_data == build_msg    
@@ -286,53 +286,53 @@ def test_build_ha_conf4():
 def test_exception_and_calc(inverter_data: bytes):
 
     # patch table to convert temperature from °F to °C
-    ofs =     RegisterMap.map[0x420100d8]['offset']
-    RegisterMap.map[0x420100d8]['quotient'] =  1.8
-    RegisterMap.map[0x420100d8]['offset'] =  -32/1.8
+    ofs = RegisterMap.map_02b0[0x420100d8]['offset']
+    RegisterMap.map_02b0[0x420100d8]['quotient'] =  1.8
+    RegisterMap.map_02b0[0x420100d8]['offset'] =  -32/1.8
     # map PV1_VOLTAGE to invalid register  
-    RegisterMap.map[0x420100e0]['reg'] = Register.TEST_REG2
+    RegisterMap.map_02b0[0x420100e0]['reg'] = Register.TEST_REG2
     # set invalid maping entry for OUTPUT_POWER (string instead of dict type) 
-    backup = RegisterMap.map[0x420100de]
-    RegisterMap.map[0x420100de] = 'invalid_entry'
+    backup = RegisterMap.map_02b0[0x420100de]
+    RegisterMap.map_02b0[0x420100de] = 'invalid_entry'
 
     i = InfosG3P(client_mode=False)
     i.db.clear()
     
-    for key, update in i.parse (inverter_data, 0x42, 1):
+    for key, update in i.parse (inverter_data, 0x42, 1, 0x02b0):
         pass  #  side effect is calling generator i.parse()
     assert math.isclose(12.2222, round (i.get_db_value(Register.INVERTER_TEMP, 0),4), rel_tol=1e-09, abs_tol=1e-09)
     
-    build_msg = i.build(len(inverter_data), 0x42, 1)
+    build_msg = i.build(len(inverter_data), 0x42, 1, 0x02b0)
     assert build_msg[32:0xde] == inverter_data[32:0xde]
     assert build_msg[0xde:0xe2] == b'\x00\x00\x00\x00'
     assert build_msg[0xe2:-1] == inverter_data[0xe2:-1]
 
 
     # remove a table entry and test parsing and building
-    del RegisterMap.map[0x420100d8]['quotient']
-    del RegisterMap.map[0x420100d8]['offset']
+    del RegisterMap.map_02b0[0x420100d8]['quotient']
+    del RegisterMap.map_02b0[0x420100d8]['offset']
 
     i.db.clear()
     
-    for key, update in i.parse (inverter_data, 0x42, 1):
+    for key, update in i.parse (inverter_data, 0x42, 1, 0x02b0):
         pass  #  side effect is calling generator i.parse()
     assert 54 == i.get_db_value(Register.INVERTER_TEMP, 0)
 
-    build_msg = i.build(len(inverter_data), 0x42, 1)
+    build_msg = i.build(len(inverter_data), 0x42, 1, 0x02b0)
     assert build_msg[32:0xd8] == inverter_data[32:0xd8]
     assert build_msg[0xd8:0xe2] == b'\x006\x00\x00\x02X\x00\x00\x00\x00'
     assert build_msg[0xe2:-1] == inverter_data[0xe2:-1]
 
     # test restore table 
-    RegisterMap.map[0x420100d8]['offset'] = ofs
-    RegisterMap.map[0x420100e0]['reg'] = Register.PV1_VOLTAGE # reset mapping
-    RegisterMap.map[0x420100de] = backup # reset mapping
+    RegisterMap.map_02b0[0x420100d8]['offset'] = ofs
+    RegisterMap.map_02b0[0x420100e0]['reg'] = Register.PV1_VOLTAGE # reset mapping
+    RegisterMap.map_02b0[0x420100de] = backup # reset mapping
 
     # test orginial table 
     i.db.clear()    
-    for key, update in i.parse (inverter_data, 0x42, 1):
+    for key, update in i.parse (inverter_data, 0x42, 1, 0x02b0):
         pass  #  side effect is calling generator i.parse()
     assert 14 == i.get_db_value(Register.INVERTER_TEMP, 0)
 
-    build_msg = i.build(len(inverter_data), 0x42, 1)
+    build_msg = i.build(len(inverter_data), 0x42, 1, 0x02b0)
     assert build_msg[32:-1] == inverter_data[32:-1]

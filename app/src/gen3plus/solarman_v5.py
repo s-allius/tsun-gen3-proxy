@@ -516,11 +516,11 @@ class SolarmanV5(SolarmanBase):
             logger.info(f'Model: {model}')
             self.db.set_db_def_value(Register.EQUIPMENT_MODEL, model)
 
-    def __process_data(self, ftype, ts):
+    def __process_data(self, ftype, ts, sensor=0):
         inv_update = False
         msg_type = self.control >> 8
-        for key, update in self.db.parse(self.ifc.rx_peek(), msg_type, ftype,
-                                         self.node_id):
+        for key, update in self.db.parse(self.ifc.rx_peek(), msg_type,
+                                         ftype, sensor, self.node_id):
             if update:
                 if key == 'inverter':
                     inv_update = True
@@ -581,7 +581,7 @@ class SolarmanV5(SolarmanBase):
         else:
             ts = None
 
-        self.__process_data(ftype, ts)
+        self.__process_data(ftype, ts, sensor)
         self.__forward_msg()
         self.__send_ack_rsp(0x1210, ftype)
         self.new_state_up()

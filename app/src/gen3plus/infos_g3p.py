@@ -1,5 +1,6 @@
 
 from typing import Generator
+from itertools import chain
 
 from infos import Infos, Register, ProxyMode, Fmt
 
@@ -32,7 +33,8 @@ class RegisterMap:
         0x4102008e: {'reg': None,                          'fmt': '<B'},                 # noqa: E501 Encryption Certificate File Status
         0x4102008f: {'reg': None,                          'fmt': '!40s'},               # noqa: E501
         0x410200b7: {'reg': Register.SSID,                 'fmt': '!40s'},               # noqa: E501
-
+    }
+    map_02b0 = {
         0x4201000c: {'reg': Register.SENSOR_LIST,          'fmt': '<H', 'func': Fmt.hex4},   # noqa: E501
         0x4201001c: {'reg': Register.POWER_ON_TIME,        'fmt': '<H', 'ratio':    1, 'dep': ProxyMode.SERVER},  # noqa: E501, or packet number
         0x42010020: {'reg': Register.SERIAL_NUMBER,        'fmt': '!16s'},               # noqa: E501
@@ -110,6 +112,22 @@ class RegisterMap:
         0xffffff02: {'reg': Register.POLLING_INTERVAL},
         # 0x4281001c: {'reg': Register.POWER_ON_TIME,        'fmt': '<H', 'ratio':    1},  # noqa: E501
     }
+    map_3026 = {
+        0x4201000c: {'reg': Register.SENSOR_LIST,          'fmt': '<H', 'func': Fmt.hex4},   # noqa: E501
+        0x4201001c: {'reg': Register.POWER_ON_TIME,        'fmt': '<H', 'ratio':    1, 'dep': ProxyMode.SERVER},  # noqa: E501, or packet number
+        0x42010020: {'reg': Register.SERIAL_NUMBER,        'fmt': '!16s'},               # noqa: E501
+    }
+
+
+class RegisterSel:
+    __sensor_map = {
+            0x02b0: RegisterMap.map_02b0,
+            0x3026: RegisterMap.map_3026,
+    }
+
+    @classmethod
+    def get(cls, sensor: int):
+        return cls.__sensor_map.get(sensor, RegisterMap.map)
 
 
 class InfosG3P(Infos):
@@ -144,7 +162,9 @@ class InfosG3P(Infos):
                          entity strings
         sug_area:str ==> suggested area string from the config file'''
         # iterate over RegisterMap.map and get the register values
-        for row in RegisterMap.map.values():
+        for _, row in chain(RegisterMap.map.items(),
+                            RegisterMap.map_02b0.items(),
+                            RegisterMap.map_3026.items()):
             info_id = row['reg']
             if self.__hide_topic(row):
                 res = self.ha_remove(info_id, node_id, snr)  # noqa: E501
@@ -153,13 +173,14 @@ class InfosG3P(Infos):
             if res:
                 yield res
 
-    def parse(self, buf, msg_type: int, rcv_ftype: int, node_id: str = '') \
+    def parse(self, buf, msg_type: int, rcv_ftype: int,
+              sensor: int = 0, node_id: str = '') \
             -> Generator[tuple[str, bool], None, None]:
         '''parse a data sequence received from the inverter and
         stores the values in Infos.db
 
         buf: buffer of the sequence to parse'''
-        for idx, row in RegisterMap.map.items():
+        for idx, row in RegisterSel.get(sensor).items():
             addr = idx & 0xffff
             ftype = (idx >> 16) & 0xff
             mtype = (idx >> 24) & 0xff
@@ -183,9 +204,9 @@ class InfosG3P(Infos):
                 self.tracer.log(level, f'[{node_id}] GEN3PLUS: {name}'
                                        f' : {result}{unit}')
 
-    def build(self, len, msg_type: int, rcv_ftype: int):
+    def build(self, len, msg_type: int, rcv_ftype: int, sensor: int = 0):
         buf = bytearray(len)
-        for idx, row in RegisterMap.map.items():
+        for idx, row in RegisterSel.get(sensor).items():
             addr = idx & 0xffff
             ftype = (idx >> 16) & 0xff
             mtype = (idx >> 24) & 0xff
