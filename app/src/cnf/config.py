@@ -93,7 +93,7 @@ class Config():
                 },
                 Optional('modbus_polling', default=True): Use(bool),
                 Optional('suggested_area', default=""): Use(str),
-                Optional('sensor_list', default=0x2b0): Use(int),
+                Optional('sensor_list', default=0): Use(int),
                 Optional('pv1'): {
                     Optional('type'): Use(str),
                     Optional('manufacturer'): Use(str),

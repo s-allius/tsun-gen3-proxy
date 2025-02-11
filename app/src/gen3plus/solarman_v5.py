@@ -376,12 +376,21 @@ class SolarmanV5(SolarmanBase):
         self.ifc.fwd_add(build_msg)
         self.ifc.fwd_add(struct.pack('<BB', 0, 0x15))    # crc & stop
 
-    def __set_config_parms(self, inv: dict):
+    def __set_config_parms(self, inv: dict, serial_no: str):
         '''init connection with params from the configuration'''
         self.node_id = inv['node_id']
         self.sug_area = inv['suggested_area']
         self.modbus_polling = inv['modbus_polling']
         self.sensor_list = inv['sensor_list']
+        if 0 == self.sensor_list:
+            snr = serial_no[:3]
+            if '410' == snr:
+                self.sensor_list = 0x3026
+            else:
+                self.sensor_list = 0x02b0
+        logging.info(f"Use sensor-list: {self.sensor_list:#04x}"
+                     f" for '{serial_no}'")
+
         if self.mb:
             self.mb.set_node_id(self.node_id)
 
@@ -398,7 +407,7 @@ class SolarmanV5(SolarmanBase):
                 # logger.debug(f'key: {key} -> {inv}')
                 if (type(inv) is dict and 'monitor_sn' in inv
                    and inv['monitor_sn'] == snr):
-                    self.__set_config_parms(inv)
+                    self.__set_config_parms(inv, key)
                     self.db.set_pv_module_details(inv)
                     logger.debug(f'SerialNo {serial_no} allowed! area:{self.sug_area}')  # noqa: E501
 
