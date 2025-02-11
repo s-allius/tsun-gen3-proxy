@@ -76,7 +76,7 @@ def ConfigDefault():
                                    'type': 'RSM40-8-395M'},
                            'pv2': {'manufacturer': 'Risen',
                                    'type': 'RSM40-8-395M'},
-                           'sensor_list': 688
+                           'sensor_list': 0
                        }, 
                        'Y170000000000001': {
                            'modbus_polling': True, 
@@ -91,7 +91,7 @@ def ConfigDefault():
                                    'type': 'RSM40-8-410M'},
                            'pv4': {'manufacturer': 'Risen',
                                    'type': 'RSM40-8-410M'},
-                           'sensor_list': 688
+                           'sensor_list': 0
                        }
                     }
                   }
@@ -158,7 +158,7 @@ def test_default_config():
                                  'modbus_polling': False,
                                  'monitor_sn': 0, 
                                  'suggested_area': '', 
-                                 'sensor_list': 688}, 
+                                 'sensor_list': 0}, 
                              'Y170000000000001': {
                                  'modbus_polling': True, 
                                  'monitor_sn': 2000000000, 
@@ -172,7 +172,7 @@ def test_default_config():
                                  'pv4': {'manufacturer': 'Risen',
                                          'type': 'RSM40-8-410M'},
                                  'suggested_area': '', 
-                                 'sensor_list': 688}}}
+                                 'sensor_list': 0}}}
 
 def test_full_config(ConfigComplete):
     cnf = {'tsun': {'enabled': True, 'host': 'logger.talent-monitoring.com', 'port': 5005}, 
@@ -251,7 +251,7 @@ def test_read_cnf1():
                                    'type': 'RSM40-8-395M'},
                            'pv2': {'manufacturer': 'Risen',
                                    'type': 'RSM40-8-395M'},
-                           'sensor_list': 688
+                           'sensor_list': 0
                        }, 
                        'Y170000000000001': {
                            'modbus_polling': True, 
@@ -266,7 +266,7 @@ def test_read_cnf1():
                                    'type': 'RSM40-8-410M'},
                            'pv4': {'manufacturer': 'Risen',
                                    'type': 'RSM40-8-410M'},
-                           'sensor_list': 688
+                           'sensor_list': 0
                        }
                     }
                   }
@@ -298,7 +298,7 @@ def test_read_cnf2():
                                    'type': 'RSM40-8-395M'},
                            'pv2': {'manufacturer': 'Risen',
                                    'type': 'RSM40-8-395M'},
-                           'sensor_list': 688
+                           'sensor_list': 0
                        }, 
                        'Y170000000000001': {
                            'modbus_polling': True, 
@@ -313,7 +313,7 @@ def test_read_cnf2():
                                    'type': 'RSM40-8-410M'},
                            'pv4': {'manufacturer': 'Risen',
                                    'type': 'RSM40-8-410M'},
-                           'sensor_list': 688
+                           'sensor_list': 0
                        }
                     }
                   }
@@ -353,7 +353,7 @@ def test_read_cnf4():
                                    'type': 'RSM40-8-395M'},
                            'pv2': {'manufacturer': 'Risen',
                                    'type': 'RSM40-8-395M'},
-                           'sensor_list': 688
+                           'sensor_list': 0
                        }, 
                        'Y170000000000001': {
                            'modbus_polling': True, 
@@ -368,7 +368,7 @@ def test_read_cnf4():
                                    'type': 'RSM40-8-410M'},
                            'pv4': {'manufacturer': 'Risen',
                                    'type': 'RSM40-8-410M'},
-                           'sensor_list': 688
+                           'sensor_list': 0
                        }
                     }
                   }

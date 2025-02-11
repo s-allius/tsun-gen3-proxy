@@ -130,6 +130,12 @@ def get_sn() -> bytes:
 def get_sn_int() -> int:
     return 2070233889
 
+def get_dcu_sn() -> bytes:
+    return b'\x20\x43\x65\x7b'
+
+def get_dcu_sn_int() -> int:
+    return 2070233888
+
 def get_inv_no() -> bytes:
     return b'T170000000000001'
 
@@ -673,6 +679,65 @@ def msg_unknown_cmd_rsp():  # 0x1510
     return msg
 
 @pytest.fixture
+def dcu_dev_ind_msg(): # 0x4110
+    msg  = b'\xa5\x3a\x01\x10\x41\x91\x01' +get_dcu_sn()  +b'\x02\xc6\xde\x2d\x32'
+    msg += b'\x27\x00\x00\x00\x00\x00\x00\x00\x05\x3c\x78\x01\x5c\x01\x4c\x53'
+    msg += b'\x57\x35\x5f\x30\x31\x5f\x33\x30\x32\x36\x5f\x4e\x53\x5f\x30\x35'
+    msg += b'\x5f\x30\x31\x2e\x30\x30\x2e\x30\x30\x2e\x30\x30\x00\x00\x00\x00'
+    msg += b'\x00\x00\x00\x00\x00\x00\xd4\x27\x87\x12\xad\xc0\x31\x39\x32\x2e'
+    msg += b'\x31\x36\x38\x2e\x39\x2e\x31\x34\x00\x00\x00\x00\x01\x00\x01\x26'
+    msg += b'\x30\x0f\x00\xff\x56\x31\x2e\x31\x2e\x30\x30\x2e\x30\x42\x00\x00'
+    msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+    msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xfe\xfe\x00\x00'
+    msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+    msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+    msg += b'\x00\x00\x00\x00\x00\x00\x00\x7a\x75\x68\x61\x75\x73\x65\x00\x00'
+    msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+    msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+    msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+    msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+    msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+    msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+    msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+    msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x08\x01\x01\x01\x00\x00\x00\x00'
+    msg += b'\x00\x00\x00\x00\x01'
+    msg += correct_checksum(msg)
+    msg += b'\x15'
+    return msg
+
+@pytest.fixture
+def dcu_dev_rsp_msg():  # 0x1110
+    msg  = b'\xa5\x0a\x00\x10\x11\x92\x01' +get_dcu_sn()  +b'\x02\x01'
+    msg += total()  
+    msg += hb()
+    msg += correct_checksum(msg)
+    msg += b'\x15'
+    return msg
+
+@pytest.fixture
+def dcu_data_ind_msg(): # 0x4210
+    msg  = b'\xa5\x6f\x00\x10\x42\x92\x02' +get_dcu_sn()  +b'\x01\xc6\xde\x2d\x32'
+    msg += b'\x2d\x32\x28\x00\x00\x00\x84\x17\x79\x35\x01\x00\x4c\x12\x00\x00'
+    msg += b'\x34\x31\x30\x31\x32\x34\x30\x37\x30\x31\x34\x39\x30\x33\x31\x34'
+    msg += b'\x0d\x3a\x00\x00\x0d\x2c\x00\x00\x00\x00\x08\x20\x00\x00\x00\x00'
+    msg += b'\x14\x0e\xff\xfe\x03\xe8\x0c\x89\x0c\x89\x0c\x89\x0c\x8a\x0c\x89'
+    msg += b'\x0c\x89\x0c\x8a\x0c\x89\x0c\x89\x0c\x8a\x0c\x8a\x0c\x89\x0c\x89'
+    msg += b'\x0c\x89\x0c\x89\x0c\x88\x00\x0f\x00\x0f\x00\x0f\x00\x0e\x00\x00'
+    msg += b'\x00\x00\x00\x0f\x00\x00\x02\x05\x02\x01'
+    msg += correct_checksum(msg)
+    msg += b'\x15'
+    return msg
+
+@pytest.fixture
+def dcu_data_rsp_msg():  # 0x1210
+    msg  = b'\xa5\x0a\x00\x10\x12\x93\x02' +get_dcu_sn()  +b'\x01\x01'
+    msg += total()  
+    msg += hb()
+    msg += correct_checksum(msg)
+    msg += b'\x15'
+    return msg
+
+@pytest.fixture
 def config_tsun_allow_all():
     Config.act_config = {'solarman':{'enabled': True}, 'inverters':{'allow_all':True}}
 
@@ -682,7 +747,11 @@ def config_no_tsun_inv1():
 
 @pytest.fixture
 def config_tsun_inv1():
-    Config.act_config = {'solarman':{'enabled': True},'inverters':{'Y170000000000001':{'monitor_sn': 2070233889, 'node_id':'inv1', 'modbus_polling': True, 'suggested_area':'roof', 'sensor_list': 688}}}
+    Config.act_config = {'solarman':{'enabled': True},'inverters':{'Y170000000000001':{'monitor_sn': 2070233889, 'node_id':'inv1', 'modbus_polling': True, 'suggested_area':'roof', 'sensor_list': 0}}}
+
+@pytest.fixture
+def config_tsun_dcu1():
+    Config.act_config = {'solarman':{'enabled': True},'inverters':{'4100000000000001':{'monitor_sn': 2070233888, 'node_id':'inv1', 'modbus_polling': True, 'suggested_area':'roof', 'sensor_list': 0}}}
 
 def test_read_message(device_ind_msg):
     Config.act_config = {'solarman':{'enabled': True}}
@@ -958,6 +1027,34 @@ def test_read_two_messages3(config_tsun_allow_all, device_ind_msg2, device_rsp_m
     assert 0x02b0 == m.sensor_list
     assert m.ifc.fwd_fifo.get()==inverter_ind_msg+device_ind_msg2
     assert m.ifc.tx_fifo.get()==inverter_rsp_msg+device_rsp_msg2
+
+    m._init_new_client_conn()
+    assert m.ifc.tx_fifo.get()==b''
+    m.close()
+
+def test_read_two_messages4(config_tsun_dcu1, dcu_dev_ind_msg, dcu_dev_rsp_msg, dcu_data_ind_msg, dcu_data_rsp_msg):
+    _ = config_tsun_dcu1
+    m = MemoryStream(dcu_dev_ind_msg, (0,))
+    m.append_msg(dcu_data_ind_msg)
+    assert 0 == m.sensor_list
+    m._init_new_client_conn()
+    m.read()         # read complete msg, and dispatch msg
+    assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
+    assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
+    assert m.msg_count == 2
+    assert m.header_len==11
+    assert m.snr == 2070233888
+    assert m.unique_id == '2070233888'
+    assert m.msg_recvd[0]['control']==0x4110
+    assert m.msg_recvd[0]['seq']=='01:92'
+    assert m.msg_recvd[0]['data_len']==314
+    assert m.msg_recvd[1]['control']==0x4210
+    assert m.msg_recvd[1]['seq']=='02:93'
+    assert m.msg_recvd[1]['data_len']==111
+    assert '3026' == m.db.get_db_value(Register.SENSOR_LIST, None)
+    assert 0x3026 == m.sensor_list
+    assert m.ifc.fwd_fifo.get()==dcu_dev_ind_msg+dcu_data_ind_msg
+    assert m.ifc.tx_fifo.get()==dcu_dev_rsp_msg+dcu_data_rsp_msg
 
     m._init_new_client_conn()
     assert m.ifc.tx_fifo.get()==b''
