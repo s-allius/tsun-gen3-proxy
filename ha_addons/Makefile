@@ -64,6 +64,7 @@ clean:
 	rm -f $(DST)/requirements.txt
 	rm -f $(ADDON_PATH)/config.yaml
 	rm -f $(TEMPL)/.data.json
+	docker logout ghcr.io
 
 #
 # Build rootfs and config.yaml as local add-on
