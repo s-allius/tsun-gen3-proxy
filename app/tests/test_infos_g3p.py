@@ -138,6 +138,7 @@ def test_build_4210(inverter_data: bytes):
 def test_build_ha_conf1():
     i = InfosG3P(client_mode=False)
     i.static_init()                # initialize counter
+    i.set_db_def_value(Register.SENSOR_LIST, "02b0")        
 
     tests = 0
     for d_json, comp, node_id, id in i.ha_confs(ha_prfx="tsun/", node_id="garagendach/", snr='123'):
@@ -212,6 +213,7 @@ def test_build_ha_conf2():
 def test_build_ha_conf3():
     i = InfosG3P(client_mode=True)
     i.static_init()                # initialize counter
+    i.set_db_def_value(Register.SENSOR_LIST, "02b0")        
 
     tests = 0
     for d_json, comp, node_id, id in i.ha_confs(ha_prfx="tsun/", node_id="garagendach/", snr='123'):

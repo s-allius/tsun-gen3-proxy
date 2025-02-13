@@ -116,6 +116,14 @@ class RegisterMap:
         0x4201000c: {'reg': Register.SENSOR_LIST,          'fmt': '<H', 'func': Fmt.hex4},   # noqa: E501
         0x4201001c: {'reg': Register.POWER_ON_TIME,        'fmt': '<H', 'ratio':    1, 'dep': ProxyMode.SERVER},  # noqa: E501, or packet number
         0x42010020: {'reg': Register.SERIAL_NUMBER,        'fmt': '!16s'},               # noqa: E501
+        0x42010030: {'reg': Register.BATT_30,              'fmt': '!H'},                 # noqa: E501
+        0x42010032: {'reg': Register.BATT_32,              'fmt': '!H'},                 # noqa: E501
+        0x42010034: {'reg': Register.BATT_34,              'fmt': '!H'},                 # noqa: E501
+        0x42010036: {'reg': Register.BATT_36,              'fmt': '!H'},                 # noqa: E501
+        0x42010038: {'reg': Register.BATT_38,              'fmt': '!H'},                 # noqa: E501
+        0x4201003a: {'reg': Register.BATT_3a,              'fmt': '!H'},                 # noqa: E501
+        0x4201003c: {'reg': Register.BATT_3c,              'fmt': '!H'},                 # noqa: E501
+        0x4201003e: {'reg': Register.BATT_3e,              'fmt': '!H'},                 # noqa: E501
     }
 
 
@@ -162,9 +170,15 @@ class InfosG3P(Infos):
                          entity strings
         sug_area:str ==> suggested area string from the config file'''
         # iterate over RegisterMap.map and get the register values
-        for _, row in chain(RegisterMap.map.items(),
-                            RegisterMap.map_02b0.items(),
-                            RegisterMap.map_3026.items()):
+        sensor = self.get_db_value(Register.SENSOR_LIST)
+        if "3026" == sensor:
+            items = RegisterMap.map_3026.items()
+        elif "02b0" == sensor:
+            items = RegisterMap.map_02b0.items()
+        else:
+            items = {}
+
+        for _, row in chain(RegisterMap.map.items(), items):
             info_id = row['reg']
             if self.__hide_topic(row):
                 res = self.ha_remove(info_id, node_id, snr)  # noqa: E501

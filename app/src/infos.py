@@ -121,6 +121,14 @@ class Register(Enum):
     TS_INPUT = 600
     TS_GRID = 601
     TS_TOTAL = 602
+    BATT_30 = 1000
+    BATT_32 = 1001
+    BATT_34 = 1002
+    BATT_36 = 1003
+    BATT_38 = 1004
+    BATT_3a = 1005
+    BATT_3c = 1006
+    BATT_3e = 1007
     VALUE_1 = 9000
     TEST_REG1 = 10000
     TEST_REG2 = 10001
@@ -266,6 +274,7 @@ class Infos:
     __info_devs = {
         'proxy':      {'singleton': True,   'name': 'Proxy', 'mf': 'Stefan Allius'},  # noqa: E501
         'controller': {'via': 'proxy',      'name': 'Controller',     'mdl': Register.CHIP_MODEL, 'mf': Register.CHIP_TYPE, 'sw': Register.COLLECTOR_FW_VERSION, 'mac': Register.MAC_ADDR, 'sn': Register.COLLECTOR_SNR},  # noqa: E501
+
         'inverter':   {'via': 'controller', 'name': 'Micro Inverter', 'mdl': Register.EQUIPMENT_MODEL, 'mf': Register.MANUFACTURER, 'sw': Register.VERSION, 'sn': Register.SERIAL_NUMBER},  # noqa: E501
         'input_pv1':  {'via': 'inverter',   'name': 'Module PV1', 'mdl': Register.PV1_MODEL, 'mf': Register.PV1_MANUFACTURER},  # noqa: E501
         'input_pv2':  {'via': 'inverter',   'name': 'Module PV2', 'mdl': Register.PV2_MODEL, 'mf': Register.PV2_MANUFACTURER, 'dep': {'reg': Register.NO_INPUTS, 'gte': 2}},  # noqa: E501
@@ -273,6 +282,8 @@ class Infos:
         'input_pv4':  {'via': 'inverter',   'name': 'Module PV4', 'mdl': Register.PV4_MODEL, 'mf': Register.PV4_MANUFACTURER, 'dep': {'reg': Register.NO_INPUTS, 'gte': 4}},  # noqa: E501
         'input_pv5':  {'via': 'inverter',   'name': 'Module PV5', 'mdl': Register.PV5_MODEL, 'mf': Register.PV5_MANUFACTURER, 'dep': {'reg': Register.NO_INPUTS, 'gte': 5}},  # noqa: E501
         'input_pv6':  {'via': 'inverter',   'name': 'Module PV6', 'mdl': Register.PV6_MODEL, 'mf': Register.PV6_MANUFACTURER, 'dep': {'reg': Register.NO_INPUTS, 'gte': 6}},  # noqa: E501
+
+        'batterie':   {'via': 'controller', 'name': 'Batterie', 'mdl': Register.EQUIPMENT_MODEL, 'mf': Register.MANUFACTURER, 'sw': Register.VERSION, 'sn': Register.SERIAL_NUMBER},  # noqa: E501
     }
 
     __comm_type_val_tpl = "{%set com_types = ['n/a','Wi-Fi', 'G4', 'G5', 'GPRS'] %}{{com_types[value_json['Communication_Type']|int(0)]|default(value_json['Communication_Type'])}}"    # noqa: E501
@@ -536,6 +547,14 @@ class Infos:
         Register.PROD_COMPL_TYPE:    {'name': ['other', 'Prod_Compliance_Type'],    'level': logging.INFO,  'unit': ''},  # noqa: E501
         Register.INV_UNKNOWN_1:      {'name': ['inv_unknown', 'Unknown_1'],         'level': logging.DEBUG, 'unit': ''},  # noqa: E501
 
+        Register.BATT_30:            {'name': ['batterie', 'Reg_30'],               'level': logging.INFO, 'unit': '',     'ha': {'dev': 'batterie', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'batt_30_', 'fmt': FMT_INT}},  # noqa: E501
+        Register.BATT_32:            {'name': ['batterie', 'Reg_32'],               'level': logging.INFO, 'unit': '',     'ha': {'dev': 'batterie', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'batt_32_', 'fmt': FMT_INT}},  # noqa: E501
+        Register.BATT_34:            {'name': ['batterie', 'Reg_34'],               'level': logging.INFO, 'unit': '',     'ha': {'dev': 'batterie', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'batt_34_', 'fmt': FMT_INT}},  # noqa: E501
+        Register.BATT_36:            {'name': ['batterie', 'Reg_36'],               'level': logging.INFO, 'unit': '',     'ha': {'dev': 'batterie', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'batt_36_', 'fmt': FMT_INT}},  # noqa: E501
+        Register.BATT_38:            {'name': ['batterie', 'Reg_38'],               'level': logging.INFO, 'unit': '',     'ha': {'dev': 'batterie', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'batt_38_', 'fmt': FMT_INT}},  # noqa: E501
+        Register.BATT_3a:            {'name': ['batterie', 'Reg_3a'],               'level': logging.INFO, 'unit': '',     'ha': {'dev': 'batterie', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'batt_3a_', 'fmt': FMT_INT}},  # noqa: E501
+        Register.BATT_3c:            {'name': ['batterie', 'Reg_3c'],               'level': logging.INFO, 'unit': '',     'ha': {'dev': 'batterie', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'batt_3c_', 'fmt': FMT_INT}},  # noqa: E501
+        Register.BATT_3e:            {'name': ['batterie', 'Reg_3e'],               'level': logging.INFO, 'unit': '',     'ha': {'dev': 'batterie', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'batt_3e_', 'fmt': FMT_INT}},  # noqa: E501
     }
 
     @property

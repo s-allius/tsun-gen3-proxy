@@ -388,6 +388,8 @@ class SolarmanV5(SolarmanBase):
                 self.sensor_list = 0x3026
             else:
                 self.sensor_list = 0x02b0
+        self.db.set_db_def_value(Register.SENSOR_LIST,
+                                 f"{self.sensor_list:04x}")
         logging.info(f"Use sensor-list: {self.sensor_list:#04x}"
                      f" for '{serial_no}'")
 
