@@ -116,14 +116,22 @@ class RegisterMap:
         0x4201000c: {'reg': Register.SENSOR_LIST,          'fmt': '<H', 'func': Fmt.hex4},   # noqa: E501
         0x4201001c: {'reg': Register.POWER_ON_TIME,        'fmt': '<H', 'ratio':    1, 'dep': ProxyMode.SERVER},  # noqa: E501, or packet number
         0x42010020: {'reg': Register.SERIAL_NUMBER,        'fmt': '!16s'},               # noqa: E501
-        0x42010030: {'reg': Register.BATT_30,              'fmt': '!H'},                 # noqa: E501
-        0x42010032: {'reg': Register.BATT_32,              'fmt': '!H'},                 # noqa: E501
-        0x42010034: {'reg': Register.BATT_34,              'fmt': '!H'},                 # noqa: E501
-        0x42010036: {'reg': Register.BATT_36,              'fmt': '!H'},                 # noqa: E501
-        0x42010038: {'reg': Register.BATT_38,              'fmt': '!H'},                 # noqa: E501
-        0x4201003a: {'reg': Register.BATT_3a,              'fmt': '!H'},                 # noqa: E501
-        0x4201003c: {'reg': Register.BATT_3c,              'fmt': '!H'},                 # noqa: E501
-        0x4201003e: {'reg': Register.BATT_3e,              'fmt': '!H'},                 # noqa: E501
+        0x42010030: {'reg': Register.BATT_30,              'fmt': '!h'},                 # noqa: E501
+        0x42010032: {'reg': Register.BATT_32,              'fmt': '!h'},                 # noqa: E501
+        0x42010034: {'reg': Register.BATT_34,              'fmt': '!h'},                 # noqa: E501
+        0x42010036: {'reg': Register.BATT_36,              'fmt': '!h'},                 # noqa: E501
+        0x42010038: {'reg': Register.BATT_38,              'fmt': '!h'},                 # noqa: E501
+        0x4201003a: {'reg': Register.BATT_3a,              'fmt': '!h'},                 # noqa: E501
+        0x4201003c: {'reg': Register.BATT_3c,              'fmt': '!h'},                 # noqa: E501
+        0x4201003e: {'reg': Register.BATT_3e,              'fmt': '!h'},                 # noqa: E501
+        0x42010040: {'reg': Register.BATT_40,              'fmt': '!h'},                 # noqa: E501
+        0x42010042: {'reg': Register.BATT_42,              'fmt': '!h'},                 # noqa: E501
+        0x42010044: {'reg': Register.BATT_44,              'fmt': '!h'},                 # noqa: E501
+        0x42010046: {'reg': Register.BATT_46,              'fmt': '!h'},                 # noqa: E501
+        0x42010048: {'reg': Register.BATT_48,              'fmt': '!h'},                 # noqa: E501
+        0x4201004a: {'reg': Register.BATT_4a,              'fmt': '!h'},                 # noqa: E501
+        0x4201004c: {'reg': Register.BATT_4c,              'fmt': '!h'},                 # noqa: E501
+        0x4201004e: {'reg': Register.BATT_4e,              'fmt': '!h'},                 # noqa: E501
     }
 
 

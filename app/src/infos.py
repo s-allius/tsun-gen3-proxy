@@ -129,6 +129,14 @@ class Register(Enum):
     BATT_3a = 1005
     BATT_3c = 1006
     BATT_3e = 1007
+    BATT_40 = 1010
+    BATT_42 = 1011
+    BATT_44 = 1012
+    BATT_46 = 1013
+    BATT_48 = 1014
+    BATT_4a = 1015
+    BATT_4c = 1016
+    BATT_4e = 1017
     VALUE_1 = 9000
     TEST_REG1 = 10000
     TEST_REG2 = 10001
@@ -555,6 +563,14 @@ class Infos:
         Register.BATT_3a:            {'name': ['batterie', 'Reg_3a'],               'level': logging.INFO, 'unit': '',     'ha': {'dev': 'batterie', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'batt_3a_', 'fmt': FMT_INT}},  # noqa: E501
         Register.BATT_3c:            {'name': ['batterie', 'Reg_3c'],               'level': logging.INFO, 'unit': '',     'ha': {'dev': 'batterie', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'batt_3c_', 'fmt': FMT_INT}},  # noqa: E501
         Register.BATT_3e:            {'name': ['batterie', 'Reg_3e'],               'level': logging.INFO, 'unit': '',     'ha': {'dev': 'batterie', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'batt_3e_', 'fmt': FMT_INT}},  # noqa: E501
+        Register.BATT_40:            {'name': ['batterie', 'Reg_40'],               'level': logging.INFO, 'unit': '',     'ha': {'dev': 'batterie', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'batt_40_', 'fmt': FMT_INT}},  # noqa: E501
+        Register.BATT_42:            {'name': ['batterie', 'Reg_42'],               'level': logging.INFO, 'unit': '',     'ha': {'dev': 'batterie', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'batt_42_', 'fmt': FMT_INT}},  # noqa: E501
+        Register.BATT_44:            {'name': ['batterie', 'Reg_44'],               'level': logging.INFO, 'unit': '',     'ha': {'dev': 'batterie', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'batt_44_', 'fmt': FMT_INT}},  # noqa: E501
+        Register.BATT_46:            {'name': ['batterie', 'Reg_46'],               'level': logging.INFO, 'unit': '',     'ha': {'dev': 'batterie', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'batt_46_', 'fmt': FMT_INT}},  # noqa: E501
+        Register.BATT_48:            {'name': ['batterie', 'Reg_48'],               'level': logging.INFO, 'unit': '',     'ha': {'dev': 'batterie', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'batt_48_', 'fmt': FMT_INT}},  # noqa: E501
+        Register.BATT_4a:            {'name': ['batterie', 'Reg_4a'],               'level': logging.INFO, 'unit': '',     'ha': {'dev': 'batterie', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'batt_4a_', 'fmt': FMT_INT}},  # noqa: E501
+        Register.BATT_4c:            {'name': ['batterie', 'Reg_4c'],               'level': logging.INFO, 'unit': '',     'ha': {'dev': 'batterie', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'batt_4c_', 'fmt': FMT_INT}},  # noqa: E501
+        Register.BATT_4e:            {'name': ['batterie', 'Reg_4e'],               'level': logging.INFO, 'unit': '',     'ha': {'dev': 'batterie', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'batt_4e_', 'fmt': FMT_INT}},  # noqa: E501
     }
 
     @property
