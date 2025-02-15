@@ -49,7 +49,7 @@ class ModbusTcp():
                and 'monitor_sn' in inv
                and 'client_mode' in inv):
                 client = inv['client_mode']
-                logger.info(f"'client_mode' for snr: {inv['monitor_sn']} host: {client['host']}:{client['port']}, forward: {client['forward']}")  # noqa: E501
+                logger.info(f"'client_mode' for Monitoring-SN: {inv['monitor_sn']} host: {client['host']}:{client['port']}, forward: {client['forward']}")  # noqa: E501
                 loop.create_task(self.modbus_loop(client['host'],
                                                   client['port'],
                                                   inv['monitor_sn'],

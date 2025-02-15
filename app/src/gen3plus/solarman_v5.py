@@ -390,8 +390,8 @@ class SolarmanV5(SolarmanBase):
                 self.sensor_list = 0x02b0
         self.db.set_db_def_value(Register.SENSOR_LIST,
                                  f"{self.sensor_list:04x}")
-        logging.info(f"Use sensor-list: {self.sensor_list:#04x}"
-                     f" for '{serial_no}'")
+        logging.debug(f"Use sensor-list: {self.sensor_list:#04x}"
+                      f" for '{serial_no}'")
 
         if self.mb:
             self.mb.set_node_id(self.node_id)
@@ -422,9 +422,11 @@ class SolarmanV5(SolarmanBase):
                 if 'allow_all' not in inverters or not inverters['allow_all']:
                     self.inc_counter('Unknown_SNR')
                     self.unique_id = None
-                    logger.warning(f'ignore message from unknow inverter! (SerialNo: {serial_no})')  # noqa: E501
+                    logging.error(f"Ignore message from unknow inverter with Monitoring-SN: {serial_no})!\n"  # noqa: E501
+                                  "  !!Check the 'monitor_sn' setting in your configuration!!")  # noqa: E501
                     return
-                logger.warning(f'SerialNo {serial_no} not known but accepted!')
+                logging.warning(f"Monitoring-SN: {serial_no} not configured but accepted!"  # noqa: E501
+                                "  !!Check the 'monitor_sn' setting in your configuration!!")  # noqa: E501
 
             self.unique_id = serial_no
 
