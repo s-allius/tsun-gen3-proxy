@@ -35,18 +35,13 @@ ports:
 schema:
   inverters:
     - serial: match(^(410|R17|Y17|Y47).{13}$)
-      monitor_sn: int?
+      monitor_sn: int
       node_id: str
       suggested_area: str
       modbus_polling: bool
       client_mode.host: match(\b((25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])\.){3}(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])\b)?
       client_mode.port: port?
       client_mode.forward: bool?
-      #strings: # leider funktioniert es nicht die folgenden 3 parameter im schema aufzulisten. möglicherweise wird die verschachtelung nicht unterstützt.
-      #  - string: str
-      #    type: str
-      #    manufacturer: str
-      # daher diese variante
       pv1.manufacturer: str?
       pv1.type: str?
       pv2.manufacturer: str?
@@ -91,16 +86,10 @@ schema:
 options:
   inverters:
     - serial: R17E760702080400
+      monitor_sn: 0
       node_id: PV-Garage
       suggested_area: Garage
       modbus_polling: false
-      # strings:
-      #  - string: PV1
-      #    type: SF-M18/144550
-      #    manufacturer: Shinefar
-      #  - string: PV2
-      #    type: SF-M18/144550
-      #    manufacturer: Shinefar
       pv1.manufacturer: Shinefar
       pv1.type: SF-M18/144550
       pv2.manufacturer: Shinefar
