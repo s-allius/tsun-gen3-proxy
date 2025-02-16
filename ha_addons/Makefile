@@ -8,18 +8,63 @@ JINJA = jinja2
 IMAGE = tsun-gen3-addon
 
 
-# Folders
+# Source folders for building the local add-on
 SRC=../app
 SRC_PROXY=$(SRC)/src
 CNF_PROXY=$(SRC)/config
 
+# Target folders for building the local add-on and the docker container
 ADDON_PATH = ha_addon
 DST=$(ADDON_PATH)/rootfs
 DST_PROXY=$(DST)/home/proxy
 
+# base director of the add-on repro for installing the add-on git repros
 INST_BASE=../../ha-addons/ha-addons
 
+# Template folder for build the config.yaml variants 
 TEMPL=templates
+
+# help variable STAGE determine the target to build
+dev: STAGE=dev
+debug : STAGE=debug
+rc :  STAGE=rc
+rel : STAGE=rel
+
+
+export BUILD_DATE := ${shell date -Iminutes}
+VERSION := $(shell cat $(SRC)/.version)
+export MAJOR  := $(shell echo $(VERSION) | cut -f1 -d.)
+
+PUBLIC_URL := $(shell echo $(PUBLIC_CONTAINER_REGISTRY) | cut -f1 -d/)
+PUBLIC_USER :=$(shell echo $(PUBLIC_CONTAINER_REGISTRY) | cut -f2 -d/)
+
+
+dev debug: local_add_on repro
+	@echo version: $(VERSION)  build-date: $(BUILD_DATE)   image: $(PRIVAT_CONTAINER_REGISTRY)$(IMAGE)
+	export VERSION=$(VERSION)-$@ && \
+	export IMAGE=$(PRIVAT_CONTAINER_REGISTRY)$(IMAGE) && \
+	docker buildx bake -f docker-bake.hcl $@
+
+rc rel: local_add_on repro
+	@echo version: $(VERSION)  build-date: $(BUILD_DATE)   image: $(PUBLIC_CONTAINER_REGISTRY)$(IMAGE)
+	@echo login at $(PUBLIC_URL) as $(PUBLIC_USER)
+	@DO_LOGIN="$(shell echo $(PUBLIC_CR_KEY) | docker login $(PUBLIC_URL) -u $(PUBLIC_USER) --password-stdin)"
+	export VERSION=$(VERSION)-$@ && \
+	export IMAGE=$(PUBLIC_CONTAINER_REGISTRY)$(IMAGE) && \
+	docker buildx bake -f docker-bake.hcl $@
+
+clean:
+	rm -r -f $(DST_PROXY)
+	rm -f $(DST)/requirements.txt
+	rm -f $(ADDON_PATH)/config.yaml
+	rm -f $(TEMPL)/.data.json
+	docker logout ghcr.io
+
+#############
+# Build the local add-on with a rootfs and config.yaml
+# The rootfs is needed to build the add-on Docker container 
+# 
+local_add_on: rootfs $(ADDON_PATH)/config.yaml
 
 # collect source files 
 SRC_FILES := $(wildcard $(SRC_PROXY)/*.py)\
@@ -34,49 +79,7 @@ CNF_FILES := $(wildcard $(CNF_PROXY)/*.toml)
 TARGET_FILES = $(SRC_FILES:$(SRC_PROXY)/%=$(DST_PROXY)/%)
 CONFIG_FILES = $(CNF_FILES:$(CNF_PROXY)/%=$(DST_PROXY)/%)
 
-export BUILD_DATE := ${shell date -Iminutes}
-VERSION := $(shell cat $(SRC)/.version)
-export MAJOR  := $(shell echo $(VERSION) | cut -f1 -d.)
-
-PUBLIC_URL := $(shell echo $(PUBLIC_CONTAINER_REGISTRY) | cut -f1 -d/)
-PUBLIC_USER :=$(shell echo $(PUBLIC_CONTAINER_REGISTRY) | cut -f2 -d/)
-
-
-dev debug: build
-	@echo version: $(VERSION)  build-date: $(BUILD_DATE)   image: $(PRIVAT_CONTAINER_REGISTRY)$(IMAGE)
-	export VERSION=$(VERSION)-$@ && \
-	export IMAGE=$(PRIVAT_CONTAINER_REGISTRY)$(IMAGE) && \
-	docker buildx bake -f docker-bake.hcl $@
-
-rc rel: build
-	@echo version: $(VERSION)  build-date: $(BUILD_DATE)   image: $(PUBLIC_CONTAINER_REGISTRY)$(IMAGE)
-	@echo login at $(PUBLIC_URL) as $(PUBLIC_USER)
-	@DO_LOGIN="$(shell echo $(PUBLIC_CR_KEY) | docker login $(PUBLIC_URL) -u $(PUBLIC_USER) --password-stdin)"
-	export VERSION=$(VERSION)-$@ && \
-	export IMAGE=$(PUBLIC_CONTAINER_REGISTRY)$(IMAGE) && \
-	docker buildx bake -f docker-bake.hcl $@
-
-
-build: rootfs $(ADDON_PATH)/config.yaml repro
-
-clean:
-	rm -r -f $(DST_PROXY)
-	rm -f $(DST)/requirements.txt
-	rm -f $(ADDON_PATH)/config.yaml
-	rm -f $(TEMPL)/.data.json
-	docker logout ghcr.io
-
-#
-# Build rootfs and config.yaml as local add-on
-# The rootfs is needed to build the add-on Dockercontainers
-# 
-
 rootfs: $(TARGET_FILES) $(CONFIG_FILES) $(DST)/requirements.txt
-
-STAGE=dev
-debug : STAGE=debug
-rc :  STAGE=rc
-rel : STAGE=rel
 
 $(CONFIG_FILES): $(DST_PROXY)/% : $(CNF_PROXY)/%
 	@echo Copy $< to $@
@@ -101,11 +104,10 @@ $(TEMPL)/.data.json: FORCE
 FORCE : ;
 
 
-#
+#############
 # Build repository for Home Assistant Add-On
 # 
 
-INST=$(INST_BASE)/ha_addon_dev
 repro_files = DOCS.md README.md icon.png logo.png translations/de.yaml translations/en.yaml rootfs/run.sh
 repro_root = CHANGELOG.md LICENSE.md
 repro_templates = config.yaml
@@ -139,5 +141,3 @@ $(filter $(INST_BASE)/ha_addon_rc/%,$(repro_all_files)) : $(INST_BASE)/ha_addon_
 	cp $< $@
 $(filter $(INST_BASE)/ha_addon_rel/%,$(repro_all_files)) : $(INST_BASE)/ha_addon_rel/% : ha_addon/%
 	cp $< $@
-
-
