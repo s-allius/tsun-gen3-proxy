@@ -110,7 +110,8 @@ repro_files = DOCS.md icon.png logo.png translations/de.yaml translations/en.yam
 repro_root = CHANGELOG.md 
 repro_templates = config.yaml
 repro_subdirs = translations rootfs
-repro_vers = debug dev rc rel
+# repro_vers = debug dev rc rel
+repro_vers = $(STAGE)
 
 repro_all_files := $(foreach dir,$(repro_vers), $(foreach file,$(repro_files),$(INST_BASE)/ha_addon_$(dir)/$(file)))
 repro_root_files := $(foreach dir,$(repro_vers), $(foreach file,$(repro_root),$(INST_BASE)/ha_addon_$(dir)/$(file)))
