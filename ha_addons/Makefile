@@ -106,8 +106,8 @@ FORCE : ;
 # 
 
 INST=$(INST_BASE)/ha_addon_dev
-repro_files = DOCS.md icon.png logo.png translations/de.yaml translations/en.yaml rootfs/run.sh
-repro_root = CHANGELOG.md 
+repro_files = DOCS.md README.md icon.png logo.png translations/de.yaml translations/en.yaml rootfs/run.sh
+repro_root = CHANGELOG.md LICENSE.md
 repro_templates = config.yaml
 repro_subdirs = translations rootfs
 # repro_vers = debug dev rc rel
@@ -127,6 +127,8 @@ $(repro_all_templates) : $(INST_BASE)/ha_addon_%/config.yaml: $(TEMPL)/config.ji
 	$(JINJA) --strict -D AppVersion=$(VERSION)-$* $< $(filter %.json,$^) -o $@
 
 $(repro_root_files) : %/CHANGELOG.md : ../CHANGELOG.md
+	cp $< $@
+$(repro_root_files) : %/LICENSE.md : ../LICENSE.md
 	cp $< $@
 
 $(filter $(INST_BASE)/ha_addon_debug/%,$(repro_all_files)) : $(INST_BASE)/ha_addon_debug/% : ha_addon/%
