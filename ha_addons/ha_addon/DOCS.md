@@ -68,8 +68,8 @@ Example add-on configuration for GEN3PLUS inverters:
 inverters:
   - serial: Y17000000000000
     monitor_sn: 2000000000
-    node_id: PV-Garage
-    suggested_area: Garage
+    node_id: inv_1
+    suggested_area: Roof
     modbus_polling: true
     client_mode.host: 192.168.x.x
     client_mode.port: 8899
@@ -82,6 +82,21 @@ inverters:
     pv3.type: SF-M18/144550
     pv4.manufacturer: Shinefar
     pv4.type: SF-M18/144550
+```
+
+Example add-on configuration for GEN3PLUS inverters:
+
+```yaml
+batteries:
+- serial: 4100000000000000
+  monitor_sn: 2300000000
+  node_id: bat_1
+  suggested_area: Garage
+  modbus_polling: false
+  pv1.manufacturer: Shinefar
+  pv1.type: SF-M18/144550
+  pv2.manufacturer: Shinefar
+  pv2.type: SF-M18/144550
 ```
 
 **Note**: _This is just an example, you need to replace the values with your own!_
