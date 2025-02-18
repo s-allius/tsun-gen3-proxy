@@ -39,13 +39,13 @@ PUBLIC_URL := $(shell echo $(PUBLIC_CONTAINER_REGISTRY) | cut -f1 -d/)
 PUBLIC_USER :=$(shell echo $(PUBLIC_CONTAINER_REGISTRY) | cut -f2 -d/)
 
 
-dev debug: local_add_on repro
+dev debug: local_add_on
 	@echo version: $(VERSION)  build-date: $(BUILD_DATE)   image: $(PRIVAT_CONTAINER_REGISTRY)$(IMAGE)
 	export VERSION=$(VERSION)-$@ && \
 	export IMAGE=$(PRIVAT_CONTAINER_REGISTRY)$(IMAGE) && \
 	docker buildx bake -f docker-bake.hcl $@
 
-rc rel: local_add_on repro
+rc rel: local_add_on
 	@echo version: $(VERSION)  build-date: $(BUILD_DATE)   image: $(PUBLIC_CONTAINER_REGISTRY)$(IMAGE)
 	@echo login at $(PUBLIC_URL) as $(PUBLIC_USER)
 	@DO_LOGIN="$(shell echo $(PUBLIC_CR_KEY) | docker login $(PUBLIC_URL) -u $(PUBLIC_USER) --password-stdin)"
@@ -98,6 +98,8 @@ $(DST)/requirements.txt : $(SRC)/requirements.txt
 $(ADDON_PATH)/%.yaml: $(TEMPL)/%.jinja $(TEMPL)/.data.json
 	$(JINJA) --strict -D AppVersion=$(VERSION) --format=json $^ -o $@
 
+# build a common data.json file from STAGE depending source files
+# don't touch the destination if the checksum of src and dst is equal
 $(TEMPL)/.data.json: FORCE
 	rsync --checksum $(TEMPL)/$(STAGE)_data.json $@
 
@@ -105,22 +107,39 @@ FORCE : ;
 
 
 #############
-# Build repository for Home Assistant Add-On
+# Build repository for Home Assistant Add-Onx
 # 
 
 repro_files = DOCS.md README.md icon.png logo.png translations/de.yaml translations/en.yaml rootfs/run.sh
 repro_root = CHANGELOG.md LICENSE.md
 repro_templates = config.yaml
 repro_subdirs = translations rootfs
-# repro_vers = debug dev rc rel
-repro_vers = $(STAGE)
+repro_vers = debug dev rc rel
 
 repro_all_files := $(foreach dir,$(repro_vers), $(foreach file,$(repro_files),$(INST_BASE)/ha_addon_$(dir)/$(file)))
 repro_root_files := $(foreach dir,$(repro_vers), $(foreach file,$(repro_root),$(INST_BASE)/ha_addon_$(dir)/$(file)))
 repro_all_templates := $(foreach dir,$(repro_vers), $(foreach file,$(repro_templates),$(INST_BASE)/ha_addon_$(dir)/$(file)))
 repro_all_subdirs := $(foreach dir,$(repro_vers), $(foreach file,$(repro_subdirs),$(INST_BASE)/ha_addon_$(dir)/$(file)))
 
-repro: $(repro_all_subdirs)  $(repro_all_templates) $(repro_all_files) $(repro_root_files)
+debug: $(foreach file,$(repro_subdirs),$(INST_BASE)/ha_addon_debug/$(file)) \
+       $(foreach file,$(repro_templates),$(INST_BASE)/ha_addon_debug/$(file)) \
+	   $(foreach file,$(repro_files),$(INST_BASE)/ha_addon_debug/$(file)) \
+	   $(foreach file,$(repro_root),$(INST_BASE)/ha_addon_debug/$(file))
+
+dev: $(foreach file,$(repro_subdirs),$(INST_BASE)/ha_addon_dev/$(file)) \
+     $(foreach file,$(repro_templates),$(INST_BASE)/ha_addon_dev/$(file)) \
+	 $(foreach file,$(repro_files),$(INST_BASE)/ha_addon_dev/$(file)) \
+	 $(foreach file,$(repro_root),$(INST_BASE)/ha_addon_dev/$(file))
+
+rc: $(foreach file,$(repro_subdirs),$(INST_BASE)/ha_addon_rc/$(file)) \
+    $(foreach file,$(repro_templates),$(INST_BASE)/ha_addon_rc/$(file)) \
+	$(foreach file,$(repro_files),$(INST_BASE)/ha_addon_rc/$(file)) \
+	$(foreach file,$(repro_root),$(INST_BASE)/ha_addon_rc/$(file))
+
+rel: $(foreach file,$(repro_subdirs),$(INST_BASE)/ha_addon_rel/$(file)) \
+     $(foreach file,$(repro_templates),$(INST_BASE)/ha_addon_rel/$(file)) \
+	 $(foreach file,$(repro_files),$(INST_BASE)/ha_addon_rel/$(file)) \
+	 $(foreach file,$(repro_root),$(INST_BASE)/ha_addon_rel/$(file))
 
 $(repro_all_subdirs) :
 	mkdir -p $@
@@ -128,10 +147,16 @@ $(repro_all_subdirs) :
 $(repro_all_templates) : $(INST_BASE)/ha_addon_%/config.yaml: $(TEMPL)/config.jinja $(TEMPL)/%_data.json $(SRC)/.version
 	$(JINJA) --strict -D AppVersion=$(VERSION)-$* $< $(filter %.json,$^) -o $@
 
-$(repro_root_files) : %/CHANGELOG.md : ../CHANGELOG.md
+
+$(filter $(INST_BASE)/ha_addon_debug/%,$(repro_root_files)) : $(INST_BASE)/ha_addon_debug/% : ../%
 	cp $< $@
-$(repro_root_files) : %/LICENSE.md : ../LICENSE.md
+$(filter $(INST_BASE)/ha_addon_dev/%,$(repro_root_files)) : $(INST_BASE)/ha_addon_dev/% : ../%
 	cp $< $@
+$(filter $(INST_BASE)/ha_addon_rc/%,$(repro_root_files)) : $(INST_BASE)/ha_addon_rc/% : ../%
+	cp $< $@
+$(filter $(INST_BASE)/ha_addon_rel/%,$(repro_root_files)) : $(INST_BASE)/ha_addon_rel/% : ../%
+	cp $< $@
+
 
 $(filter $(INST_BASE)/ha_addon_debug/%,$(repro_all_files)) : $(INST_BASE)/ha_addon_debug/% : ha_addon/%
 	cp $< $@
