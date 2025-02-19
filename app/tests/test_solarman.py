@@ -751,7 +751,7 @@ def config_tsun_inv1():
 
 @pytest.fixture
 def config_tsun_dcu1():
-    Config.act_config = {'solarman':{'enabled': True},'inverters':{'4100000000000001':{'monitor_sn': 2070233888, 'node_id':'inv1', 'modbus_polling': True, 'suggested_area':'roof', 'sensor_list': 0}}}
+    Config.act_config = {'solarman':{'enabled': True},'batteries':{'4100000000000001':{'monitor_sn': 2070233888, 'node_id':'inv1', 'modbus_polling': True, 'suggested_area':'roof', 'sensor_list': 0}}}
 
 def test_read_message(device_ind_msg):
     Config.act_config = {'solarman':{'enabled': True}}

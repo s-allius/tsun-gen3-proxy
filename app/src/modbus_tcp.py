@@ -1,6 +1,7 @@
 import logging
 import traceback
 import asyncio
+from itertools import chain
 
 from cnf.config import Config
 from gen3plus.inverter_g3p import InverterG3P
@@ -42,9 +43,10 @@ class ModbusTcp():
         self.tim_restart = tim_restart
 
         inverters = Config.get('inverters')
+        batteries = Config.get('batteries')
         # logging.info(f'Inverters: {inverters}')
 
-        for inv in inverters.values():
+        for _, inv in chain(inverters.items(), batteries.items()):
             if (type(inv) is dict
                and 'monitor_sn' in inv
                and 'client_mode' in inv):

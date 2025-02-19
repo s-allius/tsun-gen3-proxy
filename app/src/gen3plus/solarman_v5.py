@@ -2,6 +2,7 @@ import struct
 import logging
 import time
 import asyncio
+from itertools import chain
 from datetime import datetime
 
 from async_ifc import AsyncIfc
@@ -403,9 +404,10 @@ class SolarmanV5(SolarmanBase):
             logger.debug(f'SerialNo: {serial_no}')
         else:
             inverters = Config.get('inverters')
+            batteries = Config.get('batteries')
             # logger.debug(f'Inverters: {inverters}')
 
-            for key, inv in inverters.items():
+            for key, inv in chain(inverters.items(), batteries.items()):
                 # logger.debug(f'key: {key} -> {inv}')
                 if (type(inv) is dict and 'monitor_sn' in inv
                    and inv['monitor_sn'] == snr):
@@ -473,11 +475,11 @@ class SolarmanV5(SolarmanBase):
     def mb_timout_cb(self, exp_cnt):
         self.mb_timer.start(self.mb_timeout)
 
-        self._send_modbus_cmd(Modbus.READ_REGS, 0x3000, 48, logging.DEBUG)
+        self._send_modbus_cmd(Modbus.READ_REGS, 0x3000, 48, logging.INFO)
 
         if 1 == (exp_cnt % 30):
             # logging.info("Regular Modbus Status request")
-            self._send_modbus_cmd(Modbus.READ_REGS, 0x2000, 96, logging.DEBUG)
+            self._send_modbus_cmd(Modbus.READ_REGS, 0x2000, 96, logging.INFO)
 
     def at_cmd_forbidden(self, cmd: str, connection: str) -> bool:
         return not cmd.startswith(tuple(self.at_acl[connection]['allow'])) or \

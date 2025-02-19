@@ -31,7 +31,8 @@ class ConfigReadJson(ConfigIfc):
     def convert_to_obj(self, data):
         conf = {}
         for key, val in data.items():
-            if key == 'inverters' and isinstance(val, list):
+            if (key == 'inverters' or key == 'batteries') and \
+               isinstance(val, list):
                 self.convert_inv_arr(conf, key, val)
             else:
                 self._extend_key(conf, key, val)

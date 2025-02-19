@@ -93,6 +93,19 @@ def ConfigDefault():
                                    'type': 'RSM40-8-410M'},
                            'sensor_list': 0
                        }
+                    },
+                    'batteries': {
+                        '4100000000000001': {
+                            'modbus_polling': True,
+                            'monitor_sn': 3000000000,
+                            'suggested_area': '',
+                            'node_id': '',
+                            'pv1': {'manufacturer': 'Risen',
+                                    'type': 'RSM40-8-410M'},
+                            'pv2': {'manufacturer': 'Risen',
+                                    'type': 'RSM40-8-410M'},
+                            'sensor_list': 0,
+                        }
                     }
                   }
 
@@ -140,6 +153,18 @@ def ConfigComplete():
                                          'type': 'type4'},
                                  'suggested_area': 'Garage2',
                                  'sensor_list': 688}
+        },
+        'batteries': {
+            '4100000000000001': {
+                            'modbus_polling': True,
+                            'monitor_sn': 3000000000,
+                            'suggested_area': 'Garage3',
+                            'node_id': 'Bat-Garage3/',
+                            'pv1': {'manufacturer': 'man5',
+                                    'type': 'type5'},
+                            'pv2': {'manufacturer': 'man6',
+                                    'type': 'type6'},
+                            'sensor_list': 12326}
         }
     }
 
@@ -147,6 +172,19 @@ def test_default_config():
     Config.init(ConfigReadToml("app/src/cnf/default_config.toml"))
     validated = Config.def_config
     assert validated == {'gen3plus': {'at_acl': {'mqtt': {'allow': ['AT+'], 'block': []}, 'tsun': {'allow': ['AT+Z', 'AT+UPURL', 'AT+SUPDATE'], 'block': []}}}, 'tsun': {'enabled': True, 'host': 'logger.talent-monitoring.com', 'port': 5005}, 'solarman': {'enabled': True, 'host': 'iot.talent-monitoring.com', 'port': 10000}, 'mqtt': {'host': 'mqtt', 'port': 1883, 'user': None, 'passwd': None}, 'ha': {'auto_conf_prefix': 'homeassistant', 'discovery_prefix': 'homeassistant', 'entity_prefix': 'tsun', 'proxy_node_id': 'proxy', 'proxy_unique_id': 'P170000000000001'},
+                         'batteries': {
+                             '4100000000000001': {
+                                 'modbus_polling': True,
+                                 'monitor_sn': 3000000000,
+                                 'node_id': '',
+                                 'pv1': {'manufacturer': 'Risen',
+                                         'type': 'RSM40-8-410M'},
+                                 'pv2': {'manufacturer': 'Risen',
+                                         'type': 'RSM40-8-410M'},
+                                 'sensor_list': 0,
+                                 'suggested_area': ''
+                             }
+                         },
                          'inverters': {
                              'allow_all': False, 
                              'R170000000000001': {
@@ -181,9 +219,14 @@ def test_full_config(ConfigComplete):
            'solarman': {'enabled': True, 'host': 'iot.talent-monitoring.com', 'port': 10000}, 
            'mqtt': {'host': 'mqtt', 'port': 1883, 'user': '', 'passwd': ''}, 
            'ha': {'auto_conf_prefix': 'homeassistant', 'discovery_prefix': 'homeassistant', 'entity_prefix': 'tsun', 'proxy_node_id': 'proxy', 'proxy_unique_id': 'P170000000000001'}, 
+           'batteries': {
+                         '4100000000000001': {'modbus_polling': True, 'monitor_sn': 3000000000, 'node_id': 'Bat-Garage3/', 'sensor_list': 0x3026, 'suggested_area': 'Garage3', 'pv1': {'type': 'type5', 'manufacturer': 'man5'}, 'pv2': {'type': 'type6', 'manufacturer': 'man6'}}
+           },
            'inverters': {'allow_all': False, 
                          'R170000000000001': {'modbus_polling': False, 'node_id': 'PV-Garage/', 'sensor_list': 0x02B0, 'suggested_area': 'Garage', 'pv1': {'type': 'type1', 'manufacturer': 'man1'}, 'pv2': {'type': 'type2', 'manufacturer': 'man2'}}, 
-                         'Y170000000000001': {'modbus_polling': True, 'monitor_sn': 2000000000, 'node_id': 'PV-Garage2/', 'sensor_list': 0x02B0, 'suggested_area': 'Garage2', 'pv1': {'type': 'type1', 'manufacturer': 'man1'}, 'pv2': {'type': 'type2', 'manufacturer': 'man2'}, 'pv3': {'type': 'type3', 'manufacturer': 'man3'}, 'pv4': {'type': 'type4', 'manufacturer': 'man4'}}}}
+                         'Y170000000000001': {'modbus_polling': True, 'monitor_sn': 2000000000, 'node_id': 'PV-Garage2/', 'sensor_list': 0x02B0, 'suggested_area': 'Garage2', 'pv1': {'type': 'type1', 'manufacturer': 'man1'}, 'pv2': {'type': 'type2', 'manufacturer': 'man2'}, 'pv3': {'type': 'type3', 'manufacturer': 'man3'}, 'pv4': {'type': 'type4', 'manufacturer': 'man4'}}
+            }
+    }
     try:
         validated = Config.conf_schema.validate(cnf)
     except Exception:
@@ -240,6 +283,19 @@ def test_read_cnf1():
     assert err == None
     cnf = Config.get()
     assert cnf == {'gen3plus': {'at_acl': {'mqtt': {'allow': ['AT+'], 'block': []}, 'tsun': {'allow': ['AT+Z', 'AT+UPURL', 'AT+SUPDATE'], 'block': []}}}, 'tsun': {'enabled': True, 'host': 'logger.talent-monitoring.com', 'port': 5005}, 'solarman': {'enabled': False, 'host': 'iot.talent-monitoring.com', 'port': 10000}, 'mqtt': {'host': 'mqtt', 'port': 1883, 'user': None, 'passwd': None}, 'ha': {'auto_conf_prefix': 'homeassistant', 'discovery_prefix': 'homeassistant', 'entity_prefix': 'tsun', 'proxy_node_id': 'proxy', 'proxy_unique_id': 'P170000000000001'},
+                   'batteries': {
+                       '4100000000000001': {
+                           'modbus_polling': True,
+                           'monitor_sn': 3000000000,
+                           'node_id': '',
+                           'pv1': {'manufacturer': 'Risen',
+                                   'type': 'RSM40-8-410M'},
+                           'pv2': {'manufacturer': 'Risen',
+                                   'type': 'RSM40-8-410M'},
+                           'sensor_list': 0,
+                           'suggested_area': ''
+                       }
+                   },
                    'inverters': {
                        'allow_all': False,
                        'R170000000000001': {
@@ -287,6 +343,19 @@ def test_read_cnf2():
     assert err == None
     cnf = Config.get()
     assert cnf == {'gen3plus': {'at_acl': {'mqtt': {'allow': ['AT+'], 'block': []}, 'tsun': {'allow': ['AT+Z', 'AT+UPURL', 'AT+SUPDATE'], 'block': []}}}, 'tsun': {'enabled': True, 'host': 'logger.talent-monitoring.com', 'port': 5005}, 'solarman': {'enabled': True, 'host': 'iot.talent-monitoring.com', 'port': 10000}, 'mqtt': {'host': 'mqtt', 'port': 1883, 'user': None, 'passwd': None}, 'ha': {'auto_conf_prefix': 'homeassistant', 'discovery_prefix': 'homeassistant', 'entity_prefix': 'tsun', 'proxy_node_id': 'proxy', 'proxy_unique_id': 'P170000000000001'},
+                   'batteries': {
+                       '4100000000000001': {
+                           'modbus_polling': True,
+                           'monitor_sn': 3000000000,
+                           'node_id': '',
+                           'pv1': {'manufacturer': 'Risen',
+                                   'type': 'RSM40-8-410M'},
+                           'pv2': {'manufacturer': 'Risen',
+                                   'type': 'RSM40-8-410M'},
+                           'sensor_list': 0,
+                           'suggested_area': ''
+                       }
+                   },
                    'inverters': {
                        'allow_all': False,
                        'R170000000000001': {
@@ -342,6 +411,19 @@ def test_read_cnf4():
     assert err == None
     cnf = Config.get()
     assert cnf == {'gen3plus': {'at_acl': {'mqtt': {'allow': ['AT+'], 'block': []}, 'tsun': {'allow': ['AT+Z', 'AT+UPURL', 'AT+SUPDATE'], 'block': []}}}, 'tsun': {'enabled': True, 'host': 'logger.talent-monitoring.com', 'port': 5005}, 'solarman': {'enabled': True, 'host': 'iot.talent-monitoring.com', 'port': 5000}, 'mqtt': {'host': 'mqtt', 'port': 1883, 'user': None, 'passwd': None}, 'ha': {'auto_conf_prefix': 'homeassistant', 'discovery_prefix': 'homeassistant', 'entity_prefix': 'tsun', 'proxy_node_id': 'proxy', 'proxy_unique_id': 'P170000000000001'},
+                   'batteries': {
+                       '4100000000000001': {
+                           'modbus_polling': True,
+                           'monitor_sn': 3000000000,
+                           'node_id': '',
+                           'pv1': {'manufacturer': 'Risen',
+                                   'type': 'RSM40-8-410M'},
+                           'pv2': {'manufacturer': 'Risen',
+                                   'type': 'RSM40-8-410M'},
+                           'sensor_list': 0,
+                           'suggested_area': ''
+                       }
+                   },
                    'inverters': {
                        'allow_all': False,
                        'R170000000000001': {
