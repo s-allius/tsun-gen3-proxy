@@ -1,6 +1,6 @@
 name: {{name}}
 description: {{description}}
-version: {% if version is defined and version|length %} {{version}} {% else %} {{AppVersion}} {% endif %}
+version: {% if version is defined and version|length %} {{version}} {% elif BuildID is defined and BuildID|length %} {{AppVersion}}-{{BuildID}} {% else %} {{AppVersion}} {% endif %}
 image: {{image}}
 url: https://github.com/s-allius/tsun-gen3-proxy
 slug: {{slug}}

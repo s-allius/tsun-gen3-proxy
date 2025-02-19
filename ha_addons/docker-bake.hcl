@@ -79,7 +79,7 @@ target "debug" {
 
 target "dev" {
   inherits = ["_common"]
-  tags = ["${IMAGE}:dev"]
+  tags = ["${IMAGE}:dev", "${IMAGE}:${VERSION}"]
 }
 
 target "preview" {

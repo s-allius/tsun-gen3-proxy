@@ -32,6 +32,7 @@ rel : STAGE=rel
 
 
 export BUILD_DATE := ${shell date -Iminutes}
+BUILD_ID := ${shell date +'%y%m%d%H%M'}
 VERSION := $(shell cat $(SRC)/.version)
 export MAJOR  := $(shell echo $(VERSION) | cut -f1 -d.)
 
@@ -41,7 +42,7 @@ PUBLIC_USER :=$(shell echo $(PUBLIC_CONTAINER_REGISTRY) | cut -f2 -d/)
 
 dev debug: local_add_on
 	@echo version: $(VERSION)  build-date: $(BUILD_DATE)   image: $(PRIVAT_CONTAINER_REGISTRY)$(IMAGE)
-	export VERSION=$(VERSION)-$@ && \
+	export VERSION=$(VERSION)-$@-$(BUILD_ID) && \
 	export IMAGE=$(PRIVAT_CONTAINER_REGISTRY)$(IMAGE) && \
 	docker buildx bake -f docker-bake.hcl $@
 
@@ -96,7 +97,7 @@ $(DST)/requirements.txt : $(SRC)/requirements.txt
 	@cp $< $@
 
 $(ADDON_PATH)/%.yaml: $(TEMPL)/%.jinja $(TEMPL)/.data.json
-	$(JINJA) --strict -D AppVersion=$(VERSION) --format=json $^ -o $@
+	$(JINJA) --strict -D AppVersion=$(VERSION) -D BuildID=$(BUILD_ID) --format=json $^ -o $@
 
 # build a common data.json file from STAGE depending source files
 # don't touch the destination if the checksum of src and dst is equal
@@ -144,8 +145,8 @@ rel: $(foreach file,$(repro_subdirs),$(INST_BASE)/ha_addon_rel/$(file)) \
 $(repro_all_subdirs) :
 	mkdir -p $@
 
-$(repro_all_templates) : $(INST_BASE)/ha_addon_%/config.yaml: $(TEMPL)/config.jinja $(TEMPL)/%_data.json $(SRC)/.version
-	$(JINJA) --strict -D AppVersion=$(VERSION)-$* $< $(filter %.json,$^) -o $@
+$(repro_all_templates) : $(INST_BASE)/ha_addon_%/config.yaml: $(TEMPL)/config.jinja $(TEMPL)/%_data.json $(SRC)/.version FORCE
+	$(JINJA) --strict -D AppVersion=$(VERSION)-$* -D BuildID=$(BUILD_ID) $< $(filter %.json,$^) -o $@
 
 
 $(filter $(INST_BASE)/ha_addon_debug/%,$(repro_root_files)) : $(INST_BASE)/ha_addon_debug/% : ../%

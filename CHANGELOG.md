@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+- addon: add date and time to dev container
 - Update AddOn base docker image to version 17.1.3 and python3 to 3.12.9-r0
 - add initial DCU support
 - update AddOn base docker image to version 17.1.2
