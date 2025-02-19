@@ -44,6 +44,7 @@ class Config():
     '''
 
     conf_schema = Schema({
+        # NOSONAR
         'tsun': {
             'enabled': Use(bool),
             'host': Use(str),
@@ -101,8 +102,8 @@ class Config():
                    Optional('pv4'),
                    Optional('pv5'),
                    Optional('pv6')): {
-                    Optional('type'): Use(str),
-                    Optional('manufacturer'): Use(str),
+                     Optional('type'): Use(str),
+                     Optional('manufacturer'): Use(str),
                 }
             }
         },
