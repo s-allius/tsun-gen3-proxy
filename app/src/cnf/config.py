@@ -95,27 +95,12 @@ class Config():
                 Optional('modbus_polling', default=True): Use(bool),
                 Optional('suggested_area', default=""): Use(str),
                 Optional('sensor_list', default=0): Use(int),
-                Optional('pv1'): {
-                    Optional('type'): Use(str),
-                    Optional('manufacturer'): Use(str),
-                },
-                Optional('pv2'): {
-                    Optional('type'): Use(str),
-                    Optional('manufacturer'): Use(str),
-                },
-                Optional('pv3'): {
-                    Optional('type'): Use(str),
-                    Optional('manufacturer'): Use(str),
-                },
-                Optional('pv4'): {
-                    Optional('type'): Use(str),
-                    Optional('manufacturer'): Use(str),
-                },
-                Optional('pv5'): {
-                    Optional('type'): Use(str),
-                    Optional('manufacturer'): Use(str),
-                },
-                Optional('pv6'): {
+                Or(Optional('pv1'),
+                   Optional('pv2'),
+                   Optional('pv3'),
+                   Optional('pv4'),
+                   Optional('pv5'),
+                   Optional('pv6')): {
                     Optional('type'): Use(str),
                     Optional('manufacturer'): Use(str),
                 }
@@ -138,27 +123,8 @@ class Config():
                 Optional('modbus_polling', default=True): Use(bool),
                 Optional('suggested_area', default=""): Use(str),
                 Optional('sensor_list', default=0): Use(int),
-                Optional('pv1'): {
-                    Optional('type'): Use(str),
-                    Optional('manufacturer'): Use(str),
-                },
-                Optional('pv2'): {
-                    Optional('type'): Use(str),
-                    Optional('manufacturer'): Use(str),
-                },
-                Optional('pv3'): {
-                    Optional('type'): Use(str),
-                    Optional('manufacturer'): Use(str),
-                },
-                Optional('pv4'): {
-                    Optional('type'): Use(str),
-                    Optional('manufacturer'): Use(str),
-                },
-                Optional('pv5'): {
-                    Optional('type'): Use(str),
-                    Optional('manufacturer'): Use(str),
-                },
-                Optional('pv6'): {
+                Or(Optional('pv1'),
+                   Optional('pv2')): {
                     Optional('type'): Use(str),
                     Optional('manufacturer'): Use(str),
                 }
