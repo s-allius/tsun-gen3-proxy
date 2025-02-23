@@ -84,19 +84,19 @@ inverters:
     pv4.type: SF-M18/144550
 ```
 
-Example add-on configuration for GEN3PLUS inverters:
+Example add-on configuration for GEN3PLUS energie storages:
 
 ```yaml
 batteries:
-- serial: 4100000000000000
-  monitor_sn: 2300000000
-  node_id: bat_1
-  suggested_area: Garage
-  modbus_polling: false
-  pv1.manufacturer: Shinefar
-  pv1.type: SF-M18/144550
-  pv2.manufacturer: Shinefar
-  pv2.type: SF-M18/144550
+  - serial: 4100000000000000
+    monitor_sn: 2300000000
+    node_id: bat_1
+    suggested_area: Garage
+    modbus_polling: false
+    pv1.manufacturer: Shinefar
+    pv1.type: SF-M18/144550
+    pv2.manufacturer: Shinefar
+    pv2.type: SF-M18/144550
 ```
 
 **Note**: _This is just an example, you need to replace the values with your own!_
