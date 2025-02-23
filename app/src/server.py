@@ -117,19 +117,19 @@ async def handle_shutdown(loop, web_task):
     loop.stop()
 
 
-def get_log_level() -> int:
+def get_log_level() -> int | None:
     '''checks if LOG_LVL is set in the environment and returns the
     corresponding logging.LOG_LEVEL'''
-    log_level = os.getenv('LOG_LVL', 'INFO')
+    switch = {
+        'DEBUG': logging.DEBUG,
+        'WARN': logging.WARNING,
+        'INFO': logging.INFO,
+        'ERROR': logging.ERROR,
+    }
+    log_level = os.getenv('LOG_LVL', None)
     logging.info(f"LOG_LVL    : {log_level}")
 
-    if log_level == 'DEBUG':
-        log_level = logging.DEBUG
-    elif log_level == 'WARN':
-        log_level = logging.WARNING
-    else:
-        log_level = logging.INFO
-    return log_level
+    return switch.get(log_level, None)
 
 
 def main():   # pragma: no cover
@@ -172,15 +172,15 @@ def main():   # pragma: no cover
         logging.info(f"log_backups: {args.log_backups} days")
     log_level = get_log_level()
     logging.info('******')
-
-    # set lowest-severity for 'root', 'msg', 'conn' and 'data' logger
-    logging.getLogger().setLevel(log_level)
-    logging.getLogger('msg').setLevel(log_level)
-    logging.getLogger('conn').setLevel(log_level)
-    logging.getLogger('data').setLevel(log_level)
-    logging.getLogger('tracer').setLevel(log_level)
-    logging.getLogger('asyncio').setLevel(log_level)
-    # logging.getLogger('mqtt').setLevel(log_level)
+    if log_level:
+        # set lowest-severity for 'root', 'msg', 'conn' and 'data' logger
+        logging.getLogger().setLevel(log_level)
+        logging.getLogger('msg').setLevel(log_level)
+        logging.getLogger('conn').setLevel(log_level)
+        logging.getLogger('data').setLevel(log_level)
+        logging.getLogger('tracer').setLevel(log_level)
+        logging.getLogger('asyncio').setLevel(log_level)
+        # logging.getLogger('mqtt').setLevel(log_level)
 
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
