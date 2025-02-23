@@ -111,7 +111,7 @@ FORCE : ;
 # Build repository for Home Assistant Add-Onx
 # 
 
-repro_files = DOCS.md README.md icon.png logo.png translations/de.yaml translations/en.yaml rootfs/run.sh
+repro_files = DOCS.md icon.png logo.png translations/de.yaml translations/en.yaml rootfs/run.sh
 repro_root = CHANGELOG.md LICENSE.md
 repro_templates = config.yaml
 repro_subdirs = translations rootfs
