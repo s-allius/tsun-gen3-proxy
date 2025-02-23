@@ -34,8 +34,8 @@ ports:
 
 schema:
   inverters:
-    - serial: match(^(410|R17|Y17|Y47).{13}$)
-      monitor_sn: int
+    - serial: match(^(R17|Y17|Y47).{13}$)
+      monitor_sn: int?
       node_id: str
       suggested_area: str
       modbus_polling: bool
