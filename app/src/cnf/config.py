@@ -44,7 +44,6 @@ class Config():
     '''
 
     conf_schema = Schema({
-        # NOSONAR
         'tsun': {
             'enabled': Use(bool),
             'host': Use(str),
