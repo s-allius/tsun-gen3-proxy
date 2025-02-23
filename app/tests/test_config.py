@@ -196,7 +196,7 @@ def test_default_config():
                                  'modbus_polling': False,
                                  'monitor_sn': 0, 
                                  'suggested_area': '', 
-                                 'sensor_list': 0}, 
+                                 'sensor_list': 0},
                              'Y170000000000001': {
                                  'modbus_polling': True, 
                                  'monitor_sn': 2000000000, 

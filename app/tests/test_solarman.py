@@ -708,7 +708,7 @@ def dcu_dev_ind_msg(): # 0x4110
 @pytest.fixture
 def dcu_dev_rsp_msg():  # 0x1110
     msg  = b'\xa5\x0a\x00\x10\x11\x92\x01' +get_dcu_sn()  +b'\x02\x01'
-    msg += total()  
+    msg += total()
     msg += hb()
     msg += correct_checksum(msg)
     msg += b'\x15'
@@ -731,7 +731,7 @@ def dcu_data_ind_msg(): # 0x4210
 @pytest.fixture
 def dcu_data_rsp_msg():  # 0x1210
     msg  = b'\xa5\x0a\x00\x10\x12\x93\x02' +get_dcu_sn()  +b'\x01\x01'
-    msg += total()  
+    msg += total()
     msg += hb()
     msg += correct_checksum(msg)
     msg += b'\x15'

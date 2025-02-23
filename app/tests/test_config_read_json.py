@@ -394,7 +394,7 @@ def test_full_config(ConfigComplete):
        "pv2.manufacturer": "man6",
        "pv2.type": "type6",
        "sensor_list": 12326
-     }   
+     }
    ],
    "tsun.enabled": true,
    "solarman.enabled": true,
