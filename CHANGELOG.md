@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+- Respect logging.ini file, if LOG_ENV isn't set well [#288](https://github.com/s-allius/tsun-gen3-proxy/issues/288)
+- Remove trailing apostrophe in the log output [#288](https://github.com/s-allius/tsun-gen3-proxy/issues/288)
 - update AddOn base docker image to version 17.2.1
 - addon: add date and time to dev container version
 - Update AddOn python3 to 3.12.9-r0
