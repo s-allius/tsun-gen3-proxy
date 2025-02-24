@@ -151,6 +151,8 @@ class InverterBase(InverterIfc, Proxy):
         #  home assistant has changed the status back to online
         try:
             if (('inverter' in stream.new_data and stream.new_data['inverter'])
+                    or ('batterie' in stream.new_data and
+                        stream.new_data['batterie'])
                     or ('collector' in stream.new_data and
                         stream.new_data['collector'])
                     or self.mqtt.ha_restarts != self.__ha_restarts):

@@ -2,6 +2,7 @@ import struct
 import logging
 import time
 import asyncio
+from itertools import chain
 from datetime import datetime
 
 from async_ifc import AsyncIfc
@@ -376,12 +377,23 @@ class SolarmanV5(SolarmanBase):
         self.ifc.fwd_add(build_msg)
         self.ifc.fwd_add(struct.pack('<BB', 0, 0x15))    # crc & stop
 
-    def __set_config_parms(self, inv: dict):
+    def __set_config_parms(self, inv: dict, serial_no: str):
         '''init connection with params from the configuration'''
         self.node_id = inv['node_id']
         self.sug_area = inv['suggested_area']
         self.modbus_polling = inv['modbus_polling']
         self.sensor_list = inv['sensor_list']
+        if 0 == self.sensor_list:
+            snr = serial_no[:3]
+            if '410' == snr:
+                self.sensor_list = 0x3026
+            else:
+                self.sensor_list = 0x02b0
+        self.db.set_db_def_value(Register.SENSOR_LIST,
+                                 f"{self.sensor_list:04x}")
+        logging.debug(f"Use sensor-list: {self.sensor_list:#04x}"
+                      f" for '{serial_no}'")
+
         if self.mb:
             self.mb.set_node_id(self.node_id)
 
@@ -392,13 +404,14 @@ class SolarmanV5(SolarmanBase):
             logger.debug(f'SerialNo: {serial_no}')
         else:
             inverters = Config.get('inverters')
+            batteries = Config.get('batteries')
             # logger.debug(f'Inverters: {inverters}')
 
-            for key, inv in inverters.items():
+            for key, inv in chain(inverters.items(), batteries.items()):
                 # logger.debug(f'key: {key} -> {inv}')
                 if (type(inv) is dict and 'monitor_sn' in inv
                    and inv['monitor_sn'] == snr):
-                    self.__set_config_parms(inv)
+                    self.__set_config_parms(inv, key)
                     self.db.set_pv_module_details(inv)
                     logger.debug(f'SerialNo {serial_no} allowed! area:{self.sug_area}')  # noqa: E501
 
@@ -411,9 +424,11 @@ class SolarmanV5(SolarmanBase):
                 if 'allow_all' not in inverters or not inverters['allow_all']:
                     self.inc_counter('Unknown_SNR')
                     self.unique_id = None
-                    logger.warning(f'ignore message from unknow inverter! (SerialNo: {serial_no})')  # noqa: E501
+                    logging.error(f"Ignore message from unknow inverter with Monitoring-SN: {serial_no})!\n"  # noqa: E501
+                                  "  !!Check the 'monitor_sn' setting in your configuration!!")  # noqa: E501
                     return
-                logger.warning(f'SerialNo {serial_no} not known but accepted!')
+                logging.warning(f"Monitoring-SN: {serial_no} not configured but accepted!"  # noqa: E501
+                                "  !!Check the 'monitor_sn' setting in your configuration!!")  # noqa: E501
 
             self.unique_id = serial_no
 
@@ -460,11 +475,11 @@ class SolarmanV5(SolarmanBase):
     def mb_timout_cb(self, exp_cnt):
         self.mb_timer.start(self.mb_timeout)
 
-        self._send_modbus_cmd(Modbus.READ_REGS, 0x3000, 48, logging.DEBUG)
+        self._send_modbus_cmd(Modbus.READ_REGS, 0x3000, 48, logging.INFO)
 
         if 1 == (exp_cnt % 30):
             # logging.info("Regular Modbus Status request")
-            self._send_modbus_cmd(Modbus.READ_REGS, 0x2000, 96, logging.DEBUG)
+            self._send_modbus_cmd(Modbus.READ_REGS, 0x2000, 96, logging.INFO)
 
     def at_cmd_forbidden(self, cmd: str, connection: str) -> bool:
         return not cmd.startswith(tuple(self.at_acl[connection]['allow'])) or \

@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import json
+from itertools import chain
 
 from cnf.config import Config
 from mqtt import Mqtt
@@ -56,8 +57,9 @@ class Proxy():
         # reset at midnight when you restart the proxy just before
         # midnight!
         inverters = Config.get('inverters')
+        batteries = Config.get('batteries')
         # logger.debug(f'Proxys: {inverters}')
-        for inv in inverters.values():
+        for _, inv in chain(inverters.items(), batteries.items()):
             if (type(inv) is dict):
                 node_id = inv['node_id']
                 cls.db_stat.reg_clr_at_midnight(f'{cls.entity_prfx}{node_id}',

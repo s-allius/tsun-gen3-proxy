@@ -382,6 +382,20 @@ def test_full_config(ConfigComplete):
        "sensor_list": 688
      }
    ],
+   "batteries": [
+     {
+       "serial": "4100000000000001",
+       "modbus_polling": true,
+       "monitor_sn": 3000000000,
+       "node_id": "Bat-Garage3",
+       "suggested_area": "Garage3",
+       "pv1.manufacturer": "man5",
+       "pv1.type": "type5",
+       "pv2.manufacturer": "man6",
+       "pv2.type": "type6",
+       "sensor_list": 12326
+     }
+   ],
    "tsun.enabled": true,
    "solarman.enabled": true,
    "inverters.allow_all": false,

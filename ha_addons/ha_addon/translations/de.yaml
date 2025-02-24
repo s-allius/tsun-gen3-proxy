@@ -11,7 +11,20 @@ configuration:
       Konfigurationsblock gesetzt werden.
 
       Die Seriennummer der GEN3 Wechselrichter beginnen mit `R17` und die der GEN3PLUS
-      Wechselrichter mir `Y17`oder `47`!
+      Wechselrichter mit `Y17`oder `Y47`!
+
+      Siehe Beispielkonfiguration im Dokumentations-Tab
+  batteries:
+    name: Batterien
+    description: >+
+      Für jeden Energiespeicher muss die Seriennummer des Speichers einer MQTT
+      Definition zugeordnet werden. Dazu wird der entsprechende Konfigurationsblock mit der
+      16-stellige Seriennummer gestartet, so dass alle nachfolgenden Parameter diesem 
+      Speicher zugeordnet sind.
+      Weitere speicherspezifische Parameter (z.B. Polling Mode) können im 
+      Konfigurationsblock gesetzt werden.
+
+      Die Seriennummer der GEN3PLUS Batteriespeicher beginnen mit `410`!
 
       Siehe Beispielkonfiguration im Dokumentations-Tab
 
@@ -25,14 +38,14 @@ configuration:
       ein => normaler Proxy-Betrieb.
       aus => Der Wechselrichter wird vom Internet isoliert.
   solarman.enabled:
-    name: Verbindung zur Solarman Cloud - nur für GEN3PLUS Wechselrichter
+    name: Verbindung zur Solarman/TSUN Cloud - nur für GEN3PLUS Wechselrichter
     description: >+
-      Schaltet die Verbindung zur Solarman Cloud ein/aus.
-      Diese Verbindung ist erforderlich, wenn Sie Daten an die Solarman Cloud senden möchten,
-      z.B. um die Solarman Apps zu nutzen oder Firmware-Updates zu erhalten.
+      Schaltet die Verbindung zur Solarman oder TSUN Cloud ein/aus.
+      Diese Verbindung ist erforderlich, wenn Sie Daten an die Cloud senden möchten,
+      z.B. um die Solarman App oder TSUN Smart App zu nutzen oder Firmware-Updates zu erhalten.
       
       ein => normaler Proxy-Betrieb.
-      aus => Der Wechselrichter wird vom Internet isoliert.
+      aus => Die GEN3PLUS Geräte werden vom Internet isoliert.
   inverters.allow_all:
     name: Erlaube Verbindungen von sämtlichen Wechselrichtern
     description: >-

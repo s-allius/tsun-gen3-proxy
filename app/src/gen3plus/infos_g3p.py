@@ -116,6 +116,33 @@ class RegisterMap:
         0x4201000c: {'reg': Register.SENSOR_LIST,          'fmt': '<H', 'func': Fmt.hex4},   # noqa: E501
         0x4201001c: {'reg': Register.POWER_ON_TIME,        'fmt': '<H', 'ratio':    1, 'dep': ProxyMode.SERVER},  # noqa: E501, or packet number
         0x42010020: {'reg': Register.SERIAL_NUMBER,        'fmt': '!16s'},               # noqa: E501
+        0x42010030: {'reg': Register.BATT_PV1_VOLT,        'fmt': '!H', 'ratio': 0.01},  # noqa: E501, PV1 voltage
+        0x42010032: {'reg': Register.BATT_PV1_CUR,         'fmt': '!H', 'ratio': 0.01},  # noqa: E501, PV1 current
+        0x42010034: {'reg': Register.BATT_PV2_VOLT,        'fmt': '!H', 'ratio': 0.01},  # noqa: E501, PV2 voltage
+        0x42010036: {'reg': Register.BATT_PV2_CUR,         'fmt': '!H', 'ratio': 0.01},  # noqa: E501, PV2 current
+        0x42010038: {'reg': Register.BATT_38,              'fmt': '!h'},                 # noqa: E501
+        0x4201003a: {'reg': Register.BATT_3a,              'fmt': '!h'},                 # noqa: E501
+        0x4201003c: {'reg': Register.BATT_3c,              'fmt': '!h'},                 # noqa: E501
+        0x4201003e: {'reg': Register.BATT_3e,              'fmt': '!h'},                 # noqa: E501
+        0x42010040: {'reg': Register.BATT_40,              'fmt': '!h', 'ratio': 0.01},  # noqa: E501
+        0x42010042: {'reg': Register.BATT_42,              'fmt': '!h', 'ratio': 0.01},  # noqa: E501
+        0x42010044: {'reg': Register.BATT_SOC,             'fmt': '!H', 'ratio': 0.01},  # noqa: E501, state of charge (SOC) in percent
+        0x42010046: {'reg': Register.BATT_46,              'fmt': '!h'},                 # noqa: E501
+        0x42010048: {'reg': Register.BATT_48,              'fmt': '!h'},                 # noqa: E501
+        0x4201004a: {'reg': Register.BATT_4a,              'fmt': '!h'},                 # noqa: E501
+        0x4201004c: {'reg': Register.BATT_4c,              'fmt': '!h'},                 # noqa: E501
+        0x4201004e: {'reg': Register.BATT_4e,              'fmt': '!h'},                 # noqa: E501
+
+        0x42010066: {'reg': Register.BATT_66,              'fmt': '!h'},                 # noqa: E501
+        0x42010068: {'reg': Register.BATT_68,              'fmt': '!h'},                 # noqa: E501
+        0x4201006a: {'reg': Register.BATT_6a,              'fmt': '!h'},                 # noqa: E501
+        0x4201006c: {'reg': Register.BATT_6c,              'fmt': '!h'},                 # noqa: E501
+        0x4201006e: {'reg': Register.BATT_6e,              'fmt': '!h'},                 # noqa: E501
+        0x42010070: {'reg': Register.BATT_70,              'fmt': '!h'},                 # noqa: E501
+        0x42010072: {'reg': Register.BATT_72,              'fmt': '!h'},                 # noqa: E501
+        0x42010074: {'reg': Register.BATT_74,              'fmt': '!h'},                 # noqa: E501
+        0x42010076: {'reg': Register.BATT_76,              'fmt': '!h'},                 # noqa: E501
+        0x42010078: {'reg': Register.BATT_78,              'fmt': '!h'},                 # noqa: E501
     }
 
 
@@ -162,9 +189,15 @@ class InfosG3P(Infos):
                          entity strings
         sug_area:str ==> suggested area string from the config file'''
         # iterate over RegisterMap.map and get the register values
-        for _, row in chain(RegisterMap.map.items(),
-                            RegisterMap.map_02b0.items(),
-                            RegisterMap.map_3026.items()):
+        sensor = self.get_db_value(Register.SENSOR_LIST)
+        if "3026" == sensor:
+            items = RegisterMap.map_3026.items()
+        elif "02b0" == sensor:
+            items = RegisterMap.map_02b0.items()
+        else:
+            items = {}
+
+        for _, row in chain(RegisterMap.map.items(), items):
             info_id = row['reg']
             if self.__hide_topic(row):
                 res = self.ha_remove(info_id, node_id, snr)  # noqa: E501

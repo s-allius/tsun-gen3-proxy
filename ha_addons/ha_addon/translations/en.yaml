@@ -7,12 +7,26 @@ configuration:
       definition. To do this, the corresponding configuration block is started with
       16-digit serial number so that all subsequent parameters are assigned
       to this inverter. Further inverter-specific parameters (e.g. polling mode) can be set
-      in the configuration block
+      in the configuration block.
 
       The serial numbers of all GEN3 inverters start with `R17` and that of the GEN3PLUS
-      inverters with ‘Y17’ or ‘47’!
+      inverters with ‘Y17’ or ‘Y47’!
       
       For reference see example configuration in Documentation Tab
+
+  batteries:
+    name: Energy Storages
+    description: >+
+      For each energy storage device, the serial number of the storage device must be
+      assigned to an MQTT definition. To do this, the corresponding configuration block
+      is started with the 16-digit serial number so that all subsequent parameters are
+      assigned to this energy storage. Further inverter-specific parameters (e.g. polling
+      mode) can be set in the configuration block.
+
+      The serial numbers of all GEN3PLUS energy storages start with ‘410’!
+
+      For reference see example configuration in Documentation Tab
+
 
   tsun.enabled:
     name: Connection to TSUN Cloud - for GEN3 inverter only
@@ -24,14 +38,14 @@ configuration:
       on => normal proxy operation.
       off => The Inverter become isolated from Internet.
   solarman.enabled:
-    name: Connection to Solarman Cloud - for GEN3PLUS inverter only
+    name: Connection to Solarman/TSUN Cloud - for GEN3PLUS inverter only
     description: >+
-      switch on/off connection to the Solarman cloud.
-      This connection is only required if you want send data to the Solarman cloud
-      eg. to use the Solarman APPs or receive firmware updates.
+      switch on/off connection to the Solarman or TSUN cloud.
+      This connection is only required if you want send data to the cloud
+      eg. to use the Solarman APP, the TSUN Smart APP or receive firmware updates.
       
       on => normal proxy operation.
-      off => The Inverter become isolated from Internet
+      off => The GEN3PLUS devices become isolated from Internet
   inverters.allow_all:
     name: Allow all connections from all inverters
     description: >-

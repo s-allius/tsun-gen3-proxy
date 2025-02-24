@@ -121,6 +121,32 @@ class Register(Enum):
     TS_INPUT = 600
     TS_GRID = 601
     TS_TOTAL = 602
+    BATT_PV1_VOLT = 1000
+    BATT_PV1_CUR = 1001
+    BATT_PV2_VOLT = 1002
+    BATT_PV2_CUR = 1003
+    BATT_38 = 1004
+    BATT_3a = 1005
+    BATT_3c = 1006
+    BATT_3e = 1007
+    BATT_40 = 1010
+    BATT_42 = 1011
+    BATT_SOC = 1012
+    BATT_46 = 1013
+    BATT_48 = 1014
+    BATT_4a = 1015
+    BATT_4c = 1016
+    BATT_4e = 1017
+    BATT_66 = 1018
+    BATT_68 = 1019
+    BATT_6a = 1020
+    BATT_6c = 1021
+    BATT_6e = 1022
+    BATT_70 = 1023
+    BATT_72 = 1024
+    BATT_74 = 1025
+    BATT_76 = 1026
+    BATT_78 = 1027
     VALUE_1 = 9000
     TEST_REG1 = 10000
     TEST_REG2 = 10001
@@ -266,6 +292,7 @@ class Infos:
     __info_devs = {
         'proxy':      {'singleton': True,   'name': 'Proxy', 'mf': 'Stefan Allius'},  # noqa: E501
         'controller': {'via': 'proxy',      'name': 'Controller',     'mdl': Register.CHIP_MODEL, 'mf': Register.CHIP_TYPE, 'sw': Register.COLLECTOR_FW_VERSION, 'mac': Register.MAC_ADDR, 'sn': Register.COLLECTOR_SNR},  # noqa: E501
+
         'inverter':   {'via': 'controller', 'name': 'Micro Inverter', 'mdl': Register.EQUIPMENT_MODEL, 'mf': Register.MANUFACTURER, 'sw': Register.VERSION, 'sn': Register.SERIAL_NUMBER},  # noqa: E501
         'input_pv1':  {'via': 'inverter',   'name': 'Module PV1', 'mdl': Register.PV1_MODEL, 'mf': Register.PV1_MANUFACTURER},  # noqa: E501
         'input_pv2':  {'via': 'inverter',   'name': 'Module PV2', 'mdl': Register.PV2_MODEL, 'mf': Register.PV2_MANUFACTURER, 'dep': {'reg': Register.NO_INPUTS, 'gte': 2}},  # noqa: E501
@@ -273,6 +300,10 @@ class Infos:
         'input_pv4':  {'via': 'inverter',   'name': 'Module PV4', 'mdl': Register.PV4_MODEL, 'mf': Register.PV4_MANUFACTURER, 'dep': {'reg': Register.NO_INPUTS, 'gte': 4}},  # noqa: E501
         'input_pv5':  {'via': 'inverter',   'name': 'Module PV5', 'mdl': Register.PV5_MODEL, 'mf': Register.PV5_MANUFACTURER, 'dep': {'reg': Register.NO_INPUTS, 'gte': 5}},  # noqa: E501
         'input_pv6':  {'via': 'inverter',   'name': 'Module PV6', 'mdl': Register.PV6_MODEL, 'mf': Register.PV6_MANUFACTURER, 'dep': {'reg': Register.NO_INPUTS, 'gte': 6}},  # noqa: E501
+
+        'batterie':   {'via': 'controller', 'name': 'Batterie', 'mdl': Register.EQUIPMENT_MODEL, 'mf': Register.MANUFACTURER, 'sw': Register.VERSION, 'sn': Register.SERIAL_NUMBER},  # noqa: E501
+        'bat_inp_pv1': {'via': 'batterie',  'name': 'Module PV1', 'mdl': Register.PV1_MODEL, 'mf': Register.PV1_MANUFACTURER},  # noqa: E501
+        'bat_inp_pv2': {'via': 'batterie',  'name': 'Module PV2', 'mdl': Register.PV2_MODEL, 'mf': Register.PV2_MANUFACTURER},  # noqa: E501
     }
 
     __comm_type_val_tpl = "{%set com_types = ['n/a','Wi-Fi', 'G4', 'G5', 'GPRS'] %}{{com_types[value_json['Communication_Type']|int(0)]|default(value_json['Communication_Type'])}}"    # noqa: E501
@@ -518,15 +549,15 @@ class Infos:
         Register.TOTAL_GENERATION:  {'name': ['total', 'Total_Generation'],        'level': logging.INFO,  'unit': 'kWh',  'ha': {'dev': 'inverter', 'dev_cla': 'energy', 'stat_cla': 'total',            'id': 'total_gen_', 'fmt': FMT_FLOAT, 'name': TOTAL_GEN, 'icon': SOLAR_POWER, 'must_incr': True}},  # noqa: E501
 
         # controller:
-        Register.SIGNAL_STRENGTH:    {'name': ['controller', 'Signal_Strength'],    'level': logging.DEBUG, 'unit': '%',    'ha': {'dev': 'controller', 'dev_cla': None,       'stat_cla': 'measurement', 'id': 'signal_',              'fmt': FMT_INT,           'name': 'Signal Strength', 'icon': WIFI}},  # noqa: E501
-        Register.POWER_ON_TIME:      {'name': ['controller', 'Power_On_Time'],      'level': logging.DEBUG, 'unit': 's',    'ha': {'dev': 'controller', 'dev_cla': 'duration', 'stat_cla': 'measurement', 'id': 'power_on_time_',       'fmt': FMT_INT,           'name': 'Power on Time', 'ent_cat': 'diagnostic'}},  # noqa: E501
-        Register.COLLECT_INTERVAL:   {'name': ['controller', 'Collect_Interval'],   'level': logging.DEBUG, 'unit': 'min',  'ha': {'dev': 'controller', 'dev_cla': None,       'stat_cla': None,          'id': 'data_collect_intval_', 'fmt': '| string + " min"', 'name': 'Data Collect Interval', 'icon': UPDATE, 'ent_cat': 'diagnostic'}},  # noqa: E501
-        Register.CONNECT_COUNT:      {'name': ['controller', 'Connect_Count'],      'level': logging.DEBUG, 'unit': '',     'ha': {'dev': 'controller', 'dev_cla': None,       'stat_cla': None,          'id': 'connect_count_',       'fmt': FMT_INT,           'name': 'Connect Count',    'icon': COUNTER, 'comp': 'sensor', 'ent_cat': 'diagnostic'}},  # noqa: E501
-        Register.COMMUNICATION_TYPE: {'name': ['controller', 'Communication_Type'], 'level': logging.DEBUG, 'unit': '',     'ha': {'dev': 'controller', 'dev_cla': None,       'stat_cla': None,          'id': 'comm_type_',           'name': 'Communication Type', 'val_tpl': __comm_type_val_tpl, 'comp': 'sensor', 'icon': WIFI}},  # noqa: E501
-        Register.DATA_UP_INTERVAL:   {'name': ['controller', 'Data_Up_Interval'],   'level': logging.DEBUG, 'unit': 's',    'ha': {'dev': 'controller', 'dev_cla': None,       'stat_cla': None,          'id': 'data_up_intval_', 'fmt': FMT_STRING_SEC, 'name': 'Data Up Interval', 'icon': UPDATE, 'ent_cat': 'diagnostic'}},  # noqa: E501
-        Register.HEARTBEAT_INTERVAL: {'name': ['controller', 'Heartbeat_Interval'], 'level': logging.DEBUG, 'unit': 's',    'ha': {'dev': 'controller', 'dev_cla': None,       'stat_cla': None,          'id': 'heartbeat_intval_',    'fmt': FMT_STRING_SEC, 'name': 'Heartbeat Interval', 'icon': UPDATE, 'ent_cat': 'diagnostic'}},  # noqa: E501
-        Register.IP_ADDRESS:         {'name': ['controller', 'IP_Address'],         'level': logging.DEBUG, 'unit': '',     'ha': {'dev': 'controller', 'dev_cla': None,       'stat_cla': None,          'id': 'ip_address_',           'fmt': '| string',        'name': 'IP Address', 'icon': WIFI, 'ent_cat': 'diagnostic'}},  # noqa: E501
-        Register.POLLING_INTERVAL:   {'name': ['controller', 'Polling_Interval'],   'level': logging.DEBUG, 'unit': 's',    'ha': {'dev': 'controller', 'dev_cla': None,       'stat_cla': None,          'id': 'polling_intval_', 'fmt': FMT_STRING_SEC, 'name': 'Polling Interval', 'icon': UPDATE, 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.SIGNAL_STRENGTH:    {'name': ['controller', 'Signal_Strength'],    'level': logging.INFO, 'unit': '%',    'ha': {'dev': 'controller', 'dev_cla': None,       'stat_cla': 'measurement', 'id': 'signal_',              'fmt': FMT_INT,           'name': 'Signal Strength', 'icon': WIFI}},  # noqa: E501
+        Register.POWER_ON_TIME:      {'name': ['controller', 'Power_On_Time'],      'level': logging.INFO, 'unit': 's',    'ha': {'dev': 'controller', 'dev_cla': 'duration', 'stat_cla': 'measurement', 'id': 'power_on_time_',       'fmt': FMT_INT,           'name': 'Power on Time', 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.COLLECT_INTERVAL:   {'name': ['controller', 'Collect_Interval'],   'level': logging.INFO, 'unit': 'min',  'ha': {'dev': 'controller', 'dev_cla': None,       'stat_cla': None,          'id': 'data_collect_intval_', 'fmt': '| string + " min"', 'name': 'Data Collect Interval', 'icon': UPDATE, 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.CONNECT_COUNT:      {'name': ['controller', 'Connect_Count'],      'level': logging.INFO, 'unit': '',     'ha': {'dev': 'controller', 'dev_cla': None,       'stat_cla': None,          'id': 'connect_count_',       'fmt': FMT_INT,           'name': 'Connect Count',    'icon': COUNTER, 'comp': 'sensor', 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.COMMUNICATION_TYPE: {'name': ['controller', 'Communication_Type'], 'level': logging.INFO, 'unit': '',     'ha': {'dev': 'controller', 'dev_cla': None,       'stat_cla': None,          'id': 'comm_type_',           'name': 'Communication Type', 'val_tpl': __comm_type_val_tpl, 'comp': 'sensor', 'icon': WIFI}},  # noqa: E501
+        Register.DATA_UP_INTERVAL:   {'name': ['controller', 'Data_Up_Interval'],   'level': logging.INFO, 'unit': 's',    'ha': {'dev': 'controller', 'dev_cla': None,       'stat_cla': None,          'id': 'data_up_intval_', 'fmt': FMT_STRING_SEC, 'name': 'Data Up Interval', 'icon': UPDATE, 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.HEARTBEAT_INTERVAL: {'name': ['controller', 'Heartbeat_Interval'], 'level': logging.INFO, 'unit': 's',    'ha': {'dev': 'controller', 'dev_cla': None,       'stat_cla': None,          'id': 'heartbeat_intval_',    'fmt': FMT_STRING_SEC, 'name': 'Heartbeat Interval', 'icon': UPDATE, 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.IP_ADDRESS:         {'name': ['controller', 'IP_Address'],         'level': logging.INFO, 'unit': '',     'ha': {'dev': 'controller', 'dev_cla': None,       'stat_cla': None,          'id': 'ip_address_',           'fmt': '| string',        'name': 'IP Address', 'icon': WIFI, 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.POLLING_INTERVAL:   {'name': ['controller', 'Polling_Interval'],   'level': logging.INFO, 'unit': 's',    'ha': {'dev': 'controller', 'dev_cla': None,       'stat_cla': None,          'id': 'polling_intval_', 'fmt': FMT_STRING_SEC, 'name': 'Polling Interval', 'icon': UPDATE, 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.SENSOR_LIST:        {'name': ['controller', 'Sensor_List'],        'level': logging.INFO,  'unit': ''},  # noqa: E501
         Register.SSID:               {'name': ['controller', 'WiFi_SSID'],          'level': logging.DEBUG, 'unit': ''},  # noqa: E501
 
@@ -536,6 +567,33 @@ class Infos:
         Register.PROD_COMPL_TYPE:    {'name': ['other', 'Prod_Compliance_Type'],    'level': logging.INFO,  'unit': ''},  # noqa: E501
         Register.INV_UNKNOWN_1:      {'name': ['inv_unknown', 'Unknown_1'],         'level': logging.DEBUG, 'unit': ''},  # noqa: E501
 
+        Register.BATT_PV1_VOLT:      {'name': ['batterie', 'pv1', 'Voltage'],       'level': logging.INFO, 'unit': 'V',    'ha': {'dev': 'bat_inp_pv1', 'dev_cla': 'voltage',   'stat_cla': 'measurement', 'id': 'volt_pv1_', 'val_tpl': "{{ (value_json['pv1']['Voltage'] | float)}}", 'icon': GAUGE, 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.BATT_PV1_CUR:       {'name': ['batterie', 'pv1', 'Current'],       'level': logging.INFO, 'unit': 'A',    'ha': {'dev': 'bat_inp_pv1', 'dev_cla': 'current',   'stat_cla': 'measurement', 'id': 'cur_pv1_',  'val_tpl': "{{ (value_json['pv1']['Current'] | float)}}", 'icon': GAUGE, 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.BATT_PV2_VOLT:      {'name': ['batterie', 'pv2', 'Voltage'],       'level': logging.INFO, 'unit': 'V',    'ha': {'dev': 'bat_inp_pv2', 'dev_cla': 'voltage',   'stat_cla': 'measurement', 'id': 'volt_pv2_', 'val_tpl': "{{ (value_json['pv2']['Voltage'] | float)}}", 'icon': GAUGE, 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.BATT_PV2_CUR:       {'name': ['batterie', 'pv2', 'Current'],       'level': logging.INFO, 'unit': 'A',    'ha': {'dev': 'bat_inp_pv2', 'dev_cla': 'current',   'stat_cla': 'measurement', 'id': 'cur_pv2_',  'val_tpl': "{{ (value_json['pv2']['Current'] | float)}}", 'icon': GAUGE, 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.BATT_38:            {'name': ['batterie', 'Reg_38'],               'level': logging.INFO, 'unit': '',     'ha': {'dev': 'batterie', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'batt_38_', 'fmt': FMT_FLOAT, 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.BATT_3a:            {'name': ['batterie', 'Reg_3a'],               'level': logging.INFO, 'unit': '',     'ha': {'dev': 'batterie', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'batt_3a_', 'fmt': FMT_INT,   'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.BATT_3c:            {'name': ['batterie', 'Reg_3c'],               'level': logging.INFO, 'unit': '',     'ha': {'dev': 'batterie', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'batt_3c_', 'fmt': FMT_INT,   'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.BATT_3e:            {'name': ['batterie', 'Reg_3e'],               'level': logging.INFO, 'unit': '',     'ha': {'dev': 'batterie', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'batt_3e_', 'fmt': FMT_INT,   'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.BATT_40:            {'name': ['batterie', 'Reg_40'],               'level': logging.INFO, 'unit': '',     'ha': {'dev': 'batterie', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'batt_40_', 'fmt': FMT_FLOAT, 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.BATT_42:            {'name': ['batterie', 'Reg_42'],               'level': logging.INFO, 'unit': '',     'ha': {'dev': 'batterie', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'batt_42_', 'fmt': FMT_FLOAT, 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.BATT_SOC:           {'name': ['batterie', 'SOC'],                  'level': logging.INFO, 'unit': '%',    'ha': {'dev': 'batterie', 'dev_cla': None,      'stat_cla': 'measurement', 'id': 'soc_',     'fmt': FMT_FLOAT,           'name': 'State of Charge', 'icon': 'mdi:battery-90'}},  # noqa: E501
+        # Register.BATT_46:            {'name': ['batterie', 'Reg_46'],               'level': logging.INFO, 'unit': '',     'ha': {'dev': 'batterie', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'batt_46_', 'fmt': FMT_INT, 'ent_cat': 'diagnostic'}},  # noqa: E501
+        # Register.BATT_48:            {'name': ['batterie', 'Reg_48'],               'level': logging.INFO, 'unit': '',     'ha': {'dev': 'batterie', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'batt_48_', 'fmt': FMT_INT, 'ent_cat': 'diagnostic'}},  # noqa: E501
+        # Register.BATT_4a:            {'name': ['batterie', 'Reg_4a'],               'level': logging.INFO, 'unit': '',     'ha': {'dev': 'batterie', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'batt_4a_', 'fmt': FMT_INT, 'ent_cat': 'diagnostic'}},  # noqa: E501
+        # Register.BATT_4c:            {'name': ['batterie', 'Reg_4c'],               'level': logging.INFO, 'unit': '',     'ha': {'dev': 'batterie', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'batt_4c_', 'fmt': FMT_INT, 'ent_cat': 'diagnostic'}},  # noqa: E501
+        # Register.BATT_4e:            {'name': ['batterie', 'Reg_4e'],               'level': logging.INFO, 'unit': '',     'ha': {'dev': 'batterie', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'batt_4e_', 'fmt': FMT_INT, 'ent_cat': 'diagnostic'}},  # noqa: E501
+
+        Register.BATT_66:            {'name': ['batterie', 'Reg_66'],               'level': logging.INFO, 'unit': '',     'ha': {'dev': 'batterie', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'batt_66_', 'fmt': FMT_INT, 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.BATT_68:            {'name': ['batterie', 'Reg_68'],               'level': logging.INFO, 'unit': '',     'ha': {'dev': 'batterie', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'batt_68_', 'fmt': FMT_INT, 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.BATT_6a:            {'name': ['batterie', 'Reg_6a'],               'level': logging.INFO, 'unit': '',     'ha': {'dev': 'batterie', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'batt_6a_', 'fmt': FMT_INT, 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.BATT_6c:            {'name': ['batterie', 'Reg_6c'],               'level': logging.INFO, 'unit': '',     'ha': {'dev': 'batterie', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'batt_6c_', 'fmt': FMT_INT, 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.BATT_6e:            {'name': ['batterie', 'Reg_6e'],               'level': logging.INFO, 'unit': '',     'ha': {'dev': 'batterie', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'batt_6e_', 'fmt': FMT_INT, 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.BATT_70:            {'name': ['batterie', 'Reg_70'],               'level': logging.INFO, 'unit': '',     'ha': {'dev': 'batterie', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'batt_70_', 'fmt': FMT_INT, 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.BATT_72:            {'name': ['batterie', 'Reg_72'],               'level': logging.INFO, 'unit': '',     'ha': {'dev': 'batterie', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'batt_72_', 'fmt': FMT_INT, 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.BATT_74:            {'name': ['batterie', 'Reg_74'],               'level': logging.INFO, 'unit': '',     'ha': {'dev': 'batterie', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'batt_74_', 'fmt': FMT_INT, 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.BATT_76:            {'name': ['batterie', 'Reg_76'],               'level': logging.INFO, 'unit': '',     'ha': {'dev': 'batterie', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'batt_76_', 'fmt': FMT_INT, 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.BATT_78:            {'name': ['batterie', 'Reg_78'],               'level': logging.INFO, 'unit': '',     'ha': {'dev': 'batterie', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'batt_78_', 'fmt': FMT_INT, 'ent_cat': 'diagnostic'}},  # noqa: E501
     }
 
     @property

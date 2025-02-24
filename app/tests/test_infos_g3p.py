@@ -138,6 +138,7 @@ def test_build_4210(inverter_data: bytes):
 def test_build_ha_conf1():
     i = InfosG3P(client_mode=False)
     i.static_init()                # initialize counter
+    i.set_db_def_value(Register.SENSOR_LIST, "02b0")
 
     tests = 0
     for d_json, comp, node_id, id in i.ha_confs(ha_prfx="tsun/", node_id="garagendach/", snr='123'):
@@ -212,6 +213,7 @@ def test_build_ha_conf2():
 def test_build_ha_conf3():
     i = InfosG3P(client_mode=True)
     i.static_init()                # initialize counter
+    i.set_db_def_value(Register.SENSOR_LIST, "02b0")
 
     tests = 0
     for d_json, comp, node_id, id in i.ha_confs(ha_prfx="tsun/", node_id="garagendach/", snr='123'):
@@ -280,6 +282,35 @@ def test_build_ha_conf4():
             assert comp == 'sensor'
             assert  d_json == json.dumps({"name": "Active Inverter Connections", "stat_t": "tsun/proxy/proxy", "dev_cla": None, "stat_cla": None, "uniq_id": "inv_count_456", "val_tpl": "{{value_json['Inverter_Cnt'] | int}}", "ic": "mdi:counter", "dev": {"name": "Proxy", "sa": "Proxy", "mdl": "proxy", "mf": "Stefan Allius", "sw": "unknown", "ids": ["proxy"]}, "o": {"name": "proxy", "sw": "unknown"}})
             tests +=1
+
+    assert tests==1
+
+def test_build_ha_conf5():
+    i = InfosG3P(client_mode=True)
+    i.static_init()                # initialize counter
+    i.set_db_def_value(Register.SENSOR_LIST, "3026")
+
+    tests = 0
+    for d_json, comp, node_id, id in i.ha_confs(ha_prfx="tsun/", node_id="garagendach/", snr='123'):
+
+        if id == 'out_power_123':
+            assert False
+        elif id == 'daily_gen_123':
+            assert False
+        elif id == 'power_pv1_123':
+            assert False
+        elif id == 'power_pv2_123':
+            assert False
+        elif id == 'power_pv3_123':
+            assert False
+        elif id == 'power_pv4_123':
+            assert False
+        elif id == 'signal_123':
+            assert comp == 'sensor'
+            assert  d_json == json.dumps({})
+            tests +=1
+        elif id == 'inv_count_456':
+            assert False
 
     assert tests==1
 
