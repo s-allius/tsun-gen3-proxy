@@ -121,7 +121,7 @@ inverters.allow_all = false   # only allow known inverters
 ##
 
 [inverters."R170000000000001"]
-node_id = ''                 # MQTT replacement for inverter's serial number  
+node_id = ''                 # MQTT replacement for inverters serial number  
 suggested_area = ''          # suggested installation area for home-assistant
 modbus_polling = false       # Disable optional MODBUS polling
 pv1 = {type = 'RSM40-8-395M', manufacturer = 'Risen'}   # Optional, PV module descr
@@ -143,7 +143,7 @@ pv2 = {type = 'RSM40-8-395M', manufacturer = 'Risen'}   # Optional, PV module de
 
 [inverters."Y170000000000001"]
 monitor_sn = 2000000000      # The GEN3PLUS "Monitoring SN:"
-node_id = ''                 # MQTT replacement for inverter's serial number  
+node_id = ''                 # MQTT replacement for inverters serial number  
 suggested_area = ''          # suggested installation place for home-assistant
 modbus_polling = true        # Enable optional MODBUS polling
 
@@ -172,7 +172,7 @@ pv4 = {type = 'RSM40-8-410M', manufacturer = 'Risen'}   # Optional, PV module de
 
 [batteries."4100000000000001"]
 monitor_sn = 3000000000      # The GEN3PLUS "Monitoring SN:"
-node_id = ''                 # MQTT replacement for device's serial number  
+node_id = ''                 # MQTT replacement for devices serial number  
 suggested_area = ''          # suggested installation place for home-assistant
 modbus_polling = true        # Enable optional MODBUS polling
 
