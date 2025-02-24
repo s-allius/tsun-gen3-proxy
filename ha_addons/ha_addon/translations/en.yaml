@@ -38,14 +38,14 @@ configuration:
       on => normal proxy operation.
       off => The Inverter become isolated from Internet.
   solarman.enabled:
-    name: Connection to Solarman Cloud - for GEN3PLUS inverter only
+    name: Connection to Solarman/TSUN Cloud - for GEN3PLUS inverter only
     description: >+
-      switch on/off connection to the Solarman cloud.
-      This connection is only required if you want send data to the Solarman cloud
-      eg. to use the Solarman APPs or receive firmware updates.
+      switch on/off connection to the Solarman or TSUN cloud.
+      This connection is only required if you want send data to the cloud
+      eg. to use the Solarman APP, the TSUN Smart APP or receive firmware updates.
       
       on => normal proxy operation.
-      off => The Inverter become isolated from Internet
+      off => The GEN3PLUS devices become isolated from Internet
   inverters.allow_all:
     name: Allow all connections from all inverters
     description: >-
