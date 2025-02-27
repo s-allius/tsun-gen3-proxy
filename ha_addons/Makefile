@@ -25,7 +25,7 @@ INST_BASE=../../ha-addons/ha-addons
 TEMPL=templates
 
 # help variable STAGE determine the target to build
-dev: STAGE=dev
+STAGE=dev
 debug : STAGE=debug
 rc :  STAGE=rc
 rel : STAGE=rel
@@ -39,6 +39,7 @@ export MAJOR  := $(shell echo $(VERSION) | cut -f1 -d.)
 PUBLIC_URL := $(shell echo $(PUBLIC_CONTAINER_REGISTRY) | cut -f1 -d/)
 PUBLIC_USER :=$(shell echo $(PUBLIC_CONTAINER_REGISTRY) | cut -f2 -d/)
 
+build: local_add_on
 
 dev debug: local_add_on
 	@echo version: $(VERSION)  build-date: $(BUILD_DATE)   image: $(PRIVAT_CONTAINER_REGISTRY)$(IMAGE)
