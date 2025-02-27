@@ -254,7 +254,7 @@ def inv_data_seq2_zero(): # Data indication from the controller
 
 def test_parse_control(contr_data_seq):
     i = InfosG3()
-    for key, result in i.parse (contr_data_seq):
+    for key, result in i.parse (contr_data_seq, sensor=0x0e100000):
         pass  # side effect in calling i.parse()
 
     assert json.dumps(i.db) == json.dumps(
@@ -262,7 +262,7 @@ def test_parse_control(contr_data_seq):
 
 def test_parse_control2(contr2_data_seq):
     i = InfosG3()
-    for key, result in i.parse (contr2_data_seq):
+    for key, result in i.parse (contr2_data_seq, sensor=0x0e100000):
         pass  # side effect in calling i.parse()
 
     assert json.dumps(i.db) == json.dumps(
@@ -270,7 +270,7 @@ def test_parse_control2(contr2_data_seq):
 
 def test_parse_inverter(inv_data_seq):
     i = InfosG3()
-    for key, result in i.parse (inv_data_seq):
+    for key, result in i.parse (inv_data_seq, sensor=0x01900001):
         pass  # side effect in calling i.parse()
 
     assert json.dumps(i.db) == json.dumps(
@@ -278,10 +278,10 @@ def test_parse_inverter(inv_data_seq):
 
 def test_parse_cont_and_invert(contr_data_seq, inv_data_seq):
     i = InfosG3()
-    for key, result in i.parse (contr_data_seq):
+    for key, result in i.parse (contr_data_seq, sensor=0x0e100000):
         pass  # side effect in calling i.parse()
 
-    for key, result in i.parse (inv_data_seq):
+    for key, result in i.parse (inv_data_seq, sensor=0x01900001):
         pass  # side effect in calling i.parse()
 
     assert json.dumps(i.db) == json.dumps(
@@ -352,11 +352,11 @@ def test_build_ha_conf2(contr_data_seq):
 
 def test_build_ha_conf3(contr_data_seq, inv_data_seq, inv_data_seq2):
     i = InfosG3()
-    for key, result in i.parse (contr_data_seq):
+    for key, result in i.parse (contr_data_seq, sensor=0x0e100000):
         pass  # side effect in calling i.parse()
-    for key, result in i.parse (inv_data_seq):
+    for key, result in i.parse (inv_data_seq, sensor=0x01900001):
         pass  # side effect in calling i.parse()
-    for key, result in i.parse (inv_data_seq2):
+    for key, result in i.parse (inv_data_seq2, sensor=0x01900001):
         pass  # side effect in calling i.parse()
 
     tests = 0
@@ -390,9 +390,9 @@ def test_build_ha_conf3(contr_data_seq, inv_data_seq, inv_data_seq2):
 
 def test_build_ha_conf4(contr_data_seq, inv_data_seq):
     i = InfosG3()
-    for key, result in i.parse (contr_data_seq):
+    for key, result in i.parse (contr_data_seq, sensor=0x0e100000):
         pass  # side effect in calling i.parse()
-    for key, result in i.parse (inv_data_seq):
+    for key, result in i.parse (inv_data_seq, sensor=0x01900001):
         pass  # side effect in calling i.parse()
     i.set_db_def_value(Register.MAC_ADDR, "00a057123456")
 
@@ -417,7 +417,7 @@ def test_build_ha_conf4(contr_data_seq, inv_data_seq):
 def test_must_incr_total(inv_data_seq2, inv_data_seq2_zero):
     i = InfosG3()
     tests = 0
-    for key, update in i.parse (inv_data_seq2):
+    for key, update in i.parse (inv_data_seq2, sensor=0x01900001):
         if key == 'total' or key == 'inverter' or key == 'env':
             assert update == True
             tests +=1   
@@ -426,7 +426,7 @@ def test_must_incr_total(inv_data_seq2, inv_data_seq2_zero):
     assert json.dumps(i.db['input']) == json.dumps({"pv1": {"Voltage": 33.6, "Current": 1.91, "Power": 64.5, "Daily_Generation": 1.08, "Total_Generation": 9.74}, "pv2": {"Voltage": 33.5, "Current": 1.36, "Power": 45.7, "Daily_Generation": 0.62, "Total_Generation": 7.62}, "pv3": {"Voltage": 0.0, "Current": 0.0, "Power": 0.0}, "pv4": {"Voltage": 0.0, "Current": 0.0, "Power": 0.0}})
     assert json.dumps(i.db['env']) == json.dumps({"Inverter_Status": 1, "Inverter_Temp": 23})
     tests = 0
-    for key, update in i.parse (inv_data_seq2):
+    for key, update in i.parse (inv_data_seq2, sensor=0x01900001):
         if key == 'total' or key == 'env':
             assert update == False
             tests +=1   
@@ -438,7 +438,7 @@ def test_must_incr_total(inv_data_seq2, inv_data_seq2_zero):
     assert json.dumps(i.db['inverter']) == json.dumps({"Rated_Power": 600, "BOOT_STATUS": 0, "DSP_STATUS": 21930, "Work_Mode": 0, "Max_Designed_Power": -1, "Input_Coefficient": -0.1, "Output_Coefficient": 100.0, "No_Inputs": 2})
         
     tests = 0
-    for key, update in i.parse (inv_data_seq2_zero):
+    for key, update in i.parse (inv_data_seq2_zero, sensor=0x01900001):
         if key == 'total':
             assert update == False
             tests +=1   
@@ -453,7 +453,7 @@ def test_must_incr_total(inv_data_seq2, inv_data_seq2_zero):
 def test_must_incr_total2(inv_data_seq2, inv_data_seq2_zero):
     i = InfosG3()
     tests = 0
-    for key, update in i.parse (inv_data_seq2_zero):
+    for key, update in i.parse (inv_data_seq2_zero, sensor=0x01900001):
         if key == 'total':
             assert update == False
             tests +=1   
@@ -467,7 +467,7 @@ def test_must_incr_total2(inv_data_seq2, inv_data_seq2_zero):
     assert json.dumps(i.db['env']) == json.dumps({"Inverter_Status": 1, "Inverter_Temp": 0})
     
     tests = 0
-    for key, update in i.parse (inv_data_seq2_zero):
+    for key, update in i.parse (inv_data_seq2_zero, sensor=0x01900001):
         if key == 'total' or key == 'env':
             assert update == False
             tests +=1   
@@ -478,7 +478,7 @@ def test_must_incr_total2(inv_data_seq2, inv_data_seq2_zero):
     assert json.dumps(i.db['env']) == json.dumps({"Inverter_Status": 1, "Inverter_Temp": 0})
 
     tests = 0
-    for key, update in i.parse (inv_data_seq2):
+    for key, update in i.parse (inv_data_seq2, sensor=0x01900001):
         if key == 'total' or key == 'env':
             tests +=1   
 
@@ -489,7 +489,7 @@ def test_must_incr_total2(inv_data_seq2, inv_data_seq2_zero):
 def test_new_data_types(inv_data_new):
     i = InfosG3()
     tests = 0
-    for key, update in i.parse (inv_data_new):
+    for key, update in i.parse (inv_data_new, sensor=0x01900001):
         if key == 'events':
             tests +=1
         elif key == 'inverter':
@@ -514,7 +514,7 @@ def test_invalid_data_type(invalid_data_seq):
     assert val == 0
 
 
-    for key, result in i.parse (invalid_data_seq):
+    for key, result in i.parse (invalid_data_seq, sensor=0x01900001):
         pass  # side effect in calling i.parse()
     assert json.dumps(i.db) == json.dumps({"inverter": {"Product_Name": "Microinv"}})
 

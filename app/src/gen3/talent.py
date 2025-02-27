@@ -442,7 +442,7 @@ class Talent(Message):
         logger.debug(f'time: {timestamp:08x}')
         # logger.info(f'time: {datetime.utcfromtimestamp(result[2]).strftime(
         # "%Y-%m-%d %H:%M:%S")}')
-        return msg_hdr_len, timestamp
+        return msg_hdr_len, data_id, timestamp
 
     def msg_collector_data(self):
         if self.ctrl.is_ind():
@@ -480,7 +480,7 @@ class Talent(Message):
         self.forward()
 
     def __process_data(self, ignore_replay: bool):
-        msg_hdr_len, ts = self.parse_msg_header()
+        msg_hdr_len, data_id, ts = self.parse_msg_header()
         if ignore_replay:
             age = self._utc() - self._utcfromts(ts)
             age = age/(3600*24)
@@ -489,7 +489,7 @@ class Talent(Message):
                 return
 
         for key, update in self.db.parse(self.ifc.rx_peek(), self.header_len
-                                         + msg_hdr_len, self.node_id):
+                                         + msg_hdr_len, data_id, self.node_id):
             if update:
                 self._set_mqtt_timestamp(key, self._utcfromts(ts))
                 self.new_data[key] = True

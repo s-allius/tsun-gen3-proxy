@@ -2,26 +2,14 @@
 import struct
 import logging
 from typing import Generator
+from itertools import chain
 
 from infos import Infos, Register
 
 
 class RegisterMap:
     __slots__ = ()
-
     map = {
-        0x00092ba8: {'reg': Register.COLLECTOR_FW_VERSION},
-        0x000927c0: {'reg': Register.CHIP_TYPE},
-        0x00092f90: {'reg': Register.CHIP_MODEL},
-        0x00094ae8: {'reg': Register.MAC_ADDR},
-        0x00095a88: {'reg': Register.TRACE_URL},
-        0x00095aec: {'reg': Register.LOGGER_URL},
-        0x0000000a: {'reg': Register.PRODUCT_NAME},
-        0x00000014: {'reg': Register.MANUFACTURER},
-        0x0000001e: {'reg': Register.VERSION},
-        0x00000028: {'reg': Register.SERIAL_NUMBER},
-        0x00000032: {'reg': Register.EQUIPMENT_MODEL},
-        0x00013880: {'reg': Register.NO_INPUTS},
         0xffffff00: {'reg': Register.INVERTER_CNT},
         0xffffff01: {'reg': Register.UNKNOWN_SNR},
         0xffffff02: {'reg': Register.UNKNOWN_MSG},
@@ -33,6 +21,28 @@ class RegisterMap:
         0xffffff08: {'reg': Register.POLLING_INTERVAL},
         0xfffffffe: {'reg': Register.TEST_REG1},
         0xffffffff: {'reg': Register.TEST_REG2},
+    }
+    map_0e100000 = {
+        0x00092ba8: {'reg': Register.COLLECTOR_FW_VERSION},
+        0x000927c0: {'reg': Register.CHIP_TYPE},
+        0x00092f90: {'reg': Register.CHIP_MODEL},
+        0x00094ae8: {'reg': Register.MAC_ADDR},
+        0x00095a88: {'reg': Register.TRACE_URL},
+        0x00095aec: {'reg': Register.LOGGER_URL},
+        0x000cfc38: {'reg': Register.CONNECT_COUNT},
+        0x000c3500: {'reg': Register.SIGNAL_STRENGTH},
+        0x000c96a8: {'reg': Register.POWER_ON_TIME},
+        0x000d0020: {'reg': Register.COLLECT_INTERVAL},
+        0x000cf850: {'reg': Register.DATA_UP_INTERVAL},
+        0x000c7f38: {'reg': Register.COMMUNICATION_TYPE},
+    }
+    map_01900001 = {
+        0x0000000a: {'reg': Register.PRODUCT_NAME},
+        0x00000014: {'reg': Register.MANUFACTURER},
+        0x0000001e: {'reg': Register.VERSION},
+        0x00000028: {'reg': Register.SERIAL_NUMBER},
+        0x00000032: {'reg': Register.EQUIPMENT_MODEL},
+        0x00013880: {'reg': Register.NO_INPUTS},
         0x00000640: {'reg': Register.OUTPUT_POWER},
         0x000005dc: {'reg': Register.RATED_POWER},
         0x00000514: {'reg': Register.INVERTER_TEMP},
@@ -61,12 +71,7 @@ class RegisterMap:
         0x000003e8: {'reg': Register.GRID_VOLTAGE},
         0x0000044c: {'reg': Register.GRID_CURRENT},
         0x000004b0: {'reg': Register.GRID_FREQUENCY},
-        0x000cfc38: {'reg': Register.CONNECT_COUNT},
-        0x000c3500: {'reg': Register.SIGNAL_STRENGTH},
-        0x000c96a8: {'reg': Register.POWER_ON_TIME},
-        0x000d0020: {'reg': Register.COLLECT_INTERVAL},
-        0x000cf850: {'reg': Register.DATA_UP_INTERVAL},
-        0x000c7f38: {'reg': Register.COMMUNICATION_TYPE},
+
         0x00000190: {'reg': Register.EVENT_ALARM},
         0x000001f4: {'reg': Register.EVENT_FAULT},
         0x00000258: {'reg': Register.EVENT_BF1},
@@ -86,6 +91,17 @@ class RegisterMap:
     }
 
 
+class RegisterSel:
+    __sensor_map = {
+            0x0e100000: RegisterMap.map_0e100000,
+            0x01900001: RegisterMap.map_01900001,
+    }
+
+    @classmethod
+    def get(cls, sensor: int):
+        return cls.__sensor_map.get(sensor, RegisterMap.map)
+
+
 class InfosG3(Infos):
     __slots__ = ()
 
@@ -101,18 +117,25 @@ class InfosG3(Infos):
                          entity strings
         sug_area:str ==> suggested area string from the config file'''
         # iterate over RegisterMap.map and get the register values
-        for row in RegisterMap.map.values():
+        # sensor = self.get_db_value(Register.SENSOR_LIST)
+        # if "01900001" == sensor:
+        items = RegisterMap.map_01900001.items()
+        # else:
+        #    items = {}
+
+        for _, row in chain(RegisterMap.map_0e100000.items(), items):
             reg = row['reg']
             res = self.ha_conf(reg, ha_prfx, node_id, snr, False, sug_area)  # noqa: E501
             if res:
                 yield res
 
-    def parse(self, buf, ind=0, node_id: str = '') -> \
+    def parse(self, buf, ind=0, sensor: int = 0, node_id: str = '') -> \
             Generator[tuple[str, bool], None, None]:
         '''parse a data sequence received from the inverter and
         stores the values in Infos.db
 
         buf: buffer of the sequence to parse'''
+        map = RegisterSel.get(sensor)
         result = struct.unpack_from('!l', buf, ind)
         elms = result[0]
         i = 0
@@ -120,11 +143,11 @@ class InfosG3(Infos):
         while i < elms:
             result = struct.unpack_from('!lB', buf, ind)
             addr = result[0]
-            if addr not in RegisterMap.map:
+            if addr not in map:
                 row = None
                 info_id = -1
             else:
-                row = RegisterMap.map[addr]
+                row = map[addr]
                 info_id = row['reg']
             data_type = result[1]
             ind += 5
