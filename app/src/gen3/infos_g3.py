@@ -36,6 +36,15 @@ class RegisterMap:
         0x000cf850: {'reg': Register.DATA_UP_INTERVAL},
         0x000c7f38: {'reg': Register.COMMUNICATION_TYPE},
     }
+    map_01900000 = {
+        0x00000064: {'reg': Register.INVERTER_STATUS},
+        0x00000190: {'reg': Register.EVENT_ALARM},
+        0x000001f4: {'reg': Register.EVENT_FAULT},
+        0x00000258: {'reg': Register.EVENT_BF1},
+        0x000002bc: {'reg': Register.EVENT_BF2},
+        0x00000640: {'reg': Register.GRID_FREQUENCY},
+        0x00000834: {'reg': Register.MAX_DESIGNED_POWER},
+    }
     map_01900001 = {
         0x0000000a: {'reg': Register.PRODUCT_NAME},
         0x00000014: {'reg': Register.MANUFACTURER},
@@ -94,6 +103,7 @@ class RegisterMap:
 class RegisterSel:
     __sensor_map = {
             0x0e100000: RegisterMap.map_0e100000,
+            0x01900000: RegisterMap.map_01900000,
             0x01900001: RegisterMap.map_01900001,
     }
 

@@ -479,6 +479,18 @@ class Talent(Message):
 
         self.forward()
 
+    def __build_model_name(self):
+        db = self.db
+        model = db.get_db_value(Register.EQUIPMENT_MODEL, None)
+        if model:
+            return
+        max_pow = db.get_db_value(Register.MAX_DESIGNED_POWER, 0)
+        if max_pow == 3000:
+            model = f'TSOL-MS{max_pow}'
+            self.db.set_db_def_value(Register.EQUIPMENT_MODEL, model)
+            self.db.set_db_def_value(Register.MANUFACTURER, 'TSUN')
+            self.db.set_db_def_value(Register.NO_INPUTS, 4)
+
     def __process_data(self, ignore_replay: bool):
         msg_hdr_len, data_id, ts = self.parse_msg_header()
         if ignore_replay:
@@ -487,12 +499,18 @@ class Talent(Message):
             logger.debug(f"Age: {age} days")
             if age > 1:
                 return
+        inv_update = False
 
         for key, update in self.db.parse(self.ifc.rx_peek(), self.header_len
                                          + msg_hdr_len, data_id, self.node_id):
             if update:
+                if key == 'inverter':
+                    inv_update = True
                 self._set_mqtt_timestamp(key, self._utcfromts(ts))
                 self.new_data[key] = True
+
+        if inv_update:
+            self.__build_model_name()
 
     def msg_ota_update(self):
         if self.ctrl.is_req():
