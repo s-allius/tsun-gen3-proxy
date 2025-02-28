@@ -145,7 +145,7 @@ class InfosG3(Infos):
         stores the values in Infos.db
 
         buf: buffer of the sequence to parse'''
-        map = RegisterSel.get(sensor)
+        reg_map = RegisterSel.get(sensor)
         result = struct.unpack_from('!l', buf, ind)
         elms = result[0]
         i = 0
@@ -153,11 +153,11 @@ class InfosG3(Infos):
         while i < elms:
             result = struct.unpack_from('!lB', buf, ind)
             addr = result[0]
-            if addr not in map:
+            if addr not in reg_map:
                 row = None
                 info_id = -1
             else:
-                row = map[addr]
+                row = reg_map[addr]
                 info_id = row['reg']
             data_type = result[1]
             ind += 5
