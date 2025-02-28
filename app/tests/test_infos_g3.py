@@ -543,6 +543,7 @@ def test_parse_cont_and_invert2(contr3_data_seq, inv_data_seq3):
 def test_build_ha_conf1(contr_data_seq):
     i = InfosG3()
     i.static_init()                # initialize counter
+    i.set_db_def_value(Register.SENSOR_LIST, "01900001")
 
     tests = 0
     for d_json, comp, node_id, id in i.ha_confs(ha_prfx="tsun/", node_id="garagendach/", snr='123'):
@@ -578,6 +579,7 @@ def test_build_ha_conf1(contr_data_seq):
 def test_build_ha_conf2(contr_data_seq):
     i = InfosG3()
     i.static_init()                # initialize counter
+    i.set_db_def_value(Register.SENSOR_LIST, "01900001")
 
     tests = 0
     for d_json, comp, node_id, id in i.ha_proxy_confs(ha_prfx="tsun/", node_id = 'proxy/', snr = '456'):
@@ -602,6 +604,7 @@ def test_build_ha_conf2(contr_data_seq):
 
 def test_build_ha_conf3(contr_data_seq, inv_data_seq, inv_data_seq2):
     i = InfosG3()
+    i.set_db_def_value(Register.SENSOR_LIST, "01900001")
     for key, result in i.parse (contr_data_seq, sensor=0x0e100000):
         pass  # side effect in calling i.parse()
     for key, result in i.parse (inv_data_seq, sensor=0x01900001):
@@ -640,6 +643,7 @@ def test_build_ha_conf3(contr_data_seq, inv_data_seq, inv_data_seq2):
 
 def test_build_ha_conf4(contr_data_seq, inv_data_seq):
     i = InfosG3()
+    i.set_db_def_value(Register.SENSOR_LIST, "01900001")
     for key, result in i.parse (contr_data_seq, sensor=0x0e100000):
         pass  # side effect in calling i.parse()
     for key, result in i.parse (inv_data_seq, sensor=0x01900001):
@@ -666,6 +670,7 @@ def test_build_ha_conf4(contr_data_seq, inv_data_seq):
 
 def test_build_ha_conf5(contr3_data_seq, inv_data_seq3):
     i = InfosG3()
+    i.set_db_def_value(Register.SENSOR_LIST, "01900000")
     for key, result in i.parse (contr3_data_seq, sensor=0x0e100000):
         pass  # side effect in calling i.parse()
     for key, result in i.parse (inv_data_seq3, sensor=0x01900000):

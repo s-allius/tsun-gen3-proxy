@@ -127,11 +127,13 @@ class InfosG3(Infos):
                          entity strings
         sug_area:str ==> suggested area string from the config file'''
         # iterate over RegisterMap.map and get the register values
-        # sensor = self.get_db_value(Register.SENSOR_LIST)
-        # if "01900001" == sensor:
-        items = RegisterMap.map_01900001.items()
-        # else:
-        #    items = {}
+        sensor = self.get_db_value(Register.SENSOR_LIST)
+        if "01900000" == sensor:
+            items = RegisterMap.map_01900000.items()
+        elif "01900001" == sensor:
+            items = RegisterMap.map_01900001.items()
+        else:
+            items = {}
 
         for _, row in chain(RegisterMap.map_0e100000.items(), items):
             reg = row['reg']

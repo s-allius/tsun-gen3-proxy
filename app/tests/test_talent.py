@@ -468,15 +468,15 @@ def config_tsun_allow_all():
 
 @pytest.fixture
 def config_no_tsun_inv1():
-    Config.act_config = {'tsun':{'enabled': False},'inverters':{'R170000000000001':{'node_id':'inv1', 'modbus_polling': True, 'suggested_area':'roof'}}}
+    Config.act_config = {'tsun':{'enabled': False},'inverters':{'R170000000000001':{'node_id':'inv1', 'sensor_list': 0, 'modbus_polling': True, 'suggested_area':'roof'}}}
 
 @pytest.fixture
 def config_tsun_inv1():
-    Config.act_config = {'tsun':{'enabled': True},'inverters':{'R170000000000001':{'node_id':'inv1', 'modbus_polling': True, 'suggested_area':'roof'}}}
+    Config.act_config = {'tsun':{'enabled': True},'inverters':{'R170000000000001':{'node_id':'inv1', 'sensor_list': 0, 'modbus_polling': True, 'suggested_area':'roof'}}}
 
 @pytest.fixture
 def config_no_modbus_poll():
-    Config.act_config = {'tsun':{'enabled': True},'inverters':{'R170000000000001':{'node_id':'inv1', 'modbus_polling': False, 'suggested_area':'roof'}}}
+    Config.act_config = {'tsun':{'enabled': True},'inverters':{'R170000000000001':{'node_id':'inv1', 'sensor_list': 0, 'modbus_polling': False, 'suggested_area':'roof'}}}
 
 @pytest.fixture
 def msg_ota_req(): # Over the air update request from tsun cloud

@@ -75,6 +75,7 @@ class Talent(Message):
             0x87: self.get_modbus_log_lvl,
             0x04: logging.INFO,
         }
+        self.sensor_list = 0
 
     '''
     Our puplic methods
@@ -88,6 +89,21 @@ class Talent(Message):
         self.log_lvl.clear()
         super().close()
 
+    def __set_config_parms(self, inv: dict, serial_no: str):
+        '''init connection with params from the configuration'''
+        self.node_id = inv['node_id']
+        self.sug_area = inv['suggested_area']
+        self.modbus_polling = inv['modbus_polling']
+        self.sensor_list = inv['sensor_list']
+        if 0 != self.sensor_list:
+            self.db.set_db_def_value(Register.SENSOR_LIST,
+                                     f"{self.sensor_list:08}")
+            logging.debug(f"Use sensor-list: {self.sensor_list:#08x}"
+                          f" for '{serial_no}'")
+
+        if self.mb:
+            self.mb.set_node_id(self.node_id)
+
     def __set_serial_no(self, serial_no: str):
 
         if self.unique_id == serial_no:
@@ -98,13 +114,9 @@ class Talent(Message):
 
             if serial_no in inverters:
                 inv = inverters[serial_no]
-                self.node_id = inv['node_id']
-                self.sug_area = inv['suggested_area']
-                self.modbus_polling = inv['modbus_polling']
+                self.__set_config_parms(inv, serial_no)
                 logger.debug(f'SerialNo {serial_no} allowed! area:{self.sug_area}')  # noqa: E501
                 self.db.set_pv_module_details(inv)
-                if self.mb:
-                    self.mb.set_node_id(self.node_id)
             else:
                 self.node_id = ''
                 self.sug_area = ''
@@ -491,14 +503,26 @@ class Talent(Message):
             self.db.set_db_def_value(Register.MANUFACTURER, 'TSUN')
             self.db.set_db_def_value(Register.NO_INPUTS, 4)
 
-    def __process_data(self, ignore_replay: bool):
+    def __process_data(self, inv_data: bool):
         msg_hdr_len, data_id, ts = self.parse_msg_header()
-        if ignore_replay:
+        if inv_data:
+            # handle register mapping
+            if 0 == self.sensor_list:
+                self.sensor_list = data_id
+                self.db.set_db_def_value(Register.SENSOR_LIST,
+                                         f"{self.sensor_list:08x}")
+                logging.debug(f"Use sensor-list: {self.sensor_list:#08x}"
+                              f" for '{self.unique_id}'")
+            if data_id != self.sensor_list:
+                logging.warning(f'Unexpected Sensor-List:{data_id:08x}'
+                                f' (!={self.sensor_list:08x})')
+            # ignore replays for inverter data
             age = self._utc() - self._utcfromts(ts)
             age = age/(3600*24)
             logger.debug(f"Age: {age} days")
-            if age > 1:
+            if age > 1:   # is a replay?
                 return
+
         inv_update = False
 
         for key, update in self.db.parse(self.ifc.rx_peek(), self.header_len
