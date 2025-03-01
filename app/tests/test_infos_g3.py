@@ -536,7 +536,9 @@ def test_parse_cont_and_invert2(contr3_data_seq, inv_data_seq3):
     {
 "collector": {"Collector_Fw_Version": "RSW_400_V2.01.13", "Chip_Type": "Raymon", "Chip_Model": "RSW-1-10001", "Trace_URL": "t.raymoniot.com", "Logger_URL": "logger.talent-monitoring.com"}, "controller": {"Collect_Interval": 1, "Signal_Strength": 98, "Power_On_Time": 335, "Communication_Type": 1, "Connect_Count": 1, "Data_Up_Interval": 300},
 "env": {"Inverter_Status": 0},
-"events": {"Inverter_Alarm": 0, "Inverter_Fault": 0, "Inverter_Bitfield_1": 0, "Inverter_bitfield_2": 0}, "grid": {"Frequency": 50.0},
+"events": {"Inverter_Alarm": 0, "Inverter_Fault": 0, "Inverter_Bitfield_1": 0, "Inverter_bitfield_2": 0},
+"input": {"Val_0": 655.28, "Val_1": 327.4, "Val_2": 0.0, "Val_3": 238.5, "Val_4": 0.05, "Val_5": 0.0, "Val_6": 327.4, "Val_7": 0.0, "Val_8": 0.0, "Val_9": 29.86, "Val_10": 30.25, "Val_11": 1.35, "Val_12": 78.6, "Val_13": 0.0, "Val_14": 0.0, "Val_15": 110.0, "Val_16": 58.1, "Val_17": 0.0, "Val_18": 0.0, "Val_19": 110.0, "Val_20": 58.8, "Val_21": 0.0, "Val_22": 0.0, "Val_23": 110.0, "Val_24": 0.01, "Val_25": 0.0, "Val_26": 33.0, "Val_27": 0.0, "Val_28": 0.0, "Val_29": 17.4, "Val_30": 0.02, "Val_31": 0.3, "Val_32": 4.8},
+"grid": {"Frequency": 50.0},
 "inverter": {"Max_Designed_Power": 3000}
     })
 

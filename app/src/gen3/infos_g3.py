@@ -37,6 +37,11 @@ class RegisterMap:
         0x000c7f38: {'reg': Register.COMMUNICATION_TYPE},
     }
     map_01900000 = {
+        0x0000000a: {'reg': Register.PRODUCT_NAME},
+        0x00000014: {'reg': Register.MANUFACTURER},
+        0x0000001e: {'reg': Register.VERSION},
+        0x00000046: {'reg': Register.SERIAL_NUMBER},
+        0x0000005A: {'reg': Register.EQUIPMENT_MODEL},
         0x00000064: {'reg': Register.INVERTER_STATUS},
         0x00000190: {'reg': Register.EVENT_ALARM},
         0x000001f4: {'reg': Register.EVENT_FAULT},
@@ -44,6 +49,40 @@ class RegisterMap:
         0x000002bc: {'reg': Register.EVENT_BF2},
         0x00000640: {'reg': Register.GRID_FREQUENCY},
         0x00000834: {'reg': Register.MAX_DESIGNED_POWER},
+
+        0x000003e8: {'reg': Register.TEST_VAL_0},
+        0x0000044c: {'reg': Register.TEST_VAL_1},
+        0x000004b0: {'reg': Register.TEST_VAL_2},
+        0x00000514: {'reg': Register.TEST_VAL_3},
+        0x00000578: {'reg': Register.TEST_VAL_4},
+        0x000005dc: {'reg': Register.TEST_VAL_5},
+        0x000007d0: {'reg': Register.TEST_VAL_6},
+        0x00000898: {'reg': Register.TEST_VAL_7},
+        0x000008fc: {'reg': Register.TEST_VAL_8},
+        0x00000960: {'reg': Register.TEST_VAL_9},
+        0x00000a28: {'reg': Register.TEST_VAL_10},
+        0x00000a8c: {'reg': Register.TEST_VAL_11},
+        0x000001324: {'reg': Register.TEST_VAL_12},
+        0x000001388: {'reg': Register.TEST_VAL_13},
+        0x0000013ec: {'reg': Register.TEST_VAL_14},
+        0x000001450: {'reg': Register.TEST_VAL_15},
+        0x0000015e0: {'reg': Register.TEST_VAL_16},
+        0x000001644: {'reg': Register.TEST_VAL_17},
+        0x0000016a8: {'reg': Register.TEST_VAL_18},
+        0x00000170c: {'reg': Register.TEST_VAL_19},
+        0x00000189c: {'reg': Register.TEST_VAL_20},
+        0x000001900: {'reg': Register.TEST_VAL_21},
+        0x000001964: {'reg': Register.TEST_VAL_22},
+        0x0000019c8: {'reg': Register.TEST_VAL_23},
+        0x000001c20: {'reg': Register.TEST_VAL_24},
+        0x000001c84: {'reg': Register.TEST_VAL_25},
+        0x000001ce8: {'reg': Register.TEST_VAL_26},
+        0x000001d4c: {'reg': Register.TEST_VAL_27},
+        0x000001db0: {'reg': Register.TEST_VAL_28},
+        0x000001e78: {'reg': Register.TEST_VAL_29},
+        0x000001edc: {'reg': Register.TEST_VAL_30},
+        0x000001f40: {'reg': Register.TEST_VAL_31},
+        0x000001fa4: {'reg': Register.TEST_VAL_32},
     }
     map_01900001 = {
         0x0000000a: {'reg': Register.PRODUCT_NAME},
@@ -227,3 +266,6 @@ class InfosG3(Infos):
         if update:
             self.tracer.log(level, f'[{node_id}] GEN3: {name} :'
                                    f' {result}{unit}')
+
+            logging.log(level, f'[{node_id}] GEN3: {name} :'
+                               f' {result}{unit}')

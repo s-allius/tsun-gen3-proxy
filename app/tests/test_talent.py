@@ -472,7 +472,7 @@ def config_no_tsun_inv1():
 
 @pytest.fixture
 def config_tsun_inv1():
-    Config.act_config = {'tsun':{'enabled': True},'inverters':{'R170000000000001':{'node_id':'inv1', 'sensor_list': 0, 'modbus_polling': True, 'suggested_area':'roof'}}}
+    Config.act_config = {'tsun':{'enabled': True},'inverters':{'R170000000000001':{'node_id':'inv1', 'sensor_list': 0x01900001, 'modbus_polling': True, 'suggested_area':'roof'}}}
 
 @pytest.fixture
 def config_no_modbus_poll():
@@ -1869,18 +1869,6 @@ def test_msg_inv_invalid(config_tsun_inv1, msg_inverter_invalid):
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 1
     m.close()
 
-def test_build_modell_3000(config_tsun_allow_all, msg_inverter_ms3000_ind):
-    _ = config_tsun_allow_all
-    m = MemoryStream(msg_inverter_ms3000_ind, (0,))
-    assert 0 == m.db.get_db_value(Register.MAX_DESIGNED_POWER, 0)
-    assert None == m.db.get_db_value(Register.RATED_POWER, None)
-    assert None == m.db.get_db_value(Register.INVERTER_TEMP, None)
-    m.read()         # read complete msg, and dispatch msg
-    assert 3000 == m.db.get_db_value(Register.MAX_DESIGNED_POWER, 0)
-    assert 0 == m.db.get_db_value(Register.RATED_POWER, 0)
-    assert 'TSOL-MS3000' == m.db.get_db_value(Register.EQUIPMENT_MODEL, 0)
-    m.close()
-
 def test_msg_ota_req(config_tsun_inv1, msg_ota_req):
     _ = config_tsun_inv1
     m = MemoryStream(msg_ota_req, (0,), False)
@@ -2232,7 +2220,7 @@ def test_msg_modbus_rsp2(config_tsun_inv1, msg_modbus_rsp20):
     assert m.msg_count == 2
     assert m.ifc.fwd_fifo.get()==msg_modbus_rsp20
     assert m.ifc.tx_fifo.get()==b''
-    assert m.db.db == {'collector': {'Serial_Number': 'R170000000000001'}, 'inverter': {'Version': 'V5.1.09', 'Rated_Power': 300}, 'grid': {'Timestamp': m._utc(), 'Voltage': 225.9, 'Current': 0.41, 'Frequency': 49.99, 'Output_Power': 94.8}, 'env': {'Inverter_Temp': 22}, 'input': {'Timestamp': m._utc(), 'pv1': {'Voltage': 0.8, 'Current': 0.0, 'Power': 0.0}, 'pv2': {'Voltage': 34.5, 'Current': 2.89, 'Power': 99.8}, 'pv3': {'Voltage': 0.0, 'Current': 0.0, 'Power': 0.0}, 'pv4': {'Voltage': 0.0, 'Current': 0.0, 'Power': 0.0}}}
+    assert m.db.db == {'collector': {'Serial_Number': 'R170000000000001'}, 'controller': {'Sensor_List': '26214401'},'inverter': {'Version': 'V5.1.09', 'Rated_Power': 300}, 'grid': {'Timestamp': m._utc(), 'Voltage': 225.9, 'Current': 0.41, 'Frequency': 49.99, 'Output_Power': 94.8}, 'env': {'Inverter_Temp': 22}, 'input': {'Timestamp': m._utc(), 'pv1': {'Voltage': 0.8, 'Current': 0.0, 'Power': 0.0}, 'pv2': {'Voltage': 34.5, 'Current': 2.89, 'Power': 99.8}, 'pv3': {'Voltage': 0.0, 'Current': 0.0, 'Power': 0.0}, 'pv4': {'Voltage': 0.0, 'Current': 0.0, 'Power': 0.0}}}
     assert m.db.get_db_value(Register.VERSION) == 'V5.1.09'
     assert m.db.get_db_value(Register.TS_GRID) == m._utc()
     assert m.new_data['inverter'] == True
@@ -2262,7 +2250,7 @@ def test_msg_modbus_rsp3(config_tsun_inv1, msg_modbus_rsp21):
     assert m.msg_count == 2
     assert m.ifc.fwd_fifo.get()==msg_modbus_rsp21
     assert m.ifc.tx_fifo.get()==b''
-    assert m.db.db == {'collector': {'Serial_Number': 'R170000000000001'}, 'inverter': {'Version': 'V5.1.0E', 'Rated_Power': 300}, 'grid': {'Timestamp': m._utc(), 'Voltage': 225.9, 'Current': 0.41, 'Frequency': 49.99, 'Output_Power': 94.8}, 'env': {'Inverter_Temp': 22}, 'input': {'Timestamp': m._utc(), 'pv1': {'Voltage': 0.8, 'Current': 0.0, 'Power': 0.0}, 'pv2': {'Voltage': 34.5, 'Current': 2.89, 'Power': 99.8}, 'pv3': {'Voltage': 0.0, 'Current': 0.0, 'Power': 0.0}, 'pv4': {'Voltage': 0.0, 'Current': 0.0, 'Power': 0.0}}}
+    assert m.db.db == {'collector': {'Serial_Number': 'R170000000000001'}, 'controller': {'Sensor_List': '26214401'},'inverter': {'Version': 'V5.1.0E', 'Rated_Power': 300}, 'grid': {'Timestamp': m._utc(), 'Voltage': 225.9, 'Current': 0.41, 'Frequency': 49.99, 'Output_Power': 94.8}, 'env': {'Inverter_Temp': 22}, 'input': {'Timestamp': m._utc(), 'pv1': {'Voltage': 0.8, 'Current': 0.0, 'Power': 0.0}, 'pv2': {'Voltage': 34.5, 'Current': 2.89, 'Power': 99.8}, 'pv3': {'Voltage': 0.0, 'Current': 0.0, 'Power': 0.0}, 'pv4': {'Voltage': 0.0, 'Current': 0.0, 'Power': 0.0}}}
     assert m.db.get_db_value(Register.VERSION) == 'V5.1.0E'
     assert m.db.get_db_value(Register.TS_GRID) == m._utc()
     assert m.new_data['inverter'] == True

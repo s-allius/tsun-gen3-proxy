@@ -493,14 +493,8 @@ class Talent(Message):
 
     def __build_model_name(self):
         db = self.db
-        model = db.get_db_value(Register.EQUIPMENT_MODEL, None)
-        if model:
-            return
         max_pow = db.get_db_value(Register.MAX_DESIGNED_POWER, 0)
         if max_pow == 3000:
-            model = f'TSOL-MS{max_pow}'
-            self.db.set_db_def_value(Register.EQUIPMENT_MODEL, model)
-            self.db.set_db_def_value(Register.MANUFACTURER, 'TSUN')
             self.db.set_db_def_value(Register.NO_INPUTS, 4)
 
     def __process_data(self, inv_data: bool):
