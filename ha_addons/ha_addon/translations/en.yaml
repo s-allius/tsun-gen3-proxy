@@ -9,7 +9,7 @@ configuration:
       to this inverter. Further inverter-specific parameters (e.g. polling mode) can be set
       in the configuration block.
 
-      The serial numbers of all GEN3 inverters start with `R17` and that of the GEN3PLUS
+      The serial numbers of all GEN3 inverters start with `R17` or `R47` and that of the GEN3PLUS
       inverters with ‘Y17’ or ‘Y47’!
       
       For reference see example configuration in Documentation Tab
