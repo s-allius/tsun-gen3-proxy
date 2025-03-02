@@ -7,7 +7,7 @@ from infos import Infos, Register, ProxyMode, Fmt
 
 class RegisterFunc:
     @staticmethod
-    def prod_sum(info: Infos, arr: dict) -> None:
+    def prod_sum(info: Infos, arr: dict) -> None | int:
         result = 0
         for sum in arr:
             prod = 1
@@ -214,15 +214,17 @@ class InfosG3P(Infos):
         sug_area:str ==> suggested area string from the config file'''
         # iterate over RegisterMap.map and get the register values
         sensor = self.get_db_value(Register.SENSOR_LIST)
-        virt = {}
         if "3026" == sensor:
-            items = RegisterMap.map_3026.items()
-            if 'calc' in RegisterMap.map_3026:
-                virt = RegisterMap.map_3026['calc'].items()
+            reg_map = RegisterMap.map_3026
         elif "02b0" == sensor:
-            items = RegisterMap.map_02b0.items()
+            reg_map = RegisterMap.map_02b0
         else:
-            items = {}
+            reg_map = {}
+        items = reg_map.items()
+        if 'calc' in reg_map:
+            virt = reg_map['calc'].items()
+        else:
+            virt = {}
 
         for idx, row in chain(RegisterMap.map.items(), items, virt):
             if 'calc' == idx:
@@ -255,32 +257,22 @@ class InfosG3P(Infos):
                 continue
             info_id = row['reg']
             result = Fmt.get_value(buf, addr, row)
+            yield from self.__update_val(node_id, info_id, result)
 
-            keys, level, unit, must_incr = self._key_obj(info_id)
-
-            if keys:
-                name, update = self.update_db(keys, must_incr, result)
-                yield keys[0], update
-            else:
-                name = str(f'info-id.0x{addr:x}')
-                update = False
-
-            if update:
-                self.tracer.log(level, f'[{node_id}] GEN3PLUS: {name}'
-                                       f' : {result}{unit}')
         if 'calc' in reg_map:
             for row in reg_map['calc'].values():
                 info_id = row['reg']
                 result = row['func'](self, row['params'])
-                keys, level, unit, must_incr = self._key_obj(info_id)
+                yield from self.__update_val(node_id, info_id, result)
 
-                if keys:
-                    name, update = self.update_db(keys, must_incr, result)
-                    yield keys[0], update
-
-                    if update:
-                        self.tracer.log(level, f'[{node_id}] GEN3PLUS: {name}'
-                                               f' : {result}{unit}')
+    def __update_val(self, node_id, info_id, result):
+        keys, level, unit, must_incr = self._key_obj(info_id)
+        if keys:
+            name, update = self.update_db(keys, must_incr, result)
+            yield keys[0], update
+            if update:
+                self.tracer.log(level, f'[{node_id}] GEN3PLUS: {name}'
+                                       f' : {result}{unit}')
 
     def build(self, len, msg_type: int, rcv_ftype: int, sensor: int = 0):
         buf = bytearray(len)
