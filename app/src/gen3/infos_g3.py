@@ -53,35 +53,35 @@ class RegisterMap:
         0x000003e8: {'reg': Register.TEST_VAL_0},
         0x0000044c: {'reg': Register.TEST_VAL_1},
         0x000004b0: {'reg': Register.TEST_VAL_2},
-        0x00000514: {'reg': Register.TEST_VAL_3},
-        0x00000578: {'reg': Register.TEST_VAL_4},
+        0x00000514: {'reg': Register.GRID_VOLTAGE},  # Grid Voltage
+        0x00000578: {'reg': Register.GRID_CURRENT},  # Grid Current
         0x000005dc: {'reg': Register.TEST_VAL_5},
         0x000007d0: {'reg': Register.TEST_VAL_6},
-        0x00000898: {'reg': Register.TEST_VAL_7},
-        0x000008fc: {'reg': Register.TEST_VAL_8},
-        0x00000960: {'reg': Register.TEST_VAL_9},
+        0x00000898: {'reg': Register.OUTPUT_POWER},  # Grid Power
+        0x000008fc: {'reg': Register.DAILY_GENERATION},  # Daily Generation
+        0x00000960: {'reg': Register.TOTAL_GENERATION},  # Total Genration
         0x00000a28: {'reg': Register.TEST_VAL_10},
         0x00000a8c: {'reg': Register.TEST_VAL_11},
-        0x000001324: {'reg': Register.TEST_VAL_12},
-        0x000001388: {'reg': Register.TEST_VAL_13},
-        0x0000013ec: {'reg': Register.TEST_VAL_14},
+        0x000001324: {'reg': Register.PV1_VOLTAGE},  # PV1 Voltage
+        0x000001388: {'reg': Register.PV1_CURRENT},  # PV1 Current
+        0x0000013ec: {'reg': Register.PV1_POWER},    # PV1 Power
         0x000001450: {'reg': Register.TEST_VAL_15},
-        0x0000015e0: {'reg': Register.TEST_VAL_16},
-        0x000001644: {'reg': Register.TEST_VAL_17},
-        0x0000016a8: {'reg': Register.TEST_VAL_18},
+        0x0000015e0: {'reg': Register.PV2_VOLTAGE},  # PV2 Voltage
+        0x000001644: {'reg': Register.PV2_CURRENT},  # PV2 Current
+        0x0000016a8: {'reg': Register.PV2_POWER},    # PV2 Power
         0x00000170c: {'reg': Register.TEST_VAL_19},
-        0x00000189c: {'reg': Register.TEST_VAL_20},
-        0x000001900: {'reg': Register.TEST_VAL_21},
-        0x000001964: {'reg': Register.TEST_VAL_22},
+        0x00000189c: {'reg': Register.PV3_VOLTAGE},
+        0x000001900: {'reg': Register.PV3_CURRENT},
+        0x000001964: {'reg': Register.PV3_POWER},
         0x0000019c8: {'reg': Register.TEST_VAL_23},
         0x000001c20: {'reg': Register.TEST_VAL_24},
         0x000001c84: {'reg': Register.TEST_VAL_25},
         0x000001ce8: {'reg': Register.TEST_VAL_26},
         0x000001d4c: {'reg': Register.TEST_VAL_27},
         0x000001db0: {'reg': Register.TEST_VAL_28},
-        0x000001e78: {'reg': Register.TEST_VAL_29},
-        0x000001edc: {'reg': Register.TEST_VAL_30},
-        0x000001f40: {'reg': Register.TEST_VAL_31},
+        0x000001e78: {'reg': Register.PV4_VOLTAGE},
+        0x000001edc: {'reg': Register.PV4_CURRENT},
+        0x000001f40: {'reg': Register.PV4_POWER},
         0x000001fa4: {'reg': Register.TEST_VAL_32},
     }
     map_01900001 = {
