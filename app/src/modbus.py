@@ -37,6 +37,34 @@ class Modbus():
 
     __crc_tab = []
     mb_reg_mapping = {
+        # 0x0000: {'reg': Register.SERIAL_NUMBER,        'fmt': '!16s'},               # noqa: E501
+        0x0010: {'reg': Register.BATT_PV1_VOLT,        'fmt': '!H', 'ratio': 0.01},  # noqa: E501, PV1 voltage
+        0x0012: {'reg': Register.BATT_PV1_CUR,         'fmt': '!H', 'ratio': 0.01},  # noqa: E501, PV1 current
+        0x0014: {'reg': Register.BATT_PV2_VOLT,        'fmt': '!H', 'ratio': 0.01},  # noqa: E501, PV2 voltage
+        0x0016: {'reg': Register.BATT_PV2_CUR,         'fmt': '!H', 'ratio': 0.01},  # noqa: E501, PV2 current
+        # 0x0018: {'reg': Register.BATT_38,              'fmt': '!h'},                 # noqa: E501
+        0x001a: {'reg': Register.BATT_3a,              'fmt': '!h', 'ratio': 0.01},  # noqa: E501
+        0x001c: {'reg': Register.BATT_STATUS_1,        'fmt': '!h'},                 # noqa: E501
+        0x001e: {'reg': Register.BATT_STATUS_2,        'fmt': '!h'},                 # noqa: E501
+        0x0020: {'reg': Register.BATT_VOLT,            'fmt': '!h', 'ratio': 0.01},  # noqa: E501
+        0x0022: {'reg': Register.BATT_CUR,             'fmt': '!h', 'ratio': 0.01},  # noqa: E501
+        0x0024: {'reg': Register.BATT_SOC,             'fmt': '!H', 'ratio': 0.01},  # noqa: E501, state of charge (SOC) in percent
+        # 0x0026: {'reg': Register.BATT_46,              'fmt': '!h'},                 # noqa: E501
+        # 0x0028: {'reg': Register.BATT_48,              'fmt': '!h'},                 # noqa: E501
+        # 0x002a: {'reg': Register.BATT_4a,              'fmt': '!h'},                 # noqa: E501
+        # 0x002c: {'reg': Register.BATT_4c,              'fmt': '!h'},                 # noqa: E501
+        # 0x002e: {'reg': Register.BATT_4e,              'fmt': '!h'},                 # noqa: E501
+        # 0x0046: {'reg': Register.BATT_66,              'fmt': '!h'},                 # noqa: E501
+        # 0x0048: {'reg': Register.BATT_68,              'fmt': '!h'},                 # noqa: E501
+        # 0x004a: {'reg': Register.BATT_6a,              'fmt': '!h'},                 # noqa: E501
+        0x004c: {'reg': Register.BATT_OUT_VOLT,        'fmt': '!h', 'ratio': 0.01},  # noqa: E501
+        0x004e: {'reg': Register.BATT_OUT_CUR,         'fmt': '!h', 'ratio': 0.01},  # noqa: E501
+        # 0x0050: {'reg': Register.BATT_70,              'fmt': '!h'},                 # noqa: E501
+        # 0x0052: {'reg': Register.BATT_72,              'fmt': '!h'},                 # noqa: E501
+        # 0x0054: {'reg': Register.BATT_74,              'fmt': '!h'},                 # noqa: E501
+        # 0x0056: {'reg': Register.BATT_76,              'fmt': '!h'},                 # noqa: E501
+        # 0x0058: {'reg': Register.BATT_78,              'fmt': '!h'},                 # noqa: E501
+
         0x2000: {'reg': Register.BOOT_STATUS,          'fmt': '!H'},                 # noqa: E501
         0x2001: {'reg': Register.DSP_STATUS,           'fmt': '!H'},                 # noqa: E501
         0x2003: {'reg': Register.WORK_MODE,            'fmt': '!H'},

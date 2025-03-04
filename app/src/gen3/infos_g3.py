@@ -47,42 +47,56 @@ class RegisterMap:
         0x000001f4: {'reg': Register.EVENT_FAULT},
         0x00000258: {'reg': Register.EVENT_BF1},
         0x000002bc: {'reg': Register.EVENT_BF2},
-        0x00000640: {'reg': Register.GRID_FREQUENCY},
-        0x00000834: {'reg': Register.MAX_DESIGNED_POWER},
 
         0x000003e8: {'reg': Register.TEST_VAL_0},
         0x0000044c: {'reg': Register.TEST_VAL_1},
         0x000004b0: {'reg': Register.TEST_VAL_2},
         0x00000514: {'reg': Register.GRID_VOLTAGE},  # Grid Voltage
         0x00000578: {'reg': Register.GRID_CURRENT},  # Grid Current
-        0x000005dc: {'reg': Register.TEST_VAL_5},
-        0x000007d0: {'reg': Register.TEST_VAL_6},
+        0x000005dc: {'reg': Register.TEST_VAL_3},
+        0x00000640: {'reg': Register.GRID_FREQUENCY},
+        0x000007d0: {'reg': Register.TEST_VAL_4},
+        0x00000834: {'reg': Register.MAX_DESIGNED_POWER},
         0x00000898: {'reg': Register.OUTPUT_POWER},  # Grid Power
         0x000008fc: {'reg': Register.DAILY_GENERATION},  # Daily Generation
         0x00000960: {'reg': Register.TOTAL_GENERATION},  # Total Genration
-        0x00000a28: {'reg': Register.TEST_VAL_10},
-        0x00000a8c: {'reg': Register.TEST_VAL_11},
+        0x00000a28: {'reg': Register.TEST_VAL_10},   # Isolationsimpedanz Rx
+        0x00000a8c: {'reg': Register.TEST_VAL_11},   # Isolationsimpedanz Ry
         0x000001324: {'reg': Register.PV1_VOLTAGE},  # PV1 Voltage
         0x000001388: {'reg': Register.PV1_CURRENT},  # PV1 Current
         0x0000013ec: {'reg': Register.PV1_POWER},    # PV1 Power
-        0x000001450: {'reg': Register.TEST_VAL_15},
+        0x000001450: {'reg': Register.TEST_VAL_5},
         0x0000015e0: {'reg': Register.PV2_VOLTAGE},  # PV2 Voltage
         0x000001644: {'reg': Register.PV2_CURRENT},  # PV2 Current
         0x0000016a8: {'reg': Register.PV2_POWER},    # PV2 Power
-        0x00000170c: {'reg': Register.TEST_VAL_19},
+        0x00000170c: {'reg': Register.TEST_VAL_6},
         0x00000189c: {'reg': Register.PV3_VOLTAGE},
         0x000001900: {'reg': Register.PV3_CURRENT},
         0x000001964: {'reg': Register.PV3_POWER},
-        0x0000019c8: {'reg': Register.TEST_VAL_23},
-        0x000001c20: {'reg': Register.TEST_VAL_24},
-        0x000001c84: {'reg': Register.TEST_VAL_25},
-        0x000001ce8: {'reg': Register.TEST_VAL_26},
-        0x000001d4c: {'reg': Register.TEST_VAL_27},
-        0x000001db0: {'reg': Register.TEST_VAL_28},
+        0x0000019c8: {'reg': Register.TEST_VAL_7},
+        0x000001c20: {'reg': Register.TEST_VAL_14},
+        0x000001c84: {'reg': Register.TEST_VAL_15},
+        0x000001ce8: {'reg': Register.TEST_VAL_16},
+        0x000001d4c: {'reg': Register.TEST_VAL_17},
+        0x000001db0: {'reg': Register.TEST_VAL_18},
         0x000001e78: {'reg': Register.PV4_VOLTAGE},
         0x000001edc: {'reg': Register.PV4_CURRENT},
         0x000001f40: {'reg': Register.PV4_POWER},
-        0x000001fa4: {'reg': Register.TEST_VAL_32},
+        0x000001fa4: {'reg': Register.TEST_VAL_8},
+
+        0x000002134: {'reg': Register.PV5_VOLTAGE},
+        0x000002198: {'reg': Register.PV5_CURRENT},
+        0x0000021fc: {'reg': Register.PV5_POWER},
+        # 0x000002260: {'reg': Register.TEST_VAL_13},
+        0x0000023f0: {'reg': Register.PV6_VOLTAGE},
+        0x000002454: {'reg': Register.PV6_CURRENT},
+        0x0000024b8: {'reg': Register.PV6_POWER},
+        # 0x00000251c: {'reg': Register.TEST_VAL_14},
+        0x000002774: {'reg': Register.TEST_VAL_24},
+        0x0000027d8: {'reg': Register.TEST_VAL_25},
+        0x00000283c: {'reg': Register.TEST_VAL_26},
+        0x0000028a0: {'reg': Register.TEST_VAL_27},
+        0x000002904: {'reg': Register.TEST_VAL_28},
     }
     map_01900001 = {
         0x0000000a: {'reg': Register.PRODUCT_NAME},
