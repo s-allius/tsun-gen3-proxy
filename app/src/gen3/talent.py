@@ -5,7 +5,7 @@ from datetime import datetime
 from tzlocal import get_localzone
 
 from async_ifc import AsyncIfc
-from messages import Message, State
+from messages import hex_dump_memory, Message, State
 from modbus import Modbus
 from cnf.config import Config
 from gen3.infos_g3 import InfosG3
@@ -75,6 +75,11 @@ class Talent(Message):
             0x87: self.get_modbus_log_lvl,
             0x04: logging.INFO,
         }
+        self.mb_start_reg = 0
+        self.mb_step = 0
+        self.mb_bytes = 0
+        self.mb_inv_no = 1
+        self.mb_scan = False
 
     '''
     Our puplic methods
@@ -88,6 +93,22 @@ class Talent(Message):
         self.log_lvl.clear()
         super().close()
 
+    def __set_config_parms(self, inv: dict):
+        '''init connection with params from the configuration'''
+        self.node_id = inv['node_id']
+        self.sug_area = inv['suggested_area']
+        self.modbus_polling = inv['modbus_polling']
+        if 'modbus_scanning' in inv:
+            scan = inv['modbus_scanning']
+            self.mb_scan = True
+            self.mb_start_reg = scan['start']
+            self.mb_step = scan['step']
+            self.mb_bytes = scan['bytes']
+            if not self.db.client_mode:
+                self.mb_start_reg -= scan['step']
+        if self.mb:
+            self.mb.set_node_id(self.node_id)
+
     def __set_serial_no(self, serial_no: str):
 
         if self.unique_id == serial_no:
@@ -98,13 +119,9 @@ class Talent(Message):
 
             if serial_no in inverters:
                 inv = inverters[serial_no]
-                self.node_id = inv['node_id']
-                self.sug_area = inv['suggested_area']
-                self.modbus_polling = inv['modbus_polling']
-                logger.debug(f'SerialNo {serial_no} allowed! area:{self.sug_area}')  # noqa: E501
+                self.__set_config_parms(inv)
                 self.db.set_pv_module_details(inv)
-                if self.mb:
-                    self.mb.set_node_id(self.node_id)
+                logger.debug(f'SerialNo {serial_no} allowed! area:{self.sug_area}')  # noqa: E501
             else:
                 self.node_id = ''
                 self.sug_area = ''
@@ -175,12 +192,29 @@ class Talent(Message):
 
     def mb_timout_cb(self, exp_cnt):
         self.mb_timer.start(self.mb_timeout)
+        if self.mb_scan:
+            self.mb_start_reg += self.mb_step
+            if self.mb_start_reg > 0xffff:
+                self.mb_start_reg = self.mb_start_reg & 0xffff
+                self.mb_inv_no += 1
+                logging.info(f"Next Round: inv:{self.mb_inv_no}"
+                             f" reg:{self.mb_start_reg:04x}")
+            if (self.mb_start_reg & 0xfffc) % 0x80 == 0:
+                logging.info(f"[{self.node_id}] Scan info: "
+                             f"inv:{self.mb_inv_no}"
+                             f" reg:{self.mb_start_reg:04x}")
+            self._send_modbus_cmd(self.mb_inv_no, Modbus.READ_REGS,
+                                  self.mb_start_reg, self.mb_bytes,
+                                  logging.INFO)
+            return
 
         if 2 == (exp_cnt % 30):
             # logging.info("Regular Modbus Status request")
-            self._send_modbus_cmd(Modbus.READ_REGS, 0x2000, 96, logging.DEBUG)
+            self._send_modbus_cmd(Modbus.INV_ADDR, Modbus.READ_REGS, 0x2000,
+                                  96, logging.DEBUG)
         else:
-            self._send_modbus_cmd(Modbus.READ_REGS, 0x3000, 48, logging.DEBUG)
+            self._send_modbus_cmd(Modbus.INV_ADDR, Modbus.READ_REGS, 0x3000,
+                                  48, logging.DEBUG)
 
     def _init_new_client_conn(self) -> bool:
         contact_name = self.contact_name
@@ -554,6 +588,14 @@ class Talent(Message):
                 logger.warning('Unknown Message')
                 self.inc_counter('Unknown_Msg')
                 return
+            if (self.mb_scan and data[hdr_len] == self.mb_inv_no and
+                    data[hdr_len+1] == Modbus.READ_REGS):
+                modbus_msg_len = self.data_len - hdr_len
+                logging.info(f'[{self.node_id}] Valid MODBUS data '
+                             f'(reg: 0x{self.mb.last_reg:04x}):')
+                hex_dump_memory(logging.INFO, 'Valid MODBUS data '
+                                f'(reg: 0x{self.mb.last_reg:04x}):',
+                                data[hdr_len:], modbus_msg_len)
 
             for key, update, _ in self.mb.recv_resp(self.db, data[
                     hdr_len:]):

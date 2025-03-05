@@ -322,6 +322,11 @@ class SolarmanV5(SolarmanBase):
             self.at_acl = g3p_cnf['at_acl']
 
         self.sensor_list = 0
+        self.mb_start_reg = 0
+        self.mb_step = 0
+        self.mb_bytes = 0
+        self.mb_inv_no = 1
+        self.mb_scan = False
 
     '''
     Our puplic methods
@@ -357,7 +362,22 @@ class SolarmanV5(SolarmanBase):
         self.new_data['controller'] = True
 
         self.state = State.up
-        self._send_modbus_cmd(Modbus.READ_REGS, 0x3000, 48, logging.DEBUG)
+        # self.__build_header(0x1710)
+        # self.ifc.write += struct.pack('<B', 0)
+        # self.__finish_send_msg()
+        # hex_dump_memory(logging.INFO, f'Send StartCmd:{self.addr}:',
+        #                 self.ifc.write, len(self.ifc.write))
+        # self.writer.write(self.ifc.write)
+        # self.ifc.write = bytearray(0)  # self.ifc.write[sent:]
+
+        if self.mb_scan:
+            self._send_modbus_cmd(self.mb_inv_no, Modbus.READ_REGS,
+                                  self.mb_start_reg, self.mb_bytes,
+                                  logging.INFO)
+        else:
+            self._send_modbus_cmd(Modbus.INV_ADDR, Modbus.READ_REGS, 0x3000,
+                                  48, logging.DEBUG)
+
         self.mb_timer.start(self.mb_timeout)
 
     def new_state_up(self):
@@ -389,6 +409,15 @@ class SolarmanV5(SolarmanBase):
                 self.sensor_list = 0x3026
             else:
                 self.sensor_list = 0x02b0
+        if 'modbus_scanning' in inv:
+            scan = inv['modbus_scanning']
+            self.mb_scan = True
+            self.mb_start_reg = scan['start']
+            self.mb_step = scan['step']
+            self.mb_bytes = scan['bytes']
+            if not self.db.client_mode:
+                self.mb_start_reg -= scan['step']
+
         self.db.set_db_def_value(Register.SENSOR_LIST,
                                  f"{self.sensor_list:04x}")
         logging.debug(f"Use sensor-list: {self.sensor_list:#04x}"
@@ -474,12 +503,28 @@ class SolarmanV5(SolarmanBase):
 
     def mb_timout_cb(self, exp_cnt):
         self.mb_timer.start(self.mb_timeout)
+        if self.mb_scan:
+            self.mb_start_reg += self.mb_step
+            if self.mb_start_reg > 0xffff:
+                self.mb_start_reg = self.mb_start_reg & 0xffff
+                self.mb_inv_no += 1
+                logging.info(f"Next Round: inv:{self.mb_inv_no}"
+                             f" reg:{self.mb_start_reg:04x}")
+            if (self.mb_start_reg & 0xfffc) % 0x80 == 0:
+                logging.info(f"[{self.node_id}] Scan info: "
+                             f"inv:{self.mb_inv_no}"
+                             f" reg:{self.mb_start_reg:04x}")
+            self._send_modbus_cmd(self.mb_inv_no, Modbus.READ_REGS,
+                                  self.mb_start_reg, self.mb_bytes,
+                                  logging.INFO)
+        else:
+            self._send_modbus_cmd(Modbus.INV_ADDR, Modbus.READ_REGS, 0x3000,
+                                  48, logging.INFO)
 
-        self._send_modbus_cmd(Modbus.READ_REGS, 0x3000, 48, logging.INFO)
-
-        if 1 == (exp_cnt % 30):
-            # logging.info("Regular Modbus Status request")
-            self._send_modbus_cmd(Modbus.READ_REGS, 0x2000, 96, logging.INFO)
+            if 1 == (exp_cnt % 30):
+                # logging.info("Regular Modbus Status request")
+                self._send_modbus_cmd(Modbus.INV_ADDR, Modbus.READ_REGS,
+                                      0x2000, 96, logging.INFO)
 
     def at_cmd_forbidden(self, cmd: str, connection: str) -> bool:
         return not cmd.startswith(tuple(self.at_acl[connection]['allow'])) or \
@@ -672,9 +717,16 @@ class SolarmanV5(SolarmanBase):
             return
         self.__forward_msg()
 
-    def __parse_modbus_rsp(self, data):
+    def __parse_modbus_rsp(self, data, modbus_msg_len):
         inv_update = False
         self.modbus_elms = 0
+        if (self.mb_scan and data[14] == self.mb_inv_no and
+                data[15] == Modbus.READ_REGS):
+            logging.info(f'[{self.node_id}] Valid MODBUS data '
+                         f'(reg: 0x{self.mb.last_reg:04x}):')
+            hex_dump_memory(logging.INFO, 'Valid MODBUS data '
+                            f'(reg: 0x{self.mb.last_reg:04x}):',
+                            data[14:], modbus_msg_len)
         for key, update, _ in self.mb.recv_resp(self.db, data[14:]):
             self.modbus_elms += 1
             if update:
@@ -691,7 +743,7 @@ class SolarmanV5(SolarmanBase):
         # logger.debug(f'modbus_len:{modbus_msg_len} accepted:{valid}')
         if valid == 1 and modbus_msg_len > 4:
             # logger.info(f'first byte modbus:{data[14]}')
-            inv_update = self.__parse_modbus_rsp(data)
+            inv_update = self.__parse_modbus_rsp(data, modbus_msg_len)
             if inv_update:
                 self.__build_model_name()
 
