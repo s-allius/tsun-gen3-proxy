@@ -327,6 +327,8 @@ class SolarmanV5(SolarmanBase):
         self.mb_bytes = 0
         self.mb_inv_no = 1
         self.mb_scan = False
+        self.mb_regs = [{'addr': 0x3000, 'len': 48},
+                        {'addr': 0x2000, 'len': 96}]
 
     '''
     Our puplic methods
@@ -375,8 +377,9 @@ class SolarmanV5(SolarmanBase):
                                   self.mb_start_reg, self.mb_bytes,
                                   logging.INFO)
         else:
-            self._send_modbus_cmd(Modbus.INV_ADDR, Modbus.READ_REGS, 0x3000,
-                                  48, logging.DEBUG)
+            self._send_modbus_cmd(Modbus.INV_ADDR, Modbus.READ_REGS,
+                                  self.mb_regs[0]['addr'],
+                                  self.mb_regs[0]['len'], logging.DEBUG)
 
         self.mb_timer.start(self.mb_timeout)
 
@@ -407,6 +410,7 @@ class SolarmanV5(SolarmanBase):
             snr = serial_no[:3]
             if '410' == snr:
                 self.sensor_list = 0x3026
+                self.mb_regs = [{'addr': 0x0000, 'len': 45}]
             else:
                 self.sensor_list = 0x02b0
         if 'modbus_scanning' in inv:
@@ -518,13 +522,15 @@ class SolarmanV5(SolarmanBase):
                                   self.mb_start_reg, self.mb_bytes,
                                   logging.INFO)
         else:
-            self._send_modbus_cmd(Modbus.INV_ADDR, Modbus.READ_REGS, 0x3000,
-                                  48, logging.INFO)
+            self._send_modbus_cmd(Modbus.INV_ADDR, Modbus.READ_REGS,
+                                  self.mb_regs[0]['addr'],
+                                  self.mb_regs[0]['len'], logging.INFO)
 
-            if 1 == (exp_cnt % 30):
+            if 1 == (exp_cnt % 30) and len(self.mb_regs) > 1:
                 # logging.info("Regular Modbus Status request")
                 self._send_modbus_cmd(Modbus.INV_ADDR, Modbus.READ_REGS,
-                                      0x2000, 96, logging.INFO)
+                                      self.mb_regs[1]['addr'],
+                                      self.mb_regs[1]['len'], logging.INFO)
 
     def at_cmd_forbidden(self, cmd: str, connection: str) -> bool:
         return not cmd.startswith(tuple(self.at_acl[connection]['allow'])) or \
