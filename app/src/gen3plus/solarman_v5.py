@@ -733,13 +733,21 @@ class SolarmanV5(SolarmanBase):
             hex_dump_memory(logging.INFO, 'Valid MODBUS data '
                             f'(reg: 0x{self.mb.last_reg:04x}):',
                             data[14:], modbus_msg_len)
+        ts = self._timestamp()
         for key, update, _ in self.mb.recv_resp(self.db, data[14:]):
             self.modbus_elms += 1
             if update:
                 if key == 'inverter':
                     inv_update = True
-                self._set_mqtt_timestamp(key, self._timestamp())
+                self._set_mqtt_timestamp(key, ts)
                 self.new_data[key] = True
+        for key, update in self.db.calc(self.sensor_list, self.node_id):
+            if update:
+                if key == 'inverter':
+                    inv_update = True
+                self._set_mqtt_timestamp(key, ts)
+                self.new_data[key] = True
+
         return inv_update
 
     def __modbus_command_rsp(self, data):
