@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+- add Modbus polling mode for DCU1000 [#292](https://github.com/s-allius/tsun-gen3-proxy/issues/292)
 - add Modbus scanning mode
 - allow `R47`serial numbers for GEN3 inverters
 - add watchdog for Add-ons
