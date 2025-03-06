@@ -117,6 +117,11 @@ class Message(ProtocolIfc):
         self.mb_first_timeout = self.MB_START_TIMEOUT
         '''timer value for next Modbus polling request'''
         self.modbus_polling = False
+        self.mb_start_reg = 0
+        self.mb_step = 0
+        self.mb_bytes = 0
+        self.mb_inv_no = 1
+        self.mb_scan = False
 
     @property
     def node_id(self):
@@ -134,6 +139,25 @@ class Message(ProtocolIfc):
     def _read(self) -> None:     # read data bytes from socket and copy them
         # to our _recv_buffer
         return  # pragma: no cover
+
+    def _set_config_parms(self, inv: dict):
+        '''init connection with params from the configuration'''
+        self.node_id = inv['node_id']
+        self.sug_area = inv['suggested_area']
+        self.modbus_polling = inv['modbus_polling']
+        if 'modbus_scanning' in inv:
+            scan = inv['modbus_scanning']
+            self.mb_scan = True
+            self.mb_start_reg = scan['start']
+            self.mb_step = scan['step']
+            self.mb_bytes = scan['bytes']
+            # if 'client_mode' in self.db and \
+            #         self.db.client_mode:
+            self.mb_start_reg = scan['start']
+            # else:
+            #     self.mb_start_reg = scan['start'] - scan['step']
+        if self.mb:
+            self.mb.set_node_id(self.node_id)
 
     def _set_mqtt_timestamp(self, key, ts: float | None):
         if key not in self.new_data or \
@@ -169,6 +193,21 @@ class Message(ProtocolIfc):
 
     async def send_modbus_cmd(self, func, addr, val, log_lvl) -> None:
         self._send_modbus_cmd(Modbus.INV_ADDR, func, addr, val, log_lvl)
+
+    def _send_modbus_scan(self):
+        self.mb_start_reg += self.mb_step
+        if self.mb_start_reg > 0xffff:
+            self.mb_start_reg = self.mb_start_reg & 0xffff
+            self.mb_inv_no += 1
+            logging.info(f"Next Round: inv:{self.mb_inv_no}"
+                         f" reg:{self.mb_start_reg:04x}")
+        if (self.mb_start_reg & 0xfffc) % 0x80 == 0:
+            logging.info(f"[{self.node_id}] Scan info: "
+                         f"inv:{self.mb_inv_no}"
+                         f" reg:{self.mb_start_reg:04x}")
+        self._send_modbus_cmd(self.mb_inv_no, Modbus.READ_REGS,
+                              self.mb_start_reg, self.mb_bytes,
+                              logging.INFO)
 
     '''
     Our puplic methods

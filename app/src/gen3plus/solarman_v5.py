@@ -322,11 +322,6 @@ class SolarmanV5(SolarmanBase):
             self.at_acl = g3p_cnf['at_acl']
 
         self.sensor_list = 0
-        self.mb_start_reg = 0
-        self.mb_step = 0
-        self.mb_bytes = 0
-        self.mb_inv_no = 1
-        self.mb_scan = False
         self.mb_regs = [{'addr': 0x3000, 'len': 48},
                         {'addr': 0x2000, 'len': 96}]
 
@@ -400,11 +395,10 @@ class SolarmanV5(SolarmanBase):
         self.ifc.fwd_add(build_msg)
         self.ifc.fwd_add(struct.pack('<BB', 0, 0x15))    # crc & stop
 
-    def __set_config_parms(self, inv: dict, serial_no: str):
+    def _set_config_parms(self, inv: dict, serial_no: str):
         '''init connection with params from the configuration'''
-        self.node_id = inv['node_id']
-        self.sug_area = inv['suggested_area']
-        self.modbus_polling = inv['modbus_polling']
+        super()._set_config_parms(inv)
+
         self.sensor_list = inv['sensor_list']
         if 0 == self.sensor_list:
             snr = serial_no[:3]
@@ -413,22 +407,10 @@ class SolarmanV5(SolarmanBase):
                 self.mb_regs = [{'addr': 0x0000, 'len': 45}]
             else:
                 self.sensor_list = 0x02b0
-        if 'modbus_scanning' in inv:
-            scan = inv['modbus_scanning']
-            self.mb_scan = True
-            self.mb_start_reg = scan['start']
-            self.mb_step = scan['step']
-            self.mb_bytes = scan['bytes']
-            if not self.db.client_mode:
-                self.mb_start_reg -= scan['step']
-
         self.db.set_db_def_value(Register.SENSOR_LIST,
                                  f"{self.sensor_list:04x}")
         logging.debug(f"Use sensor-list: {self.sensor_list:#04x}"
                       f" for '{serial_no}'")
-
-        if self.mb:
-            self.mb.set_node_id(self.node_id)
 
     def _set_serial_no(self, snr: int):
         '''check the serial number and configure the inverter connection'''
@@ -444,7 +426,7 @@ class SolarmanV5(SolarmanBase):
                 # logger.debug(f'key: {key} -> {inv}')
                 if (type(inv) is dict and 'monitor_sn' in inv
                    and inv['monitor_sn'] == snr):
-                    self.__set_config_parms(inv, key)
+                    self._set_config_parms(inv, key)
                     self.db.set_pv_module_details(inv)
                     logger.debug(f'SerialNo {serial_no} allowed! area:{self.sug_area}')  # noqa: E501
 
@@ -508,19 +490,7 @@ class SolarmanV5(SolarmanBase):
     def mb_timout_cb(self, exp_cnt):
         self.mb_timer.start(self.mb_timeout)
         if self.mb_scan:
-            self.mb_start_reg += self.mb_step
-            if self.mb_start_reg > 0xffff:
-                self.mb_start_reg = self.mb_start_reg & 0xffff
-                self.mb_inv_no += 1
-                logging.info(f"Next Round: inv:{self.mb_inv_no}"
-                             f" reg:{self.mb_start_reg:04x}")
-            if (self.mb_start_reg & 0xfffc) % 0x80 == 0:
-                logging.info(f"[{self.node_id}] Scan info: "
-                             f"inv:{self.mb_inv_no}"
-                             f" reg:{self.mb_start_reg:04x}")
-            self._send_modbus_cmd(self.mb_inv_no, Modbus.READ_REGS,
-                                  self.mb_start_reg, self.mb_bytes,
-                                  logging.INFO)
+            self._send_modbus_scan()
         else:
             self._send_modbus_cmd(Modbus.INV_ADDR, Modbus.READ_REGS,
                                   self.mb_regs[0]['addr'],
