@@ -212,7 +212,6 @@ class Message(ProtocolIfc):
     def _dump_modbus_scan(self, data, hdr_len, modbus_msg_len):
         if (data[hdr_len] == self.mb_inv_no and
                 data[hdr_len+1] == Modbus.READ_REGS):
-            modbus_msg_len = self.data_len - hdr_len
             logging.info(f'[{self.node_id}] Valid MODBUS data '
                          f'(reg: 0x{self.mb.last_reg:04x}):')
             hex_dump_memory(logging.INFO, 'Valid MODBUS data '
