@@ -5,7 +5,7 @@ from datetime import datetime
 from tzlocal import get_localzone
 
 from async_ifc import AsyncIfc
-from messages import hex_dump_memory, Message, State
+from messages import Message, State
 from modbus import Modbus
 from cnf.config import Config
 from gen3.infos_g3 import InfosG3
@@ -555,14 +555,9 @@ class Talent(Message):
                 logger.warning('Unknown Message')
                 self.inc_counter('Unknown_Msg')
                 return
-            if (self.mb_scan and data[hdr_len] == self.mb_inv_no and
-                    data[hdr_len+1] == Modbus.READ_REGS):
+            if (self.mb_scan):
                 modbus_msg_len = self.data_len - hdr_len
-                logging.info(f'[{self.node_id}] Valid MODBUS data '
-                             f'(reg: 0x{self.mb.last_reg:04x}):')
-                hex_dump_memory(logging.INFO, 'Valid MODBUS data '
-                                f'(reg: 0x{self.mb.last_reg:04x}):',
-                                data[hdr_len:], modbus_msg_len)
+                self._dump_modbus_scan(data, hdr_len, modbus_msg_len)
 
             for key, update, _ in self.mb.recv_resp(self.db, data[
                     hdr_len:]):

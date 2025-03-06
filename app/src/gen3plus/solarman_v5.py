@@ -359,13 +359,6 @@ class SolarmanV5(SolarmanBase):
         self.new_data['controller'] = True
 
         self.state = State.up
-        # self.__build_header(0x1710)
-        # self.ifc.write += struct.pack('<B', 0)
-        # self.__finish_send_msg()
-        # hex_dump_memory(logging.INFO, f'Send StartCmd:{self.addr}:',
-        #                 self.ifc.write, len(self.ifc.write))
-        # self.writer.write(self.ifc.write)
-        # self.ifc.write = bytearray(0)  # self.ifc.write[sent:]
 
         if self.mb_scan:
             self._send_modbus_cmd(self.mb_inv_no, Modbus.READ_REGS,
@@ -395,7 +388,7 @@ class SolarmanV5(SolarmanBase):
         self.ifc.fwd_add(build_msg)
         self.ifc.fwd_add(struct.pack('<BB', 0, 0x15))    # crc & stop
 
-    def _set_config_parms(self, inv: dict, serial_no: str):
+    def _set_config_parms(self, inv: dict, serial_no: str = ""):
         '''init connection with params from the configuration'''
         super()._set_config_parms(inv)
 
@@ -696,13 +689,9 @@ class SolarmanV5(SolarmanBase):
     def __parse_modbus_rsp(self, data, modbus_msg_len):
         inv_update = False
         self.modbus_elms = 0
-        if (self.mb_scan and data[14] == self.mb_inv_no and
-                data[15] == Modbus.READ_REGS):
-            logging.info(f'[{self.node_id}] Valid MODBUS data '
-                         f'(reg: 0x{self.mb.last_reg:04x}):')
-            hex_dump_memory(logging.INFO, 'Valid MODBUS data '
-                            f'(reg: 0x{self.mb.last_reg:04x}):',
-                            data[14:], modbus_msg_len)
+        if (self.mb_scan):
+            self._dump_modbus_scan(data, 14, modbus_msg_len)
+
         ts = self._timestamp()
         for key, update, _ in self.mb.recv_resp(self.db, data[14:]):
             self.modbus_elms += 1
