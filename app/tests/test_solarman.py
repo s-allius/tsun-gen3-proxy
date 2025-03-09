@@ -1860,6 +1860,57 @@ async def test_modbus_polling(config_tsun_inv1, heartbeat_ind_msg, heartbeat_rsp
     m.close()
 
 @pytest.mark.asyncio
+async def test_modbus_scaning(config_tsun_inv1, heartbeat_ind_msg, heartbeat_rsp_msg, msg_modbus_rsp):
+    _ = config_tsun_inv1
+    assert asyncio.get_running_loop()
+
+    m = MemoryStream(heartbeat_ind_msg, (0x15,0))
+    m.append_msg(msg_modbus_rsp)
+    m.mb_scan = True
+    m.mb_start_reg = 0x4560
+    m.mb_bytes = 0x14
+    assert asyncio.get_running_loop() == m.mb_timer.loop
+    m.db.stat['proxy']['Unknown_Ctrl'] = 0
+    assert m.mb_timer.tim == None
+    m.read()         # read complete msg, and dispatch msg
+    assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
+    assert m.msg_count == 1
+    assert m.snr == 2070233889
+    assert m.control == 0x4710
+     
+    assert m.msg_recvd[0]['control']==0x4710
+    assert m.msg_recvd[0]['seq']=='84:11'
+    assert m.msg_recvd[0]['data_len']==0x1
+
+    assert m.ifc.tx_fifo.get()==heartbeat_rsp_msg
+    assert m.ifc.fwd_fifo.get()==heartbeat_ind_msg
+    assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
+
+    m.ifc.tx_clear() # clear send buffer for next test
+    assert isclose(m.mb_timeout, 0.5)
+    assert next(m.mb_timer.exp_count) == 0
+    
+    await asyncio.sleep(0.5)
+    assert m.sent_pdu==b'\xa5\x17\x00\x10E\x12\x84!Ce{\x02\xb0\x02\x00\x00\x00\x00\x00\x00' \
+                       b'\x00\x00\x00\x00\x00\x00\x01\x03E`\x00\x14P\xd7\xde\x15'
+    assert m.ifc.tx_fifo.get()==b''
+
+    m.read()         # read complete msg, and dispatch msg
+    assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
+    assert m.msg_count == 2
+    assert m.msg_recvd[1]['control']==0x1510
+    assert m.msg_recvd[1]['seq']=='03:03'
+    assert m.msg_recvd[1]['data_len']==0x3b
+    assert m.mb.last_addr == 1
+    assert m.mb.last_fcode == 3   
+    assert m.mb.last_reg == 0x4560
+    assert m.mb.last_len == 20
+    assert m.mb.err == 0
+    
+    assert next(m.mb_timer.exp_count) == 2
+    m.close()
+
+@pytest.mark.asyncio
 async def test_start_client_mode(config_tsun_inv1, str_test_ip):
     _ = config_tsun_inv1
     assert asyncio.get_running_loop()
