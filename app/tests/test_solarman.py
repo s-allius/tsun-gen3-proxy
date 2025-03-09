@@ -644,6 +644,19 @@ def msg_modbus_rsp():  # 0x1510
     return msg
 
 @pytest.fixture
+def msg_modbus_rsp_inv_id2():  # 0x1510
+    msg  = b'\xa5\x3b\x00\x10\x15\x03\x03' +get_sn()  +b'\x02\x01'
+    msg += total()  
+    msg += hb()
+    msg += b'\x0a\xe2\xfa\x33\x02\x03\x28\x40\x10\x08\xd8'
+    msg += b'\x00\x00\x13\x87\x00\x31\x00\x68\x02\x58\x00\x00\x01\x53\x00\x02'
+    msg += b'\x00\x00\x01\x52\x00\x02\x00\x00\x01\x53\x00\x03\x00\x00\x00\x04'
+    msg += b'\x00\x01\x00\x00\x2a\xaa'
+    msg += correct_checksum(msg)
+    msg += b'\x15'
+    return msg
+
+@pytest.fixture
 def msg_modbus_invalid():  # 0x1510
     msg  = b'\xa5\x3b\x00\x10\x15\x03\x03' +get_sn()  +b'\x02\x00'
     msg += total()  
@@ -748,6 +761,10 @@ def config_no_tsun_inv1():
 @pytest.fixture
 def config_tsun_inv1():
     Config.act_config = {'solarman':{'enabled': True},'inverters':{'Y170000000000001':{'monitor_sn': 2070233889, 'node_id':'inv1', 'modbus_polling': True, 'suggested_area':'roof', 'sensor_list': 0}}}
+
+@pytest.fixture
+def config_tsun_scan():
+    Config.act_config = {'solarman':{'enabled': True},'inverters':{'Y170000000000001':{'monitor_sn': 2070233889, 'node_id':'inv1', 'modbus_polling': True, 'modbus_scanning': {'start': 0xff80, 'step': 0x40, 'bytes':20}, 'suggested_area':'roof', 'sensor_list': 0}}}
 
 @pytest.fixture
 def config_tsun_dcu1():
@@ -1860,19 +1877,24 @@ async def test_modbus_polling(config_tsun_inv1, heartbeat_ind_msg, heartbeat_rsp
     m.close()
 
 @pytest.mark.asyncio
-async def test_modbus_scaning(config_tsun_inv1, heartbeat_ind_msg, heartbeat_rsp_msg, msg_modbus_rsp):
-    _ = config_tsun_inv1
+async def test_modbus_scaning(config_tsun_scan, heartbeat_ind_msg, heartbeat_rsp_msg, msg_modbus_rsp, msg_modbus_rsp_inv_id2):
+    _ = config_tsun_scan
     assert asyncio.get_running_loop()
 
-    m = MemoryStream(heartbeat_ind_msg, (0x15,0))
+    m = MemoryStream(heartbeat_ind_msg, (0x15,0x56,0))
     m.append_msg(msg_modbus_rsp)
-    m.mb_scan = True
-    m.mb_start_reg = 0x4560
-    m.mb_bytes = 0x14
+    m.append_msg(msg_modbus_rsp_inv_id2)
+    assert m.mb_scan == False
     assert asyncio.get_running_loop() == m.mb_timer.loop
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
     assert m.mb_timer.tim == None
     m.read()         # read complete msg, and dispatch msg
+    assert m.mb_scan == True
+    assert m.mb_start_reg == 0xff80
+    assert m.mb_step == 0x40
+    assert m.mb_bytes == 0x14
+    assert asyncio.get_running_loop() == m.mb_timer.loop
+ 
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
     assert m.msg_count == 1
     assert m.snr == 2070233889
@@ -1892,7 +1914,7 @@ async def test_modbus_scaning(config_tsun_inv1, heartbeat_ind_msg, heartbeat_rsp
     
     await asyncio.sleep(0.5)
     assert m.sent_pdu==b'\xa5\x17\x00\x10E\x12\x84!Ce{\x02\xb0\x02\x00\x00\x00\x00\x00\x00' \
-                       b'\x00\x00\x00\x00\x00\x00\x01\x03E`\x00\x14P\xd7\xde\x15'
+                       b'\x00\x00\x00\x00\x00\x00\x01\x03\xff\xc0\x00\x14\x75\xed\x33\x15'
     assert m.ifc.tx_fifo.get()==b''
 
     m.read()         # read complete msg, and dispatch msg
@@ -1903,11 +1925,28 @@ async def test_modbus_scaning(config_tsun_inv1, heartbeat_ind_msg, heartbeat_rsp
     assert m.msg_recvd[1]['data_len']==0x3b
     assert m.mb.last_addr == 1
     assert m.mb.last_fcode == 3   
-    assert m.mb.last_reg == 0x4560
+    assert m.mb.last_reg == 0xffc0   # mb_start_reg + mb_step
     assert m.mb.last_len == 20
     assert m.mb.err == 0
-    
-    assert next(m.mb_timer.exp_count) == 2
+
+    await asyncio.sleep(0.5)
+    assert m.sent_pdu==b'\xa5\x17\x00\x10E\x04\x03!Ce{\x02\xb0\x02\x00\x00\x00\x00\x00\x00' \
+                       b'\x00\x00\x00\x00\x00\x00\x02\x03\x00\x00\x00\x14\x45\xf6\xbf\x15'
+    assert m.ifc.tx_fifo.get()==b''
+
+    m.read()         # read complete msg, and dispatch msg
+    assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
+    assert m.msg_count == 3
+    assert m.msg_recvd[2]['control']==0x1510
+    assert m.msg_recvd[2]['seq']=='03:03'
+    assert m.msg_recvd[2]['data_len']==0x3b
+    assert m.mb.last_addr == 2
+    assert m.mb.last_fcode == 3   
+    assert m.mb.last_reg == 0x0000   # mb_start_reg + mb_step
+    assert m.mb.last_len == 20
+    assert m.mb.err == 0
+
+    assert next(m.mb_timer.exp_count) == 3
     m.close()
 
 @pytest.mark.asyncio
