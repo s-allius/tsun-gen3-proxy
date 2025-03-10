@@ -692,6 +692,22 @@ def msg_unknown_cmd_rsp():  # 0x1510
     return msg
 
 @pytest.fixture
+def dcu_modbus_rsp():  # 0x1510
+    msg  = b'\xa5\x6d\x00\x10\x15\x03\x03' +get_dcu_sn()  +b'\x02\x01'
+    msg += total()  
+    msg += hb()
+    msg += b'\x4d\x0d\x84\x34\x01\x03\x5a\x34\x31\x30\x31'
+    msg += b'\x32\x34\x30\x37\x30\x31\x34\x39\x30\x33\x31\x34\x00\x32\x00\x00'
+    msg += b'\x00\x32\x00\x00\x00\x00\x10\x7b\x00\x02\x00\x02\x14\x9b\xfe\xfd'
+    msg += b'\x25\x28\x0c\xe1\x0c\xde\x0c\xe1\x0c\xe1\x0c\xe0\x0c\xe1\x0c\xe3'
+    msg += b'\x0c\xdf\x0c\xe0\x0c\xe2\x0c\xe1\x0c\xe1\x0c\xe2\x0c\xe2\x0c\xe3'
+    msg += b'\x0c\xdf\x00\x14\x00\x14\x00\x13\x0f\x94\x01\x4a\x00\x01\x00\x15'
+    msg += b'\x00\x00\x02\x05\x02\x01\x14\xab' 
+    msg += correct_checksum(msg)
+    msg += b'\x15'
+    return msg
+
+@pytest.fixture
 def dcu_dev_ind_msg(): # 0x4110
     msg  = b'\xa5\x3a\x01\x10\x41\x91\x01' +get_dcu_sn()  +b'\x02\xc6\xde\x2d\x32'
     msg += b'\x27\x00\x00\x00\x00\x00\x00\x00\x05\x3c\x78\x01\x5c\x01\x4c\x53'
@@ -765,6 +781,10 @@ def config_tsun_inv1():
 @pytest.fixture
 def config_tsun_scan():
     Config.act_config = {'solarman':{'enabled': True},'inverters':{'Y170000000000001':{'monitor_sn': 2070233889, 'node_id':'inv1', 'modbus_polling': True, 'modbus_scanning': {'start': 0xff80, 'step': 0x40, 'bytes':20}, 'suggested_area':'roof', 'sensor_list': 0}}}
+
+@pytest.fixture
+def config_tsun_scan_dcu():
+    Config.act_config = {'solarman':{'enabled': True},'inverters':{'4100000000000001':{'monitor_sn': 2070233888, 'node_id':'inv1', 'modbus_polling': True, 'modbus_scanning': {'start': 0x0000, 'step': 0x100, 'bytes':0x2d}, 'suggested_area':'roof', 'sensor_list': 0}}}
 
 @pytest.fixture
 def config_tsun_dcu1():
@@ -1979,6 +1999,50 @@ async def test_start_client_mode(config_tsun_inv1, str_test_ip):
     assert m.sent_pdu==bytearray(b'\xa5\x17\x00\x10E\x03\x00!Ce{\x02\xb0\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x030\x00\x000J\xde\xf3\x15')
     assert m.ifc.tx_fifo.get()==b''
     assert next(m.mb_timer.exp_count) == 3
+    m.close()
+
+@pytest.mark.asyncio
+async def test_start_client_mode_scan(config_tsun_scan_dcu, str_test_ip, dcu_modbus_rsp):
+    _ = config_tsun_scan_dcu
+    assert asyncio.get_running_loop()
+    m = MemoryStream(dcu_modbus_rsp, (0,))
+    assert m.state == State.init
+    assert m.no_forwarding == False
+    assert m.mb_timer.tim == None
+    assert asyncio.get_running_loop() == m.mb_timer.loop
+    await m.send_start_cmd(get_dcu_sn_int(), str_test_ip, False, m.mb_first_timeout)
+    assert m.sent_pdu==bytearray(b'\xa5\x17\x00\x10E\x01\x00 Ce{\x02&0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x03\x00\x00\x00-\x85\xd7\x95\x15')
+    assert m.mb_scan == True
+    assert m.db.get_db_value(Register.IP_ADDRESS) == str_test_ip
+    assert isclose(m.db.get_db_value(Register.POLLING_INTERVAL), 0.5)
+    assert m.db.get_db_value(Register.HEARTBEAT_INTERVAL) == 120
+
+    assert m.state == State.up
+    assert m.no_forwarding == True
+
+    assert m.ifc.tx_fifo.get()==b''
+    assert isclose(m.mb_timeout, 0.5)
+
+    assert m.ifc.tx_fifo.get()==b''
+
+    m.read()         # read complete msg, and dispatch msg
+    assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
+    assert m.msg_count == 1
+    assert m.msg_recvd[0]['control']==0x1510
+    assert m.msg_recvd[0]['seq']=='03:03'
+    assert m.msg_recvd[0]['data_len']==109
+    assert m.mb.last_addr == 1
+    assert m.mb.last_fcode == 3   
+    assert m.mb.last_reg == 0x0000   # mb_start_reg + mb_step
+    assert m.mb.last_len == 45
+    assert m.mb.err == 0
+
+    assert isclose(m.db.get_db_value(Register.BATT_PWR, None), -136.6225)
+    assert isclose(m.db.get_db_value(Register.BATT_OUT_PWR, None), 131.604)
+    assert isclose(m.db.get_db_value(Register.BATT_PV_PWR, None), 0.0)
+
+    assert next(m.mb_timer.exp_count) == 0
+    
     m.close()
 
 def test_timeout(config_tsun_inv1):

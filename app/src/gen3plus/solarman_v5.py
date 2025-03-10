@@ -702,8 +702,6 @@ class SolarmanV5(SolarmanBase):
                 self.new_data[key] = True
         for key, update in self.db.calc(self.sensor_list, self.node_id):
             if update:
-                if key == 'inverter':
-                    inv_update = True
                 self._set_mqtt_timestamp(key, ts)
                 self.new_data[key] = True
 
