@@ -2005,7 +2005,8 @@ async def test_start_client_mode(config_tsun_inv1, str_test_ip):
 async def test_start_client_mode_scan(config_tsun_scan_dcu, str_test_ip, dcu_modbus_rsp):
     _ = config_tsun_scan_dcu
     assert asyncio.get_running_loop()
-    m = MemoryStream(dcu_modbus_rsp, (0,))
+    m = MemoryStream(dcu_modbus_rsp, (131,0,))
+    m.append_msg(dcu_modbus_rsp)
     assert m.state == State.init
     assert m.no_forwarding == False
     assert m.mb_timer.tim == None
@@ -2013,6 +2014,7 @@ async def test_start_client_mode_scan(config_tsun_scan_dcu, str_test_ip, dcu_mod
     await m.send_start_cmd(get_dcu_sn_int(), str_test_ip, False, m.mb_first_timeout)
     assert m.sent_pdu==bytearray(b'\xa5\x17\x00\x10E\x01\x00 Ce{\x02&0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x03\x00\x00\x00-\x85\xd7\x95\x15')
     assert m.mb_scan == True
+    m.mb_step = 0
     assert m.db.get_db_value(Register.IP_ADDRESS) == str_test_ip
     assert isclose(m.db.get_db_value(Register.POLLING_INTERVAL), 0.5)
     assert m.db.get_db_value(Register.HEARTBEAT_INTERVAL) == 120
@@ -2040,8 +2042,31 @@ async def test_start_client_mode_scan(config_tsun_scan_dcu, str_test_ip, dcu_mod
     assert isclose(m.db.get_db_value(Register.BATT_PWR, None), -136.6225)
     assert isclose(m.db.get_db_value(Register.BATT_OUT_PWR, None), 131.604)
     assert isclose(m.db.get_db_value(Register.BATT_PV_PWR, None), 0.0)
+    assert m.new_data['batterie'] == True
+    m.new_data['batterie'] = False
 
-    assert next(m.mb_timer.exp_count) == 0
+    await asyncio.sleep(0.5)
+    assert m.sent_pdu==bytearray(b'\xa5\x17\x00\x10E\x04\x03 Ce{\x02&0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x03\x00\x00\x00-\x85\xd7\x9b\x15')
+    assert m.ifc.tx_fifo.get()==b''
+
+    m.read()         # read complete msg, and dispatch msg
+    assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
+    assert m.msg_count == 2
+    assert m.msg_recvd[1]['control']==0x1510
+    assert m.msg_recvd[1]['seq']=='03:03'
+    assert m.msg_recvd[1]['data_len']==109
+    assert m.mb.last_addr == 1
+    assert m.mb.last_fcode == 3   
+    assert m.mb.last_reg == 0x0000   # mb_start_reg + mb_step
+    assert m.mb.last_len == 45
+    assert m.mb.err == 0
+
+    assert isclose(m.db.get_db_value(Register.BATT_PWR, None), -136.6225)
+    assert isclose(m.db.get_db_value(Register.BATT_OUT_PWR, None), 131.604)
+    assert isclose(m.db.get_db_value(Register.BATT_PV_PWR, None), 0.0)
+    assert m.new_data['batterie'] == False
+
+    assert next(m.mb_timer.exp_count) == 1
     
     m.close()
 
