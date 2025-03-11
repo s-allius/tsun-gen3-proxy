@@ -2439,6 +2439,56 @@ async def test_modbus_polling(config_tsun_inv1, msg_inverter_ind):
     assert next(m.mb_timer.exp_count) == 4
     m.close()
 
+@pytest.mark.asyncio
+async def test_modbus_scaning(config_tsun_inv1, msg_inverter_ind, msg_modbus_rsp21):
+    _ = config_tsun_inv1
+    assert asyncio.get_running_loop()
+
+    m = MemoryStream(msg_inverter_ind, (0x8f,0))
+    m.append_msg(msg_modbus_rsp21)
+    m.mb_scan = True
+    m.mb_start_reg = 0x4560
+    m.mb_bytes = 0x14
+    assert asyncio.get_running_loop() == m.mb_timer.loop
+    m.db.stat['proxy']['Unknown_Ctrl'] = 0
+    assert m.mb_timer.tim == None
+    m.read()         # read complete msg, and dispatch msg
+    assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
+    assert m.msg_count == 1
+    assert m.id_str == b"R170000000000001" 
+    assert m.unique_id == 'R170000000000001'
+    assert m.msg_recvd[0]['ctrl']==145
+    assert m.msg_recvd[0]['msg_id']==4
+    assert m.msg_recvd[0]['header_len']==23
+    assert m.msg_recvd[0]['data_len']==120
+    assert m.ifc.fwd_fifo.get()==msg_inverter_ind
+    assert m.ifc.tx_fifo.get()==b'\x00\x00\x00\x14\x10R170000000000001\x99\x04\x01'
+    assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
+
+    m.ifc.tx_clear() # clear send buffer for next test
+    assert isclose(m.mb_timeout, 0.5)
+    assert next(m.mb_timer.exp_count) == 0
+    
+    await asyncio.sleep(0.5)
+    assert m.sent_pdu==b'\x00\x00\x00 \x10R170000000000001pw\x00\x01\xa3(\x08\x01\x03\x45\x60\x00\x14\x50\xd7'
+    assert m.ifc.tx_fifo.get()==b''
+
+    m.read()         # read complete msg, and dispatch msg
+    assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
+    assert m.msg_count == 2
+    assert m.msg_recvd[1]['ctrl']==145
+    assert m.msg_recvd[1]['msg_id']==119
+    assert m.msg_recvd[1]['header_len']==23
+    assert m.msg_recvd[1]['data_len']==50
+    assert m.mb.last_addr == 1
+    assert m.mb.last_fcode == 3   
+    assert m.mb.last_reg == 0x4560
+    assert m.mb.last_len == 20
+    assert m.mb.err == 0
+    
+    assert next(m.mb_timer.exp_count) == 2
+    m.close()
+
 def test_broken_recv_buf(config_tsun_allow_all, broken_recv_buf):
     _ = config_tsun_allow_all
     m = MemoryStream(broken_recv_buf, (0,))
