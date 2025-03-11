@@ -89,21 +89,6 @@ class Talent(Message):
         self.log_lvl.clear()
         super().close()
 
-    def __set_config_parms(self, inv: dict, serial_no: str):
-        '''init connection with params from the configuration'''
-        self.node_id = inv['node_id']
-        self.sug_area = inv['suggested_area']
-        self.modbus_polling = inv['modbus_polling']
-        self.sensor_list = inv['sensor_list']
-        if 0 != self.sensor_list:
-            self.db.set_db_def_value(Register.SENSOR_LIST,
-                                     f"{self.sensor_list:08}")
-            logging.debug(f"Use sensor-list: {self.sensor_list:#08x}"
-                          f" for '{serial_no}'")
-
-        if self.mb:
-            self.mb.set_node_id(self.node_id)
-
     def __set_serial_no(self, serial_no: str):
 
         if self.unique_id == serial_no:
