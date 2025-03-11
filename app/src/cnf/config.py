@@ -93,6 +93,11 @@ class Config():
                     Optional('forward', default=False): Use(bool),
                 },
                 Optional('modbus_polling', default=True): Use(bool),
+                Optional('modbus_scanning'): {
+                    'start': Use(int),
+                    Optional('step', default=0x400): Use(int),
+                    Optional('bytes', default=0x10): Use(int),
+                },
                 Optional('suggested_area', default=""): Use(str),
                 Optional('sensor_list', default=0): Use(int),
                 Optional('pv1'): {
@@ -136,6 +141,11 @@ class Config():
                     Optional('forward', default=False): Use(bool),
                 },
                 Optional('modbus_polling', default=True): Use(bool),
+                Optional('modbus_scanning'): {
+                    'start': Use(int),
+                    Optional('step', default=0x400): Use(int),
+                    Optional('bytes', default=0x10): Use(int),
+                },
                 Optional('suggested_area', default=""): Use(str),
                 Optional('sensor_list', default=0): Use(int),
                 Optional('pv1'): {

@@ -257,21 +257,31 @@ class InfosG3P(Infos):
                 continue
             info_id = row['reg']
             result = Fmt.get_value(buf, addr, row)
-            yield from self.__update_val(node_id, info_id, result)
+            yield from self.__update_val(node_id, "GEN3PLUS", info_id, result)
+        yield from self.calc(sensor, node_id)
 
+    def calc(self, sensor: int = 0, node_id: str = '') \
+            -> Generator[tuple[str, bool], None, None]:
+        '''calculate meta values from the
+        stored values in Infos.db
+
+        sensor: sensor_list number
+        node_id: id-string for the node'''
+
+        reg_map = RegisterSel.get(sensor)
         if 'calc' in reg_map:
             for row in reg_map['calc'].values():
                 info_id = row['reg']
                 result = row['func'](self, row['params'])
-                yield from self.__update_val(node_id, info_id, result)
+                yield from self.__update_val(node_id, "CALC", info_id, result)
 
-    def __update_val(self, node_id, info_id, result):
+    def __update_val(self, node_id, source: str, info_id, result):
         keys, level, unit, must_incr = self._key_obj(info_id)
         if keys:
             name, update = self.update_db(keys, must_incr, result)
             yield keys[0], update
             if update:
-                self.tracer.log(level, f'[{node_id}] GEN3PLUS: {name}'
+                self.tracer.log(level, f'[{node_id}] {source}: {name}'
                                        f' : {result}{unit}')
 
     def build(self, len, msg_type: int, rcv_ftype: int, sensor: int = 0):

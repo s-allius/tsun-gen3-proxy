@@ -98,13 +98,9 @@ class Talent(Message):
 
             if serial_no in inverters:
                 inv = inverters[serial_no]
-                self.node_id = inv['node_id']
-                self.sug_area = inv['suggested_area']
-                self.modbus_polling = inv['modbus_polling']
-                logger.debug(f'SerialNo {serial_no} allowed! area:{self.sug_area}')  # noqa: E501
+                self._set_config_parms(inv)
                 self.db.set_pv_module_details(inv)
-                if self.mb:
-                    self.mb.set_node_id(self.node_id)
+                logger.debug(f'SerialNo {serial_no} allowed! area:{self.sug_area}')  # noqa: E501
             else:
                 self.node_id = ''
                 self.sug_area = ''
@@ -175,12 +171,17 @@ class Talent(Message):
 
     def mb_timout_cb(self, exp_cnt):
         self.mb_timer.start(self.mb_timeout)
+        if self.mb_scan:
+            self._send_modbus_scan()
+            return
 
         if 2 == (exp_cnt % 30):
             # logging.info("Regular Modbus Status request")
-            self._send_modbus_cmd(Modbus.READ_REGS, 0x2000, 96, logging.DEBUG)
+            self._send_modbus_cmd(Modbus.INV_ADDR, Modbus.READ_REGS, 0x2000,
+                                  96, logging.DEBUG)
         else:
-            self._send_modbus_cmd(Modbus.READ_REGS, 0x3000, 48, logging.DEBUG)
+            self._send_modbus_cmd(Modbus.INV_ADDR, Modbus.READ_REGS, 0x3000,
+                                  48, logging.DEBUG)
 
     def _init_new_client_conn(self) -> bool:
         contact_name = self.contact_name
@@ -554,6 +555,9 @@ class Talent(Message):
                 logger.warning('Unknown Message')
                 self.inc_counter('Unknown_Msg')
                 return
+            if (self.mb_scan):
+                modbus_msg_len = self.data_len - hdr_len
+                self._dump_modbus_scan(data, hdr_len, modbus_msg_len)
 
             for key, update, _ in self.mb.recv_resp(self.db, data[
                     hdr_len:]):
