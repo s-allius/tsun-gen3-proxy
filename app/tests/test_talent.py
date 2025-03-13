@@ -7,6 +7,7 @@ from cnf.config import Config
 from infos import Infos, Register
 from modbus import Modbus
 from messages import State
+from mock import patch
 
  
 pytest_plugins = ('pytest_asyncio',)
@@ -1800,31 +1801,64 @@ def test_msg_inv_ind3(config_tsun_inv1, msg_inverter_ind_0w, msg_inverter_ack):
     m.close()
     assert m.db.get_db_value(Register.INVERTER_STATUS) == 0
 
-def test_msg_inv_ind4(config_tsun_inv1, msg_inverter_ms3000_ind, msg_inverter_ind_ts_offs, msg_inverter_ack):
+def test_msg_inv_ind4(config_tsun_inv1, msg_inverter_ms3000_ind, msg_inverter_ack):
+    '''Check sonar_lists of MS-3000 inverter'''
     _ = config_tsun_inv1
     tracer.setLevel(logging.DEBUG)
-    m = MemoryStream(msg_inverter_ms3000_ind, (0,))
-    m.db.stat['proxy']['Unknown_Ctrl'] = 0
-    m.db.stat['proxy']['Invalid_Data_Type'] = 0
-    m.read()         # read complete msg, and dispatch msg
-    assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
-    assert m.db.stat['proxy']['Invalid_Data_Type'] == 0
-    assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
-    assert m.msg_count == 1
-    assert m.id_str == b"R170000000000001" 
-    assert m.unique_id == 'R170000000000001'
-    assert int(m.ctrl)==145
-    assert m.msg_id==4
-    assert m.header_len==23
-    assert m.data_len==2284
-    m.ts_offset = 0
-    m._update_header(m.ifc.fwd_fifo.peek())
-    assert m.ifc.fwd_fifo.get()==msg_inverter_ms3000_ind
-    assert m.ifc.tx_fifo.get()==msg_inverter_ack
-    assert m.db.get_db_value(Register.INVERTER_STATUS) == 0
-    assert m.db.get_db_value(Register.TS_GRID) == 1739866976
-    m.db.db['grid'] = {'Output_Power': 100}
-    m.close()
+    with patch.object(logging, 'warning') as spy:
+        m = MemoryStream(msg_inverter_ms3000_ind, (0,))
+        m.db.stat['proxy']['Unknown_Ctrl'] = 0
+        m.db.stat['proxy']['Invalid_Data_Type'] = 0
+        m.read()         # read complete msg, and dispatch msg
+        spy.assert_not_called()
+        assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
+        assert m.db.stat['proxy']['Invalid_Data_Type'] == 0
+        assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
+        assert m.msg_count == 1
+        assert m.id_str == b"R170000000000001" 
+        assert m.unique_id == 'R170000000000001'
+        assert int(m.ctrl)==145
+        assert m.msg_id==4
+        assert m.header_len==23
+        assert m.data_len==2284
+        m.ts_offset = 0
+        m._update_header(m.ifc.fwd_fifo.peek())
+        assert m.ifc.fwd_fifo.get()==msg_inverter_ms3000_ind
+        assert m.ifc.tx_fifo.get()==msg_inverter_ack
+        assert m.db.get_db_value(Register.INVERTER_STATUS) == 0
+        assert m.db.get_db_value(Register.TS_GRID) == 1739866976
+        m.db.db['grid'] = {'Output_Power': 100}
+        m.close()
+
+def test_msg_inv_ind5(config_tsun_inv1, msg_inverter_ms3000_ind, msg_inverter_ack):
+    '''Check that unexpected sonar_lists will log a warning'''
+    _ = config_tsun_inv1
+    tracer.setLevel(logging.DEBUG)
+    with patch.object(logging, 'warning') as spy:
+        m = MemoryStream(msg_inverter_ms3000_ind, (0,))
+        m.sensor_list = 0x01900002    # change the expected sensor_list
+        m.db.stat['proxy']['Unknown_Ctrl'] = 0
+        m.db.stat['proxy']['Invalid_Data_Type'] = 0
+        m.read()         # read complete msg, and dispatch msg
+        spy.assert_called()
+        assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
+        assert m.db.stat['proxy']['Invalid_Data_Type'] == 0
+        assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
+        assert m.msg_count == 1
+        assert m.id_str == b"R170000000000001" 
+        assert m.unique_id == 'R170000000000001'
+        assert int(m.ctrl)==145
+        assert m.msg_id==4
+        assert m.header_len==23
+        assert m.data_len==2284
+        m.ts_offset = 0
+        m._update_header(m.ifc.fwd_fifo.peek())
+        assert m.ifc.fwd_fifo.get()==msg_inverter_ms3000_ind
+        assert m.ifc.tx_fifo.get()==msg_inverter_ack
+        assert m.db.get_db_value(Register.INVERTER_STATUS) == 0
+        assert m.db.get_db_value(Register.TS_GRID) == 1739866976
+        m.db.db['grid'] = {'Output_Power': 100}
+        m.close()
 
 def test_msg_inv_ack(config_tsun_inv1, msg_inverter_ack):
     _ = config_tsun_inv1
