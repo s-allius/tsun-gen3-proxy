@@ -151,11 +151,11 @@ class Message(ProtocolIfc):
             self.mb_start_reg = scan['start']
             self.mb_step = scan['step']
             self.mb_bytes = scan['bytes']
-            # if 'client_mode' in self.db and \
-            #         self.db.client_mode:
-            self.mb_start_reg = scan['start']
-            # else:
-            #     self.mb_start_reg = scan['start'] - scan['step']
+            if 'client_mode' in inv:
+                self.mb_start_reg = scan['start']
+            else:
+                self.mb_start_reg = scan['start'] - scan['step']
+                self.mb_start_reg &= 0xffff
         if self.mb:
             self.mb.set_node_id(self.node_id)
 

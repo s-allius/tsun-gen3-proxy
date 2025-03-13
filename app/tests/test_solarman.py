@@ -780,11 +780,11 @@ def config_tsun_inv1():
 
 @pytest.fixture
 def config_tsun_scan():
-    Config.act_config = {'solarman':{'enabled': True},'inverters':{'Y170000000000001':{'monitor_sn': 2070233889, 'node_id':'inv1', 'modbus_polling': True, 'modbus_scanning': {'start': 0xff80, 'step': 0x40, 'bytes':20}, 'suggested_area':'roof', 'sensor_list': 0}}}
+    Config.act_config = {'solarman':{'enabled': True},'inverters':{'Y170000000000001':{'monitor_sn': 2070233889, 'node_id':'inv1', 'modbus_polling': True, 'modbus_scanning': {'start': 0xffc0, 'step': 0x40, 'bytes':20}, 'suggested_area':'roof', 'sensor_list': 0}}}
 
 @pytest.fixture
 def config_tsun_scan_dcu():
-    Config.act_config = {'solarman':{'enabled': True},'inverters':{'4100000000000001':{'monitor_sn': 2070233888, 'node_id':'inv1', 'modbus_polling': True, 'modbus_scanning': {'start': 0x0000, 'step': 0x100, 'bytes':0x2d}, 'suggested_area':'roof', 'sensor_list': 0}}}
+    Config.act_config = {'solarman':{'enabled': True},'inverters':{'4100000000000001':{'monitor_sn': 2070233888, 'node_id':'inv1', 'modbus_polling': True, 'modbus_scanning': {'start': 0x0000, 'step': 0x100, 'bytes':0x2d}, 'client_mode': {'host': '192.168.1.1.'}, 'suggested_area':'roof', 'sensor_list': 0}}}
 
 @pytest.fixture
 def config_tsun_dcu1():
@@ -2012,6 +2012,10 @@ async def test_start_client_mode_scan(config_tsun_scan_dcu, str_test_ip, dcu_mod
     assert m.mb_timer.tim == None
     assert asyncio.get_running_loop() == m.mb_timer.loop
     await m.send_start_cmd(get_dcu_sn_int(), str_test_ip, False, m.mb_first_timeout)
+    assert m.mb_start_reg == 0x0000
+    assert m.mb_step == 0x100
+    assert m.mb_bytes == 0x2d
+
     assert m.sent_pdu==bytearray(b'\xa5\x17\x00\x10E\x01\x00 Ce{\x02&0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x03\x00\x00\x00-\x85\xd7\x95\x15')
     assert m.mb_scan == True
     m.mb_step = 0
