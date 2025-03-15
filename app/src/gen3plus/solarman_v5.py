@@ -5,6 +5,7 @@ import asyncio
 from itertools import chain
 from datetime import datetime
 
+from proxy import Proxy
 from async_ifc import AsyncIfc
 from messages import hex_dump_memory, Message, State
 from cnf.config import Config
@@ -511,7 +512,7 @@ class SolarmanV5(SolarmanBase):
             node_id = self.node_id
             key = 'at_resp'
             logger.info(f'{key}: {data_json}')
-            await self.mqtt.publish(f'{self.entity_prfx}{node_id}{key}', data_json)  # noqa: E501
+            await Proxy.mqtt.publish(f'{Proxy.entity_prfx}{node_id}{key}', data_json)  # noqa: E501
             return
 
         self.forward_at_cmd_resp = False
@@ -655,7 +656,7 @@ class SolarmanV5(SolarmanBase):
 
     def publish_mqtt(self, key, data):  # pragma: no cover
         asyncio.ensure_future(
-            self.mqtt.publish(key, data))
+            Proxy.mqtt.publish(key, data))
 
     def get_cmd_rsp_log_lvl(self) -> int:
         ftype = self.ifc.rx_peek()[self.header_len]
@@ -679,7 +680,7 @@ class SolarmanV5(SolarmanBase):
                 node_id = self.node_id
                 key = 'at_resp'
                 logger.info(f'{key}: {data_json}')
-                self.publish_mqtt(f'{self.entity_prfx}{node_id}{key}', data_json)  # noqa: E501
+                self.publish_mqtt(f'{Proxy.entity_prfx}{node_id}{key}', data_json)  # noqa: E501
                 return
         elif ftype == self.MB_RTU_CMD:
             self.__modbus_command_rsp(data)
