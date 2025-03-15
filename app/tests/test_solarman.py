@@ -11,6 +11,7 @@ from cnf.config import Config
 from infos import Infos, Register
 from modbus import Modbus
 from messages import State, Message
+from proxy import Proxy
 
 
 pytest_plugins = ('pytest_asyncio',)
@@ -24,6 +25,8 @@ heartbeat = 60
 
 class Mqtt():
     def __init__(self):
+        self.clear()
+    def clear(self):
         self.key = ''
         self.data = ''
 
@@ -50,7 +53,6 @@ class MemoryStream(SolarmanV5):
         self.mb_timeout = 0.5
         self.sent_pdu = b''
         self.ifc.tx_fifo.reg_trigger(self.write_cb)
-        self.mqtt = Mqtt()
         self.__msg = msg
         self.__msg_len = len(msg)
         self.__chunks = chunks
@@ -62,7 +64,6 @@ class MemoryStream(SolarmanV5):
         self.db.stat['proxy']['AT_Command'] = 0
         self.db.stat['proxy']['AT_Command_Blocked'] = 0
         self.test_exception_async_write = False
-        self.entity_prfx = ''
         self.at_acl = {'mqtt': {'allow': ['AT+'], 'block': ['AT+WEBU']}, 'tsun': {'allow': ['AT+Z', 'AT+UPURL', 'AT+SUPDATE', 'AT+TIME'], 'block': ['AT+WEBU']}}
         self.key = ''
         self.data = ''
@@ -85,8 +86,8 @@ class MemoryStream(SolarmanV5):
         self.__chunk_idx = 0
 
     def publish_mqtt(self, key, data):
-        self.key = key
-        self.data = data
+        Proxy.mqtt.key = key
+        Proxy.mqtt.data = data
 
     def _read(self) -> int:
         copied_bytes = 0
@@ -768,7 +769,17 @@ def dcu_data_rsp_msg():  # 0x1210
 
 @pytest.fixture
 def config_tsun_allow_all():
-    Config.act_config = {'solarman':{'enabled': True}, 'inverters':{'allow_all':True}}
+    Config.act_config = {
+        'ha':{
+            'auto_conf_prefix': 'homeassistant',
+            'discovery_prefix': 'homeassistant', 
+            'entity_prefix': 'tsun',
+            'proxy_node_id': 'test_1',
+            'proxy_unique_id': ''
+        },
+        'solarman':{'enabled': True}, 'inverters':{'allow_all':True}}
+    Proxy.class_init()
+    Proxy.mqtt = Mqtt()  # set dummy mqtt instance
 
 @pytest.fixture
 def config_no_tsun_inv1():
@@ -776,7 +787,17 @@ def config_no_tsun_inv1():
 
 @pytest.fixture
 def config_tsun_inv1():
-    Config.act_config = {'solarman':{'enabled': True},'inverters':{'Y170000000000001':{'monitor_sn': 2070233889, 'node_id':'inv1', 'modbus_polling': True, 'suggested_area':'roof', 'sensor_list': 0}}}
+    Config.act_config = {
+        'ha':{
+            'auto_conf_prefix': 'homeassistant',
+            'discovery_prefix': 'homeassistant', 
+            'entity_prefix': 'tsun',
+            'proxy_node_id': 'test_1',
+            'proxy_unique_id': ''
+        },
+        'solarman':{'enabled': True},'inverters':{'Y170000000000001':{'monitor_sn': 2070233889, 'node_id':'inv1', 'modbus_polling': True, 'suggested_area':'roof', 'sensor_list': 0}}}
+    Proxy.class_init()
+    Proxy.mqtt = Mqtt()
 
 @pytest.fixture
 def config_tsun_scan():
@@ -1465,8 +1486,8 @@ async def test_at_cmd(config_tsun_allow_all, device_ind_msg, device_rsp_msg, inv
     assert m.ifc.fwd_fifo.get()==b''
     assert m.sent_pdu == b''
     assert str(m.seq) == '01:01'
-    assert m.mqtt.key == ''
-    assert m.mqtt.data == ""
+    assert Proxy.mqtt.key == ''
+    assert Proxy.mqtt.data == ""
 
     m.append_msg(inverter_ind_msg)
     m.read() # read inverter ind
@@ -1482,8 +1503,8 @@ async def test_at_cmd(config_tsun_allow_all, device_ind_msg, device_rsp_msg, inv
     m.sent_pdu = bytearray()
 
     assert str(m.seq) == '02:03'
-    assert m.mqtt.key == ''
-    assert m.mqtt.data == ""
+    assert Proxy.mqtt.key == ''
+    assert Proxy.mqtt.data == ""
 
     m.append_msg(at_command_rsp_msg)
     m.read() # read at resp
@@ -1492,8 +1513,9 @@ async def test_at_cmd(config_tsun_allow_all, device_ind_msg, device_rsp_msg, inv
     assert m.ifc.rx_get()==b''
     assert m.ifc.tx_fifo.get()==b''
     assert m.ifc.fwd_fifo.get()==b''
-    assert m.key == 'at_resp'
-    assert m.data == "+ok"
+    assert Proxy.mqtt.key == 'tsun/at_resp'
+    assert Proxy.mqtt.data == "+ok"
+    Proxy.mqtt.clear()  # clear last test result
 
     m.sent_pdu = bytearray()
     m.test_exception_async_write = True
@@ -1505,8 +1527,8 @@ async def test_at_cmd(config_tsun_allow_all, device_ind_msg, device_rsp_msg, inv
     assert m.sent_pdu == b''
     assert str(m.seq) == '03:04'
     assert m.forward_at_cmd_resp == False
-    assert m.mqtt.key == ''
-    assert m.mqtt.data == ""
+    assert Proxy.mqtt.key == ''
+    assert Proxy.mqtt.data == ""
     m.close()
 
 @pytest.mark.asyncio
@@ -1523,8 +1545,8 @@ async def test_at_cmd_blocked(config_tsun_allow_all, device_ind_msg, device_rsp_
     assert m.ifc.tx_fifo.get()==b''
     assert m.ifc.fwd_fifo.get()==b''
     assert str(m.seq) == '01:01'
-    assert m.mqtt.key == ''
-    assert m.mqtt.data == ""
+    assert Proxy.mqtt.key == ''
+    assert Proxy.mqtt.data == ""
 
     m.append_msg(inverter_ind_msg)
     m.read()
@@ -1540,8 +1562,8 @@ async def test_at_cmd_blocked(config_tsun_allow_all, device_ind_msg, device_rsp_
     assert m.ifc.fwd_fifo.get()==b''
     assert str(m.seq) == '02:02'
     assert m.forward_at_cmd_resp == False
-    assert m.mqtt.key == 'at_resp'
-    assert m.mqtt.data == "'AT+WEBU' is forbidden"
+    assert Proxy.mqtt.key == 'tsun/at_resp'
+    assert Proxy.mqtt.data == "'AT+WEBU' is forbidden"
     m.close()
 
 def test_at_cmd_ind(config_tsun_inv1, at_command_ind_msg):
