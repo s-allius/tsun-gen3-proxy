@@ -380,6 +380,15 @@ def test_full_config(ConfigComplete):
        "pv4.manufacturer": "man4",
        "pv4.type": "type4",
        "sensor_list": 688
+     },
+     {
+       "serial": "Y170000000000002",
+       "monitor_sn": 2000000001,
+       "modbus_polling": false,
+       "modbus_scanning.start": 2048,
+       "node_id": "PV-Garage3",
+       "suggested_area": "Garage3",
+       "sensor_list": 688
      }
    ],
    "batteries": [
