@@ -310,6 +310,7 @@ class Infos:
     LIGHTNING = 'mdi:lightning-bolt'
     COUNTER = 'mdi:counter'
     GAUGE = 'mdi:gauge'
+    POWER = 'mdi:power'
     SOLAR_POWER_VAR = 'mdi:solar-power-variant'
     SOLAR_POWER = 'mdi:solar-power'
     WIFI = 'mdi:wifi'
@@ -514,7 +515,7 @@ class Infos:
         Register.NO_INPUTS:       {'name': ['inverter', 'No_Inputs'],              'level': logging.DEBUG, 'unit': ''},  # noqa: E501
         Register.MAX_DESIGNED_POWER: {'name': ['inverter',  'Max_Designed_Power'], 'level': logging.INFO,  'unit': 'W',    'ha': {'dev': 'inverter', 'dev_cla': None, 'stat_cla': None, 'id': 'designed_power_', 'val_tpl': __designed_power_val_tpl, 'name': 'Max Designed Power', 'icon': LIGHTNING, 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.RATED_POWER:        {'name': ['inverter',  'Rated_Power'],        'level': logging.DEBUG, 'unit': 'W',    'ha': {'dev': 'inverter', 'dev_cla': None, 'stat_cla': None, 'id': 'rated_power_',    'val_tpl': __rated_power_val_tpl,    'name': 'Rated Power',        'icon': LIGHTNING, 'ent_cat': 'diagnostic'}},  # noqa: E501
-        Register.WORK_MODE:          {'name': ['inverter',  'Work_Mode'],          'level': logging.DEBUG, 'unit': '',     'ha': {'dev': 'inverter', 'comp': 'sensor', 'dev_cla': None, 'stat_cla': None, 'id': 'work_mode_', 'name': 'Work Mode', 'val_tpl': __work_mode_val_tpl,  'icon': 'mdi:power', 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.WORK_MODE:          {'name': ['inverter',  'Work_Mode'],          'level': logging.DEBUG, 'unit': '',     'ha': {'dev': 'inverter', 'comp': 'sensor', 'dev_cla': None, 'stat_cla': None, 'id': 'work_mode_', 'name': 'Work Mode', 'val_tpl': __work_mode_val_tpl,  'icon': POWER, 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.INPUT_COEFFICIENT:  {'name': ['inverter',  'Input_Coefficient'],  'level': logging.DEBUG, 'unit': '%',    'ha': {'dev': 'inverter', 'dev_cla': None, 'stat_cla': None, 'id': 'input_coef_',    'val_tpl': __input_coef_val_tpl,    'name': 'Input Coefficient', 'icon': LIGHTNING, 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.OUTPUT_COEFFICIENT: {'name': ['inverter',  'Output_Coefficient'], 'level': logging.INFO,  'unit': '%',    'ha': {'dev': 'inverter', 'dev_cla': None, 'stat_cla': None, 'id': 'output_coef_',    'val_tpl': __output_coef_val_tpl,    'name': 'Output Coefficient', 'icon': LIGHTNING, 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.PV1_MANUFACTURER: {'name': ['inverter', 'PV1_Manufacturer'],      'level': logging.DEBUG, 'unit': ''},  # noqa: E501
@@ -562,7 +563,7 @@ class Infos:
         Register.GRID_FREQUENCY:  {'name': ['grid', 'Frequency'],                  'level': logging.DEBUG, 'unit': 'Hz',   'ha': {'dev': 'inverter', 'dev_cla': 'frequency',   'stat_cla': 'measurement', 'id': 'out_freq_',  'fmt': FMT_FLOAT, 'name': 'Grid Frequency', 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.OUTPUT_POWER:    {'name': ['grid', 'Output_Power'],               'level': logging.INFO,  'unit': 'W',    'ha': {'dev': 'inverter', 'dev_cla': 'power',       'stat_cla': 'measurement', 'id': 'out_power_', 'fmt': FMT_FLOAT, 'name': 'Power'}},  # noqa: E501
         Register.INVERTER_TEMP:   {'name': ['env',  'Inverter_Temp'],              'level': logging.DEBUG, 'unit': '°C',   'ha': {'dev': 'inverter', 'dev_cla': 'temperature', 'stat_cla': 'measurement', 'id': 'temp_',       'fmt': FMT_INT, 'name': 'Temperature'}},  # noqa: E501
-        Register.INVERTER_STATUS: {'name': ['env',  'Inverter_Status'],            'level': logging.INFO,  'unit': '',     'ha': {'dev': 'inverter', 'comp': 'sensor', 'dev_cla': None, 'stat_cla': None, 'id': 'inv_status_', 'name': 'Inverter Status', 'val_tpl': __status_type_val_tpl,          'icon': 'mdi:power'}},  # noqa: E501
+        Register.INVERTER_STATUS: {'name': ['env',  'Inverter_Status'],            'level': logging.INFO,  'unit': '',     'ha': {'dev': 'inverter', 'comp': 'sensor', 'dev_cla': None, 'stat_cla': None, 'id': 'inv_status_', 'name': 'Inverter Status', 'val_tpl': __status_type_val_tpl,          'icon': POWER}},  # noqa: E501
         Register.DETECT_STATUS_1: {'name': ['env',  'Detect_Status_1'],            'level': logging.DEBUG, 'unit': ''},  # noqa: E501
         Register.DETECT_STATUS_2: {'name': ['env',  'Detect_Status_2'],            'level': logging.DEBUG, 'unit': ''},  # noqa: E501
 
@@ -644,7 +645,7 @@ class Infos:
         Register.BATT_6a:            {'name': ['batterie', 'Reg_6a'],               'level': logging.INFO, 'unit': '',     'ha': {'dev': 'batterie', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'batt_6a_', 'fmt': FMT_INT, 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.BATT_OUT_VOLT:      {'name': ['batterie', 'out', 'Voltage'],       'level': logging.INFO, 'unit': 'V',    'ha': {'dev': 'batterie', 'dev_cla': 'voltage', 'stat_cla': 'measurement', 'id': 'out_volt_', 'val_tpl': "{{ (value_json['out']['Voltage'] | float)}}", 'name': 'Out Voltage', 'icon': GAUGE, 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.BATT_OUT_CUR:       {'name': ['batterie', 'out', 'Current'],       'level': logging.INFO, 'unit': 'A',    'ha': {'dev': 'batterie', 'dev_cla': 'current', 'stat_cla': 'measurement', 'id': 'out_cur_',  'val_tpl': "{{ (value_json['out']['Current'] | float)}}", 'name': 'Out Current', 'icon': GAUGE, 'ent_cat': 'diagnostic'}},  # noqa: E501
-        Register.BATT_OUT_STATUS:    {'name': ['batterie', 'out', 'Out_Status'],    'level': logging.INFO, 'unit': '',     'ha': {'dev': 'batterie', 'comp': 'sensor', 'dev_cla': None, 'stat_cla': None, 'id': 'out_status_', 'name': 'Output Status', 'val_tpl': __out_status_type_val_tpl,          'icon': 'mdi:power'}},  # noqa: E501
+        Register.BATT_OUT_STATUS:    {'name': ['batterie', 'out', 'Out_Status'],    'level': logging.INFO, 'unit': '',     'ha': {'dev': 'batterie', 'comp': 'sensor', 'dev_cla': None, 'stat_cla': None, 'id': 'out_status_', 'name': 'Output Status', 'val_tpl': __out_status_type_val_tpl,          'icon': POWER}},  # noqa: E501
         Register.BATT_72:            {'name': ['batterie', 'Reg_72'],               'level': logging.INFO, 'unit': '',     'ha': {'dev': 'batterie', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'batt_72_', 'fmt': FMT_INT, 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.BATT_74:            {'name': ['batterie', 'Reg_74'],               'level': logging.INFO, 'unit': '',     'ha': {'dev': 'batterie', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'batt_74_', 'fmt': FMT_INT, 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.BATT_76:            {'name': ['batterie', 'Reg_76'],               'level': logging.INFO, 'unit': '',     'ha': {'dev': 'batterie', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'batt_76_', 'fmt': FMT_INT, 'ent_cat': 'diagnostic'}},  # noqa: E501
