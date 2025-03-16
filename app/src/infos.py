@@ -142,7 +142,7 @@ class Register(Enum):
     BATT_6a = 1020
     BATT_OUT_VOLT = 1021
     BATT_OUT_CUR = 1022
-    BATT_70 = 1023
+    BATT_OUT_STATUS = 1023
     BATT_72 = 1024
     BATT_74 = 1025
     BATT_76 = 1026
@@ -184,6 +184,19 @@ class Register(Enum):
     TEST_VAL_30 = 2030
     TEST_VAL_31 = 2031
     TEST_VAL_32 = 2032
+
+    TEST_IVAL_1 = 2041
+    TEST_IVAL_2 = 2042
+    TEST_IVAL_3 = 2043
+    TEST_IVAL_4 = 2044
+    TEST_IVAL_5 = 2045
+    TEST_IVAL_6 = 2046
+    TEST_IVAL_7 = 2047
+    TEST_IVAL_8 = 2048
+    TEST_IVAL_9 = 2049
+    TEST_IVAL_10 = 2050
+    TEST_IVAL_11 = 2051
+    TEST_IVAL_12 = 2052
 
     VALUE_1 = 9000
     TEST_REG1 = 10000
@@ -350,6 +363,7 @@ class Infos:
     __comm_type_val_tpl = "{%set com_types = ['n/a','Wi-Fi', 'G4', 'G5', 'GPRS'] %}{{com_types[value_json['Communication_Type']|int(0)]|default(value_json['Communication_Type'])}}"    # noqa: E501
     __work_mode_val_tpl = "{%set mode = ['Normal-Mode', 'Aging-Mode', 'ATE-Mode', 'Shielding GFDI', 'DTU-Mode'] %}{{mode[value_json['Work_Mode']|int(0)]|default(value_json['Work_Mode'])}}"    # noqa: E501
     __status_type_val_tpl = "{%set inv_status = ['Off-line', 'On-grid', 'Off-grid'] %}{{inv_status[value_json['Inverter_Status']|int(0)]|default(value_json['Inverter_Status'])}}"    # noqa: E501
+    __out_status_type_val_tpl = "{%set out_status = ['Off', 'On'] %}{{out_status[value_json['out']['Out_Status']|int(0)]|default(value_json['out']['Out_Status'])}}"    # noqa: E501
     __rated_power_val_tpl = "{% if 'Rated_Power' in value_json and value_json['Rated_Power'] != None %}{{value_json['Rated_Power']|string() +' W'}}{% else %}{{ this.state }}{% endif %}"  # noqa: E501
     __designed_power_val_tpl = '''
 {% if 'Max_Designed_Power' in value_json and
@@ -630,7 +644,7 @@ class Infos:
         Register.BATT_6a:            {'name': ['batterie', 'Reg_6a'],               'level': logging.INFO, 'unit': '',     'ha': {'dev': 'batterie', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'batt_6a_', 'fmt': FMT_INT, 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.BATT_OUT_VOLT:      {'name': ['batterie', 'out', 'Voltage'],       'level': logging.INFO, 'unit': 'V',    'ha': {'dev': 'batterie', 'dev_cla': 'voltage', 'stat_cla': 'measurement', 'id': 'out_volt_', 'val_tpl': "{{ (value_json['out']['Voltage'] | float)}}", 'name': 'Out Voltage', 'icon': GAUGE, 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.BATT_OUT_CUR:       {'name': ['batterie', 'out', 'Current'],       'level': logging.INFO, 'unit': 'A',    'ha': {'dev': 'batterie', 'dev_cla': 'current', 'stat_cla': 'measurement', 'id': 'out_cur_',  'val_tpl': "{{ (value_json['out']['Current'] | float)}}", 'name': 'Out Current', 'icon': GAUGE, 'ent_cat': 'diagnostic'}},  # noqa: E501
-        Register.BATT_70:            {'name': ['batterie', 'Reg_70'],               'level': logging.INFO, 'unit': '',     'ha': {'dev': 'batterie', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'batt_70_', 'fmt': FMT_INT, 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.BATT_OUT_STATUS:    {'name': ['batterie', 'out', 'Out_Status'],    'level': logging.INFO, 'unit': '',     'ha': {'dev': 'batterie', 'comp': 'sensor', 'dev_cla': None, 'stat_cla': None, 'id': 'out_status_', 'name': 'Output Status', 'val_tpl': __out_status_type_val_tpl,          'icon': 'mdi:power'}},  # noqa: E501
         Register.BATT_72:            {'name': ['batterie', 'Reg_72'],               'level': logging.INFO, 'unit': '',     'ha': {'dev': 'batterie', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'batt_72_', 'fmt': FMT_INT, 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.BATT_74:            {'name': ['batterie', 'Reg_74'],               'level': logging.INFO, 'unit': '',     'ha': {'dev': 'batterie', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'batt_74_', 'fmt': FMT_INT, 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.BATT_76:            {'name': ['batterie', 'Reg_76'],               'level': logging.INFO, 'unit': '',     'ha': {'dev': 'batterie', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'batt_76_', 'fmt': FMT_INT, 'ent_cat': 'diagnostic'}},  # noqa: E501
@@ -672,6 +686,19 @@ class Infos:
         Register.TEST_VAL_30:        {'name': ['input', 'Val_30'],                  'level': logging.INFO, 'unit': '',     'ha': {'dev': 'inverter', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'val_30_', 'fmt': FMT_INT, 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.TEST_VAL_31:        {'name': ['input', 'Val_31'],                  'level': logging.INFO, 'unit': '',     'ha': {'dev': 'inverter', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'val_31_', 'fmt': FMT_INT, 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.TEST_VAL_32:        {'name': ['input', 'Val_32'],                  'level': logging.INFO, 'unit': '',     'ha': {'dev': 'inverter', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'val_32_', 'fmt': FMT_INT, 'ent_cat': 'diagnostic'}},  # noqa: E501
+
+        Register.TEST_IVAL_1:        {'name': ['input', 'iVal_1'],                  'level': logging.INFO, 'unit': '',     'ha': {'dev': 'inverter', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'ival_1_', 'fmt': FMT_INT, 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.TEST_IVAL_2:        {'name': ['input', 'iVal_2'],                  'level': logging.INFO, 'unit': '',     'ha': {'dev': 'inverter', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'ival_2_', 'fmt': FMT_INT, 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.TEST_IVAL_3:        {'name': ['input', 'iVal_3'],                  'level': logging.INFO, 'unit': '',     'ha': {'dev': 'inverter', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'ival_3_', 'fmt': FMT_INT, 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.TEST_IVAL_4:        {'name': ['input', 'iVal_4'],                  'level': logging.INFO, 'unit': '',     'ha': {'dev': 'inverter', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'ival_4_', 'fmt': FMT_INT, 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.TEST_IVAL_5:        {'name': ['input', 'iVal_5'],                  'level': logging.INFO, 'unit': '',     'ha': {'dev': 'inverter', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'ival_5_', 'fmt': FMT_INT, 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.TEST_IVAL_6:        {'name': ['input', 'iVal_6'],                  'level': logging.INFO, 'unit': '',     'ha': {'dev': 'inverter', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'ival_6_', 'fmt': FMT_INT, 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.TEST_IVAL_7:        {'name': ['input', 'iVal_7'],                  'level': logging.INFO, 'unit': '',     'ha': {'dev': 'inverter', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'ival_7_', 'fmt': FMT_INT, 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.TEST_IVAL_8:        {'name': ['input', 'iVal_8'],                  'level': logging.INFO, 'unit': '',     'ha': {'dev': 'inverter', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'ival_8_', 'fmt': FMT_INT, 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.TEST_IVAL_9:        {'name': ['input', 'iVal_9'],                  'level': logging.INFO, 'unit': '',     'ha': {'dev': 'inverter', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'ival_9_', 'fmt': FMT_INT, 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.TEST_IVAL_10:        {'name': ['input', 'iVal_10'],                'level': logging.INFO, 'unit': '',     'ha': {'dev': 'inverter', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'ival_10_', 'fmt': FMT_INT, 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.TEST_IVAL_11:        {'name': ['input', 'iVal_11'],                'level': logging.INFO, 'unit': '',     'ha': {'dev': 'inverter', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'ival_11_', 'fmt': FMT_INT, 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.TEST_IVAL_12:        {'name': ['input', 'iVal_12'],                'level': logging.INFO, 'unit': '',     'ha': {'dev': 'inverter', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'ival_12_', 'fmt': FMT_INT, 'ent_cat': 'diagnostic'}},  # noqa: E501
     }
 
     @property
