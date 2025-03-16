@@ -138,12 +138,12 @@ class Register(Enum):
     BATT_4c = 1016
     BATT_4e = 1017
     BATT_66 = 1018
-    BATT_68 = 1019
-    BATT_6a = 1020
+    BATT_TEMP_1 = 1019
+    BATT_TEMP_2 = 1020
     BATT_OUT_VOLT = 1021
     BATT_OUT_CUR = 1022
     BATT_OUT_STATUS = 1023
-    BATT_72 = 1024
+    BATT_TEMP_3 = 1024
     BATT_74 = 1025
     BATT_76 = 1026
     BATT_78 = 1027
@@ -641,12 +641,13 @@ class Infos:
         # Register.BATT_4e:            {'name': ['batterie', 'Reg_4e'],               'level': logging.INFO, 'unit': '',     'ha': {'dev': 'batterie', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'batt_4e_', 'fmt': FMT_INT, 'ent_cat': 'diagnostic'}},  # noqa: E501
 
         Register.BATT_66:            {'name': ['batterie', 'Reg_66'],               'level': logging.INFO, 'unit': '',     'ha': {'dev': 'batterie', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'batt_66_', 'fmt': FMT_INT, 'ent_cat': 'diagnostic'}},  # noqa: E501
-        Register.BATT_68:            {'name': ['batterie', 'Reg_68'],               'level': logging.INFO, 'unit': '',     'ha': {'dev': 'batterie', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'batt_68_', 'fmt': FMT_INT, 'ent_cat': 'diagnostic'}},  # noqa: E501
-        Register.BATT_6a:            {'name': ['batterie', 'Reg_6a'],               'level': logging.INFO, 'unit': '',     'ha': {'dev': 'batterie', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'batt_6a_', 'fmt': FMT_INT, 'ent_cat': 'diagnostic'}},  # noqa: E501
+
+        Register.BATT_TEMP_1:        {'name': ['batterie', 'Temp_1'],               'level': logging.INFO, 'unit': '°C',   'ha': {'dev': 'batterie', 'dev_cla': 'temperature', 'stat_cla': 'measurement', 'id': 'temp_1_', 'fmt': FMT_INT, 'name': 'Temperature-1'}},  # noqa: E501
+        Register.BATT_TEMP_2:        {'name': ['batterie', 'Temp_2'],               'level': logging.INFO, 'unit': '°C',   'ha': {'dev': 'batterie', 'dev_cla': 'temperature', 'stat_cla': 'measurement', 'id': 'temp_2_', 'fmt': FMT_INT, 'name': 'Temperature-2'}},  # noqa: E501
         Register.BATT_OUT_VOLT:      {'name': ['batterie', 'out', 'Voltage'],       'level': logging.INFO, 'unit': 'V',    'ha': {'dev': 'batterie', 'dev_cla': 'voltage', 'stat_cla': 'measurement', 'id': 'out_volt_', 'val_tpl': "{{ (value_json['out']['Voltage'] | float)}}", 'name': 'Out Voltage', 'icon': GAUGE, 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.BATT_OUT_CUR:       {'name': ['batterie', 'out', 'Current'],       'level': logging.INFO, 'unit': 'A',    'ha': {'dev': 'batterie', 'dev_cla': 'current', 'stat_cla': 'measurement', 'id': 'out_cur_',  'val_tpl': "{{ (value_json['out']['Current'] | float)}}", 'name': 'Out Current', 'icon': GAUGE, 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.BATT_OUT_STATUS:    {'name': ['batterie', 'out', 'Out_Status'],    'level': logging.INFO, 'unit': '',     'ha': {'dev': 'batterie', 'comp': 'sensor', 'dev_cla': None, 'stat_cla': None, 'id': 'out_status_', 'name': 'Output Status', 'val_tpl': __out_status_type_val_tpl,          'icon': POWER}},  # noqa: E501
-        Register.BATT_72:            {'name': ['batterie', 'Reg_72'],               'level': logging.INFO, 'unit': '',     'ha': {'dev': 'batterie', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'batt_72_', 'fmt': FMT_INT, 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.BATT_TEMP_3:        {'name': ['batterie', 'Controller_Temp'],      'level': logging.INFO, 'unit': '°C',   'ha': {'dev': 'batterie', 'dev_cla': 'temperature', 'stat_cla': 'measurement', 'id': 'temp_3_', 'fmt': FMT_INT, 'name': 'Ctrl Temperature'}},  # noqa: E501
         Register.BATT_74:            {'name': ['batterie', 'Reg_74'],               'level': logging.INFO, 'unit': '',     'ha': {'dev': 'batterie', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'batt_74_', 'fmt': FMT_INT, 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.BATT_76:            {'name': ['batterie', 'Reg_76'],               'level': logging.INFO, 'unit': '',     'ha': {'dev': 'batterie', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'batt_76_', 'fmt': FMT_INT, 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.BATT_78:            {'name': ['batterie', 'Reg_78'],               'level': logging.INFO, 'unit': '',     'ha': {'dev': 'batterie', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'batt_78_', 'fmt': FMT_INT, 'ent_cat': 'diagnostic'}},  # noqa: E501
