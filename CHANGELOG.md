@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+- update dependency python to 3.13
 - add initial support for TSUN MS-3000
 - add initial apparmor support [#293](https://github.com/s-allius/tsun-gen3-proxy/issues/293)
 - add Modbus polling mode for DCU1000 [#292](https://github.com/s-allius/tsun-gen3-proxy/issues/292)
