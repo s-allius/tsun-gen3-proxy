@@ -137,8 +137,8 @@ class RegisterMap:
         0x42010036: {'reg': Register.BATT_PV2_CUR,         'fmt': '!H', 'ratio': 0.01},  # noqa: E501, PV2 current
         0x42010038: {'reg': Register.BATT_38,              'fmt': '!h'},                 # noqa: E501
         0x4201003a: {'reg': Register.BATT_3a,              'fmt': '!h', 'ratio': 0.01},  # noqa: E501
-        0x4201003c: {'reg': Register.BATT_STATUS_1,        'fmt': '!h'},                 # noqa: E501
-        0x4201003e: {'reg': Register.BATT_STATUS_2,        'fmt': '!h'},                 # noqa: E501
+        0x4201003c: {'reg': Register.BATT_STATUS_1,        'fmt': '!h'},                 # noqa: E501 MPTT-1 Status?
+        0x4201003e: {'reg': Register.BATT_STATUS_2,        'fmt': '!h'},                 # noqa: E501 MPTT-2 Status?
         0x42010040: {'reg': Register.BATT_VOLT,            'fmt': '!h', 'ratio': 0.01},  # noqa: E501
         0x42010042: {'reg': Register.BATT_CUR,             'fmt': '!h', 'ratio': 0.01},  # noqa: E501
         0x42010044: {'reg': Register.BATT_SOC,             'fmt': '!H', 'ratio': 0.01},  # noqa: E501, state of charge (SOC) in percent
@@ -149,13 +149,13 @@ class RegisterMap:
         0x4201004e: {'reg': Register.BATT_4e,              'fmt': '!h'},                 # noqa: E501
 
         0x42010066: {'reg': Register.BATT_66,              'fmt': '!h'},                 # noqa: E501
-        0x42010068: {'reg': Register.BATT_68,              'fmt': '!h'},                 # noqa: E501
-        0x4201006a: {'reg': Register.BATT_6a,              'fmt': '!h'},                 # noqa: E501
+        0x42010068: {'reg': Register.BATT_TEMP_1,          'fmt': '!h'},                 # noqa: E501 batterie temp 1
+        0x4201006a: {'reg': Register.BATT_TEMP_2,          'fmt': '!h'},                 # noqa: E501 batterie temp 2
         0x4201006c: {'reg': Register.BATT_OUT_VOLT,        'fmt': '!h', 'ratio': 0.01},  # noqa: E501
         0x4201006e: {'reg': Register.BATT_OUT_CUR,         'fmt': '!h', 'ratio': 0.01},  # noqa: E501
-        0x42010070: {'reg': Register.BATT_70,              'fmt': '!h'},                 # noqa: E501
-        0x42010072: {'reg': Register.BATT_72,              'fmt': '!h'},                 # noqa: E501
-        0x42010074: {'reg': Register.BATT_74,              'fmt': '!h'},                 # noqa: E501
+        0x42010070: {'reg': Register.BATT_OUT_STATUS,      'fmt': '!h'},                 # noqa: E501, state of output value 0 or 1
+        0x42010072: {'reg': Register.BATT_TEMP_3,          'fmt': '!h'},                 # noqa: E501 controller temp
+        0x42010074: {'reg': Register.BATT_74,              'fmt': '!h'},                 # noqa: E501, control input 0..2048
         0x42010076: {'reg': Register.BATT_76,              'fmt': '!h'},                 # noqa: E501
         0x42010078: {'reg': Register.BATT_78,              'fmt': '!h'},                 # noqa: E501
         'calc': {

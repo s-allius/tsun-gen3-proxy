@@ -75,6 +75,7 @@ class Talent(Message):
             0x87: self.get_modbus_log_lvl,
             0x04: logging.INFO,
         }
+        self.sensor_list = 0
 
     '''
     Our puplic methods
@@ -443,7 +444,7 @@ class Talent(Message):
         logger.debug(f'time: {timestamp:08x}')
         # logger.info(f'time: {datetime.utcfromtimestamp(result[2]).strftime(
         # "%Y-%m-%d %H:%M:%S")}')
-        return msg_hdr_len, timestamp
+        return msg_hdr_len, data_id, timestamp
 
     def msg_collector_data(self):
         if self.ctrl.is_ind():
@@ -480,20 +481,50 @@ class Talent(Message):
 
         self.forward()
 
-    def __process_data(self, ignore_replay: bool):
-        msg_hdr_len, ts = self.parse_msg_header()
-        if ignore_replay:
+    def __build_model_name(self):
+        db = self.db
+        model = db.get_db_value(Register.EQUIPMENT_MODEL, None)
+        if model:
+            return
+        max_pow = db.get_db_value(Register.MAX_DESIGNED_POWER, 0)
+        if max_pow == 3000:
+            model = f'TSOL-MS{max_pow}'
+            self.db.set_db_def_value(Register.EQUIPMENT_MODEL, model)
+            self.db.set_db_def_value(Register.MANUFACTURER, 'TSUN')
+            self.db.set_db_def_value(Register.NO_INPUTS, 4)
+
+    def __process_data(self, inv_data: bool):
+        msg_hdr_len, data_id, ts = self.parse_msg_header()
+        if inv_data:
+            # handle register mapping
+            if 0 == self.sensor_list:
+                self.sensor_list = data_id
+                self.db.set_db_def_value(Register.SENSOR_LIST,
+                                         f"{self.sensor_list:08x}")
+                logging.debug(f"Use sensor-list: {self.sensor_list:#08x}"
+                              f" for '{self.unique_id}'")
+            if data_id != self.sensor_list:
+                logging.warning(f'Unexpected Sensor-List:{data_id:08x}'
+                                f' (!={self.sensor_list:08x})')
+            # ignore replays for inverter data
             age = self._utc() - self._utcfromts(ts)
             age = age/(3600*24)
             logger.debug(f"Age: {age} days")
-            if age > 1:
+            if age > 1:   # is a replay?
                 return
 
+        inv_update = False
+
         for key, update in self.db.parse(self.ifc.rx_peek(), self.header_len
-                                         + msg_hdr_len, self.node_id):
+                                         + msg_hdr_len, data_id, self.node_id):
             if update:
+                if key == 'inverter':
+                    inv_update = True
                 self._set_mqtt_timestamp(key, self._utcfromts(ts))
                 self.new_data[key] = True
+
+        if inv_update:
+            self.__build_model_name()
 
     def msg_ota_update(self):
         if self.ctrl.is_req():
