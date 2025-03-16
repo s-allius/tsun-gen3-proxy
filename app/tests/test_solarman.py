@@ -11,6 +11,7 @@ from cnf.config import Config
 from infos import Infos, Register
 from modbus import Modbus
 from messages import State, Message
+from proxy import Proxy
 
 
 pytest_plugins = ('pytest_asyncio',)
@@ -24,6 +25,8 @@ heartbeat = 60
 
 class Mqtt():
     def __init__(self):
+        self.clear()
+    def clear(self):
         self.key = ''
         self.data = ''
 
@@ -50,7 +53,6 @@ class MemoryStream(SolarmanV5):
         self.mb_timeout = 0.5
         self.sent_pdu = b''
         self.ifc.tx_fifo.reg_trigger(self.write_cb)
-        self.mqtt = Mqtt()
         self.__msg = msg
         self.__msg_len = len(msg)
         self.__chunks = chunks
@@ -62,7 +64,6 @@ class MemoryStream(SolarmanV5):
         self.db.stat['proxy']['AT_Command'] = 0
         self.db.stat['proxy']['AT_Command_Blocked'] = 0
         self.test_exception_async_write = False
-        self.entity_prfx = ''
         self.at_acl = {'mqtt': {'allow': ['AT+'], 'block': ['AT+WEBU']}, 'tsun': {'allow': ['AT+Z', 'AT+UPURL', 'AT+SUPDATE', 'AT+TIME'], 'block': ['AT+WEBU']}}
         self.key = ''
         self.data = ''
@@ -85,8 +86,8 @@ class MemoryStream(SolarmanV5):
         self.__chunk_idx = 0
 
     def publish_mqtt(self, key, data):
-        self.key = key
-        self.data = data
+        Proxy.mqtt.key = key
+        Proxy.mqtt.data = data
 
     def _read(self) -> int:
         copied_bytes = 0
@@ -644,6 +645,19 @@ def msg_modbus_rsp():  # 0x1510
     return msg
 
 @pytest.fixture
+def msg_modbus_rsp_inv_id2():  # 0x1510
+    msg  = b'\xa5\x3b\x00\x10\x15\x03\x03' +get_sn()  +b'\x02\x01'
+    msg += total()  
+    msg += hb()
+    msg += b'\x0a\xe2\xfa\x33\x02\x03\x28\x40\x10\x08\xd8'
+    msg += b'\x00\x00\x13\x87\x00\x31\x00\x68\x02\x58\x00\x00\x01\x53\x00\x02'
+    msg += b'\x00\x00\x01\x52\x00\x02\x00\x00\x01\x53\x00\x03\x00\x00\x00\x04'
+    msg += b'\x00\x01\x00\x00\x2a\xaa'
+    msg += correct_checksum(msg)
+    msg += b'\x15'
+    return msg
+
+@pytest.fixture
 def msg_modbus_invalid():  # 0x1510
     msg  = b'\xa5\x3b\x00\x10\x15\x03\x03' +get_sn()  +b'\x02\x00'
     msg += total()  
@@ -674,6 +688,22 @@ def msg_unknown_cmd_rsp():  # 0x1510
     msg += b'\x00\x00\x13\x87\x00\x31\x00\x68\x02\x58\x00\x00\x01\x53\x00\x02'
     msg += b'\x00\x00\x01\x52\x00\x02\x00\x00\x01\x53\x00\x03\x00\x00\x00\x04'
     msg += b'\x00\x01\x00\x00\x6c\x68'
+    msg += correct_checksum(msg)
+    msg += b'\x15'
+    return msg
+
+@pytest.fixture
+def dcu_modbus_rsp():  # 0x1510
+    msg  = b'\xa5\x6d\x00\x10\x15\x03\x03' +get_dcu_sn()  +b'\x02\x01'
+    msg += total()  
+    msg += hb()
+    msg += b'\x4d\x0d\x84\x34\x01\x03\x5a\x34\x31\x30\x31'
+    msg += b'\x32\x34\x30\x37\x30\x31\x34\x39\x30\x33\x31\x34\x00\x32\x00\x00'
+    msg += b'\x00\x32\x00\x00\x00\x00\x10\x7b\x00\x02\x00\x02\x14\x9b\xfe\xfd'
+    msg += b'\x25\x28\x0c\xe1\x0c\xde\x0c\xe1\x0c\xe1\x0c\xe0\x0c\xe1\x0c\xe3'
+    msg += b'\x0c\xdf\x0c\xe0\x0c\xe2\x0c\xe1\x0c\xe1\x0c\xe2\x0c\xe2\x0c\xe3'
+    msg += b'\x0c\xdf\x00\x14\x00\x14\x00\x13\x0f\x94\x01\x4a\x00\x01\x00\x15'
+    msg += b'\x00\x00\x02\x05\x02\x01\x14\xab' 
     msg += correct_checksum(msg)
     msg += b'\x15'
     return msg
@@ -739,7 +769,17 @@ def dcu_data_rsp_msg():  # 0x1210
 
 @pytest.fixture
 def config_tsun_allow_all():
-    Config.act_config = {'solarman':{'enabled': True}, 'inverters':{'allow_all':True}}
+    Config.act_config = {
+        'ha':{
+            'auto_conf_prefix': 'homeassistant',
+            'discovery_prefix': 'homeassistant', 
+            'entity_prefix': 'tsun',
+            'proxy_node_id': 'test_1',
+            'proxy_unique_id': ''
+        },
+        'solarman':{'enabled': True}, 'inverters':{'allow_all':True}}
+    Proxy.class_init()
+    Proxy.mqtt = Mqtt()  # set dummy mqtt instance
 
 @pytest.fixture
 def config_no_tsun_inv1():
@@ -747,7 +787,25 @@ def config_no_tsun_inv1():
 
 @pytest.fixture
 def config_tsun_inv1():
-    Config.act_config = {'solarman':{'enabled': True},'inverters':{'Y170000000000001':{'monitor_sn': 2070233889, 'node_id':'inv1', 'modbus_polling': True, 'suggested_area':'roof', 'sensor_list': 0}}}
+    Config.act_config = {
+        'ha':{
+            'auto_conf_prefix': 'homeassistant',
+            'discovery_prefix': 'homeassistant', 
+            'entity_prefix': 'tsun',
+            'proxy_node_id': 'test_1',
+            'proxy_unique_id': ''
+        },
+        'solarman':{'enabled': True},'inverters':{'Y170000000000001':{'monitor_sn': 2070233889, 'node_id':'inv1', 'modbus_polling': True, 'suggested_area':'roof', 'sensor_list': 0}}}
+    Proxy.class_init()
+    Proxy.mqtt = Mqtt()
+
+@pytest.fixture
+def config_tsun_scan():
+    Config.act_config = {'solarman':{'enabled': True},'inverters':{'Y170000000000001':{'monitor_sn': 2070233889, 'node_id':'inv1', 'modbus_polling': True, 'modbus_scanning': {'start': 0xff80, 'step': 0x40, 'bytes':20}, 'suggested_area':'roof', 'sensor_list': 0}}}
+
+@pytest.fixture
+def config_tsun_scan_dcu():
+    Config.act_config = {'solarman':{'enabled': True},'inverters':{'4100000000000001':{'monitor_sn': 2070233888, 'node_id':'inv1', 'modbus_polling': True, 'modbus_scanning': {'start': 0x0000, 'step': 0x100, 'bytes':0x2d}, 'suggested_area':'roof', 'sensor_list': 0}}}
 
 @pytest.fixture
 def config_tsun_dcu1():
@@ -1428,8 +1486,8 @@ async def test_at_cmd(config_tsun_allow_all, device_ind_msg, device_rsp_msg, inv
     assert m.ifc.fwd_fifo.get()==b''
     assert m.sent_pdu == b''
     assert str(m.seq) == '01:01'
-    assert m.mqtt.key == ''
-    assert m.mqtt.data == ""
+    assert Proxy.mqtt.key == ''
+    assert Proxy.mqtt.data == ""
 
     m.append_msg(inverter_ind_msg)
     m.read() # read inverter ind
@@ -1445,8 +1503,8 @@ async def test_at_cmd(config_tsun_allow_all, device_ind_msg, device_rsp_msg, inv
     m.sent_pdu = bytearray()
 
     assert str(m.seq) == '02:03'
-    assert m.mqtt.key == ''
-    assert m.mqtt.data == ""
+    assert Proxy.mqtt.key == ''
+    assert Proxy.mqtt.data == ""
 
     m.append_msg(at_command_rsp_msg)
     m.read() # read at resp
@@ -1455,8 +1513,9 @@ async def test_at_cmd(config_tsun_allow_all, device_ind_msg, device_rsp_msg, inv
     assert m.ifc.rx_get()==b''
     assert m.ifc.tx_fifo.get()==b''
     assert m.ifc.fwd_fifo.get()==b''
-    assert m.key == 'at_resp'
-    assert m.data == "+ok"
+    assert Proxy.mqtt.key == 'tsun/at_resp'
+    assert Proxy.mqtt.data == "+ok"
+    Proxy.mqtt.clear()  # clear last test result
 
     m.sent_pdu = bytearray()
     m.test_exception_async_write = True
@@ -1468,8 +1527,8 @@ async def test_at_cmd(config_tsun_allow_all, device_ind_msg, device_rsp_msg, inv
     assert m.sent_pdu == b''
     assert str(m.seq) == '03:04'
     assert m.forward_at_cmd_resp == False
-    assert m.mqtt.key == ''
-    assert m.mqtt.data == ""
+    assert Proxy.mqtt.key == ''
+    assert Proxy.mqtt.data == ""
     m.close()
 
 @pytest.mark.asyncio
@@ -1486,8 +1545,8 @@ async def test_at_cmd_blocked(config_tsun_allow_all, device_ind_msg, device_rsp_
     assert m.ifc.tx_fifo.get()==b''
     assert m.ifc.fwd_fifo.get()==b''
     assert str(m.seq) == '01:01'
-    assert m.mqtt.key == ''
-    assert m.mqtt.data == ""
+    assert Proxy.mqtt.key == ''
+    assert Proxy.mqtt.data == ""
 
     m.append_msg(inverter_ind_msg)
     m.read()
@@ -1503,8 +1562,8 @@ async def test_at_cmd_blocked(config_tsun_allow_all, device_ind_msg, device_rsp_
     assert m.ifc.fwd_fifo.get()==b''
     assert str(m.seq) == '02:02'
     assert m.forward_at_cmd_resp == False
-    assert m.mqtt.key == 'at_resp'
-    assert m.mqtt.data == "'AT+WEBU' is forbidden"
+    assert Proxy.mqtt.key == 'tsun/at_resp'
+    assert Proxy.mqtt.data == "'AT+WEBU' is forbidden"
     m.close()
 
 def test_at_cmd_ind(config_tsun_inv1, at_command_ind_msg):
@@ -1860,6 +1919,79 @@ async def test_modbus_polling(config_tsun_inv1, heartbeat_ind_msg, heartbeat_rsp
     m.close()
 
 @pytest.mark.asyncio
+async def test_modbus_scaning(config_tsun_scan, heartbeat_ind_msg, heartbeat_rsp_msg, msg_modbus_rsp, msg_modbus_rsp_inv_id2):
+    _ = config_tsun_scan
+    assert asyncio.get_running_loop()
+
+    m = MemoryStream(heartbeat_ind_msg, (0x15,0x56,0))
+    m.append_msg(msg_modbus_rsp)
+    m.append_msg(msg_modbus_rsp_inv_id2)
+    assert m.mb_scan == False
+    assert asyncio.get_running_loop() == m.mb_timer.loop
+    m.db.stat['proxy']['Unknown_Ctrl'] = 0
+    assert m.mb_timer.tim == None
+    m.read()         # read complete msg, and dispatch msg
+    assert m.mb_scan == True
+    assert m.mb_start_reg == 0xff80
+    assert m.mb_step == 0x40
+    assert m.mb_bytes == 0x14
+    assert asyncio.get_running_loop() == m.mb_timer.loop
+ 
+    assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
+    assert m.msg_count == 1
+    assert m.snr == 2070233889
+    assert m.control == 0x4710
+     
+    assert m.msg_recvd[0]['control']==0x4710
+    assert m.msg_recvd[0]['seq']=='84:11'
+    assert m.msg_recvd[0]['data_len']==0x1
+
+    assert m.ifc.tx_fifo.get()==heartbeat_rsp_msg
+    assert m.ifc.fwd_fifo.get()==heartbeat_ind_msg
+    assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
+
+    m.ifc.tx_clear() # clear send buffer for next test
+    assert isclose(m.mb_timeout, 0.5)
+    assert next(m.mb_timer.exp_count) == 0
+    
+    await asyncio.sleep(0.5)
+    assert m.sent_pdu==b'\xa5\x17\x00\x10E\x12\x84!Ce{\x02\xb0\x02\x00\x00\x00\x00\x00\x00' \
+                       b'\x00\x00\x00\x00\x00\x00\x01\x03\xff\xc0\x00\x14\x75\xed\x33\x15'
+    assert m.ifc.tx_fifo.get()==b''
+
+    m.read()         # read complete msg, and dispatch msg
+    assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
+    assert m.msg_count == 2
+    assert m.msg_recvd[1]['control']==0x1510
+    assert m.msg_recvd[1]['seq']=='03:03'
+    assert m.msg_recvd[1]['data_len']==0x3b
+    assert m.mb.last_addr == 1
+    assert m.mb.last_fcode == 3   
+    assert m.mb.last_reg == 0xffc0   # mb_start_reg + mb_step
+    assert m.mb.last_len == 20
+    assert m.mb.err == 0
+
+    await asyncio.sleep(0.5)
+    assert m.sent_pdu==b'\xa5\x17\x00\x10E\x04\x03!Ce{\x02\xb0\x02\x00\x00\x00\x00\x00\x00' \
+                       b'\x00\x00\x00\x00\x00\x00\x02\x03\x00\x00\x00\x14\x45\xf6\xbf\x15'
+    assert m.ifc.tx_fifo.get()==b''
+
+    m.read()         # read complete msg, and dispatch msg
+    assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
+    assert m.msg_count == 3
+    assert m.msg_recvd[2]['control']==0x1510
+    assert m.msg_recvd[2]['seq']=='03:03'
+    assert m.msg_recvd[2]['data_len']==0x3b
+    assert m.mb.last_addr == 2
+    assert m.mb.last_fcode == 3   
+    assert m.mb.last_reg == 0x0000   # mb_start_reg + mb_step
+    assert m.mb.last_len == 20
+    assert m.mb.err == 0
+
+    assert next(m.mb_timer.exp_count) == 3
+    m.close()
+
+@pytest.mark.asyncio
 async def test_start_client_mode(config_tsun_inv1, str_test_ip):
     _ = config_tsun_inv1
     assert asyncio.get_running_loop()
@@ -1889,6 +2021,75 @@ async def test_start_client_mode(config_tsun_inv1, str_test_ip):
     assert m.sent_pdu==bytearray(b'\xa5\x17\x00\x10E\x03\x00!Ce{\x02\xb0\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x030\x00\x000J\xde\xf3\x15')
     assert m.ifc.tx_fifo.get()==b''
     assert next(m.mb_timer.exp_count) == 3
+    m.close()
+
+@pytest.mark.asyncio
+async def test_start_client_mode_scan(config_tsun_scan_dcu, str_test_ip, dcu_modbus_rsp):
+    _ = config_tsun_scan_dcu
+    assert asyncio.get_running_loop()
+    m = MemoryStream(dcu_modbus_rsp, (131,0,))
+    m.append_msg(dcu_modbus_rsp)
+    assert m.state == State.init
+    assert m.no_forwarding == False
+    assert m.mb_timer.tim == None
+    assert asyncio.get_running_loop() == m.mb_timer.loop
+    await m.send_start_cmd(get_dcu_sn_int(), str_test_ip, False, m.mb_first_timeout)
+    assert m.sent_pdu==bytearray(b'\xa5\x17\x00\x10E\x01\x00 Ce{\x02&0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x03\x00\x00\x00-\x85\xd7\x95\x15')
+    assert m.mb_scan == True
+    m.mb_step = 0
+    assert m.db.get_db_value(Register.IP_ADDRESS) == str_test_ip
+    assert isclose(m.db.get_db_value(Register.POLLING_INTERVAL), 0.5)
+    assert m.db.get_db_value(Register.HEARTBEAT_INTERVAL) == 120
+
+    assert m.state == State.up
+    assert m.no_forwarding == True
+
+    assert m.ifc.tx_fifo.get()==b''
+    assert isclose(m.mb_timeout, 0.5)
+
+    assert m.ifc.tx_fifo.get()==b''
+
+    m.read()         # read complete msg, and dispatch msg
+    assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
+    assert m.msg_count == 1
+    assert m.msg_recvd[0]['control']==0x1510
+    assert m.msg_recvd[0]['seq']=='03:03'
+    assert m.msg_recvd[0]['data_len']==109
+    assert m.mb.last_addr == 1
+    assert m.mb.last_fcode == 3   
+    assert m.mb.last_reg == 0x0000   # mb_start_reg + mb_step
+    assert m.mb.last_len == 45
+    assert m.mb.err == 0
+
+    assert isclose(m.db.get_db_value(Register.BATT_PWR, None), -136.6225)
+    assert isclose(m.db.get_db_value(Register.BATT_OUT_PWR, None), 131.604)
+    assert isclose(m.db.get_db_value(Register.BATT_PV_PWR, None), 0.0)
+    assert m.new_data['batterie'] == True
+    m.new_data['batterie'] = False
+
+    await asyncio.sleep(0.5)
+    assert m.sent_pdu==bytearray(b'\xa5\x17\x00\x10E\x04\x03 Ce{\x02&0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x03\x00\x00\x00-\x85\xd7\x9b\x15')
+    assert m.ifc.tx_fifo.get()==b''
+
+    m.read()         # read complete msg, and dispatch msg
+    assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
+    assert m.msg_count == 2
+    assert m.msg_recvd[1]['control']==0x1510
+    assert m.msg_recvd[1]['seq']=='03:03'
+    assert m.msg_recvd[1]['data_len']==109
+    assert m.mb.last_addr == 1
+    assert m.mb.last_fcode == 3   
+    assert m.mb.last_reg == 0x0000   # mb_start_reg + mb_step
+    assert m.mb.last_len == 45
+    assert m.mb.err == 0
+
+    assert isclose(m.db.get_db_value(Register.BATT_PWR, None), -136.6225)
+    assert isclose(m.db.get_db_value(Register.BATT_OUT_PWR, None), 131.604)
+    assert isclose(m.db.get_db_value(Register.BATT_PV_PWR, None), 0.0)
+    assert m.new_data['batterie'] == False
+
+    assert next(m.mb_timer.exp_count) == 1
+    
     m.close()
 
 def test_timeout(config_tsun_inv1):

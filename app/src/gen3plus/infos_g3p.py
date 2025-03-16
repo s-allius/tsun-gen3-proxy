@@ -5,6 +5,21 @@ from itertools import chain
 from infos import Infos, Register, ProxyMode, Fmt
 
 
+class RegisterFunc:
+    @staticmethod
+    def prod_sum(info: Infos, arr: dict) -> None | int:
+        result = 0
+        for sum in arr:
+            prod = 1
+            for factor in sum:
+                val = info.get_db_value(factor)
+                if val is None:
+                    return None
+                prod = prod * val
+            result += prod
+        return result
+
+
 class RegisterMap:
     # make the class read/only by using __slots__
     __slots__ = ()
@@ -121,11 +136,11 @@ class RegisterMap:
         0x42010034: {'reg': Register.BATT_PV2_VOLT,        'fmt': '!H', 'ratio': 0.01},  # noqa: E501, PV2 voltage
         0x42010036: {'reg': Register.BATT_PV2_CUR,         'fmt': '!H', 'ratio': 0.01},  # noqa: E501, PV2 current
         0x42010038: {'reg': Register.BATT_38,              'fmt': '!h'},                 # noqa: E501
-        0x4201003a: {'reg': Register.BATT_3a,              'fmt': '!h'},                 # noqa: E501
-        0x4201003c: {'reg': Register.BATT_3c,              'fmt': '!h'},                 # noqa: E501
-        0x4201003e: {'reg': Register.BATT_3e,              'fmt': '!h'},                 # noqa: E501
-        0x42010040: {'reg': Register.BATT_40,              'fmt': '!h', 'ratio': 0.01},  # noqa: E501
-        0x42010042: {'reg': Register.BATT_42,              'fmt': '!h', 'ratio': 0.01},  # noqa: E501
+        0x4201003a: {'reg': Register.BATT_3a,              'fmt': '!h', 'ratio': 0.01},  # noqa: E501
+        0x4201003c: {'reg': Register.BATT_STATUS_1,        'fmt': '!h'},                 # noqa: E501
+        0x4201003e: {'reg': Register.BATT_STATUS_2,        'fmt': '!h'},                 # noqa: E501
+        0x42010040: {'reg': Register.BATT_VOLT,            'fmt': '!h', 'ratio': 0.01},  # noqa: E501
+        0x42010042: {'reg': Register.BATT_CUR,             'fmt': '!h', 'ratio': 0.01},  # noqa: E501
         0x42010044: {'reg': Register.BATT_SOC,             'fmt': '!H', 'ratio': 0.01},  # noqa: E501, state of charge (SOC) in percent
         0x42010046: {'reg': Register.BATT_46,              'fmt': '!h'},                 # noqa: E501
         0x42010048: {'reg': Register.BATT_48,              'fmt': '!h'},                 # noqa: E501
@@ -136,13 +151,22 @@ class RegisterMap:
         0x42010066: {'reg': Register.BATT_66,              'fmt': '!h'},                 # noqa: E501
         0x42010068: {'reg': Register.BATT_68,              'fmt': '!h'},                 # noqa: E501
         0x4201006a: {'reg': Register.BATT_6a,              'fmt': '!h'},                 # noqa: E501
-        0x4201006c: {'reg': Register.BATT_6c,              'fmt': '!h'},                 # noqa: E501
-        0x4201006e: {'reg': Register.BATT_6e,              'fmt': '!h'},                 # noqa: E501
+        0x4201006c: {'reg': Register.BATT_OUT_VOLT,        'fmt': '!h', 'ratio': 0.01},  # noqa: E501
+        0x4201006e: {'reg': Register.BATT_OUT_CUR,         'fmt': '!h', 'ratio': 0.01},  # noqa: E501
         0x42010070: {'reg': Register.BATT_70,              'fmt': '!h'},                 # noqa: E501
         0x42010072: {'reg': Register.BATT_72,              'fmt': '!h'},                 # noqa: E501
         0x42010074: {'reg': Register.BATT_74,              'fmt': '!h'},                 # noqa: E501
         0x42010076: {'reg': Register.BATT_76,              'fmt': '!h'},                 # noqa: E501
         0x42010078: {'reg': Register.BATT_78,              'fmt': '!h'},                 # noqa: E501
+        'calc': {
+            1: {'reg': Register.BATT_PV_PWR,               'func': RegisterFunc.prod_sum,    # noqa: E501
+                'params': [[Register.BATT_PV1_VOLT, Register.BATT_PV1_CUR],
+                           [Register.BATT_PV2_VOLT, Register.BATT_PV2_CUR]]},
+            2: {'reg': Register.BATT_PWR,                  'func': RegisterFunc.prod_sum,    # noqa: E501
+                'params': [[Register.BATT_VOLT, Register.BATT_CUR]]},
+            3: {'reg': Register.BATT_OUT_PWR,               'func': RegisterFunc.prod_sum,    # noqa: E501
+                'params': [[Register.BATT_OUT_VOLT, Register.BATT_OUT_CUR]]},
+        }
     }
 
 
@@ -191,13 +215,20 @@ class InfosG3P(Infos):
         # iterate over RegisterMap.map and get the register values
         sensor = self.get_db_value(Register.SENSOR_LIST)
         if "3026" == sensor:
-            items = RegisterMap.map_3026.items()
+            reg_map = RegisterMap.map_3026
         elif "02b0" == sensor:
-            items = RegisterMap.map_02b0.items()
+            reg_map = RegisterMap.map_02b0
         else:
-            items = {}
+            reg_map = {}
+        items = reg_map.items()
+        if 'calc' in reg_map:
+            virt = reg_map['calc'].items()
+        else:
+            virt = {}
 
-        for _, row in chain(RegisterMap.map.items(), items):
+        for idx, row in chain(RegisterMap.map.items(), items, virt):
+            if 'calc' == idx:
+                continue
             info_id = row['reg']
             if self.__hide_topic(row):
                 res = self.ha_remove(info_id, node_id, snr)  # noqa: E501
@@ -213,7 +244,10 @@ class InfosG3P(Infos):
         stores the values in Infos.db
 
         buf: buffer of the sequence to parse'''
-        for idx, row in RegisterSel.get(sensor).items():
+        reg_map = RegisterSel.get(sensor)
+        for idx, row in reg_map.items():
+            if 'calc' == idx:
+                continue
             addr = idx & 0xffff
             ftype = (idx >> 16) & 0xff
             mtype = (idx >> 24) & 0xff
@@ -223,18 +257,31 @@ class InfosG3P(Infos):
                 continue
             info_id = row['reg']
             result = Fmt.get_value(buf, addr, row)
+            yield from self.__update_val(node_id, "GEN3PLUS", info_id, result)
+        yield from self.calc(sensor, node_id)
 
-            keys, level, unit, must_incr = self._key_obj(info_id)
+    def calc(self, sensor: int = 0, node_id: str = '') \
+            -> Generator[tuple[str, bool], None, None]:
+        '''calculate meta values from the
+        stored values in Infos.db
 
-            if keys:
-                name, update = self.update_db(keys, must_incr, result)
-                yield keys[0], update
-            else:
-                name = str(f'info-id.0x{addr:x}')
-                update = False
+        sensor: sensor_list number
+        node_id: id-string for the node'''
 
+        reg_map = RegisterSel.get(sensor)
+        if 'calc' in reg_map:
+            for row in reg_map['calc'].values():
+                info_id = row['reg']
+                result = row['func'](self, row['params'])
+                yield from self.__update_val(node_id, "CALC", info_id, result)
+
+    def __update_val(self, node_id, source: str, info_id, result):
+        keys, level, unit, must_incr = self._key_obj(info_id)
+        if keys:
+            name, update = self.update_db(keys, must_incr, result)
+            yield keys[0], update
             if update:
-                self.tracer.log(level, f'[{node_id}] GEN3PLUS: {name}'
+                self.tracer.log(level, f'[{node_id}] {source}: {name}'
                                        f' : {result}{unit}')
 
     def build(self, len, msg_type: int, rcv_ftype: int, sensor: int = 0):

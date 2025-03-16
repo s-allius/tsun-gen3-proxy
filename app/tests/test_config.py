@@ -152,6 +152,16 @@ def ConfigComplete():
                                  'pv4': {'manufacturer': 'man4',
                                          'type': 'type4'},
                                  'suggested_area': 'Garage2',
+                                 'sensor_list': 688},
+            'Y170000000000002': {'modbus_polling': False,
+                                 'modbus_scanning': {
+                                    'bytes': 16,
+                                    'start': 2048,
+                                    'step': 1024
+                                 },
+                                 'monitor_sn': 2000000001,
+                                 'node_id': 'PV-Garage3/',
+                                 'suggested_area': 'Garage3',
                                  'sensor_list': 688}
         },
         'batteries': {
@@ -224,8 +234,9 @@ def test_full_config(ConfigComplete):
            },
            'inverters': {'allow_all': False, 
                          'R170000000000001': {'modbus_polling': False, 'node_id': 'PV-Garage/', 'sensor_list': 0x02B0, 'suggested_area': 'Garage', 'pv1': {'type': 'type1', 'manufacturer': 'man1'}, 'pv2': {'type': 'type2', 'manufacturer': 'man2'}}, 
-                         'Y170000000000001': {'modbus_polling': True, 'monitor_sn': 2000000000, 'node_id': 'PV-Garage2/', 'sensor_list': 0x02B0, 'suggested_area': 'Garage2', 'pv1': {'type': 'type1', 'manufacturer': 'man1'}, 'pv2': {'type': 'type2', 'manufacturer': 'man2'}, 'pv3': {'type': 'type3', 'manufacturer': 'man3'}, 'pv4': {'type': 'type4', 'manufacturer': 'man4'}}
-            }
+                         'Y170000000000001': {'modbus_polling': True, 'monitor_sn': 2000000000, 'node_id': 'PV-Garage2/', 'sensor_list': 0x02B0, 'suggested_area': 'Garage2', 'pv1': {'type': 'type1', 'manufacturer': 'man1'}, 'pv2': {'type': 'type2', 'manufacturer': 'man2'}, 'pv3': {'type': 'type3', 'manufacturer': 'man3'}, 'pv4': {'type': 'type4', 'manufacturer': 'man4'}},
+                         'Y170000000000002': {'modbus_polling': False, 'monitor_sn': 2000000001, 'node_id': 'PV-Garage3/', 'sensor_list': 0x02B0, 'suggested_area': 'Garage3', 'modbus_scanning': {'start': 2048, 'step': 1024, 'bytes': 16}}
+           }
     }
     try:
         validated = Config.conf_schema.validate(cnf)
