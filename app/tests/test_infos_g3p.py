@@ -160,8 +160,8 @@ def test_parse_4210_3026(batterie_data: bytes):
                       "Reg_38": 0, "Reg_3a": 20.8, "Status_1": 0, "Status_2": 0, 
                       "Voltage": 51.34, "Current": -0.02, "SOC": 10.0, "Reg_66": 15,
                       "Reg_68": 15, "Reg_6a": 15, 
-                      "out": {"Voltage": 0.14, "Current": 0.0, "Power": 0.0},
-                      "Reg_70": 0, "Reg_72": 15, "Reg_74": 0, "Reg_76": 517, "Reg_78": 513,
+                      "out": {"Voltage": 0.14, "Current": 0.0, "Out_Status": 0, "Power": 0.0},
+                      "Reg_72": 15, "Reg_74": 0, "Reg_76": 517, "Reg_78": 513,
                       "PV_Power": 37.9232, "Power": -1.0268000000000002},
         })
 
@@ -180,8 +180,8 @@ def test_parse_4210_3026_incomplete(batterie_data2: bytes):
                       "Reg_38": 0, "Reg_3a": 20.8, "Status_1": 0, "Status_2": 0, 
                       "Voltage": 51.34, "Current": -0.02, "SOC": 10.0, "Reg_66": 15,
                       "Reg_68": 15, "Reg_6a": 15, 
-                      "out": {"Voltage": 0.14, "Current": None, "Power": None},
-                      "Reg_70": None, "Reg_72": None, "Reg_74": None, "Reg_76": None, "Reg_78": None,
+                      "out": {"Voltage": 0.14, "Current": None, "Out_Status": None, "Power": None},
+                      "Reg_72": None, "Reg_74": None, "Reg_76": None, "Reg_78": None,
                       "PV_Power": 37.9232, "Power": -1.0268000000000002},
         })
 
