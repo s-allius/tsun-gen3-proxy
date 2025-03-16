@@ -7,10 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+- add initial apparmor support [#293](https://github.com/s-allius/tsun-gen3-proxy/issues/293)
 - add Modbus polling mode for DCU1000 [#292](https://github.com/s-allius/tsun-gen3-proxy/issues/292)
 - add Modbus scanning mode
 - allow `R47`serial numbers for GEN3 inverters
 - add watchdog for Add-ons
+- add first costumer apparmor definition
 - Respect logging.ini file, if LOG_ENV isn't set well [#288](https://github.com/s-allius/tsun-gen3-proxy/issues/288)
 - Remove trailing apostrophe in the log output [#288](https://github.com/s-allius/tsun-gen3-proxy/issues/288)
 - update AddOn base docker image to version 17.2.1
