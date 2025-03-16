@@ -103,7 +103,7 @@ class SolarmanEmu(SolarmanBase):
         self.data_timer.start(self.data_up_inv)
         _len = 420
         ftype = 1
-        build_msg = self.db.build(_len, 0x42, ftype)
+        build_msg = self.db.build(_len, 0x42, ftype, 0x02b0)
 
         self._build_header(0x4210)
         self.ifc.tx_add(

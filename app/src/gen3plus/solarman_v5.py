@@ -2,8 +2,10 @@ import struct
 import logging
 import time
 import asyncio
+from itertools import chain
 from datetime import datetime
 
+from proxy import Proxy
 from async_ifc import AsyncIfc
 from messages import hex_dump_memory, Message, State
 from cnf.config import Config
@@ -321,6 +323,8 @@ class SolarmanV5(SolarmanBase):
             self.at_acl = g3p_cnf['at_acl']
 
         self.sensor_list = 0
+        self.mb_regs = [{'addr': 0x3000, 'len': 48},
+                        {'addr': 0x2000, 'len': 96}]
 
     '''
     Our puplic methods
@@ -356,7 +360,16 @@ class SolarmanV5(SolarmanBase):
         self.new_data['controller'] = True
 
         self.state = State.up
-        self._send_modbus_cmd(Modbus.READ_REGS, 0x3000, 48, logging.DEBUG)
+
+        if self.mb_scan:
+            self._send_modbus_cmd(self.mb_inv_no, Modbus.READ_REGS,
+                                  self.mb_start_reg, self.mb_bytes,
+                                  logging.INFO)
+        else:
+            self._send_modbus_cmd(Modbus.INV_ADDR, Modbus.READ_REGS,
+                                  self.mb_regs[0]['addr'],
+                                  self.mb_regs[0]['len'], logging.DEBUG)
+
         self.mb_timer.start(self.mb_timeout)
 
     def new_state_up(self):
@@ -376,14 +389,22 @@ class SolarmanV5(SolarmanBase):
         self.ifc.fwd_add(build_msg)
         self.ifc.fwd_add(struct.pack('<BB', 0, 0x15))    # crc & stop
 
-    def __set_config_parms(self, inv: dict):
+    def _set_config_parms(self, inv: dict, serial_no: str = ""):
         '''init connection with params from the configuration'''
-        self.node_id = inv['node_id']
-        self.sug_area = inv['suggested_area']
-        self.modbus_polling = inv['modbus_polling']
+        super()._set_config_parms(inv)
+
         self.sensor_list = inv['sensor_list']
-        if self.mb:
-            self.mb.set_node_id(self.node_id)
+        if 0 == self.sensor_list:
+            snr = serial_no[:3]
+            if '410' == snr:
+                self.sensor_list = 0x3026
+                self.mb_regs = [{'addr': 0x0000, 'len': 45}]
+            else:
+                self.sensor_list = 0x02b0
+        self.db.set_db_def_value(Register.SENSOR_LIST,
+                                 f"{self.sensor_list:04x}")
+        logging.debug(f"Use sensor-list: {self.sensor_list:#04x}"
+                      f" for '{serial_no}'")
 
     def _set_serial_no(self, snr: int):
         '''check the serial number and configure the inverter connection'''
@@ -392,13 +413,14 @@ class SolarmanV5(SolarmanBase):
             logger.debug(f'SerialNo: {serial_no}')
         else:
             inverters = Config.get('inverters')
+            batteries = Config.get('batteries')
             # logger.debug(f'Inverters: {inverters}')
 
-            for key, inv in inverters.items():
+            for key, inv in chain(inverters.items(), batteries.items()):
                 # logger.debug(f'key: {key} -> {inv}')
                 if (type(inv) is dict and 'monitor_sn' in inv
                    and inv['monitor_sn'] == snr):
-                    self.__set_config_parms(inv)
+                    self._set_config_parms(inv, key)
                     self.db.set_pv_module_details(inv)
                     logger.debug(f'SerialNo {serial_no} allowed! area:{self.sug_area}')  # noqa: E501
 
@@ -411,9 +433,11 @@ class SolarmanV5(SolarmanBase):
                 if 'allow_all' not in inverters or not inverters['allow_all']:
                     self.inc_counter('Unknown_SNR')
                     self.unique_id = None
-                    logger.warning(f'ignore message from unknow inverter! (SerialNo: {serial_no})')  # noqa: E501
+                    logging.error(f"Ignore message from unknow inverter with Monitoring-SN: {serial_no})!\n"  # noqa: E501
+                                  "  !!Check the 'monitor_sn' setting in your configuration!!")  # noqa: E501
                     return
-                logger.warning(f'SerialNo {serial_no} not known but accepted!')
+                logging.warning(f"Monitoring-SN: {serial_no} not configured but accepted!"  # noqa: E501
+                                "  !!Check the 'monitor_sn' setting in your configuration!!")  # noqa: E501
 
             self.unique_id = serial_no
 
@@ -459,12 +483,18 @@ class SolarmanV5(SolarmanBase):
 
     def mb_timout_cb(self, exp_cnt):
         self.mb_timer.start(self.mb_timeout)
+        if self.mb_scan:
+            self._send_modbus_scan()
+        else:
+            self._send_modbus_cmd(Modbus.INV_ADDR, Modbus.READ_REGS,
+                                  self.mb_regs[0]['addr'],
+                                  self.mb_regs[0]['len'], logging.INFO)
 
-        self._send_modbus_cmd(Modbus.READ_REGS, 0x3000, 48, logging.DEBUG)
-
-        if 1 == (exp_cnt % 30):
-            # logging.info("Regular Modbus Status request")
-            self._send_modbus_cmd(Modbus.READ_REGS, 0x2000, 96, logging.DEBUG)
+            if 1 == (exp_cnt % 30) and len(self.mb_regs) > 1:
+                # logging.info("Regular Modbus Status request")
+                self._send_modbus_cmd(Modbus.INV_ADDR, Modbus.READ_REGS,
+                                      self.mb_regs[1]['addr'],
+                                      self.mb_regs[1]['len'], logging.INFO)
 
     def at_cmd_forbidden(self, cmd: str, connection: str) -> bool:
         return not cmd.startswith(tuple(self.at_acl[connection]['allow'])) or \
@@ -482,7 +512,7 @@ class SolarmanV5(SolarmanBase):
             node_id = self.node_id
             key = 'at_resp'
             logger.info(f'{key}: {data_json}')
-            await self.mqtt.publish(f'{self.entity_prfx}{node_id}{key}', data_json)  # noqa: E501
+            await Proxy.mqtt.publish(f'{Proxy.entity_prfx}{node_id}{key}', data_json)  # noqa: E501
             return
 
         self.forward_at_cmd_resp = False
@@ -516,11 +546,11 @@ class SolarmanV5(SolarmanBase):
             logger.info(f'Model: {model}')
             self.db.set_db_def_value(Register.EQUIPMENT_MODEL, model)
 
-    def __process_data(self, ftype, ts):
+    def __process_data(self, ftype, ts, sensor=0):
         inv_update = False
         msg_type = self.control >> 8
-        for key, update in self.db.parse(self.ifc.rx_peek(), msg_type, ftype,
-                                         self.node_id):
+        for key, update in self.db.parse(self.ifc.rx_peek(), msg_type,
+                                         ftype, sensor, self.node_id):
             if update:
                 if key == 'inverter':
                     inv_update = True
@@ -581,7 +611,7 @@ class SolarmanV5(SolarmanBase):
         else:
             ts = None
 
-        self.__process_data(ftype, ts)
+        self.__process_data(ftype, ts, sensor)
         self.__forward_msg()
         self.__send_ack_rsp(0x1210, ftype)
         self.new_state_up()
@@ -626,7 +656,7 @@ class SolarmanV5(SolarmanBase):
 
     def publish_mqtt(self, key, data):  # pragma: no cover
         asyncio.ensure_future(
-            self.mqtt.publish(key, data))
+            Proxy.mqtt.publish(key, data))
 
     def get_cmd_rsp_log_lvl(self) -> int:
         ftype = self.ifc.rx_peek()[self.header_len]
@@ -650,23 +680,32 @@ class SolarmanV5(SolarmanBase):
                 node_id = self.node_id
                 key = 'at_resp'
                 logger.info(f'{key}: {data_json}')
-                self.publish_mqtt(f'{self.entity_prfx}{node_id}{key}', data_json)  # noqa: E501
+                self.publish_mqtt(f'{Proxy.entity_prfx}{node_id}{key}', data_json)  # noqa: E501
                 return
         elif ftype == self.MB_RTU_CMD:
             self.__modbus_command_rsp(data)
             return
         self.__forward_msg()
 
-    def __parse_modbus_rsp(self, data):
+    def __parse_modbus_rsp(self, data, modbus_msg_len):
         inv_update = False
         self.modbus_elms = 0
+        if (self.mb_scan):
+            self._dump_modbus_scan(data, 14, modbus_msg_len)
+
+        ts = self._timestamp()
         for key, update, _ in self.mb.recv_resp(self.db, data[14:]):
             self.modbus_elms += 1
             if update:
                 if key == 'inverter':
                     inv_update = True
-                self._set_mqtt_timestamp(key, self._timestamp())
+                self._set_mqtt_timestamp(key, ts)
                 self.new_data[key] = True
+        for key, update in self.db.calc(self.sensor_list, self.node_id):
+            if update:
+                self._set_mqtt_timestamp(key, ts)
+                self.new_data[key] = True
+
         return inv_update
 
     def __modbus_command_rsp(self, data):
@@ -676,7 +715,7 @@ class SolarmanV5(SolarmanBase):
         # logger.debug(f'modbus_len:{modbus_msg_len} accepted:{valid}')
         if valid == 1 and modbus_msg_len > 4:
             # logger.info(f'first byte modbus:{data[14]}')
-            inv_update = self.__parse_modbus_rsp(data)
+            inv_update = self.__parse_modbus_rsp(data, modbus_msg_len)
             if inv_update:
                 self.__build_model_name()
 
