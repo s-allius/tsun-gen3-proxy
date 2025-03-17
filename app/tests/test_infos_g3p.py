@@ -357,7 +357,7 @@ def test_build_ha_conf5():
 
         if id == 'out_power_123':
             assert comp == 'sensor'
-            assert  d_json == json.dumps({"name": "Out Power", "stat_t": "tsun/garagendach/batterie", "dev_cla": "power", "stat_cla": "measurement", "uniq_id": "out_power_123", "val_tpl": "{{ (value_json['out']['Power'] | int)}}", "unit_of_meas": "W", "dev": {"name": "Batterie", "sa": "Batterie", "via_device": "controller_123", "mdl": "TSOL-MSxx00", "mf": "TSUN", "ids": ["batterie_123"]}, "o": {"name": "proxy", "sw": "unknown"}})
+            assert  d_json == json.dumps({"name": "Output Power", "stat_t": "tsun/garagendach/batterie", "dev_cla": "power", "stat_cla": "measurement", "uniq_id": "out_power_123", "val_tpl": "{{ (value_json['out']['Power'] | int)}}", "unit_of_meas": "W", "dev": {"name": "Batterie", "sa": "Batterie", "via_device": "controller_123", "mdl": "TSOL-MSxx00", "mf": "TSUN", "ids": ["batterie_123"]}, "o": {"name": "proxy", "sw": "unknown"}})
             tests +=1
         elif id == 'daily_gen_123':
             assert False
