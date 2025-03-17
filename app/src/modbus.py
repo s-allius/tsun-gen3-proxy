@@ -49,11 +49,11 @@ class Modbus():
         0x0010: {'reg': Register.BATT_VOLT,            'fmt': '!h', 'ratio': 0.01},  # noqa: E501
         0x0011: {'reg': Register.BATT_CUR,             'fmt': '!h', 'ratio': 0.01},  # noqa: E501
         0x0012: {'reg': Register.BATT_SOC,             'fmt': '!H', 'ratio': 0.01},  # noqa: E501, state of charge (SOC) in percent
-        # 0x0013: {'reg': Register.BATT_46,              'fmt': '!h'},                 # noqa: E501
-        # 0x0014: {'reg': Register.BATT_48,              'fmt': '!h'},                 # noqa: E501
-        # 0x0015: {'reg': Register.BATT_4a,              'fmt': '!h'},                 # noqa: E501
-        # 0x0016: {'reg': Register.BATT_4c,              'fmt': '!h'},                 # noqa: E501
-        # 0x0017: {'reg': Register.BATT_4e,              'fmt': '!h'},                 # noqa: E501
+        0x0013: {'reg': Register.BATT_46,              'fmt': '!h'},                 # noqa: E501
+        0x0014: {'reg': Register.BATT_48,              'fmt': '!h'},                 # noqa: E501
+        0x0015: {'reg': Register.BATT_4a,              'fmt': '!h'},                 # noqa: E501
+        0x0016: {'reg': Register.BATT_4c,              'fmt': '!h'},                 # noqa: E501
+        0x0017: {'reg': Register.BATT_4e,              'fmt': '!h'},                 # noqa: E501
         0x0023: {'reg': Register.BATT_TEMP_1,          'fmt': '!h'},                 # noqa: E501
         0x0024: {'reg': Register.BATT_TEMP_2,          'fmt': '!h'},                 # noqa: E501
         0x0025: {'reg': Register.BATT_TEMP_3,          'fmt': '!h'},                 # noqa: E501
