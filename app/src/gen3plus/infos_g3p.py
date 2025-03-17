@@ -136,7 +136,7 @@ class RegisterMap:
         0x42010034: {'reg': Register.BATT_PV2_VOLT,        'fmt': '!H', 'ratio': 0.01},  # noqa: E501, PV2 voltage
         0x42010036: {'reg': Register.BATT_PV2_CUR,         'fmt': '!H', 'ratio': 0.01},  # noqa: E501, PV2 current
         0x42010038: {'reg': Register.BATT_38,              'fmt': '!h'},                 # noqa: E501
-        0x4201003a: {'reg': Register.BATT_3a,              'fmt': '!h', 'ratio': 0.01},  # noqa: E501
+        0x4201003a: {'reg': Register.BATT_TOTAL_GEN,       'fmt': '!h', 'ratio': 0.01},  # noqa: E501
         0x4201003c: {'reg': Register.BATT_STATUS_1,        'fmt': '!h'},                 # noqa: E501 MPTT-1 Status?
         0x4201003e: {'reg': Register.BATT_STATUS_2,        'fmt': '!h'},                 # noqa: E501 MPTT-2 Status?
         0x42010040: {'reg': Register.BATT_VOLT,            'fmt': '!h', 'ratio': 0.01},  # noqa: E501
