@@ -148,13 +148,13 @@ class RegisterMap:
         0x4201004c: {'reg': Register.BATT_4c,              'fmt': '!h'},                 # noqa: E501
         0x4201004e: {'reg': Register.BATT_4e,              'fmt': '!h'},                 # noqa: E501
 
-        0x42010066: {'reg': Register.BATT_66,              'fmt': '!h'},                 # noqa: E501
-        0x42010068: {'reg': Register.BATT_TEMP_1,          'fmt': '!h'},                 # noqa: E501 batterie temp 1
-        0x4201006a: {'reg': Register.BATT_TEMP_2,          'fmt': '!h'},                 # noqa: E501 batterie temp 2
+        0x42010066: {'reg': Register.BATT_TEMP_1,          'fmt': '!h'},                 # noqa: E501
+        0x42010068: {'reg': Register.BATT_TEMP_2,          'fmt': '!h'},                 # noqa: E501
+        0x4201006a: {'reg': Register.BATT_TEMP_3,          'fmt': '!h'},                 # noqa: E501
         0x4201006c: {'reg': Register.BATT_OUT_VOLT,        'fmt': '!h', 'ratio': 0.01},  # noqa: E501
         0x4201006e: {'reg': Register.BATT_OUT_CUR,         'fmt': '!h', 'ratio': 0.01},  # noqa: E501
         0x42010070: {'reg': Register.BATT_OUT_STATUS,      'fmt': '!h'},                 # noqa: E501, state of output value 0 or 1
-        0x42010072: {'reg': Register.BATT_TEMP_3,          'fmt': '!h'},                 # noqa: E501 controller temp
+        0x42010072: {'reg': Register.BATT_TEMP_4,          'fmt': '!h'},                 # noqa: E501 controller temp
         0x42010074: {'reg': Register.BATT_74,              'fmt': '!h'},                 # noqa: E501, control input 0..2048
         0x42010076: {'reg': Register.BATT_76,              'fmt': '!h'},                 # noqa: E501
         0x42010078: {'reg': Register.BATT_78,              'fmt': '!h'},                 # noqa: E501
