@@ -49,11 +49,22 @@ class Modbus():
         0x0010: {'reg': Register.BATT_VOLT,            'fmt': '!h', 'ratio': 0.01},  # noqa: E501
         0x0011: {'reg': Register.BATT_CUR,             'fmt': '!h', 'ratio': 0.01},  # noqa: E501
         0x0012: {'reg': Register.BATT_SOC,             'fmt': '!H', 'ratio': 0.01},  # noqa: E501, state of charge (SOC) in percent
-        0x0013: {'reg': Register.BATT_46,              'fmt': '!h'},                 # noqa: E501
-        0x0014: {'reg': Register.BATT_48,              'fmt': '!h'},                 # noqa: E501
-        0x0015: {'reg': Register.BATT_4a,              'fmt': '!h'},                 # noqa: E501
-        0x0016: {'reg': Register.BATT_4c,              'fmt': '!h'},                 # noqa: E501
-        0x0017: {'reg': Register.BATT_4e,              'fmt': '!h'},                 # noqa: E501
+        0x0013: {'reg': Register.BATT_CELL1_VOLT,      'fmt': '!h', 'ratio': 0.001},  # noqa: E501
+        0x0014: {'reg': Register.BATT_CELL2_VOLT,      'fmt': '!h', 'ratio': 0.001},  # noqa: E501
+        0x0015: {'reg': Register.BATT_CELL3_VOLT,      'fmt': '!h', 'ratio': 0.001},  # noqa: E501
+        0x0016: {'reg': Register.BATT_CELL4_VOLT,      'fmt': '!h', 'ratio': 0.001},  # noqa: E501
+        0x0017: {'reg': Register.BATT_CELL5_VOLT,      'fmt': '!h', 'ratio': 0.001},  # noqa: E501
+        0x0018: {'reg': Register.BATT_CELL6_VOLT,      'fmt': '!h', 'ratio': 0.001},  # noqa: E501
+        0x0019: {'reg': Register.BATT_CELL7_VOLT,      'fmt': '!h', 'ratio': 0.001},  # noqa: E501
+        0x001a: {'reg': Register.BATT_CELL8_VOLT,      'fmt': '!h', 'ratio': 0.001},  # noqa: E501
+        0x001b: {'reg': Register.BATT_CELL9_VOLT,      'fmt': '!h', 'ratio': 0.001},  # noqa: E501
+        0x001c: {'reg': Register.BATT_CELL10_VOLT,     'fmt': '!h', 'ratio': 0.001},  # noqa: E501
+        0x001d: {'reg': Register.BATT_CELL11_VOLT,     'fmt': '!h', 'ratio': 0.001},  # noqa: E501
+        0x001e: {'reg': Register.BATT_CELL12_VOLT,     'fmt': '!h', 'ratio': 0.001},  # noqa: E501
+        0x001f: {'reg': Register.BATT_CELL13_VOLT,     'fmt': '!h', 'ratio': 0.001},  # noqa: E501
+        0x0020: {'reg': Register.BATT_CELL14_VOLT,     'fmt': '!h', 'ratio': 0.001},  # noqa: E501
+        0x0021: {'reg': Register.BATT_CELL15_VOLT,     'fmt': '!h', 'ratio': 0.001},  # noqa: E501
+        0x0022: {'reg': Register.BATT_CELL16_VOLT,     'fmt': '!h', 'ratio': 0.001},  # noqa: E501
         0x0023: {'reg': Register.BATT_TEMP_1,          'fmt': '!h'},                 # noqa: E501
         0x0024: {'reg': Register.BATT_TEMP_2,          'fmt': '!h'},                 # noqa: E501
         0x0025: {'reg': Register.BATT_TEMP_3,          'fmt': '!h'},                 # noqa: E501
