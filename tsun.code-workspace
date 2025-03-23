@@ -4,11 +4,11 @@
 			"path": "."
 		},
 		{
-			"path": "../wiki"
+			"path": "../tsun-gen3-proxy.wiki"
 		},
 		{
 			"name": "ha-addons",
-			"path": "../ha-addons/ha-addons"
+			"path": "../ha-addons"
 		}
 	],
 	"settings": {}

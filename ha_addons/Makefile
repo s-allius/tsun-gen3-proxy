@@ -19,7 +19,7 @@ DST=$(ADDON_PATH)/rootfs
 DST_PROXY=$(DST)/home/proxy
 
 # base director of the add-on repro for installing the add-on git repros
-INST_BASE=../../ha-addons/ha-addons
+INST_BASE=../../ha-addons
 
 # Template folder for build the config.yaml variants 
 TEMPL=templates
