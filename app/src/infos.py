@@ -375,8 +375,8 @@ class Infos:
     __comm_type_val_tpl = "{%set com_types = ['n/a','Wi-Fi', 'G4', 'G5', 'GPRS'] %}{{com_types[value_json['Communication_Type']|int(0)]|default(value_json['Communication_Type'])}}"    # noqa: E501
     __work_mode_val_tpl = "{%set mode = ['Normal-Mode', 'Aging-Mode', 'ATE-Mode', 'Shielding GFDI', 'DTU-Mode'] %}{{mode[value_json['Work_Mode']|int(0)]|default(value_json['Work_Mode'])}}"    # noqa: E501
     __status_type_val_tpl = "{%set inv_status = ['Off-line', 'On-grid', 'Off-grid'] %}{{inv_status[value_json['Inverter_Status']|int(0)]|default(value_json['Inverter_Status'])}}"    # noqa: E501
-    __mppt1_status_type_val_tpl = "{%set mppt_status = ['Locked', 'Off', 'On'] %}{{mppt_status[value_json['Status_1']|int(0)]|default(value_json['Status_1'])}}"    # noqa: E501
-    __mppt2_status_type_val_tpl = "{%set mppt_status = ['Locked', 'Off', 'On'] %}{{mppt_status[value_json['Status_2']|int(0)]|default(value_json['Status_2'])}}"    # noqa: E501
+    __mppt1_status_type_val_tpl = "{%set mppt_status = ['Locked', 'On', 'Off'] %}{{mppt_status[value_json['Status_1']|int(0)]|default(value_json['Status_1'])}}"    # noqa: E501
+    __mppt2_status_type_val_tpl = "{%set mppt_status = ['Locked', 'On', 'Off'] %}{{mppt_status[value_json['Status_2']|int(0)]|default(value_json['Status_2'])}}"    # noqa: E501
     __out_status_type_val_tpl = "{%set out_status = ['Off', 'On'] %}{{out_status[value_json['out']['Out_Status']|int(0)]|default(value_json['out']['Out_Status'])}}"    # noqa: E501
     __rated_power_val_tpl = "{% if 'Rated_Power' in value_json and value_json['Rated_Power'] != None %}{{value_json['Rated_Power']|string() +' W'}}{% else %}{{ this.state }}{% endif %}"  # noqa: E501
     __designed_power_val_tpl = '''
