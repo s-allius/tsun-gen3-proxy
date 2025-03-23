@@ -17,7 +17,8 @@ ADDON_PATH = ha_addon
 DST=$(ADDON_PATH)/rootfs
 DST_PROXY=$(DST)/home/proxy
 
-INST_BASE=../../ha-addons/ha-addons
+# base director of the add-on repro for installing the add-on git repros
+INST_BASE=../../ha-addons
 
 TEMPL=templates
 
