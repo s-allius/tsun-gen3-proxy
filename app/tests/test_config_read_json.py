@@ -84,7 +84,7 @@ def ConfigTomlEmpty():
 def test_no_config(ConfigDefault):
     test_buffer.rd = ""  # empty buffer, no json
     
-    Config.init(ConfigReadToml("app/config/default_config.toml"))
+    Config.init(ConfigReadToml("app/src/cnf/default_config.toml"))
     for _ in patch_open():
         ConfigReadJson()
         err = Config.get_error()
@@ -96,7 +96,7 @@ def test_no_config(ConfigDefault):
 def test_no_file(ConfigDefault):
     test_buffer.rd = ""  # empty buffer, no json
     
-    Config.init(ConfigReadToml("app/config/default_config.toml"))
+    Config.init(ConfigReadToml("app/src/cnf/default_config.toml"))
     for _ in patch_open():
         ConfigReadJson("_no__file__no_")
         err = Config.get_error()
@@ -108,7 +108,7 @@ def test_no_file(ConfigDefault):
 def test_invalid_filename(ConfigDefault):
     test_buffer.rd = ""  # empty buffer, no json
     
-    Config.init(ConfigReadToml("app/config/default_config.toml"))
+    Config.init(ConfigReadToml("app/src/cnf/default_config.toml"))
     for _ in patch_open():
         ConfigReadJson(None)
         err = Config.get_error()
@@ -340,7 +340,7 @@ def test_cnv6():
 def test_empty_config(ConfigDefault):
     test_buffer.rd = "{}"  # empty json
     
-    Config.init(ConfigReadToml("app/config/default_config.toml"))
+    Config.init(ConfigReadToml("app/src/cnf/default_config.toml"))
     for _ in patch_open():
         ConfigReadJson()
         err = Config.get_error()
@@ -380,6 +380,29 @@ def test_full_config(ConfigComplete):
        "pv4.manufacturer": "man4",
        "pv4.type": "type4",
        "sensor_list": 688
+     },
+     {
+       "serial": "Y170000000000002",
+       "monitor_sn": 2000000001,
+       "modbus_polling": false,
+       "modbus_scanning.start": 2048,
+       "node_id": "PV-Garage3",
+       "suggested_area": "Garage3",
+       "sensor_list": 688
+     }
+   ],
+   "batteries": [
+     {
+       "serial": "4100000000000001",
+       "modbus_polling": true,
+       "monitor_sn": 3000000000,
+       "node_id": "Bat-Garage3",
+       "suggested_area": "Garage3",
+       "pv1.manufacturer": "man5",
+       "pv1.type": "type5",
+       "pv2.manufacturer": "man6",
+       "pv2.type": "type6",
+       "sensor_list": 12326
      }
    ],
    "tsun.enabled": true,
@@ -401,7 +424,7 @@ def test_full_config(ConfigComplete):
    ]
 }
 """
-    Config.init(ConfigReadToml("app/config/default_config.toml"))
+    Config.init(ConfigReadToml("app/src/cnf/default_config.toml"))
     for _ in patch_open():
         ConfigReadJson()
         err = Config.get_error()

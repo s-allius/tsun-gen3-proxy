@@ -7,18 +7,26 @@ from server import get_log_level
 
 def test_get_log_level():
 
-    with patch.dict(os.environ, {'LOG_LVL': ''}):
+    with patch.dict(os.environ, {}):
         log_lvl = get_log_level()
-        assert log_lvl == logging.INFO
+        assert log_lvl == None
 
     with patch.dict(os.environ, {'LOG_LVL': 'DEBUG'}):
         log_lvl = get_log_level()
         assert log_lvl == logging.DEBUG
 
+    with patch.dict(os.environ, {'LOG_LVL': 'INFO'}):
+        log_lvl = get_log_level()
+        assert log_lvl == logging.INFO
+
     with patch.dict(os.environ, {'LOG_LVL': 'WARN'}):
         log_lvl = get_log_level()
         assert log_lvl == logging.WARNING
 
+    with patch.dict(os.environ, {'LOG_LVL': 'ERROR'}):
+        log_lvl = get_log_level()
+        assert log_lvl == logging.ERROR
+
     with patch.dict(os.environ, {'LOG_LVL': 'UNKNOWN'}):
         log_lvl = get_log_level()
-        assert log_lvl == logging.INFO
+        assert log_lvl == None

@@ -74,12 +74,12 @@ target "_prod" {
 }
 target "debug" {
   inherits = ["_common", "_debug"]
-  tags = ["${IMAGE}:debug"]
+  tags = ["${IMAGE}:debug", "${IMAGE}:${VERSION}"]
 }
 
 target "dev" {
   inherits = ["_common"]
-  tags = ["${IMAGE}:dev"]
+  tags = ["${IMAGE}:dev", "${IMAGE}:${VERSION}"]
 }
 
 target "preview" {
