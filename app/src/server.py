@@ -117,19 +117,19 @@ async def handle_shutdown(loop, web_task):
     loop.stop()
 
 
-def get_log_level() -> int:
+def get_log_level() -> int | None:
     '''checks if LOG_LVL is set in the environment and returns the
     corresponding logging.LOG_LEVEL'''
-    log_level = os.getenv('LOG_LVL', 'INFO')
+    switch = {
+        'DEBUG': logging.DEBUG,
+        'WARN': logging.WARNING,
+        'INFO': logging.INFO,
+        'ERROR': logging.ERROR,
+    }
+    log_level = os.getenv('LOG_LVL', None)
     logging.info(f"LOG_LVL    : {log_level}")
 
-    if log_level == 'DEBUG':
-        log_level = logging.DEBUG
-    elif log_level == 'WARN':
-        log_level = logging.WARNING
-    else:
-        log_level = logging.INFO
-    return log_level
+    return switch.get(log_level, None)
 
 
 def main():   # pragma: no cover
@@ -156,8 +156,10 @@ def main():   # pragma: no cover
 
     setattr(logging.handlers, "log_path", args.log_path)
     setattr(logging.handlers, "log_backups", args.log_backups)
+    os.makedirs(args.log_path, exist_ok=True)
 
-    logging.config.fileConfig('logging.ini')
+    src_dir = os.path.dirname(__file__) + '/'
+    logging.config.fileConfig(src_dir + 'logging.ini')
     logging.info(f'Server "{serv_name} - {version}" will be started')
     logging.info(f'current dir: {os.getcwd()}')
     logging.info(f"config_path: {args.config_path}")
@@ -170,21 +172,21 @@ def main():   # pragma: no cover
         logging.info(f"log_backups: {args.log_backups} days")
     log_level = get_log_level()
     logging.info('******')
-
-    # set lowest-severity for 'root', 'msg', 'conn' and 'data' logger
-    logging.getLogger().setLevel(log_level)
-    logging.getLogger('msg').setLevel(log_level)
-    logging.getLogger('conn').setLevel(log_level)
-    logging.getLogger('data').setLevel(log_level)
-    logging.getLogger('tracer').setLevel(log_level)
-    logging.getLogger('asyncio').setLevel(log_level)
-    # logging.getLogger('mqtt').setLevel(log_level)
+    if log_level:
+        # set lowest-severity for 'root', 'msg', 'conn' and 'data' logger
+        logging.getLogger().setLevel(log_level)
+        logging.getLogger('msg').setLevel(log_level)
+        logging.getLogger('conn').setLevel(log_level)
+        logging.getLogger('data').setLevel(log_level)
+        logging.getLogger('tracer').setLevel(log_level)
+        logging.getLogger('asyncio').setLevel(log_level)
+        # logging.getLogger('mqtt').setLevel(log_level)
 
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
 
     # read config file
-    Config.init(ConfigReadToml("default_config.toml"))
+    Config.init(ConfigReadToml(src_dir + "cnf/default_config.toml"))
     ConfigReadEnv()
     ConfigReadJson(args.config_path + "config.json")
     ConfigReadToml(args.config_path + "config.toml")
