@@ -126,27 +126,38 @@ class Register(Enum):
     BATT_PV2_VOLT = 1002
     BATT_PV2_CUR = 1003
     BATT_38 = 1004
-    BATT_3a = 1005
+    BATT_TOTAL_GEN = 1005
     BATT_STATUS_1 = 1006
     BATT_STATUS_2 = 1007
     BATT_VOLT = 1010
     BATT_CUR = 1011
     BATT_SOC = 1012
-    BATT_46 = 1013
-    BATT_48 = 1014
-    BATT_4a = 1015
-    BATT_4c = 1016
-    BATT_4e = 1017
-    BATT_66 = 1018
-    BATT_TEMP_1 = 1019
-    BATT_TEMP_2 = 1020
-    BATT_OUT_VOLT = 1021
-    BATT_OUT_CUR = 1022
-    BATT_OUT_STATUS = 1023
-    BATT_TEMP_3 = 1024
-    BATT_74 = 1025
-    BATT_76 = 1026
-    BATT_78 = 1027
+    BATT_CELL1_VOLT = 1013
+    BATT_CELL2_VOLT = 1014
+    BATT_CELL3_VOLT = 1015
+    BATT_CELL4_VOLT = 1016
+    BATT_CELL5_VOLT = 1017
+    BATT_CELL6_VOLT = 1018
+    BATT_CELL7_VOLT = 1019
+    BATT_CELL8_VOLT = 1020
+    BATT_CELL9_VOLT = 1021
+    BATT_CELL10_VOLT = 1022
+    BATT_CELL11_VOLT = 1023
+    BATT_CELL12_VOLT = 1024
+    BATT_CELL13_VOLT = 1025
+    BATT_CELL14_VOLT = 1026
+    BATT_CELL15_VOLT = 1027
+    BATT_CELL16_VOLT = 1028
+    BATT_TEMP_1 = 1029
+    BATT_TEMP_2 = 1030
+    BATT_TEMP_3 = 1031
+    BATT_OUT_VOLT = 1032
+    BATT_OUT_CUR = 1033
+    BATT_OUT_STATUS = 1034
+    BATT_TEMP_4 = 1035
+    BATT_74 = 1036
+    BATT_76 = 1037
+    BATT_78 = 1038
     BATT_PV_PWR = 1040
     BATT_PWR = 1041
     BATT_OUT_PWR = 1042
@@ -364,6 +375,8 @@ class Infos:
     __comm_type_val_tpl = "{%set com_types = ['n/a','Wi-Fi', 'G4', 'G5', 'GPRS'] %}{{com_types[value_json['Communication_Type']|int(0)]|default(value_json['Communication_Type'])}}"    # noqa: E501
     __work_mode_val_tpl = "{%set mode = ['Normal-Mode', 'Aging-Mode', 'ATE-Mode', 'Shielding GFDI', 'DTU-Mode'] %}{{mode[value_json['Work_Mode']|int(0)]|default(value_json['Work_Mode'])}}"    # noqa: E501
     __status_type_val_tpl = "{%set inv_status = ['Off-line', 'On-grid', 'Off-grid'] %}{{inv_status[value_json['Inverter_Status']|int(0)]|default(value_json['Inverter_Status'])}}"    # noqa: E501
+    __mppt1_status_type_val_tpl = "{%set mppt_status = ['Locked', 'On', 'Off'] %}{{mppt_status[value_json['Status_1']|int(0)]|default(value_json['Status_1'])}}"    # noqa: E501
+    __mppt2_status_type_val_tpl = "{%set mppt_status = ['Locked', 'On', 'Off'] %}{{mppt_status[value_json['Status_2']|int(0)]|default(value_json['Status_2'])}}"    # noqa: E501
     __out_status_type_val_tpl = "{%set out_status = ['Off', 'On'] %}{{out_status[value_json['out']['Out_Status']|int(0)]|default(value_json['out']['Out_Status'])}}"    # noqa: E501
     __rated_power_val_tpl = "{% if 'Rated_Power' in value_json and value_json['Rated_Power'] != None %}{{value_json['Rated_Power']|string() +' W'}}{% else %}{{ this.state }}{% endif %}"  # noqa: E501
     __designed_power_val_tpl = '''
@@ -628,32 +641,41 @@ class Infos:
         Register.BATT_PV2_VOLT:      {'name': ['batterie', 'pv2', 'Voltage'],       'level': logging.INFO, 'unit': 'V',    'ha': {'dev': 'bat_inp_pv2', 'dev_cla': 'voltage',   'stat_cla': 'measurement', 'id': 'volt_pv2_', 'val_tpl': "{{ (value_json['pv2']['Voltage'] | float)}}", 'icon': GAUGE, 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.BATT_PV2_CUR:       {'name': ['batterie', 'pv2', 'Current'],       'level': logging.INFO, 'unit': 'A',    'ha': {'dev': 'bat_inp_pv2', 'dev_cla': 'current',   'stat_cla': 'measurement', 'id': 'cur_pv2_',  'val_tpl': "{{ (value_json['pv2']['Current'] | float)}}", 'icon': GAUGE, 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.BATT_38:            {'name': ['batterie', 'Reg_38'],               'level': logging.INFO, 'unit': '',     'ha': {'dev': 'batterie', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'batt_38_', 'fmt': FMT_FLOAT, 'ent_cat': 'diagnostic'}},  # noqa: E501
-        Register.BATT_3a:            {'name': ['batterie', 'Reg_3a'],               'level': logging.INFO, 'unit': 'kWh',  'ha': {'dev': 'batterie', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'batt_3a_', 'fmt': FMT_FLOAT, 'ent_cat': 'diagnostic'}},  # noqa: E501
-        Register.BATT_STATUS_1:      {'name': ['batterie', 'Status_1'],             'level': logging.INFO, 'unit': '',     'ha': {'dev': 'batterie', 'comp': 'sensor', 'dev_cla': None, 'stat_cla': None, 'id': 'status1_', 'fmt': FMT_INT,   'ent_cat': 'diagnostic'}},  # noqa: E501
-        Register.BATT_STATUS_2:      {'name': ['batterie', 'Status_2'],             'level': logging.INFO, 'unit': '',     'ha': {'dev': 'batterie', 'comp': 'sensor', 'dev_cla': None, 'stat_cla': None, 'id': 'status2_', 'fmt': FMT_INT,   'ent_cat': 'diagnostic'}},  # noqa: E501
-        Register.BATT_VOLT:          {'name': ['batterie', 'Voltage'],              'level': logging.INFO, 'unit': 'V',    'ha': {'dev': 'batterie', 'dev_cla': 'voltage', 'stat_cla': 'measurement', 'id': 'volt_bat_', 'fmt': FMT_FLOAT, 'name': 'Bat Voltage', 'icon': GAUGE, 'ent_cat': 'diagnostic'}},  # noqa: E501
-        Register.BATT_CUR:           {'name': ['batterie', 'Current'],              'level': logging.INFO, 'unit': 'A',    'ha': {'dev': 'batterie', 'dev_cla': 'current', 'stat_cla': 'measurement', 'id': 'cur_bat_',  'fmt': FMT_FLOAT, 'name': 'Bat Current', 'icon': GAUGE, 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.BATT_TOTAL_GEN:     {'name': ['batterie', 'Total_Generation'],     'level': logging.INFO, 'unit': 'kWh',  'ha': {'dev': 'batterie', 'dev_cla': 'energy',   'stat_cla': 'total', 'id': 'total_gen_', 'fmt': FMT_FLOAT, 'name': TOTAL_GEN, 'icon': SOLAR_POWER, 'must_incr': True}},  # noqa: E501
+        Register.BATT_STATUS_1:      {'name': ['batterie', 'Status_1'],             'level': logging.INFO, 'unit': '',     'ha': {'dev': 'batterie', 'comp': 'sensor', 'dev_cla': None, 'stat_cla': None, 'id': 'status1_', 'name': 'MPPT-1 Status', 'val_tpl': __mppt1_status_type_val_tpl, 'icon': POWER}},  # noqa: E501
+        Register.BATT_STATUS_2:      {'name': ['batterie', 'Status_2'],             'level': logging.INFO, 'unit': '',     'ha': {'dev': 'batterie', 'comp': 'sensor', 'dev_cla': None, 'stat_cla': None, 'id': 'status2_', 'name': 'MPPT-2 Status', 'val_tpl': __mppt2_status_type_val_tpl, 'icon': POWER}},  # noqa: E501
+        Register.BATT_VOLT:          {'name': ['batterie', 'Voltage'],              'level': logging.INFO, 'unit': 'V',    'ha': {'dev': 'batterie', 'dev_cla': 'voltage', 'stat_cla': 'measurement', 'id': 'volt_bat_', 'fmt': FMT_FLOAT, 'name': 'Batterie Voltage', 'icon': GAUGE, 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.BATT_CUR:           {'name': ['batterie', 'Current'],              'level': logging.INFO, 'unit': 'A',    'ha': {'dev': 'batterie', 'dev_cla': 'current', 'stat_cla': 'measurement', 'id': 'cur_bat_',  'fmt': FMT_FLOAT, 'name': 'Batterie Current', 'icon': GAUGE, 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.BATT_SOC:           {'name': ['batterie', 'SOC'],                  'level': logging.INFO, 'unit': '%',    'ha': {'dev': 'batterie', 'dev_cla': None,      'stat_cla': 'measurement', 'id': 'soc_',     'fmt': FMT_FLOAT,           'name': 'State of Charge (SOC)', 'icon': 'mdi:battery-90'}},  # noqa: E501
-        # Register.BATT_46:            {'name': ['batterie', 'Reg_46'],               'level': logging.INFO, 'unit': '',     'ha': {'dev': 'batterie', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'batt_46_', 'fmt': FMT_INT, 'ent_cat': 'diagnostic'}},  # noqa: E501
-        # Register.BATT_48:            {'name': ['batterie', 'Reg_48'],               'level': logging.INFO, 'unit': '',     'ha': {'dev': 'batterie', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'batt_48_', 'fmt': FMT_INT, 'ent_cat': 'diagnostic'}},  # noqa: E501
-        # Register.BATT_4a:            {'name': ['batterie', 'Reg_4a'],               'level': logging.INFO, 'unit': '',     'ha': {'dev': 'batterie', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'batt_4a_', 'fmt': FMT_INT, 'ent_cat': 'diagnostic'}},  # noqa: E501
-        # Register.BATT_4c:            {'name': ['batterie', 'Reg_4c'],               'level': logging.INFO, 'unit': '',     'ha': {'dev': 'batterie', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'batt_4c_', 'fmt': FMT_INT, 'ent_cat': 'diagnostic'}},  # noqa: E501
-        # Register.BATT_4e:            {'name': ['batterie', 'Reg_4e'],               'level': logging.INFO, 'unit': '',     'ha': {'dev': 'batterie', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'batt_4e_', 'fmt': FMT_INT, 'ent_cat': 'diagnostic'}},  # noqa: E501
-
-        Register.BATT_66:            {'name': ['batterie', 'Reg_66'],               'level': logging.INFO, 'unit': '',     'ha': {'dev': 'batterie', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'batt_66_', 'fmt': FMT_INT, 'ent_cat': 'diagnostic'}},  # noqa: E501
-
-        Register.BATT_TEMP_1:        {'name': ['batterie', 'Temp_1'],               'level': logging.INFO, 'unit': '°C',   'ha': {'dev': 'batterie', 'dev_cla': 'temperature', 'stat_cla': 'measurement', 'id': 'temp_1_', 'fmt': FMT_INT, 'name': 'Temperature-1'}},  # noqa: E501
-        Register.BATT_TEMP_2:        {'name': ['batterie', 'Temp_2'],               'level': logging.INFO, 'unit': '°C',   'ha': {'dev': 'batterie', 'dev_cla': 'temperature', 'stat_cla': 'measurement', 'id': 'temp_2_', 'fmt': FMT_INT, 'name': 'Temperature-2'}},  # noqa: E501
-        Register.BATT_OUT_VOLT:      {'name': ['batterie', 'out', 'Voltage'],       'level': logging.INFO, 'unit': 'V',    'ha': {'dev': 'batterie', 'dev_cla': 'voltage', 'stat_cla': 'measurement', 'id': 'out_volt_', 'val_tpl': "{{ (value_json['out']['Voltage'] | float)}}", 'name': 'Out Voltage', 'icon': GAUGE, 'ent_cat': 'diagnostic'}},  # noqa: E501
-        Register.BATT_OUT_CUR:       {'name': ['batterie', 'out', 'Current'],       'level': logging.INFO, 'unit': 'A',    'ha': {'dev': 'batterie', 'dev_cla': 'current', 'stat_cla': 'measurement', 'id': 'out_cur_',  'val_tpl': "{{ (value_json['out']['Current'] | float)}}", 'name': 'Out Current', 'icon': GAUGE, 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.BATT_CELL1_VOLT:    {'name': ['batterie', 'Cell', 'Volt1'],        'level': logging.INFO, 'unit': 'V',    'ha': {'dev': 'batterie', 'dev_cla': 'voltage', 'stat_cla': 'measurement', 'id': 'volt_cell1_', 'val_tpl': "{{ (value_json['Cell']['Volt1'] | float)}}", 'name': 'Cell-01 Voltage', 'icon': GAUGE, 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.BATT_CELL3_VOLT:    {'name': ['batterie', 'Cell', 'Volt3'],        'level': logging.INFO, 'unit': 'V',    'ha': {'dev': 'batterie', 'dev_cla': 'voltage', 'stat_cla': 'measurement', 'id': 'volt_cell3_', 'val_tpl': "{{ (value_json['Cell']['Volt2'] | float)}}", 'name': 'Cell-03 Voltage', 'icon': GAUGE, 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.BATT_CELL4_VOLT:    {'name': ['batterie', 'Cell', 'Volt4'],        'level': logging.INFO, 'unit': 'V',    'ha': {'dev': 'batterie', 'dev_cla': 'voltage', 'stat_cla': 'measurement', 'id': 'volt_cell4_', 'val_tpl': "{{ (value_json['Cell']['Volt3'] | float)}}", 'name': 'Cell-04 Voltage', 'icon': GAUGE, 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.BATT_CELL2_VOLT:    {'name': ['batterie', 'Cell', 'Volt2'],        'level': logging.INFO, 'unit': 'V',    'ha': {'dev': 'batterie', 'dev_cla': 'voltage', 'stat_cla': 'measurement', 'id': 'volt_cell2_', 'val_tpl': "{{ (value_json['Cell']['Volt4'] | float)}}", 'name': 'Cell-02 Voltage', 'icon': GAUGE, 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.BATT_CELL5_VOLT:    {'name': ['batterie', 'Cell', 'Volt5'],        'level': logging.INFO, 'unit': 'V',    'ha': {'dev': 'batterie', 'dev_cla': 'voltage', 'stat_cla': 'measurement', 'id': 'volt_cell5_', 'val_tpl': "{{ (value_json['Cell']['Volt5'] | float)}}", 'name': 'Cell-05 Voltage', 'icon': GAUGE, 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.BATT_CELL6_VOLT:    {'name': ['batterie', 'Cell', 'Volt6'],        'level': logging.INFO, 'unit': 'V',    'ha': {'dev': 'batterie', 'dev_cla': 'voltage', 'stat_cla': 'measurement', 'id': 'volt_cell6_', 'val_tpl': "{{ (value_json['Cell']['Volt6'] | float)}}", 'name': 'Cell-06 Voltage', 'icon': GAUGE, 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.BATT_CELL7_VOLT:    {'name': ['batterie', 'Cell', 'Volt7'],        'level': logging.INFO, 'unit': 'V',    'ha': {'dev': 'batterie', 'dev_cla': 'voltage', 'stat_cla': 'measurement', 'id': 'volt_cell7_', 'val_tpl': "{{ (value_json['Cell']['Volt7'] | float)}}", 'name': 'Cell-07 Voltage', 'icon': GAUGE, 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.BATT_CELL8_VOLT:    {'name': ['batterie', 'Cell', 'Volt8'],        'level': logging.INFO, 'unit': 'V',    'ha': {'dev': 'batterie', 'dev_cla': 'voltage', 'stat_cla': 'measurement', 'id': 'volt_cell8_', 'val_tpl': "{{ (value_json['Cell']['Volt8'] | float)}}", 'name': 'Cell-08 Voltage', 'icon': GAUGE, 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.BATT_CELL9_VOLT:    {'name': ['batterie', 'Cell', 'Volt9'],        'level': logging.INFO, 'unit': 'V',    'ha': {'dev': 'batterie', 'dev_cla': 'voltage', 'stat_cla': 'measurement', 'id': 'volt_cell9_', 'val_tpl': "{{ (value_json['Cell']['Volt9'] | float)}}", 'name': 'Cell-09 Voltage', 'icon': GAUGE, 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.BATT_CELL10_VOLT:   {'name': ['batterie', 'Cell', 'Volt10'],       'level': logging.INFO, 'unit': 'V',    'ha': {'dev': 'batterie', 'dev_cla': 'voltage', 'stat_cla': 'measurement', 'id': 'volt_cell10_', 'val_tpl': "{{ (value_json['Cell']['Volt10'] | float)}}", 'name': 'Cell-10 Voltage', 'icon': GAUGE, 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.BATT_CELL11_VOLT:   {'name': ['batterie', 'Cell', 'Volt11'],       'level': logging.INFO, 'unit': 'V',    'ha': {'dev': 'batterie', 'dev_cla': 'voltage', 'stat_cla': 'measurement', 'id': 'volt_cell11_', 'val_tpl': "{{ (value_json['Cell']['Volt11'] | float)}}", 'name': 'Cell-11 Voltage', 'icon': GAUGE, 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.BATT_CELL12_VOLT:   {'name': ['batterie', 'Cell', 'Volt12'],       'level': logging.INFO, 'unit': 'V',    'ha': {'dev': 'batterie', 'dev_cla': 'voltage', 'stat_cla': 'measurement', 'id': 'volt_cell12_', 'val_tpl': "{{ (value_json['Cell']['Volt12'] | float)}}", 'name': 'Cell-12 Voltage', 'icon': GAUGE, 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.BATT_CELL13_VOLT:   {'name': ['batterie', 'Cell', 'Volt13'],       'level': logging.INFO, 'unit': 'V',    'ha': {'dev': 'batterie', 'dev_cla': 'voltage', 'stat_cla': 'measurement', 'id': 'volt_cell13_', 'val_tpl': "{{ (value_json['Cell']['Volt13'] | float)}}", 'name': 'Cell-13 Voltage', 'icon': GAUGE, 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.BATT_CELL14_VOLT:   {'name': ['batterie', 'Cell', 'Volt14'],       'level': logging.INFO, 'unit': 'V',    'ha': {'dev': 'batterie', 'dev_cla': 'voltage', 'stat_cla': 'measurement', 'id': 'volt_cell14_', 'val_tpl': "{{ (value_json['Cell']['Volt14'] | float)}}", 'name': 'Cell-14 Voltage', 'icon': GAUGE, 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.BATT_CELL15_VOLT:   {'name': ['batterie', 'Cell', 'Volt15'],       'level': logging.INFO, 'unit': 'V',    'ha': {'dev': 'batterie', 'dev_cla': 'voltage', 'stat_cla': 'measurement', 'id': 'volt_cell15_', 'val_tpl': "{{ (value_json['Cell']['Volt15'] | float)}}", 'name': 'Cell-15 Voltage', 'icon': GAUGE, 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.BATT_CELL16_VOLT:   {'name': ['batterie', 'Cell', 'Volt16'],       'level': logging.INFO, 'unit': 'V',    'ha': {'dev': 'batterie', 'dev_cla': 'voltage', 'stat_cla': 'measurement', 'id': 'volt_cell16_', 'val_tpl': "{{ (value_json['Cell']['Volt16'] | float)}}", 'name': 'Cell-16 Voltage', 'icon': GAUGE, 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.BATT_TEMP_1:        {'name': ['batterie', 'Temp_1'],               'level': logging.INFO, 'unit': '°C',   'ha': {'dev': 'batterie', 'dev_cla': 'temperature', 'stat_cla': 'measurement', 'id': 'temp_1_', 'fmt': FMT_INT, 'name': 'Batterie Temp-1', 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.BATT_TEMP_2:        {'name': ['batterie', 'Temp_2'],               'level': logging.INFO, 'unit': '°C',   'ha': {'dev': 'batterie', 'dev_cla': 'temperature', 'stat_cla': 'measurement', 'id': 'temp_2_', 'fmt': FMT_INT, 'name': 'Batterie Temp-2', 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.BATT_TEMP_3:        {'name': ['batterie', 'Temp_3'],               'level': logging.INFO, 'unit': '°C',   'ha': {'dev': 'batterie', 'dev_cla': 'temperature', 'stat_cla': 'measurement', 'id': 'temp_3_', 'fmt': FMT_INT, 'name': 'Batterie Temp-3', 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.BATT_OUT_VOLT:      {'name': ['batterie', 'out', 'Voltage'],       'level': logging.INFO, 'unit': 'V',    'ha': {'dev': 'batterie', 'dev_cla': 'voltage', 'stat_cla': 'measurement', 'id': 'out_volt_', 'val_tpl': "{{ (value_json['out']['Voltage'] | float)}}", 'name': 'Output Voltage', 'icon': GAUGE, 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.BATT_OUT_CUR:       {'name': ['batterie', 'out', 'Current'],       'level': logging.INFO, 'unit': 'A',    'ha': {'dev': 'batterie', 'dev_cla': 'current', 'stat_cla': 'measurement', 'id': 'out_cur_',  'val_tpl': "{{ (value_json['out']['Current'] | float)}}", 'name': 'Output Current', 'icon': GAUGE, 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.BATT_OUT_STATUS:    {'name': ['batterie', 'out', 'Out_Status'],    'level': logging.INFO, 'unit': '',     'ha': {'dev': 'batterie', 'comp': 'sensor', 'dev_cla': None, 'stat_cla': None, 'id': 'out_status_', 'name': 'Output Status', 'val_tpl': __out_status_type_val_tpl,          'icon': POWER}},  # noqa: E501
-        Register.BATT_TEMP_3:        {'name': ['batterie', 'Controller_Temp'],      'level': logging.INFO, 'unit': '°C',   'ha': {'dev': 'batterie', 'dev_cla': 'temperature', 'stat_cla': 'measurement', 'id': 'temp_3_', 'fmt': FMT_INT, 'name': 'Ctrl Temperature'}},  # noqa: E501
+        Register.BATT_TEMP_4:        {'name': ['batterie', 'Controller_Temp'],      'level': logging.INFO, 'unit': '°C',   'ha': {'dev': 'batterie', 'dev_cla': 'temperature', 'stat_cla': 'measurement', 'id': 'temp_4_', 'fmt': FMT_INT, 'name': 'Ctrl Temperature'}},  # noqa: E501
         Register.BATT_74:            {'name': ['batterie', 'Reg_74'],               'level': logging.INFO, 'unit': '',     'ha': {'dev': 'batterie', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'batt_74_', 'fmt': FMT_INT, 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.BATT_76:            {'name': ['batterie', 'Reg_76'],               'level': logging.INFO, 'unit': '',     'ha': {'dev': 'batterie', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'batt_76_', 'fmt': FMT_INT, 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.BATT_78:            {'name': ['batterie', 'Reg_78'],               'level': logging.INFO, 'unit': '',     'ha': {'dev': 'batterie', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'batt_78_', 'fmt': FMT_INT, 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.BATT_PV_PWR:        {'name': ['batterie', 'PV_Power'],             'level': logging.INFO, 'unit': 'W',    'ha': {'dev': 'batterie', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'pv_power_', 'fmt': FMT_INT, 'name': 'PV Power'}},  # noqa: E501
         Register.BATT_PWR:           {'name': ['batterie', 'Power'],                'level': logging.INFO, 'unit': 'W',    'ha': {'dev': 'batterie', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'power_',    'fmt': FMT_INT, 'name': 'Batterie Power'}},  # noqa: E501
-        Register.BATT_OUT_PWR:       {'name': ['batterie', 'out', 'Power'],         'level': logging.INFO, 'unit': 'W',    'ha': {'dev': 'batterie', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'out_power_', 'val_tpl': "{{ (value_json['out']['Power'] | int)}}", 'name': 'Out Power'}},  # noqa: E501
+        Register.BATT_OUT_PWR:       {'name': ['batterie', 'out', 'Power'],         'level': logging.INFO, 'unit': 'W',    'ha': {'dev': 'batterie', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'out_power_', 'val_tpl': "{{ (value_json['out']['Power'] | int)}}", 'name': 'Output Power'}},  # noqa: E501
 
         Register.TEST_VAL_0:         {'name': ['input', 'Val_0'],                   'level': logging.INFO, 'unit': '',     'ha': {'dev': 'inverter', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'val_0_', 'fmt': FMT_INT, 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.TEST_VAL_1:         {'name': ['input', 'Val_1'],                   'level': logging.INFO, 'unit': '',     'ha': {'dev': 'inverter', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'val_1_', 'fmt': FMT_INT, 'ent_cat': 'diagnostic'}},  # noqa: E501
