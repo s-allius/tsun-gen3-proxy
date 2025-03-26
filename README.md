@@ -1,7 +1,7 @@
 <h1 align="center">TSUN-Gen3-Proxy</h1>
 <p align="center">A proxy for</p>
-<h3 align="center">TSUN Gen 3 Micro-Inverters and</h3>
-<h3 align="center">Energy Storage Systems (Batteries)</h3>
+<h3 align="center">TSUN Gen 3 Micro-Inverters</h3>
+<h3 align="center">and Batteries</h3>
 <p align="center">for easy</p>
 <h3 align="center">MQTT/Home-Assistant</h3>
 <p align="center">integration</p>
