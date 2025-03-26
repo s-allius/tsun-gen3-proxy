@@ -568,6 +568,17 @@ def at_command_rsp_msg():  # 0x1510
     return msg
 
 @pytest.fixture
+def at_command_interim_rsp_msg():  # 0x0510
+    msg  = b'\xa5\x25\x00\x10\x05\x03\x03' +get_sn()  +b'\x08\x01'
+    msg += total()  
+    msg += hb()
+    msg += b'\x00\x00\x00\x00+ok=10\x2c'
+    msg += b'start download\x0d\x0a'
+    msg += correct_checksum(msg)
+    msg += b'\x15'
+    return msg
+
+@pytest.fixture
 def heartbeat_ind_msg():  # 0x4710
     msg  = b'\xa5\x01\x00\x10\x47\x10\x84' +get_sn()
     msg += b'\x00'               
@@ -1672,6 +1683,29 @@ def test_msg_at_command_rsp2(config_tsun_inv1, at_command_rsp_msg):
     assert m.ifc.tx_fifo.get()==b''
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
     assert m.db.stat['proxy']['Modbus_Command'] == 0
+    m.close()
+
+def test_msg_at_command_rsp3(config_tsun_inv1, at_command_interim_rsp_msg):
+    _ = config_tsun_inv1
+    m = MemoryStream(at_command_interim_rsp_msg)
+    m.db.stat['proxy']['Unknown_Ctrl'] = 0
+    m.db.stat['proxy']['Modbus_Command'] = 0
+    m.db.stat['proxy']['Invalid_Msg_Format'] = 0
+    m.db.stat['proxy']['Unknown_Msg'] = 0
+    m.forward_at_cmd_resp = True
+    m.read()         # read complete msg, and dispatch msg
+    assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
+    assert m.msg_count == 1
+    assert m.control == 0x0510
+    assert str(m.seq) == '03:03'
+    assert m.header_len==11
+    assert m.data_len==37
+    assert m.ifc.fwd_fifo.get()==at_command_interim_rsp_msg
+    assert m.ifc.tx_fifo.get()==b''
+    assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
+    assert m.db.stat['proxy']['Modbus_Command'] == 0
+    assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
+    assert m.db.stat['proxy']['Unknown_Msg'] == 0
     m.close()
 
 def test_msg_modbus_req(config_tsun_inv1, msg_modbus_cmd, msg_modbus_cmd_fwd):

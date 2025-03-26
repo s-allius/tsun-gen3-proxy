@@ -247,6 +247,7 @@ class SolarmanBase(Message):
 class SolarmanV5(SolarmanBase):
     AT_CMD = 1
     MB_RTU_CMD = 2
+    AT_CMD_RSP = 8
     MB_CLIENT_DATA_UP = 30
     '''Data up time in client mode'''
     HDR_FMT = '<BLLL'
@@ -292,7 +293,7 @@ class SolarmanV5(SolarmanBase):
             # MODbus or AT cmd
             0x4510: self.msg_command_req,  # from server
             0x1510: self.msg_command_rsp,     # from inverter
-            # 0x0510: self.msg_command_rsp,     # from inverter
+            0x0510: self.msg_command_rsp,     # from inverter
         }
 
         self.log_lvl = {
@@ -392,10 +393,13 @@ class SolarmanV5(SolarmanBase):
     def _set_config_parms(self, inv: dict, serial_no: str = ""):
         '''init connection with params from the configuration'''
         super()._set_config_parms(inv)
+        snr = serial_no[:3]
+        if '410' == snr:
+            self.db.set_db_def_value(Register.EQUIPMENT_MODEL,
+                                     'TSOL-DC1000')
 
         self.sensor_list = inv['sensor_list']
         if 0 == self.sensor_list:
-            snr = serial_no[:3]
             if '410' == snr:
                 self.sensor_list = 0x3026
                 self.mb_regs = [{'addr': 0x0000, 'len': 45}]
@@ -674,7 +678,8 @@ class SolarmanV5(SolarmanBase):
         data = self.ifc.rx_peek()[self.header_len:
                                   self.header_len+self.data_len]
         ftype = data[0]
-        if ftype == self.AT_CMD:
+        if ftype == self.AT_CMD or \
+           ftype == self.AT_CMD_RSP:
             if not self.forward_at_cmd_resp:
                 data_json = data[14:].decode("utf-8")
                 node_id = self.node_id
