@@ -50,7 +50,7 @@ If you use a Pi-hole, you can also store the host entry in the Pi-hole.
 
 - Supports TSUN GEN3 PLUS inverters: TSOL-MS2000, MS1800 and MS1600
 - Supports TSUN GEN3 PLUS batteries: TSOL-DC1000
-- Supports TSUN GEN3 inverters: TSOL-MS-3000, MS800, MS700, MS600, MS400, MS350 and MS300
+- Supports TSUN GEN3 inverters: TSOL-MS3000, MS800, MS700, MS600, MS400, MS350 and MS300
 - `MQTT` support
 - `Home-Assistant` auto-discovery support
 - `MODBUS` support via MQTT topics
@@ -69,12 +69,12 @@ Here are some screenshots of how the inverter is displayed in the Home Assistant
 
 ## Requirements
 
-### for Docker Installation
+### Requirements for Docker Installation
 
 - A running Docker engine to host the container
 - Ability to loop the proxy into the connection between the device and the TSUN cloud
 
-### for Home Assistant Add-on Installation
+### Requirements for Home Assistant Add-on Installation
 
 - Running Home Assistant on Home Assistant OS or Supervised. Container and Core installations doesn't support add-ons.
 - Ability to loop the proxy into the connection between the device and the TSUN cloud
@@ -118,10 +118,11 @@ docker run  --dns '8.8.8.8' --env 'UID=1050' -p '5005:5005' -p '10000:10000' -v 
 # Configuration
 
 ```txt
-❗The following description applies to the Docker installation. When installing the Home Assistant add-on, the 
-configuration is carried out via the Home Assistant UI. Some of the options described below are not required for 
-this. Additionally, creating a config.toml file is not necessary. However, for a general understanding of the 
-configuration and functionality, it is helpful to read the following description.
+❗The following description applies to the Docker installation. When installing the Home
+Assistant add-on, the configuration is carried out via the Home Assistant UI. Some of the
+options described below are not required for this. Additionally, creating a config.toml
+file is not necessary. However, for a general understanding of the configuration and
+functionality, it is helpful to read the following description.
 ```
 
 The configuration consists of several parts. First, the container and the proxy itself must be configured, and then the connection of the device to the proxy must be set up, which is done differently depending on the device generation
@@ -130,7 +131,7 @@ For GEN3PLUS devices, this can be done easily via the web interface of the devic
 
   1. [Container Setup](#container-setup)
   2. [Proxy Configuration](#proxy-configuration)
-  3. [Inverter Configuration](#inverter-configuration) (only GEN3PLUS)
+  3. [Inverter and Batterie Configuration](#inverter-and-batterie-configuration) (only GEN3PLUS)
   4. [DNS Settings](#dns-settings) (Mandatory for GEN3)
 
 ## Container Setup
@@ -325,8 +326,8 @@ pv4 = {type = 'RSM40-8-410M', manufacturer = 'Risen'}   # Optional, PV module de
 
 [batteries."4100000000000001"]
 monitor_sn = 3000000000      # The GEN3PLUS "Monitoring SN:"
-node_id = ''                 # MQTT replacement for devices serial number  
-suggested_area = ''          # suggested installation place for home-assistant
+node_id = 'bat_1'            # MQTT replacement for devices serial number  
+suggested_area = ''garage'   # suggested installation place for home-assistant
 modbus_polling = true        # Enable optional MODBUS polling
 
 # if your inverter supports SSL connections you must use the client_mode. Pls, uncomment
@@ -425,8 +426,10 @@ A combination with a red question mark should work, but I have not checked it in
   <tr><th align="center">Micro Inverter Model</th><th align="center">Fw. 1.00.06</th><th align="center">Fw. 1.00.17</th><th align="center">Fw. 1.00.20</th><th align="center">Fw. 4.0.10</th><th align="center">Fw. 4.0.20</th></tr>
   <tr><td>GEN3 micro inverters (single MPPT):<br>MS300, MS350, MS400<br>MS400-D</td><td align="center">❓</td><td align="center">❓</td><td align="center">❓</td><td align="center">➖</td><td align="center">➖</td></tr>
   <tr><td>GEN3 micro inverters (dual MPPT):<br>MS600, MS700, MS800<br>MS600-D, MS800-D</td><td align="center">✔️</td><td align="center">✔️</td><td align="center">✔️</td><td align="center">➖</td><td align="center">➖</td></tr>
+  <tr><td>GEN3 micro inverters (quad MPPT):<br>MS3000</td><td align="center">✔️</td><td align="center">✔️</td><td align="center">✔️</td><td align="center">➖</td><td align="center">➖</td></tr>
   <tr><td>GEN3 PLUS micro inverters:<br>MS1600, MS1800, MS2000<br>MS2000-D</td><td align="center">➖</td><td align="center">➖</td><td align="center">➖</td><td align="center">✔️</td><td align="center">✔️</td></tr>
-  <tr><td>TITAN micro inverters:<br>TSOL-MP3000, MP2250, MS3000</td><td align="center">❓</td><td align="center">❓</td><td align="center">❓</td><td align="center">❓</td><td align="center">❓</td></tr>
+  <tr><td>GEN3 PLUS storage systems:<br>DC1000</td><td align="center">➖</td><td align="center">➖</td><td align="center">➖</td><td align="center">✔️</td><td align="center">✔️</td></tr>
+  <tr><td>TITAN micro inverters:<br>TSOL-MP3000, MP2250</td><td align="center">❓</td><td align="center">❓</td><td align="center">❓</td><td align="center">❓</td><td align="center">❓</td></tr>
 </table>
 
 ```txt
