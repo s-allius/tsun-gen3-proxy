@@ -1,6 +1,7 @@
 <h1 align="center">TSUN-Gen3-Proxy</h1>
 <p align="center">A proxy for</p>
-<h3 align="center">TSUN Gen 3 Micro-Inverters</h3>
+<h3 align="center">TSUN Gen 3 Micro-Inverters and</h3>
+<h3 align="center">Energy Storage Systems (Batteries)</h3>
 <p align="center">for easy</p>
 <h3 align="center">MQTT/Home-Assistant</h3>
 <p align="center">integration</p>
@@ -424,12 +425,12 @@ A combination with a red question mark should work, but I have not checked it in
 
 <table align="center">
   <tr><th align="center">Micro Inverter Model</th><th align="center">Fw. 1.00.06</th><th align="center">Fw. 1.00.17</th><th align="center">Fw. 1.00.20</th><th align="center">Fw. 4.0.10</th><th align="center">Fw. 4.0.20</th></tr>
-  <tr><td>GEN3 micro inverters (single MPPT):<br>MS300, MS350, MS400<br>MS400-D</td><td align="center">❓</td><td align="center">❓</td><td align="center">❓</td><td align="center">➖</td><td align="center">➖</td></tr>
+  <tr><td>GEN3 micro inverters (single MPPT):<br>MS300, MS350, MS400<br>MS400-D</td><td align="center">✔️</td><td align="center">✔️</td><td align="center">✔️</td><td align="center">➖</td><td align="center">➖</td></tr>
   <tr><td>GEN3 micro inverters (dual MPPT):<br>MS600, MS700, MS800<br>MS600-D, MS800-D</td><td align="center">✔️</td><td align="center">✔️</td><td align="center">✔️</td><td align="center">➖</td><td align="center">➖</td></tr>
   <tr><td>GEN3 micro inverters (quad MPPT):<br>MS3000</td><td align="center">✔️</td><td align="center">✔️</td><td align="center">✔️</td><td align="center">➖</td><td align="center">➖</td></tr>
   <tr><td>GEN3 PLUS micro inverters:<br>MS1600, MS1800, MS2000<br>MS2000-D, MS800</td><td align="center">➖</td><td align="center">➖</td><td align="center">➖</td><td align="center">✔️</td><td align="center">✔️</td></tr>
   <tr><td>GEN3 PLUS storage systems:<br>DC1000</td><td align="center">➖</td><td align="center">➖</td><td align="center">➖</td><td align="center">✔️</td><td align="center">✔️</td></tr>
-  <tr><td>GEN3 PLUS smart meter:<br>TSOL-MG3-MS</td><td align="center">❓</td><td align="center">❓</td><td align="center">❓</td><td align="center">❓</td><td align="center">❓</td></tr>
+  <tr><td>GEN3 PLUS smart meter:<br>TSOL-MG3-MS</td><td align="center">➖</td><td align="center">➖</td><td align="center">➖</td><td align="center">❓</td><td align="center">❓</td></tr>
 </<tr><td>TITAN micro inverters:<br>TSOL-MP3000, MP2250</td><td align="center">❓</td><td align="center">❓</td><td align="center">❓</td><td align="center">❓</td><td align="center">❓</td></tr>
 </table>
 
