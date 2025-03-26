@@ -1,7 +1,23 @@
 
 from typing import Generator
+from itertools import chain
 
 from infos import Infos, Register, ProxyMode, Fmt
+
+
+class RegisterFunc:
+    @staticmethod
+    def prod_sum(info: Infos, arr: dict) -> None | int:
+        result = 0
+        for sum in arr:
+            prod = 1
+            for factor in sum:
+                val = info.get_db_value(factor)
+                if val is None:
+                    return None
+                prod = prod * val
+            result += prod
+        return result
 
 
 class RegisterMap:
@@ -32,7 +48,8 @@ class RegisterMap:
         0x4102008e: {'reg': None,                          'fmt': '<B'},                 # noqa: E501 Encryption Certificate File Status
         0x4102008f: {'reg': None,                          'fmt': '!40s'},               # noqa: E501
         0x410200b7: {'reg': Register.SSID,                 'fmt': '!40s'},               # noqa: E501
-
+    }
+    map_02b0 = {
         0x4201000c: {'reg': Register.SENSOR_LIST,          'fmt': '<H', 'func': Fmt.hex4},   # noqa: E501
         0x4201001c: {'reg': Register.POWER_ON_TIME,        'fmt': '<H', 'ratio':    1, 'dep': ProxyMode.SERVER},  # noqa: E501, or packet number
         0x42010020: {'reg': Register.SERIAL_NUMBER,        'fmt': '!16s'},               # noqa: E501
@@ -110,6 +127,69 @@ class RegisterMap:
         0xffffff02: {'reg': Register.POLLING_INTERVAL},
         # 0x4281001c: {'reg': Register.POWER_ON_TIME,        'fmt': '<H', 'ratio':    1},  # noqa: E501
     }
+    map_3026 = {
+        0x4201000c: {'reg': Register.SENSOR_LIST,          'fmt': '<H', 'func': Fmt.hex4},   # noqa: E501
+        0x4201001c: {'reg': Register.POWER_ON_TIME,        'fmt': '<H', 'ratio':    1, 'dep': ProxyMode.SERVER},  # noqa: E501, or packet number
+        0x42010020: {'reg': Register.SERIAL_NUMBER,        'fmt': '!16s'},               # noqa: E501
+        0x42010030: {'reg': Register.BATT_PV1_VOLT,        'fmt': '!H', 'ratio': 0.01},  # noqa: E501, PV1 voltage
+        0x42010032: {'reg': Register.BATT_PV1_CUR,         'fmt': '!H', 'ratio': 0.01},  # noqa: E501, PV1 current
+        0x42010034: {'reg': Register.BATT_PV2_VOLT,        'fmt': '!H', 'ratio': 0.01},  # noqa: E501, PV2 voltage
+        0x42010036: {'reg': Register.BATT_PV2_CUR,         'fmt': '!H', 'ratio': 0.01},  # noqa: E501, PV2 current
+        0x42010038: {'reg': Register.BATT_38,              'fmt': '!h'},                 # noqa: E501
+        0x4201003a: {'reg': Register.BATT_TOTAL_GEN,       'fmt': '!h', 'ratio': 0.01},  # noqa: E501
+        0x4201003c: {'reg': Register.BATT_STATUS_1,        'fmt': '!h'},                 # noqa: E501 MPTT-1 Status?
+        0x4201003e: {'reg': Register.BATT_STATUS_2,        'fmt': '!h'},                 # noqa: E501 MPTT-2 Status?
+        0x42010040: {'reg': Register.BATT_VOLT,            'fmt': '!h', 'ratio': 0.01},  # noqa: E501
+        0x42010042: {'reg': Register.BATT_CUR,             'fmt': '!h', 'ratio': 0.01},  # noqa: E501
+        0x42010044: {'reg': Register.BATT_SOC,             'fmt': '!H', 'ratio': 0.01},  # noqa: E501, state of charge (SOC) in percent
+        0x42010046: {'reg': Register.BATT_CELL1_VOLT,      'fmt': '!h', 'ratio': 0.001},  # noqa: E501
+        0x42010048: {'reg': Register.BATT_CELL2_VOLT,      'fmt': '!h', 'ratio': 0.001},  # noqa: E501
+        0x4201004a: {'reg': Register.BATT_CELL3_VOLT,      'fmt': '!h', 'ratio': 0.001},  # noqa: E501
+        0x4201004c: {'reg': Register.BATT_CELL4_VOLT,      'fmt': '!h', 'ratio': 0.001},  # noqa: E501
+        0x4201004e: {'reg': Register.BATT_CELL5_VOLT,      'fmt': '!h', 'ratio': 0.001},  # noqa: E501
+        0x42010050: {'reg': Register.BATT_CELL6_VOLT,      'fmt': '!h', 'ratio': 0.001},  # noqa: E501
+        0x42010052: {'reg': Register.BATT_CELL7_VOLT,      'fmt': '!h', 'ratio': 0.001},  # noqa: E501
+        0x42010054: {'reg': Register.BATT_CELL8_VOLT,      'fmt': '!h', 'ratio': 0.001},  # noqa: E501
+        0x42010056: {'reg': Register.BATT_CELL9_VOLT,      'fmt': '!h', 'ratio': 0.001},  # noqa: E501
+        0x42010058: {'reg': Register.BATT_CELL10_VOLT,     'fmt': '!h', 'ratio': 0.001},  # noqa: E501
+        0x4201005a: {'reg': Register.BATT_CELL11_VOLT,     'fmt': '!h', 'ratio': 0.001},  # noqa: E501
+        0x4201005c: {'reg': Register.BATT_CELL12_VOLT,     'fmt': '!h', 'ratio': 0.001},  # noqa: E501
+        0x4201005e: {'reg': Register.BATT_CELL13_VOLT,     'fmt': '!h', 'ratio': 0.001},  # noqa: E501
+        0x42010060: {'reg': Register.BATT_CELL14_VOLT,     'fmt': '!h', 'ratio': 0.001},  # noqa: E501
+        0x42010062: {'reg': Register.BATT_CELL15_VOLT,     'fmt': '!h', 'ratio': 0.001},  # noqa: E501
+        0x42010064: {'reg': Register.BATT_CELL16_VOLT,     'fmt': '!h', 'ratio': 0.001},  # noqa: E501
+
+        0x42010066: {'reg': Register.BATT_TEMP_1,          'fmt': '!h'},                 # noqa: E501
+        0x42010068: {'reg': Register.BATT_TEMP_2,          'fmt': '!h'},                 # noqa: E501
+        0x4201006a: {'reg': Register.BATT_TEMP_3,          'fmt': '!h'},                 # noqa: E501
+        0x4201006c: {'reg': Register.BATT_OUT_VOLT,        'fmt': '!h', 'ratio': 0.01},  # noqa: E501
+        0x4201006e: {'reg': Register.BATT_OUT_CUR,         'fmt': '!h', 'ratio': 0.01},  # noqa: E501
+        0x42010070: {'reg': Register.BATT_OUT_STATUS,      'fmt': '!h'},                 # noqa: E501, state of output value 0 or 1
+        0x42010072: {'reg': Register.BATT_TEMP_4,          'fmt': '!h'},                 # noqa: E501 controller temp
+        0x42010074: {'reg': Register.BATT_74,              'fmt': '!h'},                 # noqa: E501, control input 0..2048
+        0x42010076: {'reg': Register.BATT_76,              'fmt': '!h'},                 # noqa: E501
+        0x42010078: {'reg': Register.BATT_78,              'fmt': '!h'},                 # noqa: E501
+        'calc': {
+            1: {'reg': Register.BATT_PV_PWR,               'func': RegisterFunc.prod_sum,    # noqa: E501
+                'params': [[Register.BATT_PV1_VOLT, Register.BATT_PV1_CUR],
+                           [Register.BATT_PV2_VOLT, Register.BATT_PV2_CUR]]},
+            2: {'reg': Register.BATT_PWR,                  'func': RegisterFunc.prod_sum,    # noqa: E501
+                'params': [[Register.BATT_VOLT, Register.BATT_CUR]]},
+            3: {'reg': Register.BATT_OUT_PWR,               'func': RegisterFunc.prod_sum,    # noqa: E501
+                'params': [[Register.BATT_OUT_VOLT, Register.BATT_OUT_CUR]]},
+        }
+    }
+
+
+class RegisterSel:
+    __sensor_map = {
+            0x02b0: RegisterMap.map_02b0,
+            0x3026: RegisterMap.map_3026,
+    }
+
+    @classmethod
+    def get(cls, sensor: int):
+        return cls.__sensor_map.get(sensor, RegisterMap.map)
 
 
 class InfosG3P(Infos):
@@ -144,7 +224,22 @@ class InfosG3P(Infos):
                          entity strings
         sug_area:str ==> suggested area string from the config file'''
         # iterate over RegisterMap.map and get the register values
-        for row in RegisterMap.map.values():
+        sensor = self.get_db_value(Register.SENSOR_LIST)
+        if "3026" == sensor:
+            reg_map = RegisterMap.map_3026
+        elif "02b0" == sensor:
+            reg_map = RegisterMap.map_02b0
+        else:
+            reg_map = {}
+        items = reg_map.items()
+        if 'calc' in reg_map:
+            virt = reg_map['calc'].items()
+        else:
+            virt = {}
+
+        for idx, row in chain(RegisterMap.map.items(), items, virt):
+            if 'calc' == idx:
+                continue
             info_id = row['reg']
             if self.__hide_topic(row):
                 res = self.ha_remove(info_id, node_id, snr)  # noqa: E501
@@ -153,13 +248,17 @@ class InfosG3P(Infos):
             if res:
                 yield res
 
-    def parse(self, buf, msg_type: int, rcv_ftype: int, node_id: str = '') \
+    def parse(self, buf, msg_type: int, rcv_ftype: int,
+              sensor: int = 0, node_id: str = '') \
             -> Generator[tuple[str, bool], None, None]:
         '''parse a data sequence received from the inverter and
         stores the values in Infos.db
 
         buf: buffer of the sequence to parse'''
-        for idx, row in RegisterMap.map.items():
+        reg_map = RegisterSel.get(sensor)
+        for idx, row in reg_map.items():
+            if 'calc' == idx:
+                continue
             addr = idx & 0xffff
             ftype = (idx >> 16) & 0xff
             mtype = (idx >> 24) & 0xff
@@ -169,23 +268,36 @@ class InfosG3P(Infos):
                 continue
             info_id = row['reg']
             result = Fmt.get_value(buf, addr, row)
+            yield from self.__update_val(node_id, "GEN3PLUS", info_id, result)
+        yield from self.calc(sensor, node_id)
 
-            keys, level, unit, must_incr = self._key_obj(info_id)
+    def calc(self, sensor: int = 0, node_id: str = '') \
+            -> Generator[tuple[str, bool], None, None]:
+        '''calculate meta values from the
+        stored values in Infos.db
 
-            if keys:
-                name, update = self.update_db(keys, must_incr, result)
-                yield keys[0], update
-            else:
-                name = str(f'info-id.0x{addr:x}')
-                update = False
+        sensor: sensor_list number
+        node_id: id-string for the node'''
 
+        reg_map = RegisterSel.get(sensor)
+        if 'calc' in reg_map:
+            for row in reg_map['calc'].values():
+                info_id = row['reg']
+                result = row['func'](self, row['params'])
+                yield from self.__update_val(node_id, "CALC", info_id, result)
+
+    def __update_val(self, node_id, source: str, info_id, result):
+        keys, level, unit, must_incr = self._key_obj(info_id)
+        if keys:
+            name, update = self.update_db(keys, must_incr, result)
+            yield keys[0], update
             if update:
-                self.tracer.log(level, f'[{node_id}] GEN3PLUS: {name}'
+                self.tracer.log(level, f'[{node_id}] {source}: {name}'
                                        f' : {result}{unit}')
 
-    def build(self, len, msg_type: int, rcv_ftype: int):
+    def build(self, len, msg_type: int, rcv_ftype: int, sensor: int = 0):
         buf = bytearray(len)
-        for idx, row in RegisterMap.map.items():
+        for idx, row in RegisterSel.get(sensor).items():
             addr = idx & 0xffff
             ftype = (idx >> 16) & 0xff
             mtype = (idx >> 24) & 0xff
