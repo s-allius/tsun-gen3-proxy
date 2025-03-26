@@ -49,7 +49,7 @@ If you use a Pi-hole, you can also store the host entry in the Pi-hole.
 ## Features
 
 - Supports TSUN GEN3 PLUS inverters: TSOL-MS2000, MS1800 and MS1600
-- Supports TSUN GEN3 PLUS batteries: TSOL-DC1000
+- Supports TSUN GEN3 PLUS batteries: TSOL-DC1000 (from version 0.13)
 - Supports TSUN GEN3 inverters: TSOL-MS3000, MS800, MS700, MS600, MS400, MS350 and MS300
 - `MQTT` support
 - `Home-Assistant` auto-discovery support
@@ -429,7 +429,8 @@ A combination with a red question mark should work, but I have not checked it in
   <tr><td>GEN3 micro inverters (quad MPPT):<br>MS3000</td><td align="center">✔️</td><td align="center">✔️</td><td align="center">✔️</td><td align="center">➖</td><td align="center">➖</td></tr>
   <tr><td>GEN3 PLUS micro inverters:<br>MS1600, MS1800, MS2000<br>MS2000-D, MS800</td><td align="center">➖</td><td align="center">➖</td><td align="center">➖</td><td align="center">✔️</td><td align="center">✔️</td></tr>
   <tr><td>GEN3 PLUS storage systems:<br>DC1000</td><td align="center">➖</td><td align="center">➖</td><td align="center">➖</td><td align="center">✔️</td><td align="center">✔️</td></tr>
-  <tr><td>TITAN micro inverters:<br>TSOL-MP3000, MP2250</td><td align="center">❓</td><td align="center">❓</td><td align="center">❓</td><td align="center">❓</td><td align="center">❓</td></tr>
+  <tr><td>GEN3 PLUS smart meter:<br>TSOL-MG3-MS</td><td align="center">❓</td><td align="center">❓</td><td align="center">❓</td><td align="center">❓</td><td align="center">❓</td></tr>
+</<tr><td>TITAN micro inverters:<br>TSOL-MP3000, MP2250</td><td align="center">❓</td><td align="center">❓</td><td align="center">❓</td><td align="center">❓</td><td align="center">❓</td></tr>
 </table>
 
 ```txt
@@ -440,7 +441,7 @@ Legend
 🚧: Proxy support in preparation
 ```
 
-❗The new devices of the GEN3 Plus generation (e.g. MS-2000, DC-1000) use a completely different protocol for data transmission to the TSUN server. These devices are supported from proxy version 0.6. The serial numbers of these devicess start with `Y17` or `Y47` instead of `R17` or `R47`. The batterie storage system DC-1000 is also of the GEN3 Plus generation and its serial numbers start with `410`.
+❗GEN3 Plus generation devices (e.g. MS-2000, DC-1000) can be recognized by their serial number. This starts with 'Y17' or 'Y47' for inverters and '410' for the DC-1000 battery storage system. In contrast, the serial number of GEN3 inverters begins with 'R17' or 'R47'.
 
 If you have one of these combinations with a red question mark, it would be very nice if you could send me a proxy trace so that I can carry out the detailed checks and adjust the device and system tests. [Ask here how to send a trace](https://github.com/s-allius/tsun-gen3-proxy/discussions/categories/traces-for-compatibility-check)
 
