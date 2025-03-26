@@ -30,7 +30,7 @@ ARG SERVICE_NAME
 ARG VERSION
 ARG UID
 ARG GID
-ARG LOG_LVL
+ARG LOG_LVL=INFO
 ARG environment
 
 ENV SERVICE_NAME=$SERVICE_NAME
@@ -59,7 +59,6 @@ RUN python -m pip install --no-cache-dir --no-cache --no-index /root/wheels/* &&
 
 # copy the content of the local src and config directory to the working directory
 COPY --chmod=0700 entrypoint.sh /root/entrypoint.sh
-COPY config .
 COPY src .
 RUN echo ${VERSION} > /proxy-version.txt \
   && date > /build-date.txt

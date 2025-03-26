@@ -78,7 +78,8 @@ class Config():
             }
         },
         'inverters': {
-            'allow_all': Use(bool), And(Use(str), lambda s: len(s) == 16): {
+            'allow_all': Use(bool),
+            And(Use(str), lambda s: len(s) == 16): {
                 Optional('monitor_sn', default=0): Use(int),
                 Optional('node_id', default=""): And(Use(str),
                                                      Use(lambda s: s + '/'
@@ -92,8 +93,13 @@ class Config():
                     Optional('forward', default=False): Use(bool),
                 },
                 Optional('modbus_polling', default=True): Use(bool),
+                Optional('modbus_scanning'): {
+                    'start': Use(int),
+                    Optional('step', default=0x400): Use(int),
+                    Optional('bytes', default=0x10): Use(int),
+                },
                 Optional('suggested_area', default=""): Use(str),
-                Optional('sensor_list', default=0x2b0): Use(int),
+                Optional('sensor_list', default=0): Use(int),
                 Optional('pv1'): {
                     Optional('type'): Use(str),
                     Optional('manufacturer'): Use(str),
@@ -115,6 +121,38 @@ class Config():
                     Optional('manufacturer'): Use(str),
                 },
                 Optional('pv6'): {
+                    Optional('type'): Use(str),
+                    Optional('manufacturer'): Use(str),
+                }
+            }
+        },
+        'batteries': {
+            And(Use(str), lambda s: len(s) == 16): {
+                Optional('monitor_sn', default=0): Use(int),
+                Optional('node_id', default=""): And(Use(str),
+                                                     Use(lambda s: s + '/'
+                                                         if len(s) > 0
+                                                         and s[-1] != '/'
+                                                         else s)),
+                Optional('client_mode'): {
+                    'host': Use(str),
+                    Optional('port', default=8899):
+                        And(Use(int), lambda n: 1024 <= n <= 65535),
+                    Optional('forward', default=False): Use(bool),
+                },
+                Optional('modbus_polling', default=True): Use(bool),
+                Optional('modbus_scanning'): {
+                    'start': Use(int),
+                    Optional('step', default=0x400): Use(int),
+                    Optional('bytes', default=0x10): Use(int),
+                },
+                Optional('suggested_area', default=""): Use(str),
+                Optional('sensor_list', default=0): Use(int),
+                Optional('pv1'): {
+                    Optional('type'): Use(str),
+                    Optional('manufacturer'): Use(str),
+                },
+                Optional('pv2'): {
                     Optional('type'): Use(str),
                     Optional('manufacturer'): Use(str),
                 }
@@ -178,7 +216,7 @@ here. The default config reader is handled in the Config.init method'''
             rd_config = reader.get_config()
             config = cls.act_config.copy()
             for key in ['tsun', 'solarman', 'mqtt', 'ha', 'inverters',
-                        'gen3plus']:
+                        'gen3plus', 'batteries']:
                 if key in rd_config:
                     config[key] = config[key] | rd_config[key]
 

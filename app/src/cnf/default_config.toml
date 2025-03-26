@@ -113,7 +113,7 @@ inverters.allow_all = false   # only allow known inverters
 ##
 ## For each GEN3 inverter, the serial number of the inverter must be mapped to an MQTT
 ## definition. To do this, the corresponding configuration block is started with
-## `[Inverter.“<16-digit serial number>”]` so that all subsequent parameters are assigned
+## `[inverters.“<16-digit serial number>”]` so that all subsequent parameters are assigned
 ## to this inverter. Further inverter-specific parameters (e.g. polling mode) can be set
 ## in the configuration block
 ##
@@ -132,7 +132,7 @@ pv2 = {type = 'RSM40-8-395M', manufacturer = 'Risen'}   # Optional, PV module de
 ##
 ## For each GEN3PLUS inverter, the serial number of the inverter must be mapped to an MQTT
 ## definition. To do this, the corresponding configuration block is started with
-## `[Inverter.“<16-digit serial number>”]` so that all subsequent parameters are assigned
+## `[inverters.“<16-digit serial number>”]` so that all subsequent parameters are assigned
 ## to this inverter. Further inverter-specific parameters (e.g. polling mode, client mode)
 ## can be set in the configuration block
 ## 
@@ -155,6 +155,33 @@ pv1 = {type = 'RSM40-8-410M', manufacturer = 'Risen'}   # Optional, PV module de
 pv2 = {type = 'RSM40-8-410M', manufacturer = 'Risen'}   # Optional, PV module descr
 pv3 = {type = 'RSM40-8-410M', manufacturer = 'Risen'}   # Optional, PV module descr
 pv4 = {type = 'RSM40-8-410M', manufacturer = 'Risen'}   # Optional, PV module descr
+
+
+##########################################################################################
+##
+## For each GEN3PLUS enrgy storage system, the serial number  must be mapped to an MQTT
+## definition. To do this, the corresponding configuration block is started with
+## `[batteries.“<16-digit serial number>”]` so that all subsequent parameters are assigned
+## to this energy storage system. Further device-specific parameters (e.g. polling mode,
+## client mode) can be set in the configuration block
+## 
+## The serial numbers of all GEN3PLUS energy storage systems/batteries start with `410`!
+## Each GEN3PLUS device is supplied with a “Monitoring SN:”. This can be found on a 
+## sticker enclosed with the inverter.
+##
+
+[batteries."4100000000000001"]
+monitor_sn = 3000000000      # The GEN3PLUS "Monitoring SN:"
+node_id = ''                 # MQTT replacement for devices serial number  
+suggested_area = ''          # suggested installation place for home-assistant
+modbus_polling = true        # Enable optional MODBUS polling
+
+# if your inverter supports SSL connections you must use the client_mode. Pls, uncomment
+# the next line and configure the fixed IP of your inverter
+#client_mode = {host = '192.168.0.1', port = 8899, forward = true}  
+
+pv1 = {type = 'RSM40-8-410M', manufacturer = 'Risen'}   # Optional, PV module descr
+pv2 = {type = 'RSM40-8-410M', manufacturer = 'Risen'}   # Optional, PV module descr
 
 
 ##########################################################################################

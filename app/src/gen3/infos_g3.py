@@ -2,26 +2,14 @@
 import struct
 import logging
 from typing import Generator
+from itertools import chain
 
 from infos import Infos, Register
 
 
 class RegisterMap:
     __slots__ = ()
-
     map = {
-        0x00092ba8: {'reg': Register.COLLECTOR_FW_VERSION},
-        0x000927c0: {'reg': Register.CHIP_TYPE},
-        0x00092f90: {'reg': Register.CHIP_MODEL},
-        0x00094ae8: {'reg': Register.MAC_ADDR},
-        0x00095a88: {'reg': Register.TRACE_URL},
-        0x00095aec: {'reg': Register.LOGGER_URL},
-        0x0000000a: {'reg': Register.PRODUCT_NAME},
-        0x00000014: {'reg': Register.MANUFACTURER},
-        0x0000001e: {'reg': Register.VERSION},
-        0x00000028: {'reg': Register.SERIAL_NUMBER},
-        0x00000032: {'reg': Register.EQUIPMENT_MODEL},
-        0x00013880: {'reg': Register.NO_INPUTS},
         0xffffff00: {'reg': Register.INVERTER_CNT},
         0xffffff01: {'reg': Register.UNKNOWN_SNR},
         0xffffff02: {'reg': Register.UNKNOWN_MSG},
@@ -33,6 +21,100 @@ class RegisterMap:
         0xffffff08: {'reg': Register.POLLING_INTERVAL},
         0xfffffffe: {'reg': Register.TEST_REG1},
         0xffffffff: {'reg': Register.TEST_REG2},
+    }
+    map_0e100000 = {
+        0x00092ba8: {'reg': Register.COLLECTOR_FW_VERSION},
+        0x000927c0: {'reg': Register.CHIP_TYPE},
+        0x00092f90: {'reg': Register.CHIP_MODEL},
+        0x00094ae8: {'reg': Register.MAC_ADDR},
+        0x00095a88: {'reg': Register.TRACE_URL},
+        0x00095aec: {'reg': Register.LOGGER_URL},
+        0x000cfc38: {'reg': Register.CONNECT_COUNT},
+        0x000c3500: {'reg': Register.SIGNAL_STRENGTH},
+        0x000c96a8: {'reg': Register.POWER_ON_TIME},
+        0x000d0020: {'reg': Register.COLLECT_INTERVAL},
+        0x000cf850: {'reg': Register.DATA_UP_INTERVAL},
+        0x000c7f38: {'reg': Register.COMMUNICATION_TYPE},
+    }
+    map_01900000 = {
+        0x0000000a: {'reg': Register.PRODUCT_NAME},
+        0x00000014: {'reg': Register.MANUFACTURER},
+        0x0000001e: {'reg': Register.VERSION},
+        0x00000046: {'reg': Register.SERIAL_NUMBER},
+        0x0000005A: {'reg': Register.EQUIPMENT_MODEL},
+        0x00000064: {'reg': Register.INVERTER_STATUS},
+        0x00000190: {'reg': Register.EVENT_ALARM},
+        0x000001f4: {'reg': Register.EVENT_FAULT},
+        0x00000258: {'reg': Register.EVENT_BF1},
+        0x000002bc: {'reg': Register.EVENT_BF2},
+        0x00000320: {'reg': Register.TEST_IVAL_1},
+        0x000003e8: {'reg': Register.TEST_VAL_0},
+        0x0000044c: {'reg': Register.TEST_VAL_1},    # DC 1 Inpput Voltage *10
+        0x000004b0: {'reg': Register.TEST_VAL_2},
+        0x00000514: {'reg': Register.GRID_VOLTAGE},  # Grid Voltage
+        0x00000578: {'reg': Register.GRID_CURRENT},  # Grid Current
+        0x000005dc: {'reg': Register.TEST_VAL_3},
+        0x00000640: {'reg': Register.GRID_FREQUENCY},
+        0x000006a4: {'reg': Register.TEST_IVAL_2},
+        0x00000708: {'reg': Register.TEST_IVAL_3},
+        0x0000076c: {'reg': Register.TEST_IVAL_4},
+        0x000007d0: {'reg': Register.TEST_VAL_4},    # DC 2 Input Voltage *10
+        0x00000834: {'reg': Register.MAX_DESIGNED_POWER},
+        0x00000898: {'reg': Register.OUTPUT_POWER},  # Grid Power
+        0x000008fc: {'reg': Register.DAILY_GENERATION},  # Daily Generation
+        0x00000960: {'reg': Register.TOTAL_GENERATION},  # Total Genration
+        0x000009c4: {'reg': Register.TEST_IVAL_5},
+        0x00000a28: {'reg': Register.TEST_VAL_10},   # Isolationsimpedanz Rx
+        0x00000a8c: {'reg': Register.TEST_VAL_11},   # Isolationsimpedanz Ry
+        0x00000af0: {'reg': Register.TEST_IVAL_6},
+        0x000001324: {'reg': Register.PV1_VOLTAGE},  # PV1 Voltage
+        0x000001388: {'reg': Register.PV1_CURRENT},  # PV1 Current
+        0x0000013ec: {'reg': Register.PV1_POWER},    # PV1 Power
+        0x000001450: {'reg': Register.TEST_VAL_5},
+        0x0000015e0: {'reg': Register.PV2_VOLTAGE},  # PV2 Voltage
+        0x000001644: {'reg': Register.PV2_CURRENT},  # PV2 Current
+        0x0000016a8: {'reg': Register.PV2_POWER},    # PV2 Power
+        0x00000170c: {'reg': Register.TEST_VAL_6},
+        0x00000189c: {'reg': Register.PV3_VOLTAGE},
+        0x000001900: {'reg': Register.PV3_CURRENT},
+        0x000001964: {'reg': Register.PV3_POWER},
+        0x0000019c8: {'reg': Register.TEST_VAL_7},
+        0x000001c20: {'reg': Register.TEST_VAL_14},
+        0x000001c84: {'reg': Register.TEST_VAL_15},
+        0x000001ce8: {'reg': Register.TEST_VAL_16},  # DC 1 Voltage
+        0x000001d4c: {'reg': Register.TEST_VAL_17},
+        0x000001db0: {'reg': Register.TEST_VAL_18},
+        0x000001e14: {'reg': Register.TEST_IVAL_8},
+        0x000001e78: {'reg': Register.PV4_VOLTAGE},
+        0x000001edc: {'reg': Register.PV4_CURRENT},
+        0x000001f40: {'reg': Register.PV4_POWER},
+        0x000001fa4: {'reg': Register.TEST_VAL_8},
+        0x0000020c9: {'reg': Register.TEST_IVAL_9},
+        0x0000020db: {'reg': Register.TEST_IVAL_10},
+
+        0x000002134: {'reg': Register.PV5_VOLTAGE},
+        0x000002198: {'reg': Register.PV5_CURRENT},
+        0x0000021fc: {'reg': Register.PV5_POWER},
+        # 0x000002260: {'reg': Register.TEST_VAL_13},
+        0x0000023f0: {'reg': Register.PV6_VOLTAGE},
+        0x000002454: {'reg': Register.PV6_CURRENT},
+        0x0000024b8: {'reg': Register.PV6_POWER},
+        # 0x00000251c: {'reg': Register.TEST_VAL_14},
+        0x000002774: {'reg': Register.TEST_VAL_24},
+        0x0000027d8: {'reg': Register.TEST_VAL_25},
+        0x00000283c: {'reg': Register.TEST_VAL_26},  # DC 2 Voltage
+        0x0000028a0: {'reg': Register.TEST_VAL_27},
+        0x000002904: {'reg': Register.TEST_VAL_28},
+        0x000002968: {'reg': Register.TEST_IVAL_11},
+        0x0000029cc: {'reg': Register.TEST_IVAL_12},
+    }
+    map_01900001 = {
+        0x0000000a: {'reg': Register.PRODUCT_NAME},
+        0x00000014: {'reg': Register.MANUFACTURER},
+        0x0000001e: {'reg': Register.VERSION},
+        0x00000028: {'reg': Register.SERIAL_NUMBER},
+        0x00000032: {'reg': Register.EQUIPMENT_MODEL},
+        0x00013880: {'reg': Register.NO_INPUTS},
         0x00000640: {'reg': Register.OUTPUT_POWER},
         0x000005dc: {'reg': Register.RATED_POWER},
         0x00000514: {'reg': Register.INVERTER_TEMP},
@@ -61,12 +143,7 @@ class RegisterMap:
         0x000003e8: {'reg': Register.GRID_VOLTAGE},
         0x0000044c: {'reg': Register.GRID_CURRENT},
         0x000004b0: {'reg': Register.GRID_FREQUENCY},
-        0x000cfc38: {'reg': Register.CONNECT_COUNT},
-        0x000c3500: {'reg': Register.SIGNAL_STRENGTH},
-        0x000c96a8: {'reg': Register.POWER_ON_TIME},
-        0x000d0020: {'reg': Register.COLLECT_INTERVAL},
-        0x000cf850: {'reg': Register.DATA_UP_INTERVAL},
-        0x000c7f38: {'reg': Register.COMMUNICATION_TYPE},
+
         0x00000190: {'reg': Register.EVENT_ALARM},
         0x000001f4: {'reg': Register.EVENT_FAULT},
         0x00000258: {'reg': Register.EVENT_BF1},
@@ -86,6 +163,18 @@ class RegisterMap:
     }
 
 
+class RegisterSel:
+    __sensor_map = {
+            0x0e100000: RegisterMap.map_0e100000,
+            0x01900000: RegisterMap.map_01900000,
+            0x01900001: RegisterMap.map_01900001,
+    }
+
+    @classmethod
+    def get(cls, sensor: int):
+        return cls.__sensor_map.get(sensor, RegisterMap.map)
+
+
 class InfosG3(Infos):
     __slots__ = ()
 
@@ -101,18 +190,27 @@ class InfosG3(Infos):
                          entity strings
         sug_area:str ==> suggested area string from the config file'''
         # iterate over RegisterMap.map and get the register values
-        for row in RegisterMap.map.values():
+        sensor = self.get_db_value(Register.SENSOR_LIST)
+        if "01900000" == sensor:
+            items = RegisterMap.map_01900000.items()
+        elif "01900001" == sensor:
+            items = RegisterMap.map_01900001.items()
+        else:
+            items = {}
+
+        for _, row in chain(RegisterMap.map_0e100000.items(), items):
             reg = row['reg']
             res = self.ha_conf(reg, ha_prfx, node_id, snr, False, sug_area)  # noqa: E501
             if res:
                 yield res
 
-    def parse(self, buf, ind=0, node_id: str = '') -> \
+    def parse(self, buf, ind=0, sensor: int = 0, node_id: str = '') -> \
             Generator[tuple[str, bool], None, None]:
         '''parse a data sequence received from the inverter and
         stores the values in Infos.db
 
         buf: buffer of the sequence to parse'''
+        reg_map = RegisterSel.get(sensor)
         result = struct.unpack_from('!l', buf, ind)
         elms = result[0]
         i = 0
@@ -120,11 +218,11 @@ class InfosG3(Infos):
         while i < elms:
             result = struct.unpack_from('!lB', buf, ind)
             addr = result[0]
-            if addr not in RegisterMap.map:
+            if addr not in reg_map:
                 row = None
                 info_id = -1
             else:
-                row = RegisterMap.map[addr]
+                row = reg_map[addr]
                 info_id = row['reg']
             data_type = result[1]
             ind += 5
@@ -192,3 +290,6 @@ class InfosG3(Infos):
         if update:
             self.tracer.log(level, f'[{node_id}] GEN3: {name} :'
                                    f' {result}{unit}')
+
+            logging.log(level, f'[{node_id}] GEN3: {name} :'
+                               f' {result}{unit}')

@@ -1,6 +1,6 @@
 name: {{name}}
 description: {{description}}
-version: {% if version is defined and version|length %} {{version}} {% else %} {{AppVersion}} {% endif %}
+version: {% if version is defined and version|length %} {{version}} {% elif BuildID is defined and BuildID|length %} {{AppVersion}}-{{BuildID}} {% else %} {{AppVersion}} {% endif %}
 image: {{image}}
 url: https://github.com/s-allius/tsun-gen3-proxy
 slug: {{slug}}
@@ -24,17 +24,15 @@ ports:
   5005/tcp: 5005
   10000/tcp: 10000
 
-# FIXME: we disabled the watchdog due to exceptions in the ha supervisor. See: https://github.com/s-allius/tsun-gen3-proxy/issues/249
-# watchdog: "http://[HOST]:[PORT:8127]/-/healthy"
+watchdog: "http://[HOST]:[PORT:8127]/-/healthy"
 
 # Definition of parameters in the configuration tab of the addon
 # parameters are available within the container as /data/options.json
 # and should become picked up by the proxy - current workaround as a transfer script
-# TODO: check again for multi hierarchie parameters
 
 schema:
   inverters:
-    - serial: match(^(R17|Y17|Y47).{13}$)
+    - serial: match(^(R17|R47|Y17|Y47).{13}$)
       monitor_sn: int?
       node_id: str
       suggested_area: str
@@ -42,11 +40,9 @@ schema:
       client_mode.host: match(\b((25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])\.){3}(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])\b)?
       client_mode.port: port?
       client_mode.forward: bool?
-      #strings: # leider funktioniert es nicht die folgenden 3 parameter im schema aufzulisten. möglicherweise wird die verschachtelung nicht unterstützt.
-      #  - string: str
-      #    type: str
-      #    manufacturer: str
-      # daher diese variante
+      modbus_scanning.start: int(0,65535)?
+      modbus_scanning.step: int(0,65535)?
+      modbus_scanning.bytes: int(1,80)?
       pv1.manufacturer: str?
       pv1.type: str?
       pv2.manufacturer: str?
@@ -62,6 +58,19 @@ schema:
   tsun.enabled: bool
   solarman.enabled: bool
   inverters.allow_all: bool
+  batteries:
+    - serial: match(^(410).{13}$)
+      monitor_sn: int
+      node_id: str
+      suggested_area: str
+      modbus_polling: bool
+      client_mode.host: match(\b((25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])\.){3}(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])\b)?
+      client_mode.port: port?
+      client_mode.forward: bool?
+      pv1.manufacturer: str?
+      pv1.type: str?
+      pv2.manufacturer: str?
+      pv2.type: str?
 
   # optionale parameter
 
@@ -90,17 +99,21 @@ schema:
 # If any default value is given, the option becomes a required value.
 options:
   inverters:
-    - serial: R17E760702080400
-      node_id: PV-Garage
+    - serial: R17E000000000000
+      monitor_sn: 0
+      node_id: inv_1
+      suggested_area: Roof
+      modbus_polling: false
+      pv1.manufacturer: Shinefar
+      pv1.type: SF-M18/144550
+      pv2.manufacturer: Shinefar
+      pv2.type: SF-M18/144550
+  batteries:
+    - serial: 4100000000000000
+      monitor_sn: 0
+      node_id: bat_1
       suggested_area: Garage
       modbus_polling: false
-      # strings:
-      #  - string: PV1
-      #    type: SF-M18/144550
-      #    manufacturer: Shinefar
-      #  - string: PV2
-      #    type: SF-M18/144550
-      #    manufacturer: Shinefar
       pv1.manufacturer: Shinefar
       pv1.type: SF-M18/144550
       pv2.manufacturer: Shinefar

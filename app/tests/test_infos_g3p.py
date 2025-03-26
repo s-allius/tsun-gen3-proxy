@@ -70,6 +70,28 @@ def inverter_data():  # 0x4210 ftype: 0x01
     msg += b'\x00\x00\x00\x00'
     return msg
 
+@pytest.fixture
+def batterie_data():  # 0x4210 ftype: 0x01
+    msg  = b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x26\x30\xc7\xde'
+    msg += b'\x2d\x32\x28\x00\x00\x00\x84\x17\x79\x35\x01\x00\x4c\x12\x00\x00'
+    msg += b'\x34\x31\x30\x31\x32\x34\x30\x37\x30\x31\x34\x39\x30\x33\x31\x34'
+    msg += b'\x0d\x3a\x00\x70\x0d\x2c\x00\x00\x00\x00\x08\x20\x00\x00\x00\x00'
+    msg += b'\x14\x0e\xff\xfe\x03\xe8\x0c\x89\x0c\x89\x0c\x89\x0c\x8a\x0c\x89'
+    msg += b'\x0c\x89\x0c\x8a\x0c\x89\x0c\x89\x0c\x8a\x0c\x8a\x0c\x89\x0c\x89'
+    msg += b'\x0c\x89\x0c\x89\x0c\x88\x00\x0f\x00\x0f\x00\x0f\x00\x0e\x00\x00'
+    msg += b'\x00\x00\x00\x0f\x00\x00\x02\x05\x02\x01'
+    return msg
+
+@pytest.fixture
+def batterie_data2():  # 0x4210 ftype: 0x01
+    msg  = b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x26\x30\xc7\xde'
+    msg += b'\x2d\x32\x28\x00\x00\x00\x84\x17\x79\x35\x01\x00\x4c\x12\x00\x00'
+    msg += b'\x34\x31\x30\x31\x32\x34\x30\x37\x30\x31\x34\x39\x30\x33\x31\x34'
+    msg += b'\x0d\x3a\x00\x70\x0d\x2c\x00\x00\x00\x00\x08\x20\x00\x00\x00\x00'
+    msg += b'\x14\x0e\xff\xfe\x03\xe8\x0c\x89\x0c\x89\x0c\x89\x0c\x8a\x0c\x89'
+    msg += b'\x0c\x89\x0c\x8a\x0c\x89\x0c\x89\x0c\x8a\x0c\x8a\x0c\x89\x0c\x89'
+    msg += b'\x0c\x89\x0c\x89\x0c\x88\x00\x0f\x00\x0f\x00\x0f\x00\x0e'
+    return msg
 
 def test_default_db():
     i = InfosG3P(client_mode=False)
@@ -101,11 +123,11 @@ def test_build_4110(str_test_ip, device_data: bytes):
         build_msg[i] = device_data[i]
     assert device_data == build_msg    
 
-def test_parse_4210(inverter_data: bytes):
+def test_parse_4210_02b0(inverter_data: bytes):
     i = InfosG3P(client_mode=False)
     i.db.clear()
     
-    for key, update in i.parse (inverter_data, 0x42, 1):
+    for key, update in i.parse (inverter_data, 0x42, 1, 0x02b0):
         pass  #  side effect is calling generator i.parse()
 
     assert json.dumps(i.db) == json.dumps({
@@ -123,14 +145,56 @@ def test_parse_4210(inverter_data: bytes):
          "other": {"Output_Shutdown": 65535, "Rated_Level": 3, "Grid_Volt_Cal_Coef": 1024, "Prod_Compliance_Type": 6}
         })
 
+def test_parse_4210_3026(batterie_data: bytes):
+    i = InfosG3P(client_mode=False)
+    i.db.clear()
+    
+    for key, update in i.parse (batterie_data, 0x42, 1, 0x3026):
+        pass  #  side effect is calling generator i.parse()
+
+    assert json.dumps(i.db) == json.dumps({
+         "controller": {"Sensor_List": "3026", "Power_On_Time": 4684},
+         "inverter": {"Serial_Number": "4101240701490314"}, 
+         "batterie": {"pv1": {"Voltage": 33.86, "Current": 1.12}, 
+                      "pv2": {"Voltage": 33.72, "Current": 0.0}, 
+                      "Reg_38": 0, "Total_Generation": 20.8, "Status_1": 0, "Status_2": 0, 
+                      "Voltage": 51.34, "Current": -0.02, "SOC": 10.0,
+                      "Cell": {"Volt1": 3.21, "Volt2": 3.21, "Volt3": 3.21, "Volt4": 3.21, "Volt5": 3.21, "Volt6": 3.21, "Volt7": 3.21, "Volt8": 3.21, "Volt9": 3.21, "Volt10": 3.21, "Volt11": 3.21, "Volt12": 3.21, "Volt13": 3.21, "Volt14": 3.21, "Volt15": 3.21, "Volt16": 3.21}, 
+                      "Temp_1": 15, "Temp_2": 15, "Temp_3": 15,
+                      "out": {"Voltage": 0.14, "Current": 0.0, "Out_Status": 0, "Power": 0.0},
+                      "Controller_Temp": 15, "Reg_74": 0, "Reg_76": 517, "Reg_78": 513,
+                      "PV_Power": 37.9232, "Power": -1.0268000000000002},
+        })
+
+def test_parse_4210_3026_incomplete(batterie_data2: bytes):
+    i = InfosG3P(client_mode=False)
+    i.db.clear()
+    
+    for key, update in i.parse (batterie_data2, 0x42, 1, 0x3026):
+        pass  #  side effect is calling generator i.parse()
+
+    assert json.dumps(i.db) == json.dumps({
+         "controller": {"Sensor_List": "3026", "Power_On_Time": 4684},
+         "inverter": {"Serial_Number": "4101240701490314"}, 
+         "batterie": {"pv1": {"Voltage": 33.86, "Current": 1.12}, 
+                      "pv2": {"Voltage": 33.72, "Current": 0.0}, 
+                      "Reg_38": 0, "Total_Generation": 20.8, "Status_1": 0, "Status_2": 0, 
+                      "Voltage": 51.34, "Current": -0.02, "SOC": 10.0,
+                      "Cell": {"Volt1": 3.21, "Volt2": 3.21, "Volt3": 3.21, "Volt4": 3.21, "Volt5": 3.21, "Volt6": 3.21, "Volt7": 3.21, "Volt8": 3.21, "Volt9": 3.21, "Volt10": 3.21, "Volt11": 3.21, "Volt12": 3.21, "Volt13": 3.21, "Volt14": 3.21, "Volt15": 3.21, "Volt16": 3.21}, 
+                      "Temp_1": 15, "Temp_2": 15,  "Temp_3": 15,
+                      "out": {"Voltage": 0.14, "Current": None, "Out_Status": None, "Power": None},
+                      "Controller_Temp": None, "Reg_74": None, "Reg_76": None, "Reg_78": None,
+                      "PV_Power": 37.9232, "Power": -1.0268000000000002},
+        })
+
 def test_build_4210(inverter_data: bytes):
     i = InfosG3P(client_mode=False)
     i.db.clear()
     
-    for key, update in i.parse (inverter_data, 0x42, 1):
+    for key, update in i.parse (inverter_data, 0x42, 1, 0x02b0):
         pass  #  side effect is calling generator i.parse()
 
-    build_msg = i.build(len(inverter_data), 0x42, 1)
+    build_msg = i.build(len(inverter_data), 0x42, 1, 0x02b0)
     for i in range(11, 31):
         build_msg[i] = inverter_data[i]
     assert inverter_data == build_msg    
@@ -138,6 +202,7 @@ def test_build_4210(inverter_data: bytes):
 def test_build_ha_conf1():
     i = InfosG3P(client_mode=False)
     i.static_init()                # initialize counter
+    i.set_db_def_value(Register.SENSOR_LIST, "02b0")
 
     tests = 0
     for d_json, comp, node_id, id in i.ha_confs(ha_prfx="tsun/", node_id="garagendach/", snr='123'):
@@ -212,6 +277,7 @@ def test_build_ha_conf2():
 def test_build_ha_conf3():
     i = InfosG3P(client_mode=True)
     i.static_init()                # initialize counter
+    i.set_db_def_value(Register.SENSOR_LIST, "02b0")
 
     tests = 0
     for d_json, comp, node_id, id in i.ha_confs(ha_prfx="tsun/", node_id="garagendach/", snr='123'):
@@ -283,56 +349,89 @@ def test_build_ha_conf4():
 
     assert tests==1
 
+def test_build_ha_conf5():
+    i = InfosG3P(client_mode=True)
+    i.static_init()                # initialize counter
+    i.set_db_def_value(Register.SENSOR_LIST, "3026")
+
+    tests = 0
+    for d_json, comp, node_id, id in i.ha_confs(ha_prfx="tsun/", node_id="garagendach/", snr='123'):
+
+        if id == 'out_power_123':
+            assert comp == 'sensor'
+            assert  d_json == json.dumps({"name": "Output Power", "stat_t": "tsun/garagendach/batterie", "dev_cla": "power", "stat_cla": "measurement", "uniq_id": "out_power_123", "val_tpl": "{{ (value_json['out']['Power'] | int)}}", "unit_of_meas": "W", "dev": {"name": "Batterie", "sa": "Batterie", "via_device": "controller_123", "mdl": "TSOL-MSxx00", "mf": "TSUN", "ids": ["batterie_123"]}, "o": {"name": "proxy", "sw": "unknown"}})
+            tests +=1
+        elif id == 'daily_gen_123':
+            assert False
+        elif id == 'volt_pv1_123':
+            assert comp == 'sensor'
+            assert  d_json == json.dumps({"name": "Voltage", "stat_t": "tsun/garagendach/batterie", "dev_cla": "voltage", "stat_cla": "measurement", "uniq_id": "volt_pv1_123", "val_tpl": "{{ (value_json['pv1']['Voltage'] | float)}}", "unit_of_meas": "V", "ic": "mdi:gauge", "ent_cat": "diagnostic", "dev": {"name": "Module PV1", "sa": "Module PV1", "via_device": "batterie_123", "ids": ["bat_inp_pv1_123"]}, "o": {"name": "proxy", "sw": "unknown"}})
+            tests +=1
+        elif id == 'volt_pv2_123':
+            assert comp == 'sensor'
+            assert  d_json == json.dumps({"name": "Voltage", "stat_t": "tsun/garagendach/batterie", "dev_cla": "voltage", "stat_cla": "measurement", "uniq_id": "volt_pv2_123", "val_tpl": "{{ (value_json['pv2']['Voltage'] | float)}}", "unit_of_meas": "V", "ic": "mdi:gauge", "ent_cat": "diagnostic", "dev": {"name": "Module PV2", "sa": "Module PV2", "via_device": "batterie_123", "ids": ["bat_inp_pv2_123"]}, "o": {"name": "proxy", "sw": "unknown"}})
+            tests +=1
+        elif id == 'signal_123':
+            assert comp == 'sensor'
+            assert  d_json == json.dumps({})
+            tests +=1
+        elif id == 'inv_count_456':
+            assert False
+        else:
+            print(id)
+
+    assert tests==4
+
 def test_exception_and_calc(inverter_data: bytes):
 
     # patch table to convert temperature from °F to °C
-    ofs =     RegisterMap.map[0x420100d8]['offset']
-    RegisterMap.map[0x420100d8]['quotient'] =  1.8
-    RegisterMap.map[0x420100d8]['offset'] =  -32/1.8
+    ofs = RegisterMap.map_02b0[0x420100d8]['offset']
+    RegisterMap.map_02b0[0x420100d8]['quotient'] =  1.8
+    RegisterMap.map_02b0[0x420100d8]['offset'] =  -32/1.8
     # map PV1_VOLTAGE to invalid register  
-    RegisterMap.map[0x420100e0]['reg'] = Register.TEST_REG2
+    RegisterMap.map_02b0[0x420100e0]['reg'] = Register.TEST_REG2
     # set invalid maping entry for OUTPUT_POWER (string instead of dict type) 
-    backup = RegisterMap.map[0x420100de]
-    RegisterMap.map[0x420100de] = 'invalid_entry'
+    backup = RegisterMap.map_02b0[0x420100de]
+    RegisterMap.map_02b0[0x420100de] = 'invalid_entry'
 
     i = InfosG3P(client_mode=False)
     i.db.clear()
     
-    for key, update in i.parse (inverter_data, 0x42, 1):
+    for key, update in i.parse (inverter_data, 0x42, 1, 0x02b0):
         pass  #  side effect is calling generator i.parse()
     assert math.isclose(12.2222, round (i.get_db_value(Register.INVERTER_TEMP, 0),4), rel_tol=1e-09, abs_tol=1e-09)
     
-    build_msg = i.build(len(inverter_data), 0x42, 1)
+    build_msg = i.build(len(inverter_data), 0x42, 1, 0x02b0)
     assert build_msg[32:0xde] == inverter_data[32:0xde]
     assert build_msg[0xde:0xe2] == b'\x00\x00\x00\x00'
     assert build_msg[0xe2:-1] == inverter_data[0xe2:-1]
 
 
     # remove a table entry and test parsing and building
-    del RegisterMap.map[0x420100d8]['quotient']
-    del RegisterMap.map[0x420100d8]['offset']
+    del RegisterMap.map_02b0[0x420100d8]['quotient']
+    del RegisterMap.map_02b0[0x420100d8]['offset']
 
     i.db.clear()
     
-    for key, update in i.parse (inverter_data, 0x42, 1):
+    for key, update in i.parse (inverter_data, 0x42, 1, 0x02b0):
         pass  #  side effect is calling generator i.parse()
     assert 54 == i.get_db_value(Register.INVERTER_TEMP, 0)
 
-    build_msg = i.build(len(inverter_data), 0x42, 1)
+    build_msg = i.build(len(inverter_data), 0x42, 1, 0x02b0)
     assert build_msg[32:0xd8] == inverter_data[32:0xd8]
     assert build_msg[0xd8:0xe2] == b'\x006\x00\x00\x02X\x00\x00\x00\x00'
     assert build_msg[0xe2:-1] == inverter_data[0xe2:-1]
 
     # test restore table 
-    RegisterMap.map[0x420100d8]['offset'] = ofs
-    RegisterMap.map[0x420100e0]['reg'] = Register.PV1_VOLTAGE # reset mapping
-    RegisterMap.map[0x420100de] = backup # reset mapping
+    RegisterMap.map_02b0[0x420100d8]['offset'] = ofs
+    RegisterMap.map_02b0[0x420100e0]['reg'] = Register.PV1_VOLTAGE # reset mapping
+    RegisterMap.map_02b0[0x420100de] = backup # reset mapping
 
     # test orginial table 
     i.db.clear()    
-    for key, update in i.parse (inverter_data, 0x42, 1):
+    for key, update in i.parse (inverter_data, 0x42, 1, 0x02b0):
         pass  #  side effect is calling generator i.parse()
     assert 14 == i.get_db_value(Register.INVERTER_TEMP, 0)
 
-    build_msg = i.build(len(inverter_data), 0x42, 1)
+    build_msg = i.build(len(inverter_data), 0x42, 1, 0x02b0)
     assert build_msg[32:-1] == inverter_data[32:-1]
