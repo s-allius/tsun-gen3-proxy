@@ -1,6 +1,7 @@
 <h1 align="center">TSUN-Gen3-Proxy</h1>
 <p align="center">A proxy for</p>
 <h3 align="center">TSUN Gen 3 Micro-Inverters</h3>
+<h3 align="center">and Batteries</h3>
 <p align="center">for easy</p>
 <h3 align="center">MQTT/Home-Assistant</h3>
 <p align="center">integration</p>
@@ -20,11 +21,11 @@
 
 # Overview
 
-This proxy enables a reliable connection between TSUN third generation inverters and an MQTT broker. With the proxy, you can easily retrieve real-time values such as power, current and daily energy and integrate the inverter into typical home automations. This works even without an internet connection. The optional connection to the TSUN Cloud can be disabled!
+This proxy enables a reliable connection between TSUN third generation devices and an MQTT broker. With the proxy, you can easily retrieve real-time values such as power, current and daily energy from inverters and energy storage systems and integrate them into typical home automations. This works even without an internet connection. The optional connection to the TSUN Cloud can be disabled!
 
-In detail, the inverter establishes a TCP connection to the TSUN cloud to transmit current measured values every 300 seconds. To be able to forward the measurement data to an MQTT broker, the proxy must be looped into this TCP connection.
+In detail, the device establishes a TCP connection to the TSUN cloud to transmit current measured values every 300 seconds. To be able to forward the measurement data to an MQTT broker, the proxy must be looped into this TCP connection.
 
-Through this, the inverter then establishes a connection to the proxy and the proxy establishes another connection to the TSUN Cloud. The transmitted data is interpreted by the proxy and then passed on to both the TSUN Cloud and the MQTT broker. The connection to the TSUN Cloud is optional and can be switched off in the configuration (default is on). Then no more data is sent to the Internet, but no more remote updates of firmware and operating parameters (e.g. rated power, grid parameters) are possible.
+Through this, the device then establishes a connection to the proxy and the proxy establishes another connection to the TSUN Cloud. The transmitted data is interpreted by the proxy and then passed on to both the TSUN Cloud and the MQTT broker. The connection to the TSUN Cloud is optional and can be switched off in the configuration (default is on). Then no more data is sent to the Internet, but no more remote updates of firmware and operating parameters (e.g. rated power, grid parameters) are possible.
 
 By means of `docker` a simple installation and operation is possible. By using `docker-composer`, a complete stack of proxy, `MQTT-brocker` and `home-assistant` can be started easily.
 
@@ -32,12 +33,12 @@ Alternatively you can run the TSUN-Proxy as a Home Assistant Add-on. The install
 Follow the Instructions mentioned in the add-on subdirectory `ha_addons`.
 
 <br>
-ℹ️ This project is not related to the company TSUN. It is a private initiative that aims to connect TSUN inverters with an MQTT broker. There is no support and no warranty from TSUN.
+ℹ️ This project is not related to the company TSUN. It is a private initiative that aims to connect TSUN inverters and storage systems with an MQTT broker. There is no support and no warranty from TSUN.
 <br><br>
 
 ```txt
 ❗An essential requirement is that the proxy can be looped into the connection
-between the inverter and TSUN Cloud.
+between the device and TSUN Cloud.
 
 There are various ways to do this, for example via an DNS host entry or via firewall
 rules (iptables) in your router. However, depending on the circumstances, not all
@@ -49,7 +50,8 @@ If you use a Pi-hole, you can also store the host entry in the Pi-hole.
 ## Features
 
 - Supports TSUN GEN3 PLUS inverters: TSOL-MS2000, MS1800 and MS1600
-- Supports TSUN GEN3 inverters: TSOL-MS800, MS700, MS600, MS400, MS350 and MS300
+- Supports TSUN GEN3 PLUS batteries: TSOL-DC1000 (from version 0.13)
+- Supports TSUN GEN3 inverters: TSOL-MS3000, MS800, MS700, MS600, MS400, MS350 and MS300
 - `MQTT` support
 - `Home-Assistant` auto-discovery support
 - `MODBUS` support via MQTT topics
@@ -68,15 +70,15 @@ Here are some screenshots of how the inverter is displayed in the Home Assistant
 
 ## Requirements
 
-### for Docker Installation
+### Requirements for Docker Installation
 
 - A running Docker engine to host the container
-- Ability to loop the proxy into the connection between the inverter and the TSUN cloud
+- Ability to loop the proxy into the connection between the device and the TSUN cloud
 
-### for Home Assistant Add-on Installation
+### Requirements for Home Assistant Add-on Installation
 
 - Running Home Assistant on Home Assistant OS or Supervised. Container and Core installations doesn't support add-ons.
-- Ability to loop the proxy into the connection between the inverter and the TSUN cloud
+- Ability to loop the proxy into the connection between the device and the TSUN cloud
 
 # Getting Started
 
@@ -117,19 +119,20 @@ docker run  --dns '8.8.8.8' --env 'UID=1050' -p '5005:5005' -p '10000:10000' -v 
 # Configuration
 
 ```txt
-❗The following description applies to the Docker installation. When installing the Home Assistant add-on, the 
-configuration is carried out via the Home Assistant UI. Some of the options described below are not required for 
-this. Additionally, creating a config.toml file is not necessary. However, for a general understanding of the 
-configuration and functionality, it is helpful to read the following description.
+❗The following description applies to the Docker installation. When installing the Home
+Assistant add-on, the configuration is carried out via the Home Assistant UI. Some of the
+options described below are not required for this. Additionally, creating a config.toml
+file is not necessary. However, for a general understanding of the configuration and
+functionality, it is helpful to read the following description.
 ```
 
-The configuration consists of several parts. First, the container and the proxy itself must be configured, and then the connection of the inverter to the proxy must be set up, which is done differently depending on the inverter generation
+The configuration consists of several parts. First, the container and the proxy itself must be configured, and then the connection of the device to the proxy must be set up, which is done differently depending on the device generation
 
-For GEN3PLUS inverters, this can be done easily via the web interface of the inverter. The GEN3 inverters do not have a web interface, so the proxy is integrated via a modified DNS resolution.
+For GEN3PLUS devices, this can be done easily via the web interface of the devices. The GEN3 inverters do not have a web interface, so the proxy is integrated via a modified DNS resolution.
 
   1. [Container Setup](#container-setup)
   2. [Proxy Configuration](#proxy-configuration)
-  3. [Inverter Configuration](#inverter-configuration) (only GEN3PLUS)
+  3. [Inverter and Batterie Configuration](#inverter-and-batterie-configuration) (only GEN3PLUS)
   4. [DNS Settings](#dns-settings) (Mandatory for GEN3)
 
 ## Container Setup
@@ -310,6 +313,33 @@ pv4 = {type = 'RSM40-8-410M', manufacturer = 'Risen'}   # Optional, PV module de
 
 
 ##########################################################################################
+##
+## For each GEN3PLUS energy storage system, the serial number  must be mapped to an MQTT
+## definition. To do this, the corresponding configuration block is started with
+## `[batteries.“<16-digit serial number>”]` so that all subsequent parameters are assigned
+## to this energy storage system. Further device-specific parameters (e.g. polling mode,
+## client mode) can be set in the configuration block
+## 
+## The serial numbers of all GEN3PLUS energy storage systems/batteries start with `410`!
+## Each GEN3PLUS device is supplied with a “Monitoring SN:”. This can be found on a 
+## sticker enclosed with the inverter.
+##
+
+[batteries."4100000000000001"]
+monitor_sn = 3000000000      # The GEN3PLUS "Monitoring SN:"
+node_id = 'bat_1'            # MQTT replacement for devices serial number  
+suggested_area = ''garage'   # suggested installation place for home-assistant
+modbus_polling = true        # Enable optional MODBUS polling
+
+# if your inverter supports SSL connections you must use the client_mode. Pls, uncomment
+# the next line and configure the fixed IP of your inverter
+#client_mode = {host = '192.168.0.1', port = 8899, forward = true}  
+
+pv1 = {type = 'RSM40-8-410M', manufacturer = 'Risen'}   # Optional, PV module descr
+pv2 = {type = 'RSM40-8-410M', manufacturer = 'Risen'}   # Optional, PV module descr
+
+
+##########################################################################################
 ###
 ### If the proxy mode is configured, commands from TSUN can be sent to the inverter via
 ### this connection or parameters (e.g. network credentials) can be queried. Filters can
@@ -330,19 +360,19 @@ mqtt.block = []
 
 </details>
 
-## Inverter Configuration
+## Inverter and Batterie Configuration
 
-GEN3PLUS inverters offer a web interface that can be used to configure the inverter. This is very practical for sending the data directly to the proxy. On the one hand, the inverter broadcasts its own SSID on 2.4GHz. This can be recognized because it is broadcast with `AP_<Montoring SN>`. You will find the `Monitor SN` and the password for the WLAN connection on a small sticker enclosed with the inverter.
+GEN3PLUS devices (inverter, batteries, ...) offer a web interface that can be used to configure it. This is very practical for sending the data directly to the proxy. On the one hand, the device broadcasts its own SSID on 2.4GHz. This can be recognized because it is broadcast with `AP_<Montoring SN>`. You will find the `Monitor SN` and the password for the WLAN connection on a small sticker enclosed with the device.
 
-If you have already connected the inverter to the cloud via the TSUN app, you can also address the inverter directly via WiFi. In the first case, the inverter uses the fixed IP address `10.10.100.254`, in the second case you have to look up the IP address in your router.
+If you have already connected the device to the cloud via the TSUN app, you can also address the device directly via WiFi. In the first case, the device uses the fixed IP address `10.10.100.254`, in the second case you have to look up the IP address in your router.
 
-The standard web interface of the inverter can be accessed at `http://<ip-adress>/index_cn.html`. Here you can set up the WLAN connection or change the password. The default user and password is `admin`/`admin`.
+The standard web interface of the device can be accessed at `http://<ip-adress>/index_cn.html`. Here you can set up the WLAN connection or change the password. The default user and password is `admin`/`admin`.
 
 For our purpose, the hidden URL `http://<ip-adress>/config_hide.html` should be called. There you can see and modify the parameters for accessing the cloud. Here we enter the IP address of our proxy and the IP port `10000` for the `Server A Setting` and for `Optional Server Setting`. The second entry is used as a backup in the event of connection problems.
 
 ```txt
-❗If the IP port is set to 10443 in the inverter configuration, you probably have a firmware with SSL support.
-In this case, you MUST NOT change the port or the host address, as this may cause the inverter to hang and
+❗If the IP port is set to 10443 in the device configuration, you probably have a firmware with SSL support.
+In this case, you MUST NOT change the port or the host address, as this may cause the device to hang and
 require a complete reset. Use the configuration in client mode instead.
 ```
 
@@ -350,23 +380,23 @@ If access to the web interface does not work, it can also be redirected via DNS 
 
 ## Client Mode (GEN3PLUS only)
 
-Newer GEN3PLUS inverters support SSL encrypted connections over port 10443 to the TSUN cloud. In this case you can't loop the proxy into this connection, since the certicate verification of the inverter don't allow this. You can configure the proxy in client-mode to establish an unencrypted connection to the inverter. For this porpuse the inverter listen on port `8899`.
+Newer GEN3PLUS inverters, batteries and smart meter support SSL encrypted connections over port 10443 to the TSUN cloud. In this case you can't loop the proxy into this connection, since the certicate verification of the device don't allow this. You can configure the proxy in client-mode to establish an unencrypted connection to the inverter. For this porpuse the device listen on port `8899`.
 
 There are some requirements to be met:
 
-- the inverter should have a fixed IP
-- the proxy must be able to reach the inverter. You must configure a corresponding route in your router if the inverter and the proxy are in different IP networks
-- add a 'client_mode' line to your config.toml file, to specify the inverter's ip address
+- the device should have a fixed IP
+- the proxy must be able to reach the device. You must configure a corresponding route in your router if the device and the proxy are in different IP networks
+- add a 'client_mode' line to your config.toml file, to specify the device's ip address
 
 ## DNS Settings
 
 ### Loop the proxy into the connection
 
-To include the proxy in the connection between the inverter and the TSUN Cloud, you must adapt the DNS record of *logger.talent-monitoring.com* within the network that your inverter uses. You need a mapping from logger.talent-monitoring.com to the IP address of the host running the Docker engine.
+To include the proxy in the connection between the device and the TSUN Cloud, you must adapt the DNS record of *logger.talent-monitoring.com* within the network that your deivce uses. You need a mapping from logger.talent-monitoring.com to the IP address of the host running the Docker engine.
 
-The new GEN3 PLUS inverters use a different URL. Here, *iot.talent-monitoring.com* must be redirected.
+The new GEN3 PLUS devices use a different URL. Here, *iot.talent-monitoring.com* must be redirected.
 
-This can be done, for example, by adding a local DNS record to the Pi-hole if you are using it.
+This can be done, for example, by adding a local DNS record to the Pi-hole if you are using it. User of the Home Assistant Add-on should use the AdGuard Add-on for this.
 
 ### DNS Rebind Protection
 
@@ -382,7 +412,7 @@ As described above, set a DNS sever in the Docker command or Docker compose file
 
 ### Over The Air (OTA) firmware update
 
-Even if the proxy is connected between the inverter and the TSUN Cloud, an OTA update is supported. To do this, the inverter must be able to reach the website <http://www.talent-monitoring.com:9002/> in order to download images from there.
+Even if the proxy is connected between the device and the TSUN Cloud, an OTA update is supported. To do this, the device must be able to reach the website <http://www.talent-monitoring.com:9002/> in order to download images from there.
 
 It must be ensured that this address is not mapped to the proxy!
 
@@ -395,10 +425,13 @@ A combination with a red question mark should work, but I have not checked it in
 
 <table align="center">
   <tr><th align="center">Micro Inverter Model</th><th align="center">Fw. 1.00.06</th><th align="center">Fw. 1.00.17</th><th align="center">Fw. 1.00.20</th><th align="center">Fw. 4.0.10</th><th align="center">Fw. 4.0.20</th></tr>
-  <tr><td>GEN3 micro inverters (single MPPT):<br>MS300, MS350, MS400<br>MS400-D</td><td align="center">❓</td><td align="center">❓</td><td align="center">❓</td><td align="center">➖</td><td align="center">➖</td></tr>
+  <tr><td>GEN3 micro inverters (single MPPT):<br>MS300, MS350, MS400<br>MS400-D</td><td align="center">✔️</td><td align="center">✔️</td><td align="center">✔️</td><td align="center">➖</td><td align="center">➖</td></tr>
   <tr><td>GEN3 micro inverters (dual MPPT):<br>MS600, MS700, MS800<br>MS600-D, MS800-D</td><td align="center">✔️</td><td align="center">✔️</td><td align="center">✔️</td><td align="center">➖</td><td align="center">➖</td></tr>
-  <tr><td>GEN3 PLUS micro inverters:<br>MS1600, MS1800, MS2000<br>MS2000-D</td><td align="center">➖</td><td align="center">➖</td><td align="center">➖</td><td align="center">✔️</td><td align="center">✔️</td></tr>
-  <tr><td>TITAN micro inverters:<br>TSOL-MP3000, MP2250, MS3000</td><td align="center">❓</td><td align="center">❓</td><td align="center">❓</td><td align="center">❓</td><td align="center">❓</td></tr>
+  <tr><td>GEN3 micro inverters (quad MPPT):<br>MS3000</td><td align="center">✔️</td><td align="center">✔️</td><td align="center">✔️</td><td align="center">➖</td><td align="center">➖</td></tr>
+  <tr><td>GEN3 PLUS micro inverters:<br>MS1600, MS1800, MS2000<br>MS2000-D, MS800</td><td align="center">➖</td><td align="center">➖</td><td align="center">➖</td><td align="center">✔️</td><td align="center">✔️</td></tr>
+  <tr><td>GEN3 PLUS storage systems:<br>DC1000</td><td align="center">➖</td><td align="center">➖</td><td align="center">➖</td><td align="center">✔️</td><td align="center">✔️</td></tr>
+  <tr><td>GEN3 PLUS smart meter:<br>TSOL-MG3-MS</td><td align="center">➖</td><td align="center">➖</td><td align="center">➖</td><td align="center">❓</td><td align="center">❓</td></tr>
+</<tr><td>TITAN micro inverters:<br>TSOL-MP3000, MP2250</td><td align="center">❓</td><td align="center">❓</td><td align="center">❓</td><td align="center">❓</td><td align="center">❓</td></tr>
 </table>
 
 ```txt
@@ -409,7 +442,7 @@ Legend
 🚧: Proxy support in preparation
 ```
 
-❗The new inverters of the GEN3 Plus generation (e.g. MS-2000) use a completely different protocol for data transmission to the TSUN server. These inverters are supported from proxy version 0.6. The serial numbers of these inverters start with `Y17E` or `Y47E` instead of `R17E`
+❗GEN3 Plus generation devices (e.g. MS-2000, DC-1000) can be recognized by their serial number. This starts with 'Y17' or 'Y47' for inverters and '410' for the DC-1000 battery storage system. In contrast, the serial number of GEN3 inverters begins with 'R17' or 'R47'.
 
 If you have one of these combinations with a red question mark, it would be very nice if you could send me a proxy trace so that I can carry out the detailed checks and adjust the device and system tests. [Ask here how to send a trace](https://github.com/s-allius/tsun-gen3-proxy/discussions/categories/traces-for-compatibility-check)
 
