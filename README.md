@@ -427,7 +427,7 @@ A combination with a red question mark should work, but I have not checked it in
   <tr><td>GEN3 micro inverters (single MPPT):<br>MS300, MS350, MS400<br>MS400-D</td><td align="center">❓</td><td align="center">❓</td><td align="center">❓</td><td align="center">➖</td><td align="center">➖</td></tr>
   <tr><td>GEN3 micro inverters (dual MPPT):<br>MS600, MS700, MS800<br>MS600-D, MS800-D</td><td align="center">✔️</td><td align="center">✔️</td><td align="center">✔️</td><td align="center">➖</td><td align="center">➖</td></tr>
   <tr><td>GEN3 micro inverters (quad MPPT):<br>MS3000</td><td align="center">✔️</td><td align="center">✔️</td><td align="center">✔️</td><td align="center">➖</td><td align="center">➖</td></tr>
-  <tr><td>GEN3 PLUS micro inverters:<br>MS1600, MS1800, MS2000<br>MS2000-D</td><td align="center">➖</td><td align="center">➖</td><td align="center">➖</td><td align="center">✔️</td><td align="center">✔️</td></tr>
+  <tr><td>GEN3 PLUS micro inverters:<br>MS1600, MS1800, MS2000<br>MS2000-D, MS800</td><td align="center">➖</td><td align="center">➖</td><td align="center">➖</td><td align="center">✔️</td><td align="center">✔️</td></tr>
   <tr><td>GEN3 PLUS storage systems:<br>DC1000</td><td align="center">➖</td><td align="center">➖</td><td align="center">➖</td><td align="center">✔️</td><td align="center">✔️</td></tr>
   <tr><td>TITAN micro inverters:<br>TSOL-MP3000, MP2250</td><td align="center">❓</td><td align="center">❓</td><td align="center">❓</td><td align="center">❓</td><td align="center">❓</td></tr>
 </table>
@@ -440,7 +440,7 @@ Legend
 🚧: Proxy support in preparation
 ```
 
-❗The new deivces of the GEN3 Plus generation (e.g. MS-2000, DC-1000) use a completely different protocol for data transmission to the TSUN server. These devices are supported from proxy version 0.6. The serial numbers of these devicess start with `Y17E` or `Y47E` instead of `R17E`
+❗The new devices of the GEN3 Plus generation (e.g. MS-2000, DC-1000) use a completely different protocol for data transmission to the TSUN server. These devices are supported from proxy version 0.6. The serial numbers of these devicess start with `Y17` or `Y47` instead of `R17` or `R47`. The batterie storage system DC-1000 is also of the GEN3 Plus generation and its serial numbers start with `410`.
 
 If you have one of these combinations with a red question mark, it would be very nice if you could send me a proxy trace so that I can carry out the detailed checks and adjust the device and system tests. [Ask here how to send a trace](https://github.com/s-allius/tsun-gen3-proxy/discussions/categories/traces-for-compatibility-check)
 
