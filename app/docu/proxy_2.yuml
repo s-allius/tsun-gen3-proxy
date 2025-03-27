@@ -31,7 +31,7 @@
 
 [Talent]->[InfosG3]
 
-[Message|server_side:bool;mb:Modbus;ifc:AsyncIfc;node_id;header_valid:bool;header_len;data_len;unique_id;sug_area:str;new_data:dict;state:State;shutdown_started:bool;modbus_elms;mb_timer:Timer;mb_timeout;mb_first_timeout;modbus_polling:bool|_set_mqtt_timestamp();_timeout();_send_modbus_cmd();<async> end_modbus_cmd();close();inc_counter();dec_counter()]
+[Message|server_side:bool;mb:Modbus;ifc:AsyncIfc;node_id;header_valid:bool;header_len;data_len;unique_id;sug_area:str;new_data:dict;state:State;shutdown_started:bool;modbus_elms;mb_timer:Timer;mb_timeout;mb_first_timeout;modbus_polling:bool|_set_config_parms(inv:dict);_set_mqtt_timestamp(key, ts);_timeout();_send_modbus_cmd();<async>send_modbus_cmd();_send_modbus_scan();_dump_modbus_scan();close();inc_counter();dec_counter()]
 [Message]use->[<<AsyncIfc>>]
 
 [<<ProtocolIfc>>|_registry|close()]
