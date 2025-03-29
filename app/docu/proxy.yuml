@@ -32,5 +32,5 @@
 
 
 [ModbusConn|host;port;addr;stream:InverterG3P;|]has-1>[InverterG3P]
-[ModbusTcp]creates-*>[ModbusConn]
+[ModbusTcp||<async>modbus_loop()]creates-*>[ModbusConn]
 

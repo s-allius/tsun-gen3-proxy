@@ -1,8 +1,8 @@
-    flake8
-    pytest
-    pytest-asyncio
-    pytest-cov
-    python-dotenv
-    mock
-    coverage
-    jinja2-cli
+    flake8==7.1.2
+    pytest==8.3.5
+    pytest-asyncio==0.25.3
+    pytest-cov==6.0.0
+    python-dotenv==1.0.1
+    mock==5.2.0
+    coverage==7.7.1
+    jinja2-cli==0.8.2

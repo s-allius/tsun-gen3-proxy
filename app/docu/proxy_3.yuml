@@ -26,7 +26,7 @@
 [remote:StreamPtr]0..1->[AsyncStreamClient]
 
 [Infos|stat;new_stat_data;info_dev|static_init();dev_value();inc_counter();dec_counter();ha_proxy_conf;ha_conf;ha_remove;update_db;set_db_def_value;get_db_value;ignore_this_device]
-[Infos]^[InfosG3P||ha_confs();parse()]
+[Infos]^[InfosG3P|client_mode:bool|ha_confs();parse();calc();build()]
 
 [SolarmanV5]->[InfosG3P]
 
