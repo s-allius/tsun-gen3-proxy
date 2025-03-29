@@ -47,78 +47,78 @@
 <!-- A2 -->
 <g id="node3" class="node">
 <title>A2</title>
-<polygon fill="none" stroke="#000000" points="202.1165,-632 202.1165,-664 300.1165,-664 300.1165,-632 202.1165,-632"/>
-<text text-anchor="start" x="224.1665" y="-645" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">InverterG3P</text>
-<polygon fill="none" stroke="#000000" points="202.1165,-576 202.1165,-632 300.1165,-632 300.1165,-576 202.1165,-576"/>
-<text text-anchor="start" x="241.1135" y="-613" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">addr</text>
-<text text-anchor="start" x="211.6695" y="-601" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">remote:StreamPtr</text>
-<text text-anchor="start" x="216.9485" y="-589" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">local:StreamPtr</text>
-<polygon fill="none" stroke="#000000" points="202.1165,-520 202.1165,-576 300.1165,-576 300.1165,-520 202.1165,-520"/>
-<text text-anchor="start" x="215.5585" y="-557" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">create_remote()</text>
-<text text-anchor="start" x="236.119" y="-533" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">close()</text>
+<polygon fill="none" stroke="#000000" points="199.1165,-632 199.1165,-664 297.1165,-664 297.1165,-632 199.1165,-632"/>
+<text text-anchor="start" x="221.1665" y="-645" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">InverterG3P</text>
+<polygon fill="none" stroke="#000000" points="199.1165,-576 199.1165,-632 297.1165,-632 297.1165,-576 199.1165,-576"/>
+<text text-anchor="start" x="238.1135" y="-613" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">addr</text>
+<text text-anchor="start" x="208.6695" y="-601" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">remote:StreamPtr</text>
+<text text-anchor="start" x="213.9485" y="-589" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">local:StreamPtr</text>
+<polygon fill="none" stroke="#000000" points="199.1165,-520 199.1165,-576 297.1165,-576 297.1165,-520 199.1165,-520"/>
+<text text-anchor="start" x="212.5585" y="-557" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">create_remote()</text>
+<text text-anchor="start" x="233.119" y="-533" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">close()</text>
 </g>
 <!-- A3 -->
 <g id="node4" class="node">
 <title>A3</title>
-<polygon fill="none" stroke="#000000" points="419.4531,-320 322.7799,-320 322.7799,-284 419.4531,-284 419.4531,-320"/>
-<text text-anchor="middle" x="371.1165" y="-299" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">local:StreamPtr</text>
+<polygon fill="none" stroke="#000000" points="415.4531,-320 318.7799,-320 318.7799,-284 415.4531,-284 415.4531,-320"/>
+<text text-anchor="middle" x="367.1165" y="-299" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">local:StreamPtr</text>
 </g>
 <!-- A2&#45;&gt;A3 -->
 <g id="edge1" class="edge">
 <title>A2&#45;&gt;A3</title>
-<path fill="none" stroke="#000000" d="M285.5402,-508.8093C310.5478,-448.3743 342.848,-370.3156 359.7149,-329.5539"/>
-<polygon fill="#000000" stroke="#000000" points="285.5219,-508.8538 286.9238,-515.9273 280.9336,-519.942 279.5317,-512.8685 285.5219,-508.8538"/>
-<polygon fill="#000000" stroke="#000000" points="363.5595,-320.2627 363.894,-331.2235 361.6477,-324.8828 359.7359,-329.5029 359.7359,-329.5029 359.7359,-329.5029 361.6477,-324.8828 355.5779,-327.7823 363.5595,-320.2627 363.5595,-320.2627"/>
+<path fill="none" stroke="#000000" d="M282.2534,-508.8093C307.0525,-448.3743 339.0836,-370.3156 355.8099,-329.5539"/>
+<polygon fill="#000000" stroke="#000000" points="282.2407,-508.8403 283.6635,-515.9097 277.6851,-519.942 276.2624,-512.8726 282.2407,-508.8403"/>
+<polygon fill="#000000" stroke="#000000" points="359.6225,-320.2627 359.9893,-331.2224 357.7243,-324.8884 355.8262,-329.5141 355.8262,-329.5141 355.8262,-329.5141 357.7243,-324.8884 351.663,-327.8058 359.6225,-320.2627 359.6225,-320.2627"/>
 </g>
 <!-- A4 -->
 <g id="node5" class="node">
 <title>A4</title>
-<polygon fill="none" stroke="#000000" points="304.5106,-320 197.7224,-320 197.7224,-284 304.5106,-284 304.5106,-320"/>
-<text text-anchor="middle" x="251.1165" y="-299" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">remote:StreamPtr</text>
+<polygon fill="none" stroke="#000000" points="300.5106,-320 193.7224,-320 193.7224,-284 300.5106,-284 300.5106,-320"/>
+<text text-anchor="middle" x="247.1165" y="-299" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">remote:StreamPtr</text>
 </g>
 <!-- A2&#45;&gt;A4 -->
 <g id="edge2" class="edge">
 <title>A2&#45;&gt;A4</title>
-<path fill="none" stroke="#000000" d="M251.1165,-507.5905C251.1165,-447.68 251.1165,-370.9429 251.1165,-330.266"/>
-<polygon fill="#000000" stroke="#000000" points="251.1166,-507.942 255.1165,-513.942 251.1165,-519.942 247.1165,-513.942 251.1166,-507.942"/>
-<polygon fill="#000000" stroke="#000000" points="251.1165,-320.2627 255.6166,-330.2626 251.1165,-325.2627 251.1166,-330.2627 251.1166,-330.2627 251.1166,-330.2627 251.1165,-325.2627 246.6166,-330.2627 251.1165,-320.2627 251.1165,-320.2627"/>
+<path fill="none" stroke="#000000" d="M247.8254,-507.5905C247.6188,-447.68 247.3542,-370.9429 247.214,-330.266"/>
+<polygon fill="#000000" stroke="#000000" points="247.8265,-507.9421 251.8473,-513.9282 247.868,-519.942 243.8473,-513.9559 247.8265,-507.9421"/>
+<polygon fill="#000000" stroke="#000000" points="247.1795,-320.2627 251.714,-330.2471 247.1968,-325.2627 247.2141,-330.2626 247.2141,-330.2626 247.2141,-330.2626 247.1968,-325.2627 242.7141,-330.2782 247.1795,-320.2627 247.1795,-320.2627"/>
 </g>
 <!-- A8 -->
 <g id="node9" class="node">
 <title>A8</title>
-<polygon fill="none" stroke="#000000" points="265.1165,-100 265.1165,-132 443.1165,-132 443.1165,-100 265.1165,-100"/>
-<text text-anchor="start" x="309.668" y="-113" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">AsyncStreamServer</text>
-<polygon fill="none" stroke="#000000" points="265.1165,-68 265.1165,-100 443.1165,-100 443.1165,-68 265.1165,-68"/>
-<text text-anchor="start" x="321.8875" y="-81" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">create_remote</text>
-<polygon fill="none" stroke="#000000" points="265.1165,0 265.1165,-68 443.1165,-68 443.1165,0 265.1165,0"/>
-<text text-anchor="start" x="305.774" y="-49" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">&lt;async&gt;server_loop()</text>
-<text text-anchor="start" x="296.605" y="-37" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">&lt;async&gt;_async_forward()</text>
-<text text-anchor="start" x="274.9255" y="-25" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">&lt;async&gt;publish_outstanding_mqtt()</text>
-<text text-anchor="start" x="339.119" y="-13" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">close()</text>
+<polygon fill="none" stroke="#000000" points="261.1165,-100 261.1165,-132 439.1165,-132 439.1165,-100 261.1165,-100"/>
+<text text-anchor="start" x="305.668" y="-113" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">AsyncStreamServer</text>
+<polygon fill="none" stroke="#000000" points="261.1165,-68 261.1165,-100 439.1165,-100 439.1165,-68 261.1165,-68"/>
+<text text-anchor="start" x="317.8875" y="-81" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">create_remote</text>
+<polygon fill="none" stroke="#000000" points="261.1165,0 261.1165,-68 439.1165,-68 439.1165,0 261.1165,0"/>
+<text text-anchor="start" x="301.774" y="-49" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">&lt;async&gt;server_loop()</text>
+<text text-anchor="start" x="292.605" y="-37" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">&lt;async&gt;_async_forward()</text>
+<text text-anchor="start" x="270.9255" y="-25" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">&lt;async&gt;publish_outstanding_mqtt()</text>
+<text text-anchor="start" x="335.119" y="-13" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">close()</text>
 </g>
 <!-- A3&#45;&gt;A8 -->
 <g id="edge8" class="edge">
 <title>A3&#45;&gt;A8</title>
-<path fill="none" stroke="#000000" d="M368.9314,-271.6651C366.5869,-239.1181 362.7725,-186.1658 359.6014,-142.1431"/>
-<polygon fill="#000000" stroke="#000000" points="368.9485,-271.9044 373.3693,-277.6014 369.8108,-283.8733 365.39,-278.1763 368.9485,-271.9044"/>
-<polygon fill="#000000" stroke="#000000" points="358.8731,-132.0321 364.08,-141.6829 359.2323,-137.0192 359.5916,-142.0063 359.5916,-142.0063 359.5916,-142.0063 359.2323,-137.0192 355.1032,-142.3296 358.8731,-132.0321 358.8731,-132.0321"/>
+<path fill="none" stroke="#000000" d="M364.9314,-271.6651C362.5869,-239.1181 358.7725,-186.1658 355.6014,-142.1431"/>
+<polygon fill="#000000" stroke="#000000" points="364.9485,-271.9044 369.3693,-277.6014 365.8108,-283.8733 361.39,-278.1763 364.9485,-271.9044"/>
+<polygon fill="#000000" stroke="#000000" points="354.8731,-132.0321 360.08,-141.6829 355.2323,-137.0192 355.5916,-142.0063 355.5916,-142.0063 355.5916,-142.0063 355.2323,-137.0192 351.1032,-142.3296 354.8731,-132.0321 354.8731,-132.0321"/>
 </g>
 <!-- A9 -->
 <g id="node10" class="node">
 <title>A9</title>
-<polygon fill="none" stroke="#000000" points="93.1165,-82 93.1165,-114 231.1165,-114 231.1165,-82 93.1165,-82"/>
-<text text-anchor="start" x="119.6135" y="-95" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">AsyncStreamClient</text>
-<polygon fill="none" stroke="#000000" points="93.1165,-62 93.1165,-82 231.1165,-82 231.1165,-62 93.1165,-62"/>
-<polygon fill="none" stroke="#000000" points="93.1165,-18 93.1165,-62 231.1165,-62 231.1165,-18 93.1165,-18"/>
-<text text-anchor="start" x="115.9945" y="-43" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">&lt;async&gt;client_loop()</text>
-<text text-anchor="start" x="102.9405" y="-31" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">&lt;async&gt;_async_forward())</text>
+<polygon fill="none" stroke="#000000" points="89.1165,-82 89.1165,-114 227.1165,-114 227.1165,-82 89.1165,-82"/>
+<text text-anchor="start" x="115.6135" y="-95" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">AsyncStreamClient</text>
+<polygon fill="none" stroke="#000000" points="89.1165,-62 89.1165,-82 227.1165,-82 227.1165,-62 89.1165,-62"/>
+<polygon fill="none" stroke="#000000" points="89.1165,-18 89.1165,-62 227.1165,-62 227.1165,-18 89.1165,-18"/>
+<text text-anchor="start" x="111.9945" y="-43" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">&lt;async&gt;client_loop()</text>
+<text text-anchor="start" x="98.9405" y="-31" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">&lt;async&gt;_async_forward())</text>
 </g>
 <!-- A4&#45;&gt;A9 -->
 <g id="edge10" class="edge">
 <title>A4&#45;&gt;A9</title>
-<path fill="none" stroke="#000000" d="M244.2806,-283.8733C231.5204,-250.0372 203.5834,-175.9573 183.8383,-123.5994"/>
-<polygon fill="#000000" stroke="#000000" points="180.2523,-114.0904 187.9915,-121.8593 182.0166,-118.7688 183.781,-123.4472 183.781,-123.4472 183.781,-123.4472 182.0166,-118.7688 179.5704,-125.0351 180.2523,-114.0904 180.2523,-114.0904"/>
-<text text-anchor="middle" x="229.9759" y="-266.8956" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">0..1</text>
+<path fill="none" stroke="#000000" d="M240.2806,-283.8733C227.5204,-250.0372 199.5834,-175.9573 179.8383,-123.5994"/>
+<polygon fill="#000000" stroke="#000000" points="176.2523,-114.0904 183.9915,-121.8593 178.0166,-118.7688 179.781,-123.4472 179.781,-123.4472 179.781,-123.4472 178.0166,-118.7688 175.5704,-125.0351 176.2523,-114.0904 176.2523,-114.0904"/>
+<text text-anchor="middle" x="225.9759" y="-266.8956" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">0..1</text>
 </g>
 <!-- A5 -->
 <g id="node6" class="node">
@@ -149,135 +149,138 @@
 <!-- A6 -->
 <g id="node7" class="node">
 <title>A6</title>
-<polygon fill="none" stroke="#000000" points="87.1165,-622 87.1165,-654 180.1165,-654 180.1165,-622 87.1165,-622"/>
-<text text-anchor="start" x="105.2805" y="-635" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">AsyncIfcImpl</text>
-<polygon fill="none" stroke="#000000" points="87.1165,-530 87.1165,-622 180.1165,-622 180.1165,-530 87.1165,-530"/>
-<text text-anchor="start" x="96.6645" y="-603" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">fwd_fifo:ByteFifo</text>
-<text text-anchor="start" x="100.5535" y="-591" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">tx_fifo:ByteFifo</text>
-<text text-anchor="start" x="100.2785" y="-579" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">rx_fifo:ByteFifo</text>
-<text text-anchor="start" x="99.7125" y="-567" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">conn_no:Count</text>
-<text text-anchor="start" x="115.83" y="-555" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">node_id</text>
-<text text-anchor="start" x="109.166" y="-543" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">timeout_cb</text>
+<polygon fill="none" stroke="#000000" points="84.1165,-622 84.1165,-654 177.1165,-654 177.1165,-622 84.1165,-622"/>
+<text text-anchor="start" x="102.2805" y="-635" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">AsyncIfcImpl</text>
+<polygon fill="none" stroke="#000000" points="84.1165,-530 84.1165,-622 177.1165,-622 177.1165,-530 84.1165,-530"/>
+<text text-anchor="start" x="93.6645" y="-603" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">fwd_fifo:ByteFifo</text>
+<text text-anchor="start" x="97.5535" y="-591" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">tx_fifo:ByteFifo</text>
+<text text-anchor="start" x="97.2785" y="-579" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">rx_fifo:ByteFifo</text>
+<text text-anchor="start" x="96.7125" y="-567" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">conn_no:Count</text>
+<text text-anchor="start" x="112.83" y="-555" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">node_id</text>
+<text text-anchor="start" x="106.166" y="-543" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">timeout_cb</text>
 </g>
 <!-- A5&#45;&gt;A6 -->
 <g id="edge3" class="edge">
 <title>A5&#45;&gt;A6</title>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M166.8518,-752.0017C159.4629,-716.9571 152.1492,-682.2694 146.2303,-654.1971"/>
-<polygon fill="none" stroke="#000000" points="163.4489,-752.8275 168.9367,-761.8903 170.2983,-751.3833 163.4489,-752.8275"/>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M165.2976,-752.0017C157.592,-716.9571 149.9649,-682.2694 143.7924,-654.1971"/>
+<polygon fill="none" stroke="#000000" points="161.906,-752.8753 167.4719,-761.8903 168.7427,-751.372 161.906,-752.8753"/>
 </g>
 <!-- A7 -->
 <g id="node8" class="node">
 <title>A7</title>
-<polygon fill="none" stroke="#000000" points="78.1165,-390 78.1165,-422 180.1165,-422 180.1165,-390 78.1165,-390"/>
-<text text-anchor="start" x="99.3905" y="-403" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">AsyncStream</text>
-<polygon fill="none" stroke="#000000" points="78.1165,-310 78.1165,-390 180.1165,-390 180.1165,-310 78.1165,-310"/>
-<text text-anchor="start" x="114.6695" y="-371" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">reader</text>
-<text text-anchor="start" x="116.8995" y="-359" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">writer</text>
-<text text-anchor="start" x="119.1135" y="-347" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">addr</text>
-<text text-anchor="start" x="114.6695" y="-335" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">r_addr</text>
-<text text-anchor="start" x="115.2245" y="-323" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">l_addr</text>
-<polygon fill="none" stroke="#000000" points="78.1165,-182 78.1165,-310 180.1165,-310 180.1165,-182 78.1165,-182"/>
-<text text-anchor="start" x="100.7705" y="-279" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">&lt;async&gt;loop</text>
-<text text-anchor="start" x="116.8985" y="-267" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">disc()</text>
-<text text-anchor="start" x="114.119" y="-255" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">close()</text>
-<text text-anchor="start" x="109.6705" y="-243" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">healthy()</text>
-<text text-anchor="start" x="94.387" y="-219" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">__async_read()</text>
-<text text-anchor="start" x="93.8375" y="-207" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">__async_write()</text>
-<text text-anchor="start" x="87.7235" y="-195" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">__async_forward()</text>
+<polygon fill="none" stroke="#000000" points="74.1165,-390 74.1165,-422 176.1165,-422 176.1165,-390 74.1165,-390"/>
+<text text-anchor="start" x="95.3905" y="-403" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">AsyncStream</text>
+<polygon fill="none" stroke="#000000" points="74.1165,-310 74.1165,-390 176.1165,-390 176.1165,-310 74.1165,-310"/>
+<text text-anchor="start" x="110.6695" y="-371" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">reader</text>
+<text text-anchor="start" x="112.8995" y="-359" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">writer</text>
+<text text-anchor="start" x="115.1135" y="-347" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">addr</text>
+<text text-anchor="start" x="110.6695" y="-335" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">r_addr</text>
+<text text-anchor="start" x="111.2245" y="-323" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">l_addr</text>
+<polygon fill="none" stroke="#000000" points="74.1165,-182 74.1165,-310 176.1165,-310 176.1165,-182 74.1165,-182"/>
+<text text-anchor="start" x="96.7705" y="-279" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">&lt;async&gt;loop</text>
+<text text-anchor="start" x="112.8985" y="-267" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">disc()</text>
+<text text-anchor="start" x="110.119" y="-255" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">close()</text>
+<text text-anchor="start" x="105.6705" y="-243" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">healthy()</text>
+<text text-anchor="start" x="90.387" y="-219" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">__async_read()</text>
+<text text-anchor="start" x="89.8375" y="-207" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">__async_write()</text>
+<text text-anchor="start" x="83.7235" y="-195" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">__async_forward()</text>
 </g>
 <!-- A6&#45;&gt;A7 -->
 <g id="edge4" class="edge">
 <title>A6&#45;&gt;A7</title>
-<path fill="none" stroke="#000000" d="M132.1177,-519.5861C131.7106,-490.0737 131.229,-455.1552 130.7721,-422.0295"/>
-<polygon fill="none" stroke="#000000" points="128.6207,-519.837 132.2584,-529.7877 135.6201,-519.7404 128.6207,-519.837"/>
+<path fill="none" stroke="#000000" d="M128.868,-519.5861C128.3592,-490.0737 127.7571,-455.1552 127.186,-422.0295"/>
+<polygon fill="none" stroke="#000000" points="125.3719,-519.8496 129.0439,-529.7877 132.3709,-519.7288 125.3719,-519.8496"/>
 </g>
 <!-- A7&#45;&gt;A8 -->
 <g id="edge5" class="edge">
 <title>A7&#45;&gt;A8</title>
-<path fill="none" stroke="#000000" d="M186.5777,-185.0204C187.4154,-184.0001 188.2616,-182.9929 189.1165,-182 210.4788,-157.1889 238.2469,-135.0276 264.8921,-116.8901"/>
-<polygon fill="none" stroke="#000000" points="183.6875,-183.0361 180.3256,-193.0834 189.2193,-187.3255 183.6875,-183.0361"/>
+<path fill="none" stroke="#000000" d="M182.5777,-185.0204C183.4154,-184.0001 184.2616,-182.9929 185.1165,-182 206.4788,-157.1889 234.2469,-135.0276 260.8921,-116.8901"/>
+<polygon fill="none" stroke="#000000" points="179.6875,-183.0361 176.3256,-193.0834 185.2193,-187.3255 179.6875,-183.0361"/>
 </g>
 <!-- A7&#45;&gt;A9 -->
 <g id="edge6" class="edge">
 <title>A7&#45;&gt;A9</title>
-<path fill="none" stroke="#000000" d="M147.3214,-171.8077C150.1952,-151.2556 152.9992,-131.2022 155.3799,-114.1772"/>
-<polygon fill="none" stroke="#000000" points="143.8252,-171.5375 145.9065,-181.9259 150.7577,-172.5069 143.8252,-171.5375"/>
+<path fill="none" stroke="#000000" d="M143.3214,-171.8077C146.1952,-151.2556 148.9992,-131.2022 151.3799,-114.1772"/>
+<polygon fill="none" stroke="#000000" points="139.8252,-171.5375 141.9065,-181.9259 146.7577,-172.5069 139.8252,-171.5375"/>
 </g>
 <!-- A10 -->
 <g id="node11" class="node">
 <title>A10</title>
-<polygon fill="none" stroke="#000000" points="319.1165,-668 319.1165,-700 410.1165,-700 410.1165,-668 319.1165,-668"/>
-<text text-anchor="start" x="337.1115" y="-681" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">SolarmanV5</text>
-<polygon fill="none" stroke="#000000" points="319.1165,-552 319.1165,-668 410.1165,-668 410.1165,-552 319.1165,-552"/>
-<text text-anchor="start" x="345.4395" y="-649" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">conn_no</text>
-<text text-anchor="start" x="354.6135" y="-637" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">addr</text>
-<text text-anchor="start" x="349.6145" y="-613" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">control</text>
-<text text-anchor="start" x="352.674" y="-601" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">serial</text>
-<text text-anchor="start" x="357.6725" y="-589" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">snr</text>
-<text text-anchor="start" x="336.8265" y="-577" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">db:InfosG3P</text>
-<text text-anchor="start" x="350.7285" y="-565" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">switch</text>
-<polygon fill="none" stroke="#000000" points="319.1165,-484 319.1165,-552 410.1165,-552 410.1165,-484 319.1165,-484"/>
-<text text-anchor="start" x="329.057" y="-533" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">msg_unknown()</text>
-<text text-anchor="start" x="345.1705" y="-509" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">healthy()</text>
-<text text-anchor="start" x="349.619" y="-497" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">close()</text>
+<polygon fill="none" stroke="#000000" points="318.1165,-668 318.1165,-700 409.1165,-700 409.1165,-668 318.1165,-668"/>
+<text text-anchor="start" x="336.1115" y="-681" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">SolarmanV5</text>
+<polygon fill="none" stroke="#000000" points="318.1165,-552 318.1165,-668 409.1165,-668 409.1165,-552 318.1165,-552"/>
+<text text-anchor="start" x="344.4395" y="-649" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">conn_no</text>
+<text text-anchor="start" x="353.6135" y="-637" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">addr</text>
+<text text-anchor="start" x="348.6145" y="-613" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">control</text>
+<text text-anchor="start" x="351.674" y="-601" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">serial</text>
+<text text-anchor="start" x="356.6725" y="-589" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">snr</text>
+<text text-anchor="start" x="335.8265" y="-577" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">db:InfosG3P</text>
+<text text-anchor="start" x="349.7285" y="-565" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">switch</text>
+<polygon fill="none" stroke="#000000" points="318.1165,-484 318.1165,-552 409.1165,-552 409.1165,-484 318.1165,-484"/>
+<text text-anchor="start" x="328.057" y="-533" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">msg_unknown()</text>
+<text text-anchor="start" x="344.1705" y="-509" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">healthy()</text>
+<text text-anchor="start" x="348.619" y="-497" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">close()</text>
 </g>
 <!-- A10&#45;&gt;A3 -->
 <g id="edge7" class="edge">
 <title>A10&#45;&gt;A3</title>
-<path fill="none" stroke="#000000" d="M366.9763,-473.5237C368.222,-421.9136 369.5798,-365.6622 370.389,-332.138"/>
-<polygon fill="#000000" stroke="#000000" points="366.733,-483.6023 362.4757,-473.4966 366.8537,-478.6038 366.9744,-473.6052 366.9744,-473.6052 366.9744,-473.6052 366.8537,-478.6038 371.4731,-473.7139 366.733,-483.6023 366.733,-483.6023"/>
-<polygon fill="#000000" stroke="#000000" points="370.3911,-332.0495 366.5371,-325.9547 370.6807,-320.053 374.5347,-326.1478 370.3911,-332.0495"/>
+<path fill="none" stroke="#000000" d="M364.7507,-473.5237C365.4625,-421.9136 366.2384,-365.6622 366.7008,-332.138"/>
+<polygon fill="#000000" stroke="#000000" points="364.6116,-483.6023 360.2501,-473.5412 364.6806,-478.6028 364.7497,-473.6033 364.7497,-473.6033 364.7497,-473.6033 364.6806,-478.6028 369.2492,-473.6654 364.6116,-483.6023 364.6116,-483.6023"/>
+<polygon fill="#000000" stroke="#000000" points="366.7019,-332.0519 362.7851,-325.9973 366.8675,-320.053 370.7843,-326.1077 366.7019,-332.0519"/>
 </g>
 <!-- A10&#45;&gt;A4 -->
 <g id="edge9" class="edge">
 <title>A10&#45;&gt;A4</title>
-<path fill="none" stroke="#000000" d="M318.2339,-474.2481C295.3796,-415.5956 270.1211,-350.7729 258.151,-320.053"/>
-<polygon fill="#000000" stroke="#000000" points="321.8788,-483.6023 314.0551,-475.9185 320.0634,-478.9435 318.2481,-474.2847 318.2481,-474.2847 318.2481,-474.2847 320.0634,-478.9435 322.441,-472.6508 321.8788,-483.6023 321.8788,-483.6023"/>
-<text text-anchor="middle" x="272.6076" y="-330.8736" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">0..1</text>
+<path fill="none" stroke="#000000" d="M316.0157,-474.2481C292.5547,-415.5956 266.6257,-350.7729 254.3377,-320.053"/>
+<polygon fill="#000000" stroke="#000000" points="319.7574,-483.6023 311.8653,-475.9888 317.9004,-478.9599 316.0435,-474.3175 316.0435,-474.3175 316.0435,-474.3175 317.9004,-478.9599 320.2216,-472.6462 319.7574,-483.6023 319.7574,-483.6023"/>
+<text text-anchor="middle" x="268.9174" y="-330.7436" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">0..1</text>
 </g>
 <!-- A12 -->
 <g id="node13" class="node">
 <title>A12</title>
-<polygon fill="none" stroke="#000000" points="442.1165,-318 442.1165,-350 509.1165,-350 509.1165,-318 442.1165,-318"/>
-<text text-anchor="start" x="454.775" y="-331" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">InfosG3P</text>
-<polygon fill="none" stroke="#000000" points="442.1165,-298 442.1165,-318 509.1165,-318 509.1165,-298 442.1165,-298"/>
-<polygon fill="none" stroke="#000000" points="442.1165,-254 442.1165,-298 509.1165,-298 509.1165,-254 442.1165,-254"/>
-<text text-anchor="start" x="452.0005" y="-279" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">ha_confs()</text>
-<text text-anchor="start" x="459.7845" y="-267" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">parse()</text>
+<polygon fill="none" stroke="#000000" points="434.1165,-336 434.1165,-368 529.1165,-368 529.1165,-336 434.1165,-336"/>
+<text text-anchor="start" x="460.775" y="-349" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">InfosG3P</text>
+<polygon fill="none" stroke="#000000" points="434.1165,-304 434.1165,-336 529.1165,-336 529.1165,-304 434.1165,-304"/>
+<text text-anchor="start" x="443.829" y="-317" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">client_mode:bool</text>
+<polygon fill="none" stroke="#000000" points="434.1165,-236 434.1165,-304 529.1165,-304 529.1165,-236 434.1165,-236"/>
+<text text-anchor="start" x="458.0005" y="-285" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">ha_confs()</text>
+<text text-anchor="start" x="465.7845" y="-273" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">parse()</text>
+<text text-anchor="start" x="469.3985" y="-261" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">calc()</text>
+<text text-anchor="start" x="467.73" y="-249" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">build()</text>
 </g>
 <!-- A10&#45;&gt;A12 -->
 <g id="edge12" class="edge">
 <title>A10&#45;&gt;A12</title>
-<path fill="none" stroke="#000000" d="M405.6067,-483.6023C421.7045,-441.5449 439.4849,-395.0916 453.0329,-359.6958"/>
-<polygon fill="#000000" stroke="#000000" points="456.737,-350.0185 457.3649,-360.9664 454.9496,-354.6881 453.1623,-359.3577 453.1623,-359.3577 453.1623,-359.3577 454.9496,-354.6881 448.9596,-357.7491 456.737,-350.0185 456.737,-350.0185"/>
+<path fill="none" stroke="#000000" d="M407.2231,-483.6023C421.5819,-448.3138 437.2,-409.9305 450.3629,-377.5809"/>
+<polygon fill="#000000" stroke="#000000" points="454.1856,-368.1861 454.5848,-379.1447 452.3011,-372.8174 450.4166,-377.4487 450.4166,-377.4487 450.4166,-377.4487 452.3011,-372.8174 446.2485,-375.7526 454.1856,-368.1861 454.1856,-368.1861"/>
 </g>
 <!-- A11 -->
 <g id="node12" class="node">
 <title>A11</title>
-<polygon fill="none" stroke="#000000" points="428.1165,-680 428.1165,-712 531.1165,-712 531.1165,-680 428.1165,-680"/>
-<text text-anchor="start" x="468.7785" y="-693" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">Infos</text>
-<polygon fill="none" stroke="#000000" points="428.1165,-624 428.1165,-680 531.1165,-680 531.1165,-624 428.1165,-624"/>
-<text text-anchor="start" x="471.558" y="-661" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">stat</text>
-<text text-anchor="start" x="447.1025" y="-649" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">new_stat_data</text>
-<text text-anchor="start" x="460.72" y="-637" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">info_dev</text>
-<polygon fill="none" stroke="#000000" points="428.1165,-472 428.1165,-624 531.1165,-624 531.1165,-472 428.1165,-472"/>
-<text text-anchor="start" x="455.452" y="-605" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">static_init()</text>
-<text text-anchor="start" x="453.501" y="-593" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">dev_value()</text>
-<text text-anchor="start" x="450.447" y="-581" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">inc_counter()</text>
-<text text-anchor="start" x="448.777" y="-569" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">dec_counter()</text>
-<text text-anchor="start" x="446.8265" y="-557" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">ha_proxy_conf</text>
-<text text-anchor="start" x="461.8295" y="-545" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">ha_conf</text>
-<text text-anchor="start" x="454.6105" y="-533" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">ha_remove</text>
-<text text-anchor="start" x="455.991" y="-521" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">update_db</text>
-<text text-anchor="start" x="440.1535" y="-509" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">set_db_def_value</text>
-<text text-anchor="start" x="449.602" y="-497" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">get_db_value</text>
-<text text-anchor="start" x="437.939" y="-485" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">ignore_this_device</text>
+<polygon fill="none" stroke="#000000" points="430.1165,-680 430.1165,-712 533.1165,-712 533.1165,-680 430.1165,-680"/>
+<text text-anchor="start" x="470.7785" y="-693" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">Infos</text>
+<polygon fill="none" stroke="#000000" points="430.1165,-624 430.1165,-680 533.1165,-680 533.1165,-624 430.1165,-624"/>
+<text text-anchor="start" x="473.558" y="-661" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">stat</text>
+<text text-anchor="start" x="449.1025" y="-649" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">new_stat_data</text>
+<text text-anchor="start" x="462.72" y="-637" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">info_dev</text>
+<polygon fill="none" stroke="#000000" points="430.1165,-472 430.1165,-624 533.1165,-624 533.1165,-472 430.1165,-472"/>
+<text text-anchor="start" x="457.452" y="-605" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">static_init()</text>
+<text text-anchor="start" x="455.501" y="-593" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">dev_value()</text>
+<text text-anchor="start" x="452.447" y="-581" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">inc_counter()</text>
+<text text-anchor="start" x="450.777" y="-569" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">dec_counter()</text>
+<text text-anchor="start" x="448.8265" y="-557" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">ha_proxy_conf</text>
+<text text-anchor="start" x="463.8295" y="-545" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">ha_conf</text>
+<text text-anchor="start" x="456.6105" y="-533" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">ha_remove</text>
+<text text-anchor="start" x="457.991" y="-521" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">update_db</text>
+<text text-anchor="start" x="442.1535" y="-509" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">set_db_def_value</text>
+<text text-anchor="start" x="451.602" y="-497" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">get_db_value</text>
+<text text-anchor="start" x="439.939" y="-485" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">ignore_this_device</text>
 </g>
 <!-- A11&#45;&gt;A12 -->
 <g id="edge11" class="edge">
 <title>A11&#45;&gt;A12</title>
-<path fill="none" stroke="#000000" d="M477.322,-461.8987C476.7744,-422.1971 476.206,-380.9898 475.7834,-350.352"/>
-<polygon fill="none" stroke="#000000" points="473.823,-462.0018 477.4607,-471.9525 480.8223,-461.9052 473.823,-462.0018"/>
+<path fill="none" stroke="#000000" d="M481.1165,-461.9134C481.1165,-429.4373 481.1165,-395.9527 481.1165,-368.0691"/>
+<polygon fill="none" stroke="#000000" points="477.6166,-461.9525 481.1165,-471.9525 484.6166,-461.9526 477.6166,-461.9525"/>
 </g>
 <!-- A13 -->
 <g id="node14" class="node">
