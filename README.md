@@ -430,15 +430,15 @@ A combination with a red question mark should work, but I have not checked it in
   <tr><td>GEN3 micro inverters (quad MPPT):<br>MS3000</td><td align="center">✔️</td><td align="center">✔️</td><td align="center">✔️</td><td align="center">➖</td><td align="center">➖</td></tr>
   <tr><td>GEN3 PLUS micro inverters:<br>MS1600, MS1800, MS2000<br>MS2000-D, MS800</td><td align="center">➖</td><td align="center">➖</td><td align="center">➖</td><td align="center">✔️</td><td align="center">✔️</td></tr>
   <tr><td>GEN3 PLUS storage systems:<br>DC1000</td><td align="center">➖</td><td align="center">➖</td><td align="center">➖</td><td align="center">✔️</td><td align="center">✔️</td></tr>
-  <tr><td>GEN3 PLUS smart meter:<br>TSOL-MG3-MS</td><td align="center">➖</td><td align="center">➖</td><td align="center">➖</td><td align="center">❓</td><td align="center">❓</td></tr>
+  <tr><td>GEN3 PLUS smart meter:<br>TSOL-MG3-MS, DDZY422-D2</td><td align="center">➖</td><td align="center">➖</td><td align="center">➖</td><td align="center">❓</td><td align="center">❓</td></tr>
 </<tr><td>TITAN micro inverters:<br>TSOL-MP3000, MP2250</td><td align="center">❓</td><td align="center">❓</td><td align="center">❓</td><td align="center">❓</td><td align="center">❓</td></tr>
 </table>
 
 ```txt
 Legend
 ➖: Firmware not available for this devices
-✔️: proxy support testet
-❓: proxy support possible but not testet
+✔️: Proxy support testet
+❓: Proxy support unknown. There is an open port, but all known protocols do not work.
 🚧: Proxy support in preparation
 ```
 
