@@ -816,7 +816,7 @@ def config_tsun_allow_all():
 
 @pytest.fixture
 def config_no_tsun_inv1():
-    Config.act_config = {'solarman':{'enabled': False},'inverters':{'Y170000000000001':{'monitor_sn': 2070233889, 'node_id':'inv1', 'modbus_polling': True, 'suggested_area':'roof', 'sensor_list': 688}}}
+    Config.act_config = {'solarman':{'enabled': False},'inverters':{'Y170000000000001':{'monitor_sn': 2070233889, 'node_id':'inv1/', 'modbus_polling': True, 'suggested_area':'roof', 'sensor_list': 688}}}
 
 @pytest.fixture
 def config_tsun_inv1():
@@ -828,21 +828,21 @@ def config_tsun_inv1():
             'proxy_node_id': 'test_1',
             'proxy_unique_id': ''
         },
-        'solarman':{'enabled': True},'inverters':{'Y170000000000001':{'monitor_sn': 2070233889, 'node_id':'inv1', 'modbus_polling': True, 'suggested_area':'roof', 'sensor_list': 0}}}
+        'solarman':{'enabled': True},'inverters':{'Y170000000000001':{'monitor_sn': 2070233889, 'node_id':'inv1/', 'modbus_polling': True, 'suggested_area':'roof', 'sensor_list': 0}}}
     Proxy.class_init()
     Proxy.mqtt = Mqtt()
 
 @pytest.fixture
 def config_tsun_scan():
-    Config.act_config = {'solarman':{'enabled': True},'inverters':{'Y170000000000001':{'monitor_sn': 2070233889, 'node_id':'inv1', 'modbus_polling': True, 'modbus_scanning': {'start': 0xffc0, 'step': 0x40, 'bytes':20}, 'suggested_area':'roof', 'sensor_list': 0}}}
+    Config.act_config = {'solarman':{'enabled': True},'inverters':{'Y170000000000001':{'monitor_sn': 2070233889, 'node_id':'inv1/', 'modbus_polling': True, 'modbus_scanning': {'start': 0xffc0, 'step': 0x40, 'bytes':20}, 'suggested_area':'roof', 'sensor_list': 0}}}
 
 @pytest.fixture
 def config_tsun_scan_dcu():
-    Config.act_config = {'solarman':{'enabled': True},'inverters':{'4100000000000001':{'monitor_sn': 2070233888, 'node_id':'inv1', 'modbus_polling': True, 'modbus_scanning': {'start': 0x0000, 'step': 0x100, 'bytes':0x2d}, 'client_mode': {'host': '192.168.1.1.'}, 'suggested_area':'roof', 'sensor_list': 0}}}
+    Config.act_config = {'solarman':{'enabled': True},'inverters':{'4100000000000001':{'monitor_sn': 2070233888, 'node_id':'inv1/', 'modbus_polling': True, 'modbus_scanning': {'start': 0x0000, 'step': 0x100, 'bytes':0x2d}, 'client_mode': {'host': '192.168.1.1.'}, 'suggested_area':'roof', 'sensor_list': 0}}}
 
 @pytest.fixture
 def config_tsun_dcu1():
-    Config.act_config = {'solarman':{'enabled': True},'batteries':{'4100000000000001':{'monitor_sn': 2070233888, 'node_id':'inv1', 'modbus_polling': True, 'suggested_area':'roof', 'sensor_list': 0}}}
+    Config.act_config = {'solarman':{'enabled': True},'batteries':{'4100000000000001':{'monitor_sn': 2070233888, 'node_id':'inv1/', 'modbus_polling': True, 'suggested_area':'roof', 'sensor_list': 0}}}
 
 def test_read_message(device_ind_msg):
     Config.act_config = {'solarman':{'enabled': True}}
@@ -1559,7 +1559,7 @@ async def test_at_cmd(config_tsun_allow_all, device_ind_msg, device_rsp_msg, inv
     assert m.ifc.fwd_fifo.get()==b''
     assert m.sent_pdu == b''
     assert str(m.seq) == '03:04'
-    assert m.forward_at_cmd_resp == False
+    assert m.db.forward_at_cmd_resp == False
     assert Proxy.mqtt.key == ''
     assert Proxy.mqtt.data == ""
     m.close()
@@ -1594,12 +1594,12 @@ async def test_at_cmd_blocked(config_tsun_allow_all, device_ind_msg, device_rsp_
     assert m.ifc.tx_fifo.get()==b''
     assert m.ifc.fwd_fifo.get()==b''
     assert str(m.seq) == '02:02'
-    assert m.forward_at_cmd_resp == False
+    assert m.db.forward_at_cmd_resp == False
     assert Proxy.mqtt.key == 'tsun/at_resp'
     assert Proxy.mqtt.data == "'AT+WEBU' is forbidden"
     m.close()
 
-def test_at_cmd_ind(config_tsun_inv1, at_command_ind_msg):
+def test_at_cmd_ind(config_tsun_inv1, at_command_ind_msg, at_command_rsp_msg):
     _ = config_tsun_inv1
     m = MemoryStream(at_command_ind_msg, (0,), False)
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
@@ -1621,6 +1621,17 @@ def test_at_cmd_ind(config_tsun_inv1, at_command_ind_msg):
     assert m.db.stat['proxy']['AT_Command'] == 1
     assert m.db.stat['proxy']['AT_Command_Blocked'] == 0
     assert m.db.stat['proxy']['Modbus_Command'] == 0
+
+    m.append_msg(at_command_rsp_msg)
+    m.read() # read at resp
+    assert m.control == 0x1510
+    assert str(m.seq) == '03:03'
+    assert m.ifc.rx_get()==b''
+    assert m.ifc.tx_fifo.get()==b''
+    assert m.ifc.fwd_fifo.get()==at_command_rsp_msg
+    assert Proxy.mqtt.key == ''
+    assert Proxy.mqtt.data == ""
+
     m.close()
 
 def test_at_cmd_ind_block(config_tsun_inv1, at_command_ind_msg_block):
@@ -1645,6 +1656,9 @@ def test_at_cmd_ind_block(config_tsun_inv1, at_command_ind_msg_block):
     assert m.db.stat['proxy']['AT_Command'] == 0
     assert m.db.stat['proxy']['AT_Command_Blocked'] == 1
     assert m.db.stat['proxy']['Modbus_Command'] == 0
+    assert m.db.forward_at_cmd_resp == False
+    assert Proxy.mqtt.key == ''
+    assert Proxy.mqtt.data == ""
     m.close()
 
 def test_msg_at_command_rsp1(config_tsun_inv1, at_command_rsp_msg):
@@ -1652,7 +1666,7 @@ def test_msg_at_command_rsp1(config_tsun_inv1, at_command_rsp_msg):
     m = MemoryStream(at_command_rsp_msg)
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
     m.db.stat['proxy']['Modbus_Command'] = 0
-    m.forward_at_cmd_resp = True
+    m.db.forward_at_cmd_resp = True
     m.read()         # read complete msg, and dispatch msg
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
     assert m.msg_count == 1
@@ -1671,7 +1685,7 @@ def test_msg_at_command_rsp2(config_tsun_inv1, at_command_rsp_msg):
     m = MemoryStream(at_command_rsp_msg)
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
     m.db.stat['proxy']['Modbus_Command'] = 0
-    m.forward_at_cmd_resp = False
+    m.db.forward_at_cmd_resp = False
     m.read()         # read complete msg, and dispatch msg
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
     assert m.msg_count == 1
@@ -1683,6 +1697,8 @@ def test_msg_at_command_rsp2(config_tsun_inv1, at_command_rsp_msg):
     assert m.ifc.tx_fifo.get()==b''
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
     assert m.db.stat['proxy']['Modbus_Command'] == 0
+    assert Proxy.mqtt.key == 'tsun/inv1/at_resp'
+    assert Proxy.mqtt.data == "+ok"
     m.close()
 
 def test_msg_at_command_rsp3(config_tsun_inv1, at_command_interim_rsp_msg):
@@ -1692,7 +1708,7 @@ def test_msg_at_command_rsp3(config_tsun_inv1, at_command_interim_rsp_msg):
     m.db.stat['proxy']['Modbus_Command'] = 0
     m.db.stat['proxy']['Invalid_Msg_Format'] = 0
     m.db.stat['proxy']['Unknown_Msg'] = 0
-    m.forward_at_cmd_resp = True
+    m.db.forward_at_cmd_resp = True
     m.read()         # read complete msg, and dispatch msg
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
     assert m.msg_count == 1
@@ -1706,6 +1722,8 @@ def test_msg_at_command_rsp3(config_tsun_inv1, at_command_interim_rsp_msg):
     assert m.db.stat['proxy']['Modbus_Command'] == 0
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
     assert m.db.stat['proxy']['Unknown_Msg'] == 0
+    assert Proxy.mqtt.key == ''
+    assert Proxy.mqtt.data == ""
     m.close()
 
 def test_msg_modbus_req(config_tsun_inv1, msg_modbus_cmd, msg_modbus_cmd_fwd):
