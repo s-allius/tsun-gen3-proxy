@@ -438,7 +438,7 @@ A combination with a red question mark should work, but I have not checked it in
 Legend
 ➖: Firmware not available for this devices
 ✔️: Proxy support testet
-❓: Proxy support unknown. There is an open port, but the protocol is unknown.
+❓: Proxy support unknown. There is an open port, but all known protocols do not work.
 🚧: Proxy support in preparation
 ```
 
