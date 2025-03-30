@@ -193,11 +193,19 @@ class RegisterSel:
 
 
 class InfosG3P(Infos):
-    __slots__ = ('client_mode', )
+    __slots__ = ('client_mode', 'forward_at_cmd_resp')
 
     def __init__(self, client_mode: bool):
         super().__init__()
         self.client_mode = client_mode
+        # shared value between both inverter connections
+        self.forward_at_cmd_resp = False
+        '''Flag if response for the last at command must be send to the cloud.
+
+           False: send result only to the MQTT broker, cause the AT+ command
+                  came from there
+           True: send response packet to the cloud, cause the AT+ command
+                 came from the cloud'''
         self.set_db_def_value(Register.MANUFACTURER, 'TSUN')
         self.set_db_def_value(Register.EQUIPMENT_MODEL, 'TSOL-MSxx00')
         self.set_db_def_value(Register.CHIP_TYPE, 'IGEN TECH')
