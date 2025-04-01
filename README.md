@@ -8,7 +8,7 @@
 <p align="center">
     <a href="https://opensource.org/licenses/BSD-3-Clause"><img alt="License: BSD-3-Clause" src="https://img.shields.io/badge/License-BSD_3--Clause-green.svg"></a>
     <a href="https://www.python.org/downloads/release/python-3130/"><img alt="Supported Python versions" src="https://img.shields.io/badge/python-3.13-blue.svg"></a>
-    <a href="https://sbtinstruments.github.io/aiomqtt/introduction.html"><img alt="Supported aiomqtt versions" src="https://img.shields.io/badge/aiomqtt-2.3.0-lightblue.svg"></a>
+    <a href="https://aiomqtt.bo3hm.com/introduction.html"><img alt="Supported aiomqtt versions" src="https://img.shields.io/badge/aiomqtt-2.3.1-lightblue.svg"></a>
     <a href="https://libraries.io/pypi/aiocron"><img alt="Supported aiocron versions" src="https://img.shields.io/badge/aiocron-1.8-lightblue.svg"></a>
     <a href="https://toml.io/en/v1.0.0"><img alt="Supported toml versions" src="https://img.shields.io/badge/toml-1.0.0-lightblue.svg"></a>
     <br>
@@ -430,15 +430,15 @@ A combination with a red question mark should work, but I have not checked it in
   <tr><td>GEN3 micro inverters (quad MPPT):<br>MS3000</td><td align="center">✔️</td><td align="center">✔️</td><td align="center">✔️</td><td align="center">➖</td><td align="center">➖</td></tr>
   <tr><td>GEN3 PLUS micro inverters:<br>MS1600, MS1800, MS2000<br>MS2000-D, MS800</td><td align="center">➖</td><td align="center">➖</td><td align="center">➖</td><td align="center">✔️</td><td align="center">✔️</td></tr>
   <tr><td>GEN3 PLUS storage systems:<br>DC1000</td><td align="center">➖</td><td align="center">➖</td><td align="center">➖</td><td align="center">✔️</td><td align="center">✔️</td></tr>
-  <tr><td>GEN3 PLUS smart meter:<br>TSOL-MG3-MS</td><td align="center">➖</td><td align="center">➖</td><td align="center">➖</td><td align="center">❓</td><td align="center">❓</td></tr>
+  <tr><td>GEN3 PLUS smart meter:<br>TSOL-MG3-MS, DDZY422-D2</td><td align="center">➖</td><td align="center">➖</td><td align="center">➖</td><td align="center">❓</td><td align="center">❓</td></tr>
 </<tr><td>TITAN micro inverters:<br>TSOL-MP3000, MP2250</td><td align="center">❓</td><td align="center">❓</td><td align="center">❓</td><td align="center">❓</td><td align="center">❓</td></tr>
 </table>
 
 ```txt
 Legend
 ➖: Firmware not available for this devices
-✔️: proxy support testet
-❓: proxy support possible but not testet
+✔️: Proxy support testet
+❓: Proxy support unknown. There is an open port, but all known protocols do not work.
 🚧: Proxy support in preparation
 ```
 
