@@ -84,7 +84,6 @@ async def test_close_cb():
         return 0.1
     def closed():
         nonlocal cnt
-        nonlocal ifc
         ifc.close()  # clears the closed callback
         cnt += 1
     
@@ -113,7 +112,6 @@ async def test_close_cb():
 
 @pytest.mark.asyncio
 async def test_read():
-    global test
     assert asyncio.get_running_loop()
     reader = FakeReader()
     reader.test  = FakeReader.RD_TEST_13_BYTES
@@ -124,11 +122,9 @@ async def test_read():
         return 1
     def closed():
         nonlocal cnt
-        nonlocal ifc
         ifc.close()  # clears the closed callback
         cnt += 1
     def app_read():
-        nonlocal ifc
         ifc.proc_start -= 3
         return 0.01  # async wait of 0.01 
     cnt = 0
@@ -151,7 +147,6 @@ async def test_read():
 
 @pytest.mark.asyncio
 async def test_write():
-    global test
     assert asyncio.get_running_loop()
     reader = FakeReader()
     reader.test  = FakeReader.RD_TEST_13_BYTES
@@ -162,11 +157,9 @@ async def test_write():
         return 1
     def closed():
         nonlocal cnt
-        nonlocal ifc
         ifc.close()  # clears the closed callback
         cnt += 1
     def app_read():
-        nonlocal ifc
         ifc.proc_start -= 3
         return 0.01  # async wait of 0.01 
     
@@ -203,7 +196,6 @@ async def test_publ_mqtt_cb():
         return 0.1
     async def publ_mqtt():
         nonlocal cnt
-        nonlocal ifc
         cnt += 1
     
     cnt = 0
@@ -233,7 +225,6 @@ async def test_create_remote_cb():
         return 0.1
     async def create_remote():
         nonlocal cnt
-        nonlocal ifc
         ifc.close()  # clears the closed callback
         cnt += 1
     
@@ -255,7 +246,6 @@ async def test_create_remote_cb():
 
 @pytest.mark.asyncio
 async def test_sw_exception():
-    global test
     assert asyncio.get_running_loop()
     reader = FakeReader()
     reader.test  = FakeReader.RD_TEST_SW_EXCEPT
@@ -266,7 +256,6 @@ async def test_sw_exception():
         return 1
     def closed():
         nonlocal cnt
-        nonlocal ifc
         ifc.close()  # clears the closed callback
         cnt += 1
     cnt = 0
@@ -285,7 +274,6 @@ async def test_sw_exception():
 
 @pytest.mark.asyncio
 async def test_os_error():
-    global test
     assert asyncio.get_running_loop()
     reader = FakeReader()
     reader.test  = FakeReader.RD_TEST_OS_ERROR
@@ -297,7 +285,6 @@ async def test_os_error():
         return 1
     def closed():
         nonlocal cnt
-        nonlocal ifc
         ifc.close()  # clears the closed callback
         cnt += 1
     cnt = 0
@@ -363,7 +350,7 @@ async def test_forward():
     cnt = 0
 
     async def _create_remote():
-        nonlocal cnt, remote, ifc
+        nonlocal cnt
         create_remote(remote, TestType.FWD_NO_EXCPT)
         ifc.fwd_add(b'test-forward_msg2 ')
         cnt += 1
@@ -382,7 +369,7 @@ async def test_forward_with_conn():
     cnt = 0
 
     async def _create_remote():
-        nonlocal cnt, remote, ifc
+        nonlocal cnt
         cnt += 1
     
     cnt = 0
@@ -417,7 +404,7 @@ async def test_forward_sw_except():
     cnt = 0
 
     async def _create_remote():
-        nonlocal cnt, remote
+        nonlocal cnt
         create_remote(remote, TestType.FWD_SW_EXCPT)
         cnt += 1
     
@@ -435,7 +422,7 @@ async def test_forward_os_error():
     cnt = 0
 
     async def _create_remote():
-        nonlocal cnt, remote
+        nonlocal cnt
         create_remote(remote, TestType.FWD_OS_ERROR)
         cnt += 1
     
@@ -453,7 +440,7 @@ async def test_forward_os_error2():
     cnt = 0
 
     async def _create_remote():
-        nonlocal cnt, remote
+        nonlocal cnt
         create_remote(remote, TestType.FWD_OS_ERROR, True)
         cnt += 1
     
@@ -471,7 +458,7 @@ async def test_forward_os_error3():
     cnt = 0
 
     async def _create_remote():
-        nonlocal cnt, remote
+        nonlocal cnt
         create_remote(remote, TestType.FWD_OS_ERROR_NO_STREAM)
         cnt += 1
     
@@ -489,7 +476,7 @@ async def test_forward_runtime_error():
     cnt = 0
 
     async def _create_remote():
-        nonlocal cnt, remote
+        nonlocal cnt
         create_remote(remote, TestType.FWD_RUNTIME_ERROR)
         cnt += 1
     
@@ -507,7 +494,7 @@ async def test_forward_runtime_error2():
     cnt = 0
 
     async def _create_remote():
-        nonlocal cnt, remote
+        nonlocal cnt
         create_remote(remote, TestType.FWD_RUNTIME_ERROR, True)
         cnt += 1
     
@@ -525,7 +512,7 @@ async def test_forward_runtime_error3():
     cnt = 0
 
     async def _create_remote():
-        nonlocal cnt, remote
+        nonlocal cnt
         create_remote(remote, TestType.FWD_RUNTIME_ERROR_NO_STREAM, True)
         cnt += 1
     
@@ -543,7 +530,7 @@ async def test_forward_resp():
     cnt = 0
 
     def _close_cb():
-        nonlocal cnt, remote, ifc
+        nonlocal cnt
         cnt += 1
     
     cnt = 0
@@ -561,7 +548,7 @@ async def test_forward_resp2():
     cnt = 0
 
     def _close_cb():
-        nonlocal cnt, remote, ifc
+        nonlocal cnt
         cnt += 1
     
     cnt = 0
