@@ -286,7 +286,7 @@ async def test_os_error():
     def closed():
         nonlocal cnt, ifc
         ifc.close()  # clears the closed callback
-        ifc.conn_no = 0  # fake set for F824 error
+        ifc = None  # fake set for F824 error
         cnt += 1
     cnt = 0
     ifc =  AsyncStreamClient(reader, writer, None, closed)
@@ -353,7 +353,7 @@ async def test_forward():
         nonlocal cnt, ifc
         create_remote(remote, TestType.FWD_NO_EXCPT)
         ifc.fwd_add(b'test-forward_msg2 ')
-        ifc.conn_no = 0  # fake set for F824 error
+        ifc = None  # fake set for F824 error
         cnt += 1
     
     cnt = 0
