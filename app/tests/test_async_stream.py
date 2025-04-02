@@ -281,11 +281,10 @@ async def test_os_error():
     reader.on_recv.set()
     writer =  FakeWriter()
     cnt = 0
-    ifc = None
     def timeout():
         return 1
     def closed():
-        nonlocal cnt
+        nonlocal cnt, ifc
         ifc.close()  # clears the closed callback
         cnt += 1
     cnt = 0
@@ -349,9 +348,8 @@ async def test_forward():
     assert asyncio.get_running_loop()
     remote = StreamPtr(None)
     cnt = 0
-    ifc = None
     async def _create_remote():
-        nonlocal cnt
+        nonlocal cnt, ifc
         create_remote(remote, TestType.FWD_NO_EXCPT)
         ifc.fwd_add(b'test-forward_msg2 ')
         cnt += 1
