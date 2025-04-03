@@ -281,11 +281,10 @@ async def test_os_error():
     reader.on_recv.set()
     writer =  FakeWriter()
     cnt = 0
-    ifc = None
     def timeout():
         return 1
     def closed():
-        nonlocal cnt
+        nonlocal cnt, ifc
         ifc.close()  # clears the closed callback
         cnt += 1
     cnt = 0
