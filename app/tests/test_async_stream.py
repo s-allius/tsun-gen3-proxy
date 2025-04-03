@@ -350,10 +350,9 @@ async def test_forward():
     remote = StreamPtr(None)
     cnt = 0
     async def _create_remote():
-        nonlocal cnt, ifc
+        nonlocal cnt
         create_remote(remote, TestType.FWD_NO_EXCPT)
         ifc.fwd_add(b'test-forward_msg2 ')
-        ifc = None  # fake set for F824 error
         cnt += 1
     
     cnt = 0
