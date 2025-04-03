@@ -284,9 +284,8 @@ async def test_os_error():
     def timeout():
         return 1
     def closed():
-        nonlocal cnt, ifc
+        nonlocal cnt
         ifc.close()  # clears the closed callback
-        ifc = None  # fake set for F824 error
         cnt += 1
     cnt = 0
     ifc =  AsyncStreamClient(reader, writer, None, closed)
