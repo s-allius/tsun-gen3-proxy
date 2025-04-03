@@ -286,6 +286,7 @@ async def test_os_error():
     def closed():
         nonlocal cnt, ifc
         ifc.close()  # clears the closed callback
+        ifc = None
         cnt += 1
     cnt = 0
     ifc =  AsyncStreamClient(reader, writer, None, closed)
