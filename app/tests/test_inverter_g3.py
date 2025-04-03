@@ -85,7 +85,6 @@ def patch_open_connection():
         return FakeReader(), FakeWriter()
     
     def new_open(host: str, port: int):
-        global test
         if test == MockType.RD_TEST_TIMEOUT:
             raise ConnectionRefusedError
         elif test == MockType.RD_TEST_EXCEPT:
