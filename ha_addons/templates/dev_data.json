@@ -5,5 +5,7 @@
     "image": "docker.io/sallius/tsun-gen3-addon",
     "slug": "tsun-proxy-dev",
     "advanced": false,
-    "stage": "experimental"
+    "stage": "experimental",
+    "readme_descr": "This is a bleeding-edge version of the `TSUN Proxy`  Add-On.\n\nThe versions may be based on different feature branches and therefore the range of functions may change.\n\nIt is intended for testing new functions or testing new devices that are to be supported with the next release.\nFor production, please use the stable version 'TSUN Proxy'.",
+    "readme_links": ""
 }
