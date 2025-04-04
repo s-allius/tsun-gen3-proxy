@@ -85,7 +85,6 @@ def patch_open_connection():
         return FakeReader(), FakeWriter()
     
     def new_open(host: str, port: int):
-        global test
         if test == MockType.RD_TEST_TIMEOUT:
             raise ConnectionRefusedError
         elif test == MockType.RD_TEST_EXCEPT:
@@ -318,7 +317,7 @@ async def test_remote_conn_to_loopback(config_conn, patch_open_connection):
     assert cnt == 0
 
 @pytest.mark.asyncio
-async def test_remote_conn_to_None(config_conn, patch_open_connection):
+async def test_remote_conn_to_none(config_conn, patch_open_connection):
     '''check if get_extra_info() return None in case of an error'''
     _ = config_conn
     _ = patch_open_connection

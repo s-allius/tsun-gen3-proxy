@@ -96,7 +96,6 @@ def test_native_client(test_hostname, test_port):
 
 @pytest.mark.asyncio
 async def test_mqtt_connection(config_mqtt_conn):
-    global NO_MOSQUITTO_TEST
     if NO_MOSQUITTO_TEST:
         pytest.skip('skipping, since Mosquitto is not reliable at the moment')
 
@@ -122,7 +121,6 @@ async def test_mqtt_connection(config_mqtt_conn):
 
 @pytest.mark.asyncio
 async def test_ha_reconnect(config_mqtt_conn):
-    global NO_MOSQUITTO_TEST
     if NO_MOSQUITTO_TEST:
         pytest.skip('skipping, since Mosquitto is not reliable at the moment')
 
