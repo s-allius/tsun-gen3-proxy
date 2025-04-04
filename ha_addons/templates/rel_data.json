@@ -5,5 +5,7 @@
     "image": "ghcr.io/s-allius/tsun-gen3-addon",
     "slug": "tsun-proxy",
     "advanced": false,
-    "stage": "stable"
+    "stage": "stable",
+    "readme_dsecr": "Integrates TSUN inverters (e.g. TSOL MS800, MS2000, MS3000) and batteries (TSOL DC1000) into Home Assistant.\n\nIt is based on the [TSUN Proxy][tsunproxy] and enables a reliable connection between TSUN devices and an MQTT broker.\n\nWith the Add-on, you can easily retrieve real-time values such as power, current and daily energy and integrate the inverter into Home Assistant.\nThis works even without an internet connection.\n\nThe optional connection to the TSUN Cloud can be disabled!",
+    "readme_links": "\n[tsunproxy]: https://github.com/s-allius/tsun-gen3-proxy\n"
 }
