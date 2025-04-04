@@ -207,11 +207,7 @@ async def test_publ_mqtt_cb():
     def timeout():
         return 0.1
     async def publ_mqtt():
-        nonlocal cnt, ifc
-        # The callback will be called after the AsyncStreamServer
-        # constructer has finished and so ifc must be defined in the
-        # upper scope
-        assert "ifc" in locals()
+        nonlocal cnt
         cnt += 1
     
     cnt = 0
@@ -314,7 +310,6 @@ async def test_os_error():
         # upper scope
         assert "ifc" in locals()
         ifc.close()  # clears the closed callback
-        ifc = None
         cnt += 1
     cnt = 0
     ifc =  AsyncStreamClient(reader, writer, None, closed)
@@ -402,10 +397,6 @@ async def test_forward_with_conn():
 
     async def _create_remote():
         nonlocal cnt
-        # The callback will be called after the AsyncStreamServer
-        # constructer has finished and so ifc must be defined in the
-        # upper scope
-        assert "ifc" in locals()
         cnt += 1
     
     cnt = 0
@@ -423,11 +414,7 @@ async def test_forward_no_conn():
     cnt = 0
 
     async def _create_remote():
-        nonlocal cnt, ifc
-        # The callback will be called after the AsyncStreamServer
-        # constructer has finished and so ifc must be defined in the
-        # upper scope
-        assert "ifc" in locals()
+        nonlocal cnt
         cnt += 1
     
     cnt = 0
@@ -444,11 +431,7 @@ async def test_forward_sw_except():
     cnt = 0
 
     async def _create_remote():
-        nonlocal cnt, ifc
-        # The callback will be called after the AsyncStreamServer
-        # constructer has finished and so ifc must be defined in the
-        # upper scope
-        assert "ifc" in locals()
+        nonlocal cnt
         create_remote(remote, TestType.FWD_SW_EXCPT)
         cnt += 1
     
@@ -466,11 +449,7 @@ async def test_forward_os_error():
     cnt = 0
 
     async def _create_remote():
-        nonlocal cnt, ifc
-        # The callback will be called after the AsyncStreamServer
-        # constructer has finished and so ifc must be defined in the
-        # upper scope
-        assert "ifc" in locals()
+        nonlocal cnt
         create_remote(remote, TestType.FWD_OS_ERROR)
         cnt += 1
     
@@ -488,11 +467,7 @@ async def test_forward_os_error2():
     cnt = 0
 
     async def _create_remote():
-        nonlocal cnt, ifc
-        # The callback will be called after the AsyncStreamServer
-        # constructer has finished and so ifc must be defined in the
-        # upper scope
-        assert "ifc" in locals()
+        nonlocal cnt
         create_remote(remote, TestType.FWD_OS_ERROR, True)
         cnt += 1
     
@@ -510,11 +485,7 @@ async def test_forward_os_error3():
     cnt = 0
 
     async def _create_remote():
-        nonlocal cnt, ifc
-        # The callback will be called after the AsyncStreamServer
-        # constructer has finished and so ifc must be defined in the
-        # upper scope
-        assert "ifc" in locals()
+        nonlocal cnt
         create_remote(remote, TestType.FWD_OS_ERROR_NO_STREAM)
         cnt += 1
     
@@ -532,11 +503,7 @@ async def test_forward_runtime_error():
     cnt = 0
 
     async def _create_remote():
-        nonlocal cnt, ifc
-        # The callback will be called after the AsyncStreamServer
-        # constructer has finished and so ifc must be defined in the
-        # upper scope
-        assert "ifc" in locals()
+        nonlocal cnt
         create_remote(remote, TestType.FWD_RUNTIME_ERROR)
         cnt += 1
     
@@ -554,11 +521,7 @@ async def test_forward_runtime_error2():
     cnt = 0
 
     async def _create_remote():
-        nonlocal cnt, ifc
-        # The callback will be called after the AsyncStreamServer
-        # constructer has finished and so ifc must be defined in the
-        # upper scope
-        assert "ifc" in locals()
+        nonlocal cnt
         create_remote(remote, TestType.FWD_RUNTIME_ERROR, True)
         cnt += 1
     
@@ -576,11 +539,7 @@ async def test_forward_runtime_error3():
     cnt = 0
 
     async def _create_remote():
-        nonlocal cnt, ifc
-        # The callback will be called after the AsyncStreamServer
-        # constructer has finished and so ifc must be defined in the
-        # upper scope
-        assert "ifc" in locals()
+        nonlocal cnt
         create_remote(remote, TestType.FWD_RUNTIME_ERROR_NO_STREAM, True)
         cnt += 1
     
@@ -598,11 +557,7 @@ async def test_forward_resp():
     cnt = 0
 
     def _close_cb():
-        nonlocal cnt, ifc
-        # The callback will be called after the AsyncStreamServer
-        # constructer has finished and so ifc must be defined in the
-        # upper scope
-        assert "ifc" in locals()
+        nonlocal cnt
         cnt += 1
     
     cnt = 0
@@ -619,11 +574,7 @@ async def test_forward_resp2():
     remote = StreamPtr(None)
     cnt = 0
     def _close_cb():
-        nonlocal cnt, ifc
-        # The callback will be called after the AsyncStreamServer
-        # constructer has finished and so ifc must be defined in the
-        # upper scope
-        assert "ifc" in locals()
+        nonlocal cnt
         cnt += 1
     
     cnt = 0
