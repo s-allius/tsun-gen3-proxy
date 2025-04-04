@@ -80,6 +80,7 @@ async def test_close_cb():
     reader = FakeReader()
     writer =  FakeWriter()
     cnt = 0
+    ifc = None
     def timeout():
         return 0.1
     def closed():
@@ -122,6 +123,7 @@ async def test_read():
     reader.on_recv.set()
     writer =  FakeWriter()
     cnt = 0
+    ifc = None
     def timeout():
         return 1
     def closed():
