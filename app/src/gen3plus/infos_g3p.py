@@ -192,7 +192,7 @@ class RegisterMap:
             4: {'reg': Register.BATT_PWR_SUPL_STATE,       'func': RegisterFunc.cmp_values,  # noqa: E501
                 'params': {'reg': Register.BATT_OUT_PWR, 'cmp_val': 0, 'res': [0, 0, 1]}},   # noqa: E501
             5: {'reg': Register.BATT_STATUS,               'func': RegisterFunc.cmp_values,  # noqa: E501
-                'params': {'reg': Register.BATT_CUR,     'cmp_val': 0, 'res': [0, 1, 2]}}    # noqa: E501
+                'params': {'reg': Register.BATT_CUR,     'cmp_val': 0.0, 'res': [0, 1, 2]}}  # noqa: E501
         }
     }
 
