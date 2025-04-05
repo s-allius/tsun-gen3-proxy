@@ -155,6 +155,7 @@ async def test_remote_except(config_conn, patch_open_connection):
         await asyncio.sleep(0)
         assert inverter.remote.stream==None
     del inverter
+    test  = MockType.RD_TEST_0_BYTES
 
     cnt = 0
     for inv in InverterBase:

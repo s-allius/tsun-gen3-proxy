@@ -34,10 +34,11 @@ class Control:
 class Talent(Message):
     TXT_UNKNOWN_CTRL = 'Unknown Ctrl'
 
-    def __init__(self, addr, ifc: "AsyncIfc", server_side: bool,
+    def __init__(self, inverter, addr, ifc: "AsyncIfc", server_side: bool,
                  client_mode: bool = False, id_str=b''):
         super().__init__('G3', ifc, server_side, self.send_modbus_cb,
                          mb_timeout=15)
+        _ = inverter
         ifc.rx_set_cb(self.read)
         ifc.prot_set_timeout_cb(self._timeout)
         ifc.prot_set_init_new_client_conn_cb(self._init_new_client_conn)

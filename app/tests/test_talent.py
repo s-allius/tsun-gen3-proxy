@@ -25,7 +25,7 @@ class FakeIfc(AsyncIfcImpl):
 class MemoryStream(Talent):
     def __init__(self, msg, chunks = (0,), server_side: bool = True):
         self.ifc = FakeIfc()
-        super().__init__(('test.local', 1234), self.ifc, server_side)
+        super().__init__(None, ('test.local', 1234), self.ifc, server_side)
         if server_side:
             self.mb.timeout = 0.4   # overwrite for faster testing
         self.mb_first_timeout = 0.5
@@ -2026,9 +2026,9 @@ def test_ctrl_byte():
 
     
 def test_msg_iterator():
-    m1 = Talent(('test1.local', 1234), ifc=AsyncIfcImpl(), server_side=True)
-    m2 = Talent(('test2.local', 1234), ifc=AsyncIfcImpl(), server_side=True)
-    m3 = Talent(('test3.local', 1234), ifc=AsyncIfcImpl(), server_side=True)
+    m1 = Talent(None, ('test1.local', 1234), ifc=AsyncIfcImpl(), server_side=True)
+    m2 = Talent(None, ('test2.local', 1234), ifc=AsyncIfcImpl(), server_side=True)
+    m3 = Talent(None, ('test3.local', 1234), ifc=AsyncIfcImpl(), server_side=True)
     m3.close()
     del m3
     test1 = 0
