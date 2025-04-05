@@ -83,6 +83,18 @@ def batterie_data():  # 0x4210 ftype: 0x01
     return msg
 
 @pytest.fixture
+def batterie_data1():  # 0x4210 ftype: 0x01
+    msg  = b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x26\x30\xc7\xde'
+    msg += b'\x2d\x32\x28\x00\x00\x00\x84\x17\x79\x35\x01\x00\x4c\x12\x00\x00'
+    msg += b'\x34\x31\x30\x31\x32\x34\x30\x37\x30\x31\x34\x39\x30\x33\x31\x34'
+    msg += b'\x0d\x3a\x00\x70\x0d\x2c\x00\x00\x00\x00\x08\x20\x00\x00\x00\x00'
+    msg += b'\x01\x00\x00\x00\x03\xe8\x0c\x89\x0c\x89\x0c\x89\x0c\x8a\x0c\x89'
+    msg += b'\x0c\x89\x0c\x8a\x0c\x89\x0c\x89\x0c\x8a\x0c\x8a\x0c\x89\x0c\x89'
+    msg += b'\x0c\x89\x0c\x89\x0c\x88\x00\x0f\x00\x0f\x00\x0f\x0c\x0e\x01\x00'
+    msg += b'\x00\x00\x00\x0f\x00\x00\x02\x05\x02\x01'
+    return msg
+
+@pytest.fixture
 def batterie_data2():  # 0x4210 ftype: 0x01
     msg  = b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x26\x30\xc7\xde'
     msg += b'\x2d\x32\x28\x00\x00\x00\x84\x17\x79\x35\x01\x00\x4c\x12\x00\x00'
@@ -160,6 +172,25 @@ def test_parse_4210_3026(batterie_data: bytes):
                       "batt": {"Total_Charging": 20.8, "Voltage": 51.34, "Current": -0.02, "SOC": 10.0, "Power": -1.0268000000000002, 'Batt_State': 0},
                       "cell": {"Volt1": 3.21, "Volt2": 3.21, "Volt3": 3.21, "Volt4": 3.21, "Volt5": 3.21, "Volt6": 3.21, "Volt7": 3.21, "Volt8": 3.21, "Volt9": 3.21, "Volt10": 3.21, "Volt11": 3.21, "Volt12": 3.21, "Volt13": 3.21, "Volt14": 3.21, "Volt15": 3.21, "Volt16": 3.21, "Temp_1": 15, "Temp_2": 15,  "Temp_3": 15}, 
                       "out": {"Voltage": 0.14, "Current": 0.0, "Out_Status": 0, "Power": 0.0, "Suppl_State": 0},
+                      "Controller_Temp": 15, "Reg_74": 0, "Hardware_Version": 517, "Software_Version": 513, 
+                      "PV_Power": 37.9232},
+        })
+
+def test_parse_4210_3026_prod(batterie_data1: bytes):
+    i = InfosG3P(client_mode=False)
+    i.db.clear()
+    
+    for key, update in i.parse (batterie_data1, 0x42, 1, 0x3026):
+        pass  #  side effect is calling generator i.parse()
+
+    assert json.dumps(i.db) == json.dumps({
+         "controller": {"Sensor_List": "3026", "Power_On_Time": 4684},
+         "inverter": {"Serial_Number": "4101240701490314"}, 
+         "batterie": {"pv1": {"Voltage": 33.86, "Current": 1.12, "MPPT-Status": 0}, 
+                      "pv2": {"Voltage": 33.72, "Current": 0.0, "MPPT-Status": 0}, 
+                      "batt": {"Total_Charging": 20.8, "Voltage": 2.56, "Current": 0.0, "SOC": 10.0, "Power": 0.0, 'Batt_State': 1},
+                      "cell": {"Volt1": 3.21, "Volt2": 3.21, "Volt3": 3.21, "Volt4": 3.21, "Volt5": 3.21, "Volt6": 3.21, "Volt7": 3.21, "Volt8": 3.21, "Volt9": 3.21, "Volt10": 3.21, "Volt11": 3.21, "Volt12": 3.21, "Volt13": 3.21, "Volt14": 3.21, "Volt15": 3.21, "Volt16": 3.21, "Temp_1": 15, "Temp_2": 15,  "Temp_3": 15}, 
+                      "out": {"Voltage": 30.86, "Current": 2.56, "Out_Status": 0, "Power": 79.0016, "Suppl_State": 1},
                       "Controller_Temp": 15, "Reg_74": 0, "Hardware_Version": 517, "Software_Version": 513, 
                       "PV_Power": 37.9232},
         })
