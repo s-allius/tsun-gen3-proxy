@@ -27,8 +27,7 @@ class RegisterFunc:
                 return params['res'][0]
             if val == params['cmp_val']:
                 return params['res'][1]
-            if val > params['cmp_val']:
-                return params['res'][2]
+            return params['res'][2]
         except Exception:
             pass
         return None
