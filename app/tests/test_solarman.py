@@ -4,7 +4,9 @@ import time
 import asyncio
 import logging
 import random
+from asyncio import StreamReader, StreamWriter
 from math import isclose
+
 from async_stream import AsyncIfcImpl, StreamPtr
 from gen3plus.solarman_v5 import SolarmanV5, SolarmanBase
 from cnf.config import Config
@@ -12,6 +14,11 @@ from infos import Infos, Register
 from modbus import Modbus
 from messages import State, Message
 from proxy import Proxy
+from test_inverter_g3p import FakeReader, FakeWriter, patch_open_connection
+from inverter_base import InverterBase
+from test_modbus_tcp import test_port, test_hostname
+
+
 
 
 pytest_plugins = ('pytest_asyncio',)
@@ -43,10 +50,14 @@ class FakeIfc(AsyncIfcImpl):
     async def create_remote(self):
         await asyncio.sleep(0)
 
+class FakeInverter():
+    def __init__(self):
+        self.forward_at_cmd_resp = False
+
 class MemoryStream(SolarmanV5):
-    def __init__(self, msg, chunks = (0,), server_side: bool = True):
+    def __init__(self, msg, chunks = (0,), server_side: bool = True, inverter=FakeInverter()):
         _ifc = FakeIfc()
-        super().__init__(('test.local', 1234), _ifc, server_side, client_mode=False)
+        super().__init__(inverter, ('test.local', 1234), _ifc, server_side, client_mode=False)
         if server_side:
             self.mb.timeout = 0.4   # overwrite for faster testing
         self.mb_first_timeout = 0.5
@@ -828,7 +839,7 @@ def config_tsun_inv1():
             'proxy_node_id': 'test_1',
             'proxy_unique_id': ''
         },
-        'solarman':{'enabled': True},'inverters':{'Y170000000000001':{'monitor_sn': 2070233889, 'node_id':'inv1/', 'modbus_polling': True, 'suggested_area':'roof', 'sensor_list': 0}}}
+        'solarman':{'enabled': True, 'host': 'test_cloud.local', 'port': 1234},'inverters':{'Y170000000000001':{'monitor_sn': 2070233889, 'node_id':'inv1/', 'modbus_polling': True, 'suggested_area':'roof', 'sensor_list': 0}}}
     Proxy.class_init()
     Proxy.mqtt = Mqtt()
 
@@ -1432,9 +1443,9 @@ def test_build_logger_modell(config_tsun_allow_all, device_ind_msg):
 
 def test_msg_iterator():
     Message._registry.clear()
-    m1 = SolarmanV5(('test1.local', 1234), ifc=AsyncIfcImpl(), server_side=True, client_mode=False)
-    m2 = SolarmanV5(('test2.local', 1234), ifc=AsyncIfcImpl(), server_side=True, client_mode=False)
-    m3 = SolarmanV5(('test3.local', 1234), ifc=AsyncIfcImpl(), server_side=True, client_mode=False)
+    m1 = SolarmanV5(None, ('test1.local', 1234), ifc=AsyncIfcImpl(), server_side=True, client_mode=False)
+    m2 = SolarmanV5(None, ('test2.local', 1234), ifc=AsyncIfcImpl(), server_side=True, client_mode=False)
+    m3 = SolarmanV5(None, ('test3.local', 1234), ifc=AsyncIfcImpl(), server_side=True, client_mode=False)
     m3.close()
     del m3
     test1 = 0
@@ -1452,7 +1463,7 @@ def test_msg_iterator():
     assert test2 == 1
 
 def test_proxy_counter():
-    m = SolarmanV5(('test.local', 1234), ifc=AsyncIfcImpl(), server_side=True, client_mode=False)
+    m = SolarmanV5(None, ('test.local', 1234), ifc=AsyncIfcImpl(), server_side=True, client_mode=False)
     assert m.new_data == {}
     m.db.stat['proxy']['Unknown_Msg'] = 0
     Infos.new_stat_data['proxy'] =  False
@@ -1559,7 +1570,7 @@ async def test_at_cmd(config_tsun_allow_all, device_ind_msg, device_rsp_msg, inv
     assert m.ifc.fwd_fifo.get()==b''
     assert m.sent_pdu == b''
     assert str(m.seq) == '03:04'
-    assert m.db.forward_at_cmd_resp == False
+    assert m.inverter.forward_at_cmd_resp == False
     assert Proxy.mqtt.key == ''
     assert Proxy.mqtt.data == ""
     m.close()
@@ -1594,7 +1605,7 @@ async def test_at_cmd_blocked(config_tsun_allow_all, device_ind_msg, device_rsp_
     assert m.ifc.tx_fifo.get()==b''
     assert m.ifc.fwd_fifo.get()==b''
     assert str(m.seq) == '02:02'
-    assert m.db.forward_at_cmd_resp == False
+    assert m.inverter.forward_at_cmd_resp == False
     assert Proxy.mqtt.key == 'tsun/at_resp'
     assert Proxy.mqtt.data == "'AT+WEBU' is forbidden"
     m.close()
@@ -1641,6 +1652,7 @@ def test_at_cmd_ind_block(config_tsun_inv1, at_command_ind_msg_block):
     m.db.stat['proxy']['AT_Command'] = 0
     m.db.stat['proxy']['AT_Command_Blocked'] = 0
     m.db.stat['proxy']['Modbus_Command'] = 0
+    m.inverter.forward_at_cmd_resp = False
     m.read()         # read complete msg, and dispatch msg
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
     assert m.msg_count == 1
@@ -1656,7 +1668,7 @@ def test_at_cmd_ind_block(config_tsun_inv1, at_command_ind_msg_block):
     assert m.db.stat['proxy']['AT_Command'] == 0
     assert m.db.stat['proxy']['AT_Command_Blocked'] == 1
     assert m.db.stat['proxy']['Modbus_Command'] == 0
-    assert m.db.forward_at_cmd_resp == False
+    assert m.inverter.forward_at_cmd_resp == False
     assert Proxy.mqtt.key == ''
     assert Proxy.mqtt.data == ""
     m.close()
@@ -1666,7 +1678,7 @@ def test_msg_at_command_rsp1(config_tsun_inv1, at_command_rsp_msg):
     m = MemoryStream(at_command_rsp_msg)
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
     m.db.stat['proxy']['Modbus_Command'] = 0
-    m.db.forward_at_cmd_resp = True
+    m.inverter.forward_at_cmd_resp = True
     m.read()         # read complete msg, and dispatch msg
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
     assert m.msg_count == 1
@@ -1685,7 +1697,7 @@ def test_msg_at_command_rsp2(config_tsun_inv1, at_command_rsp_msg):
     m = MemoryStream(at_command_rsp_msg)
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
     m.db.stat['proxy']['Modbus_Command'] = 0
-    m.db.forward_at_cmd_resp = False
+    m.inverter.forward_at_cmd_resp = False
     m.read()         # read complete msg, and dispatch msg
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
     assert m.msg_count == 1
@@ -1708,7 +1720,7 @@ def test_msg_at_command_rsp3(config_tsun_inv1, at_command_interim_rsp_msg):
     m.db.stat['proxy']['Modbus_Command'] = 0
     m.db.stat['proxy']['Invalid_Msg_Format'] = 0
     m.db.stat['proxy']['Unknown_Msg'] = 0
-    m.db.forward_at_cmd_resp = True
+    m.inverter.forward_at_cmd_resp = True
     m.read()         # read complete msg, and dispatch msg
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
     assert m.msg_count == 1
@@ -2237,3 +2249,99 @@ def test_timestamp():
     ts = m._timestamp()
     ts_emu = m._emu_timestamp()
     assert ts == ts_emu + 24*60*60
+
+class MemoryStream2(MemoryStream):
+    def __init__(self, inverter, addr, ifc,
+                 server_side: bool, client_mode: bool):
+        super().__init__(b'', inverter=inverter)
+
+
+class InverterTest(InverterBase):
+    def __init__(self, reader: StreamReader, writer: StreamWriter,
+                 client_mode: bool = False):
+        remote_prot = None
+        super().__init__(reader, writer, 'solarman',
+                         MemoryStream2, client_mode, remote_prot)
+        
+    def forward(self, src, dst) -> None:
+        """forward handler transmits data over the remote connection"""
+        # dst.ifc.update_header_cb(src.fwd_fifo.peek())
+        
+        dst.ifc.tx_add(src.ifc.fwd_fifo.get())
+
+
+@pytest.mark.asyncio
+async def test_proxy_at_cmd(config_tsun_inv1, patch_open_connection, at_command_ind_msg, at_command_rsp_msg):
+    _ = config_tsun_inv1
+    _ = patch_open_connection
+    assert asyncio.get_running_loop()
+
+    with InverterTest(FakeReader(), FakeWriter(), client_mode=False) as inverter:
+        await inverter.create_remote()
+        await asyncio.sleep(0)
+        r = inverter.remote.stream
+        l = inverter.local.stream
+
+        l.db.stat['proxy']['AT_Command'] = 0
+        l.db.stat['proxy']['Unknown_Ctrl'] = 0
+        l.db.stat['proxy']['AT_Command_Blocked'] = 0
+        l.db.stat['proxy']['Modbus_Command'] = 0
+        inverter.forward_at_cmd_resp = False
+        r.append_msg(at_command_ind_msg)
+        r.read()         # read complete msg, and dispatch msg
+        assert inverter.forward_at_cmd_resp
+        inverter.forward(r,l)
+
+        assert l.ifc.tx_fifo.get()==at_command_ind_msg
+
+        assert l.db.stat['proxy']['Invalid_Msg_Format'] == 0
+        assert l.db.stat['proxy']['AT_Command'] == 1
+        assert l.db.stat['proxy']['AT_Command_Blocked'] == 0
+        assert l.db.stat['proxy']['Modbus_Command'] == 0
+
+        l.append_msg(at_command_rsp_msg)
+        l.read() # read at resp
+        assert l.ifc.fwd_fifo.peek()==at_command_rsp_msg
+        inverter.forward(l,r)
+        assert r.ifc.tx_fifo.get()==at_command_rsp_msg
+
+        assert Proxy.mqtt.key == ''
+        assert Proxy.mqtt.data == ""
+
+@pytest.mark.asyncio
+async def test_proxy_at_blocked(config_tsun_inv1, patch_open_connection, at_command_ind_msg_block, at_command_rsp_msg):
+    _ = config_tsun_inv1
+    _ = patch_open_connection
+    assert asyncio.get_running_loop()
+
+    with InverterTest(FakeReader(), FakeWriter(), client_mode=False) as inverter:
+        await inverter.create_remote()
+        await asyncio.sleep(0)
+        r = inverter.remote.stream
+        l = inverter.local.stream
+
+        l.db.stat['proxy']['AT_Command'] = 0
+        l.db.stat['proxy']['Unknown_Ctrl'] = 0
+        l.db.stat['proxy']['AT_Command_Blocked'] = 0
+        l.db.stat['proxy']['Modbus_Command'] = 0
+        inverter.forward_at_cmd_resp = False
+        r.append_msg(at_command_ind_msg_block)
+        r.read()         # read complete msg, and dispatch msg
+        assert not inverter.forward_at_cmd_resp
+        inverter.forward(r,l)
+
+        assert l.ifc.tx_fifo.get()==b''
+
+        assert l.db.stat['proxy']['Invalid_Msg_Format'] == 0
+        assert l.db.stat['proxy']['AT_Command'] == 0
+        assert l.db.stat['proxy']['AT_Command_Blocked'] == 1
+        assert l.db.stat['proxy']['Modbus_Command'] == 0
+
+        l.append_msg(at_command_rsp_msg)
+        l.read() # read at resp
+        assert l.ifc.fwd_fifo.peek()==b''
+        inverter.forward(l,r)
+        assert r.ifc.tx_fifo.get()==b''
+
+        assert Proxy.mqtt.key == 'tsun/inv1/at_resp'
+        assert Proxy.mqtt.data == "+ok"

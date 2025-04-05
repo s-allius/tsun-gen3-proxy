@@ -9,6 +9,7 @@ class InverterG3P(InverterBase):
     def __init__(self, reader: StreamReader, writer: StreamWriter,
                  client_mode: bool = False):
         remote_prot = None
+        self.forward_at_cmd_resp = False
         if client_mode:
             remote_prot = SolarmanEmu
         super().__init__(reader, writer, 'solarman',

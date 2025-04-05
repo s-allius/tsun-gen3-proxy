@@ -190,7 +190,8 @@ def patch_mqtt_except():
         yield conn
 
 @pytest.mark.asyncio
-async def test_modbus_conn(patch_open):
+async def test_modbus_conn(config_conn, patch_open):
+    _ = config_conn
     _ = patch_open
     assert Infos.stat['proxy']['Inverter_Cnt'] == 0
 
@@ -210,6 +211,7 @@ async def test_modbus_conn(patch_open):
 
 @pytest.mark.asyncio
 async def test_modbus_no_cnf():
+    _ = config_conn
     assert Infos.stat['proxy']['Inverter_Cnt'] == 0
     loop = asyncio.get_event_loop()
     ModbusTcp(loop)

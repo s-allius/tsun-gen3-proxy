@@ -253,11 +253,12 @@ class SolarmanV5(SolarmanBase):
     HDR_FMT = '<BLLL'
     '''format string for packing of the header'''
 
-    def __init__(self, addr, ifc: "AsyncIfc",
+    def __init__(self, inverter, addr, ifc: "AsyncIfc",
                  server_side: bool, client_mode: bool):
         super().__init__(addr, ifc, server_side, self.send_modbus_cb,
                          mb_timeout=8)
 
+        self.inverter = inverter
         self.db = InfosG3P(client_mode)
         self.no_forwarding = False
         '''not allowed to connect to TSUN cloud by connection type'''
@@ -334,6 +335,7 @@ class SolarmanV5(SolarmanBase):
         # we have references to methods of this class in self.switch
         # so we have to erase self.switch, otherwise this instance can't be
         # deallocated by the garbage collector ==> we get a memory leak
+        self.inverter = None
         self.switch.clear()
         self.log_lvl.clear()
         super().close()
@@ -518,7 +520,7 @@ class SolarmanV5(SolarmanBase):
             await Proxy.mqtt.publish(f'{Proxy.entity_prfx}{node_id}{key}', data_json)  # noqa: E501
             return
 
-        self.db.forward_at_cmd_resp = False
+        self.inverter.forward_at_cmd_resp = False
         self._build_header(0x4510)
         self.ifc.tx_add(struct.pack(f'<BHLLL{len(at_cmd)}sc', self.AT_CMD,
                                     0x0002, 0, 0, 0,
@@ -643,7 +645,7 @@ class SolarmanV5(SolarmanBase):
                 self.inc_counter('AT_Command_Blocked')
                 return
             self.inc_counter('AT_Command')
-            self.db.forward_at_cmd_resp = True
+            self.inverter.forward_at_cmd_resp = True
 
         elif ftype == self.MB_RTU_CMD:
             rstream = self.ifc.remote.stream
@@ -665,7 +667,7 @@ class SolarmanV5(SolarmanBase):
         ftype = self.ifc.rx_peek()[self.header_len]
         if ftype == self.AT_CMD or \
            ftype == self.AT_CMD_RSP:
-            if self.db.forward_at_cmd_resp:
+            if self.inverter.forward_at_cmd_resp:
                 return logging.INFO
             return logging.DEBUG
         elif ftype == self.MB_RTU_CMD \
@@ -680,7 +682,7 @@ class SolarmanV5(SolarmanBase):
         ftype = data[0]
         if ftype == self.AT_CMD or \
            ftype == self.AT_CMD_RSP:
-            if not self.db.forward_at_cmd_resp:
+            if not self.inverter.forward_at_cmd_resp:
                 data_json = data[14:].decode("utf-8")
                 node_id = self.node_id
                 key = 'at_resp'

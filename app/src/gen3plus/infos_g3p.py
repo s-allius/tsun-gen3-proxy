@@ -193,13 +193,12 @@ class RegisterSel:
 
 
 class InfosG3P(Infos):
-    __slots__ = ('client_mode', 'forward_at_cmd_resp')
+    __slots__ = ('client_mode')
 
     def __init__(self, client_mode: bool):
         super().__init__()
         self.client_mode = client_mode
         # shared value between both inverter connections
-        self.forward_at_cmd_resp = False
         '''Flag if response for the last at command must be send to the cloud.
 
            False: send result only to the MQTT broker, cause the AT+ command

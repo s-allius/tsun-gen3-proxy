@@ -6,7 +6,7 @@ from gen3plus.solarman_v5 import SolarmanV5, SolarmanBase
 from gen3plus.solarman_emu import SolarmanEmu
 from infos import Infos, Register
 
-from test_solarman import FakeIfc, MemoryStream, get_sn_int, get_sn, correct_checksum, config_tsun_inv1, msg_modbus_rsp
+from test_solarman import FakeIfc, FakeInverter, MemoryStream, get_sn_int, get_sn, correct_checksum, config_tsun_inv1, msg_modbus_rsp
 from test_infos_g3p import str_test_ip, bytes_test_ip
 
 timestamp = 0x3224c8bc
@@ -19,10 +19,10 @@ class InvStream(MemoryStream):
         return timestamp
 
 class CldStream(SolarmanEmu):
-    def __init__(self, inv: InvStream):
+    def __init__(self, inv: InvStream, inverter=FakeInverter()):
         _ifc = FakeIfc()
         _ifc.remote.stream = inv
-        super().__init__(('test.local', 1234), _ifc, server_side=False, client_mode=False)
+        super().__init__(inverter, ('test.local', 1234), _ifc, server_side=False, client_mode=False)
         self.__msg = b''
         self.__msg_len = 0
         self.__offs = 0

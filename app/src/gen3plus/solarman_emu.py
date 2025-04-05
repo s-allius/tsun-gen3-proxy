@@ -10,11 +10,12 @@ logger = logging.getLogger('msg')
 
 
 class SolarmanEmu(SolarmanBase):
-    def __init__(self, addr, ifc: "AsyncIfc",
+    def __init__(self, inverter, addr, ifc: "AsyncIfc",
                  server_side: bool, client_mode: bool):
         super().__init__(addr, ifc, server_side=False,
                          _send_modbus_cb=None,
                          mb_timeout=8)
+        _ = inverter
         logging.debug('SolarmanEmu.init()')
         self.db = ifc.remote.stream.db
         self.snr = ifc.remote.stream.snr

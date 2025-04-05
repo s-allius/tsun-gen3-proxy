@@ -5,7 +5,7 @@
 [note: Example of instantiation for a GEN3PLUS inverter!{bg:cornsilk}]
 [<<AbstractIterMeta>>||__iter__()]
 
-[InverterG3P|addr;remote:StreamPtr;local:StreamPtr|create_remote();;close()]
+[InverterG3P|addr;forward_at_cmd_resp;remote:StreamPtr;local:StreamPtr|create_remote();;close()]
 [InverterG3P]++->[local:StreamPtr]
 [InverterG3P]++->[remote:StreamPtr]
 
@@ -19,7 +19,7 @@
 [AsyncStream]^[AsyncStreamServer]
 [AsyncStream]^[AsyncStreamClient]
 
-[SolarmanV5|conn_no;addr;;control;serial;snr;db:InfosG3P;switch|msg_unknown();;healthy();close()]
+[SolarmanV5|conn_no;addr;inverter:InverterG3P;control;serial;snr;db:InfosG3P;switch|msg_unknown();;healthy();close()]
 [SolarmanV5]<-++[local:StreamPtr]
 [local:StreamPtr]++->[AsyncStreamServer]
 [SolarmanV5]<-0..1[remote:StreamPtr]
