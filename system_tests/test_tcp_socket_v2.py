@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 SOLARMAN_INV_SNR = os.getenv('SOLARMAN_INV_SNR', '00000080')
-SOLARMAN_DCU_SNR = os.getenv('SOLARMAN_INV_SNR', '00000080')
+SOLARMAN_DCU_SNR = os.getenv('SOLARMAN_DCU_SNR', '00000080')
 
 def get_sn() -> bytes:
     return bytes.fromhex(SOLARMAN_INV_SNR)

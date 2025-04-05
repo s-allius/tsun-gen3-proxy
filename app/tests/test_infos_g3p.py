@@ -155,15 +155,13 @@ def test_parse_4210_3026(batterie_data: bytes):
     assert json.dumps(i.db) == json.dumps({
          "controller": {"Sensor_List": "3026", "Power_On_Time": 4684},
          "inverter": {"Serial_Number": "4101240701490314"}, 
-         "batterie": {"pv1": {"Voltage": 33.86, "Current": 1.12}, 
-                      "pv2": {"Voltage": 33.72, "Current": 0.0}, 
-                      "Reg_38": 0, "Total_Generation": 20.8, "Status_1": 0, "Status_2": 0, 
-                      "Voltage": 51.34, "Current": -0.02, "SOC": 10.0,
-                      "Cell": {"Volt1": 3.21, "Volt2": 3.21, "Volt3": 3.21, "Volt4": 3.21, "Volt5": 3.21, "Volt6": 3.21, "Volt7": 3.21, "Volt8": 3.21, "Volt9": 3.21, "Volt10": 3.21, "Volt11": 3.21, "Volt12": 3.21, "Volt13": 3.21, "Volt14": 3.21, "Volt15": 3.21, "Volt16": 3.21}, 
-                      "Temp_1": 15, "Temp_2": 15, "Temp_3": 15,
+         "batterie": {"pv1": {"Voltage": 33.86, "Current": 1.12, "MPPT-Status": 0}, 
+                      "pv2": {"Voltage": 33.72, "Current": 0.0, "MPPT-Status": 0}, 
+                      "batt": {"Total_Charging": 20.8, "Voltage": 51.34, "Current": -0.02, "SOC": 10.0, "Power": -1.0268000000000002},
+                      "cell": {"Volt1": 3.21, "Volt2": 3.21, "Volt3": 3.21, "Volt4": 3.21, "Volt5": 3.21, "Volt6": 3.21, "Volt7": 3.21, "Volt8": 3.21, "Volt9": 3.21, "Volt10": 3.21, "Volt11": 3.21, "Volt12": 3.21, "Volt13": 3.21, "Volt14": 3.21, "Volt15": 3.21, "Volt16": 3.21, "Temp_1": 15, "Temp_2": 15,  "Temp_3": 15}, 
                       "out": {"Voltage": 0.14, "Current": 0.0, "Out_Status": 0, "Power": 0.0},
-                      "Controller_Temp": 15, "Reg_74": 0, "Reg_76": 517, "Reg_78": 513,
-                      "PV_Power": 37.9232, "Power": -1.0268000000000002},
+                      "Controller_Temp": 15, "Reg_74": 0, "Hardware_Version": 517, "Software_Version": 513, 
+                      "PV_Power": 37.9232},
         })
 
 def test_parse_4210_3026_incomplete(batterie_data2: bytes):
@@ -176,16 +174,14 @@ def test_parse_4210_3026_incomplete(batterie_data2: bytes):
     assert json.dumps(i.db) == json.dumps({
          "controller": {"Sensor_List": "3026", "Power_On_Time": 4684},
          "inverter": {"Serial_Number": "4101240701490314"}, 
-         "batterie": {"pv1": {"Voltage": 33.86, "Current": 1.12}, 
-                      "pv2": {"Voltage": 33.72, "Current": 0.0}, 
-                      "Reg_38": 0, "Total_Generation": 20.8, "Status_1": 0, "Status_2": 0, 
-                      "Voltage": 51.34, "Current": -0.02, "SOC": 10.0,
-                      "Cell": {"Volt1": 3.21, "Volt2": 3.21, "Volt3": 3.21, "Volt4": 3.21, "Volt5": 3.21, "Volt6": 3.21, "Volt7": 3.21, "Volt8": 3.21, "Volt9": 3.21, "Volt10": 3.21, "Volt11": 3.21, "Volt12": 3.21, "Volt13": 3.21, "Volt14": 3.21, "Volt15": 3.21, "Volt16": 3.21}, 
-                      "Temp_1": 15, "Temp_2": 15,  "Temp_3": 15,
+         "batterie": {"pv1": {"Voltage": 33.86, "Current": 1.12, "MPPT-Status": 0}, 
+                      "pv2": {"Voltage": 33.72, "Current": 0.0, "MPPT-Status": 0}, 
+                      "batt": {"Total_Charging": 20.8, "Voltage": 51.34, "Current": -0.02, "SOC": 10.0, "Power": -1.0268000000000002},
+                      "cell": {"Volt1": 3.21, "Volt2": 3.21, "Volt3": 3.21, "Volt4": 3.21, "Volt5": 3.21, "Volt6": 3.21, "Volt7": 3.21, "Volt8": 3.21, "Volt9": 3.21, "Volt10": 3.21, "Volt11": 3.21, "Volt12": 3.21, "Volt13": 3.21, "Volt14": 3.21, "Volt15": 3.21, "Volt16": 3.21, "Temp_1": 15, "Temp_2": 15,  "Temp_3": 15}, 
                       "out": {"Voltage": 0.14, "Current": None, "Out_Status": None, "Power": None},
-                      "Controller_Temp": None, "Reg_74": None, "Reg_76": None, "Reg_78": None,
-                      "PV_Power": 37.9232, "Power": -1.0268000000000002},
-        })
+                      "Controller_Temp": None, "Reg_74": None, "Hardware_Version": None, "Software_Version": None, 
+                      "PV_Power": 37.9232},
+         })
 
 def test_build_4210(inverter_data: bytes):
     i = InfosG3P(client_mode=False)
@@ -359,7 +355,7 @@ def test_build_ha_conf5():
 
         if id == 'out_power_123':
             assert comp == 'sensor'
-            assert  d_json == json.dumps({"name": "Output Power", "stat_t": "tsun/garagendach/batterie", "dev_cla": "power", "stat_cla": "measurement", "uniq_id": "out_power_123", "val_tpl": "{{ (value_json['out']['Power'] | int)}}", "unit_of_meas": "W", "dev": {"name": "Batterie", "sa": "Batterie", "via_device": "controller_123", "mdl": "TSOL-MSxx00", "mf": "TSUN", "ids": ["batterie_123"]}, "o": {"name": "proxy", "sw": "unknown"}})
+            assert  d_json == json.dumps({"name": "Supply Power", "stat_t": "tsun/garagendach/batterie", "dev_cla": "power", "stat_cla": "measurement", "uniq_id": "out_power_123", "val_tpl": "{{ (value_json['out']['Power'] | int)}}", "unit_of_meas": "W", "dev": {"name": "Batterie", "sa": "Batterie", "via_device": "controller_123", "mdl": "TSOL-MSxx00", "mf": "TSUN", "ids": ["batterie_123"]}, "o": {"name": "proxy", "sw": "unknown"}})
             tests +=1
         elif id == 'daily_gen_123':
             assert False

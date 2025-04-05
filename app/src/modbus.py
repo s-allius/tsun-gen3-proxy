@@ -42,39 +42,38 @@ class Modbus():
         0x0009: {'reg': Register.BATT_PV1_CUR,         'fmt': '!H', 'ratio': 0.01},  # noqa: E501, PV1 current
         0x000a: {'reg': Register.BATT_PV2_VOLT,        'fmt': '!H', 'ratio': 0.01},  # noqa: E501, PV2 voltage
         0x000b: {'reg': Register.BATT_PV2_CUR,         'fmt': '!H', 'ratio': 0.01},  # noqa: E501, PV2 current
-        0x000c: {'reg': Register.BATT_38,              'fmt': '!h'},                 # noqa: E501
-        0x000d: {'reg': Register.BATT_TOTAL_GEN,       'fmt': '!h', 'ratio': 0.01},  # noqa: E501
-        0x000e: {'reg': Register.BATT_STATUS_1,        'fmt': '!h'},                 # noqa: E501
-        0x000f: {'reg': Register.BATT_STATUS_2,        'fmt': '!h'},                 # noqa: E501
+        0x000c: {'reg': Register.BATT_TOTAL_CHARG,     'fmt': '!L', 'ratio': 0.01},  # noqa: E501
+        0x000e: {'reg': Register.BATT_STATUS_1,        'fmt': '!H'},                 # noqa: E501
+        0x000f: {'reg': Register.BATT_STATUS_2,        'fmt': '!H'},                 # noqa: E501
         0x0010: {'reg': Register.BATT_VOLT,            'fmt': '!h', 'ratio': 0.01},  # noqa: E501
         0x0011: {'reg': Register.BATT_CUR,             'fmt': '!h', 'ratio': 0.01},  # noqa: E501
         0x0012: {'reg': Register.BATT_SOC,             'fmt': '!H', 'ratio': 0.01},  # noqa: E501, state of charge (SOC) in percent
-        0x0013: {'reg': Register.BATT_CELL1_VOLT,      'fmt': '!h', 'ratio': 0.001},  # noqa: E501
-        0x0014: {'reg': Register.BATT_CELL2_VOLT,      'fmt': '!h', 'ratio': 0.001},  # noqa: E501
-        0x0015: {'reg': Register.BATT_CELL3_VOLT,      'fmt': '!h', 'ratio': 0.001},  # noqa: E501
-        0x0016: {'reg': Register.BATT_CELL4_VOLT,      'fmt': '!h', 'ratio': 0.001},  # noqa: E501
-        0x0017: {'reg': Register.BATT_CELL5_VOLT,      'fmt': '!h', 'ratio': 0.001},  # noqa: E501
-        0x0018: {'reg': Register.BATT_CELL6_VOLT,      'fmt': '!h', 'ratio': 0.001},  # noqa: E501
-        0x0019: {'reg': Register.BATT_CELL7_VOLT,      'fmt': '!h', 'ratio': 0.001},  # noqa: E501
-        0x001a: {'reg': Register.BATT_CELL8_VOLT,      'fmt': '!h', 'ratio': 0.001},  # noqa: E501
-        0x001b: {'reg': Register.BATT_CELL9_VOLT,      'fmt': '!h', 'ratio': 0.001},  # noqa: E501
-        0x001c: {'reg': Register.BATT_CELL10_VOLT,     'fmt': '!h', 'ratio': 0.001},  # noqa: E501
-        0x001d: {'reg': Register.BATT_CELL11_VOLT,     'fmt': '!h', 'ratio': 0.001},  # noqa: E501
-        0x001e: {'reg': Register.BATT_CELL12_VOLT,     'fmt': '!h', 'ratio': 0.001},  # noqa: E501
-        0x001f: {'reg': Register.BATT_CELL13_VOLT,     'fmt': '!h', 'ratio': 0.001},  # noqa: E501
-        0x0020: {'reg': Register.BATT_CELL14_VOLT,     'fmt': '!h', 'ratio': 0.001},  # noqa: E501
-        0x0021: {'reg': Register.BATT_CELL15_VOLT,     'fmt': '!h', 'ratio': 0.001},  # noqa: E501
-        0x0022: {'reg': Register.BATT_CELL16_VOLT,     'fmt': '!h', 'ratio': 0.001},  # noqa: E501
+        0x0013: {'reg': Register.BATT_CELL1_VOLT,      'fmt': '!H', 'ratio': 0.001},  # noqa: E501
+        0x0014: {'reg': Register.BATT_CELL2_VOLT,      'fmt': '!H', 'ratio': 0.001},  # noqa: E501
+        0x0015: {'reg': Register.BATT_CELL3_VOLT,      'fmt': '!H', 'ratio': 0.001},  # noqa: E501
+        0x0016: {'reg': Register.BATT_CELL4_VOLT,      'fmt': '!H', 'ratio': 0.001},  # noqa: E501
+        0x0017: {'reg': Register.BATT_CELL5_VOLT,      'fmt': '!H', 'ratio': 0.001},  # noqa: E501
+        0x0018: {'reg': Register.BATT_CELL6_VOLT,      'fmt': '!H', 'ratio': 0.001},  # noqa: E501
+        0x0019: {'reg': Register.BATT_CELL7_VOLT,      'fmt': '!H', 'ratio': 0.001},  # noqa: E501
+        0x001a: {'reg': Register.BATT_CELL8_VOLT,      'fmt': '!H', 'ratio': 0.001},  # noqa: E501
+        0x001b: {'reg': Register.BATT_CELL9_VOLT,      'fmt': '!H', 'ratio': 0.001},  # noqa: E501
+        0x001c: {'reg': Register.BATT_CELL10_VOLT,     'fmt': '!H', 'ratio': 0.001},  # noqa: E501
+        0x001d: {'reg': Register.BATT_CELL11_VOLT,     'fmt': '!H', 'ratio': 0.001},  # noqa: E501
+        0x001e: {'reg': Register.BATT_CELL12_VOLT,     'fmt': '!H', 'ratio': 0.001},  # noqa: E501
+        0x001f: {'reg': Register.BATT_CELL13_VOLT,     'fmt': '!H', 'ratio': 0.001},  # noqa: E501
+        0x0020: {'reg': Register.BATT_CELL14_VOLT,     'fmt': '!H', 'ratio': 0.001},  # noqa: E501
+        0x0021: {'reg': Register.BATT_CELL15_VOLT,     'fmt': '!H', 'ratio': 0.001},  # noqa: E501
+        0x0022: {'reg': Register.BATT_CELL16_VOLT,     'fmt': '!H', 'ratio': 0.001},  # noqa: E501
         0x0023: {'reg': Register.BATT_TEMP_1,          'fmt': '!h'},                 # noqa: E501
         0x0024: {'reg': Register.BATT_TEMP_2,          'fmt': '!h'},                 # noqa: E501
         0x0025: {'reg': Register.BATT_TEMP_3,          'fmt': '!h'},                 # noqa: E501
-        0x0026: {'reg': Register.BATT_OUT_VOLT,        'fmt': '!h', 'ratio': 0.01},  # noqa: E501
-        0x0027: {'reg': Register.BATT_OUT_CUR,         'fmt': '!h', 'ratio': 0.01},  # noqa: E501
-        0x0028: {'reg': Register.BATT_OUT_STATUS,      'fmt': '!h'},                 # noqa: E501
+        0x0026: {'reg': Register.BATT_OUT_VOLT,        'fmt': '!H', 'ratio': 0.01},  # noqa: E501
+        0x0027: {'reg': Register.BATT_OUT_CUR,         'fmt': '!H', 'ratio': 0.01},  # noqa: E501
+        0x0028: {'reg': Register.BATT_OUT_STATUS,      'fmt': '!H'},                 # noqa: E501
         0x0029: {'reg': Register.BATT_TEMP_4,          'fmt': '!h'},                 # noqa: E501
         0x002a: {'reg': Register.BATT_74,              'fmt': '!h'},                 # noqa: E501
-        0x002b: {'reg': Register.BATT_76,              'fmt': '!h'},                 # noqa: E501
-        0x002c: {'reg': Register.BATT_78,              'fmt': '!h'},                 # noqa: E501
+        0x002b: {'reg': Register.BATT_HW_VERS,         'fmt': '!h'},                 # noqa: E501
+        0x002c: {'reg': Register.BATT_SW_VERS,         'fmt': '!h'},                 # noqa: E501
 
         0x2000: {'reg': Register.BOOT_STATUS,          'fmt': '!H'},                 # noqa: E501
         0x2001: {'reg': Register.DSP_STATUS,           'fmt': '!H'},                 # noqa: E501
