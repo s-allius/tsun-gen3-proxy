@@ -19,6 +19,20 @@ class RegisterFunc:
             result += prod
         return result
 
+    @staticmethod
+    def cmp_values(info: Infos, params: map) -> None | int:
+        try:
+            val = info.get_db_value(params['reg'])
+            if val < params['cmp_val']:
+                return params['res'][0]
+            if val == params['cmp_val']:
+                return params['res'][1]
+            if val > params['cmp_val']:
+                return params['res'][2]
+        except Exception:
+            pass
+        return None
+
 
 class RegisterMap:
     # make the class read/only by using __slots__
@@ -136,8 +150,8 @@ class RegisterMap:
         0x42010034: {'reg': Register.BATT_PV2_VOLT,        'fmt': '!H', 'ratio': 0.01},  # noqa: E501, DC Voltage PV2
         0x42010036: {'reg': Register.BATT_PV2_CUR,         'fmt': '!H', 'ratio': 0.01},  # noqa: E501, DC Current PV2
         0x42010038: {'reg': Register.BATT_TOTAL_CHARG,     'fmt': '!L', 'ratio': 0.01},  # noqa: E501
-        0x4201003c: {'reg': Register.BATT_STATUS_1,        'fmt': '!H'},                 # noqa: E501 MPTT-1 Operating Status: 0(Standby), 1(Work)
-        0x4201003e: {'reg': Register.BATT_STATUS_2,        'fmt': '!H'},                 # noqa: E501 MPTT-2 Operating Status: 0(Standby), 1(Work)
+        0x4201003c: {'reg': Register.BATT_PV1_STATUS,        'fmt': '!H'},                 # noqa: E501 MPTT-1 Operating Status: 0(Standby), 1(Work)
+        0x4201003e: {'reg': Register.BATT_PV2_STATUS,        'fmt': '!H'},                 # noqa: E501 MPTT-2 Operating Status: 0(Standby), 1(Work)
         0x42010040: {'reg': Register.BATT_VOLT,            'fmt': '!h', 'ratio': 0.01},  # noqa: E501
         0x42010042: {'reg': Register.BATT_CUR,             'fmt': '!h', 'ratio': 0.01},  # noqa: E501 => Batterie Status: <0(Discharging), 0(Static), 0>(Loading)
         0x42010044: {'reg': Register.BATT_SOC,             'fmt': '!H', 'ratio': 0.01},  # noqa: E501, state of charge (SOC) in percent
@@ -173,8 +187,12 @@ class RegisterMap:
                            [Register.BATT_PV2_VOLT, Register.BATT_PV2_CUR]]},
             2: {'reg': Register.BATT_PWR,                  'func': RegisterFunc.prod_sum,    # noqa: E501
                 'params': [[Register.BATT_VOLT, Register.BATT_CUR]]},
-            3: {'reg': Register.BATT_OUT_PWR,               'func': RegisterFunc.prod_sum,    # noqa: E501 Supply Power => Power Supply State: 0(Idle), 0>(Power Supply)
+            3: {'reg': Register.BATT_OUT_PWR,              'func': RegisterFunc.prod_sum,    # noqa: E501 Supply Power => Power Supply State: 0(Idle), 0>(Power Supply)
                 'params': [[Register.BATT_OUT_VOLT, Register.BATT_OUT_CUR]]},
+            4: {'reg': Register.BATT_PWR_SUPL_STATE,       'func': RegisterFunc.cmp_values,  # noqa: E501
+                'params': {'reg': Register.BATT_OUT_PWR, 'cmp_val': 0, 'res': [0, 0, 1]}},   # noqa: E501
+            5: {'reg': Register.BATT_STATUS,               'func': RegisterFunc.cmp_values,  # noqa: E501
+                'params': {'reg': Register.BATT_CUR,     'cmp_val': 0, 'res': [0, 1, 2]}}    # noqa: E501
         }
     }
 
