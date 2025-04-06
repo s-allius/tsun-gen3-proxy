@@ -47,7 +47,16 @@ dev debug: local_add_on
 	export IMAGE=$(PRIVAT_CONTAINER_REGISTRY)$(IMAGE) && \
 	docker buildx bake -f docker-bake.hcl $@
 
-rc rel: local_add_on
+rc: local_add_on
+	@[ "${RC}" ] || ( echo ">> RC is not set"; exit 1 )
+	@echo version: $(VERSION)  build-date: $(BUILD_DATE)   image: $(PUBLIC_CONTAINER_REGISTRY)$(IMAGE)
+	@echo login at $(PUBLIC_URL) as $(PUBLIC_USER)
+	@DO_LOGIN="$(shell echo $(PUBLIC_CR_KEY) | docker login $(PUBLIC_URL) -u $(PUBLIC_USER) --password-stdin)"
+	export VERSION=$(VERSION)-$@$(RC) && \
+	export IMAGE=$(PUBLIC_CONTAINER_REGISTRY)$(IMAGE) && \
+	docker buildx bake -f docker-bake.hcl $@
+
+rel: local_add_on
 	@echo version: $(VERSION)  build-date: $(BUILD_DATE)   image: $(PUBLIC_CONTAINER_REGISTRY)$(IMAGE)
 	@echo login at $(PUBLIC_URL) as $(PUBLIC_USER)
 	@DO_LOGIN="$(shell echo $(PUBLIC_CR_KEY) | docker login $(PUBLIC_URL) -u $(PUBLIC_USER) --password-stdin)"
