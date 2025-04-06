@@ -43,8 +43,8 @@ class Modbus():
         0x000a: {'reg': Register.BATT_PV2_VOLT,        'fmt': '!H', 'ratio': 0.01},  # noqa: E501, PV2 voltage
         0x000b: {'reg': Register.BATT_PV2_CUR,         'fmt': '!H', 'ratio': 0.01},  # noqa: E501, PV2 current
         0x000c: {'reg': Register.BATT_TOTAL_CHARG,     'fmt': '!L', 'ratio': 0.01},  # noqa: E501
-        0x000e: {'reg': Register.BATT_PV1_STATUS,        'fmt': '!H'},                 # noqa: E501
-        0x000f: {'reg': Register.BATT_PV2_STATUS,        'fmt': '!H'},                 # noqa: E501
+        0x000e: {'reg': Register.BATT_PV1_STATUS,      'fmt': '!H'},                 # noqa: E501
+        0x000f: {'reg': Register.BATT_PV2_STATUS,      'fmt': '!H'},                 # noqa: E501
         0x0010: {'reg': Register.BATT_VOLT,            'fmt': '!h', 'ratio': 0.01},  # noqa: E501
         0x0011: {'reg': Register.BATT_CUR,             'fmt': '!h', 'ratio': 0.01},  # noqa: E501
         0x0012: {'reg': Register.BATT_SOC,             'fmt': '!H', 'ratio': 0.01},  # noqa: E501, state of charge (SOC) in percent
@@ -71,7 +71,7 @@ class Modbus():
         0x0027: {'reg': Register.BATT_OUT_CUR,         'fmt': '!H', 'ratio': 0.01},  # noqa: E501
         0x0028: {'reg': Register.BATT_OUT_STATUS,      'fmt': '!H'},                 # noqa: E501
         0x0029: {'reg': Register.BATT_TEMP_4,          'fmt': '!h'},                 # noqa: E501
-        0x002a: {'reg': Register.BATT_74,              'fmt': '!h'},                 # noqa: E501
+        0x002a: {'reg': Register.BATT_ALARM,           'fmt': '!h'},                 # noqa: E501
         0x002b: {'reg': Register.BATT_HW_VERS,         'fmt': '!h'},                 # noqa: E501
         0x002c: {'reg': Register.BATT_SW_VERS,         'fmt': '!h'},                 # noqa: E501
 

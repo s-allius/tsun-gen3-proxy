@@ -154,7 +154,7 @@ class Register(Enum):
     BATT_OUT_CUR = 1033
     BATT_OUT_STATUS = 1034
     BATT_TEMP_4 = 1035
-    BATT_74 = 1036
+    BATT_ALARM = 1036
     BATT_HW_VERS = 1037
     BATT_SW_VERS = 1038
     BATT_PV_PWR = 1040
@@ -326,6 +326,7 @@ class Infos:
     SOLAR_POWER_VAR = 'mdi:solar-power-variant'
     SOLAR_POWER = 'mdi:solar-power'
     WIFI = 'mdi:wifi'
+    ALARM_LIGHT = 'mdi:alarm-light'
     UPDATE = 'mdi:update'
     DAILY_GEN = 'Daily Generation'
     TOTAL_GEN = 'Total Generation'
@@ -403,52 +404,52 @@ class Infos:
     {% set result = 'noAlarm'%}
   {%else%}
     {% set result = '' %}
-    {% if val_int | bitwise_and(1)%}
+    {% if val_int | bitwise_and(0x0001)%}
         {% set result = result + 'HBridgeFault, '%}
     {% endif %}
-    {% if val_int | bitwise_and(2)%}
+    {% if val_int | bitwise_and(0x0002)%}
         {% set result = result + 'DriVoltageFault, '%}
     {% endif %}
-    {% if val_int | bitwise_and(3)%}
+    {% if val_int | bitwise_and(0x0004)%}
         {% set result = result + 'GFDI-Fault, '%}
     {% endif %}
-    {% if val_int | bitwise_and(4)%}
+    {% if val_int | bitwise_and(0x0008)%}
         {% set result = result + 'OverTemp, '%}
     {% endif %}
-    {% if val_int | bitwise_and(5)%}
+    {% if val_int | bitwise_and(0x0010)%}
         {% set result = result + 'CommLose, '%}
     {% endif %}
-    {% if val_int | bitwise_and(6)%}
+    {% if val_int | bitwise_and(0x0020)%}
         {% set result = result + 'Bit6, '%}
     {% endif %}
-    {% if val_int | bitwise_and(7)%}
+    {% if val_int | bitwise_and(0x0040)%}
         {% set result = result + 'Bit7, '%}
     {% endif %}
-    {% if val_int | bitwise_and(8)%}
+    {% if val_int | bitwise_and(0x0080)%}
         {% set result = result + 'EEPROM-Fault, '%}
     {% endif %}
-    {% if val_int | bitwise_and(9)%}
+    {% if val_int | bitwise_and(0x0100)%}
         {% set result = result + 'NoUtility, '%}
     {% endif %}
-    {% if val_int | bitwise_and(10)%}
+    {% if val_int | bitwise_and(0x0200)%}
         {% set result = result + 'VG_Offset, '%}
     {% endif %}
-    {% if val_int | bitwise_and(11)%}
+    {% if val_int | bitwise_and(0x0400)%}
         {% set result = result + 'Relais_Open, '%}
     {% endif %}
-    {% if val_int | bitwise_and(12)%}
+    {% if val_int | bitwise_and(0x0800)%}
         {% set result = result + 'Relais_Short, '%}
     {% endif %}
-    {% if val_int | bitwise_and(13)%}
+    {% if val_int | bitwise_and(0x1000)%}
         {% set result = result + 'GridVoltOverRating, '%}
     {% endif %}
-    {% if val_int | bitwise_and(14)%}
+    {% if val_int | bitwise_and(0x2000)%}
         {% set result = result + 'GridVoltUnderRating, '%}
     {% endif %}
-    {% if val_int | bitwise_and(15)%}
+    {% if val_int | bitwise_and(0x4000)%}
         {% set result = result + 'GridFreqOverRating, '%}
     {% endif %}
-    {% if val_int | bitwise_and(16)%}
+    {% if val_int | bitwise_and(0x8000)%}
         {% set result = result + 'GridFreqUnderRating, '%}
     {% endif %}
   {% endif %}
@@ -465,42 +466,104 @@ class Infos:
     {% set result = 'noFault'%}
   {%else%}
     {% set result = '' %}
-    {% if val_int | bitwise_and(1)%}
+    {% if val_int | bitwise_and(0x0001)%}
         {% set result = result + 'PVOV-Fault (PV OverVolt), '%}
     {% endif %}
-    {% if val_int | bitwise_and(2)%}
+    {% if val_int | bitwise_and(0x0002)%}
         {% set result = result + 'PVLV-Fault (PV LowVolt), '%}
     {% endif %}
-    {% if val_int | bitwise_and(3)%}
+    {% if val_int | bitwise_and(0x0004)%}
         {% set result = result + 'PV OI-Fault (PV OverCurrent), '%}
     {% endif %}
-    {% if val_int | bitwise_and(4)%}
+    {% if val_int | bitwise_and(0x0008)%}
         {% set result = result + 'PV OFV-Fault, '%}
     {% endif %}
-    {% if val_int | bitwise_and(5)%}
+    {% if val_int | bitwise_and(0x0010)%}
         {% set result = result + 'DC ShortCircuitFault, '%}
     {% endif %}
-    {% if val_int | bitwise_and(6)%}{% set result = result + 'Bit6, '%}
+    {% if val_int | bitwise_and(0x0020)%}{% set result = result + 'Bit6, '%}
     {% endif %}
-    {% if val_int | bitwise_and(7)%}{% set result = result + 'Bit7, '%}
+    {% if val_int | bitwise_and(0x0040)%}{% set result = result + 'Bit7, '%}
     {% endif %}
-    {% if val_int | bitwise_and(8)%}{% set result = result + 'Bit8, '%}
+    {% if val_int | bitwise_and(0x0080)%}{% set result = result + 'Bit8, '%}
     {% endif %}
-    {% if val_int | bitwise_and(9)%}{% set result = result + 'Bit9, '%}
+    {% if val_int | bitwise_and(0x0100)%}{% set result = result + 'Bit9, '%}
     {% endif %}
-    {% if val_int | bitwise_and(10)%}{% set result = result + 'Bit10, '%}
+    {% if val_int | bitwise_and(0x0200)%}{% set result = result + 'Bit10, '%}
     {% endif %}
-    {% if val_int | bitwise_and(11)%}{% set result = result + 'Bit11, '%}
+    {% if val_int | bitwise_and(0x0400)%}{% set result = result + 'Bit11, '%}
     {% endif %}
-    {% if val_int | bitwise_and(12)%}{% set result = result + 'Bit12, '%}
+    {% if val_int | bitwise_and(0x0800)%}{% set result = result + 'Bit12, '%}
     {% endif %}
-    {% if val_int | bitwise_and(13)%}{% set result = result + 'Bit13, '%}
+    {% if val_int | bitwise_and(0x1000)%}{% set result = result + 'Bit13, '%}
     {% endif %}
-    {% if val_int | bitwise_and(14)%}{% set result = result + 'Bit14, '%}
+    {% if val_int | bitwise_and(0x2000)%}{% set result = result + 'Bit14, '%}
     {% endif %}
-    {% if val_int | bitwise_and(15)%}{% set result = result + 'Bit15, '%}
+    {% if val_int | bitwise_and(0x4000)%}{% set result = result + 'Bit15, '%}
     {% endif %}
-    {% if val_int | bitwise_and(16)%}{% set result = result + 'Bit16, '%}
+    {% if val_int | bitwise_and(0x8000)%}{% set result = result + 'Bit16, '%}
+    {% endif %}
+  {% endif %}
+  {{ result }}
+{% else %}
+  {{ this.state }}
+{% endif %}
+'''
+    __batt_alarm_val_tpl = '''
+{% if 'Batterie_Alarm' in value_json and
+      value_json['Batterie_Alarm'] != None %}
+  {% set val_int = value_json['Batterie_Alarm'] | int %}
+  {% if val_int == 0 %}
+    {% set result = 'noAlarm'%}
+  {%else%}
+    {% set result = '' %}
+    {% if val_int | bitwise_and(0x0001)%}
+        {% set result = result + 'PV1-OverVoltage, '%}
+    {% endif %}
+    {% if val_int | bitwise_and(0x0002)%}
+        {% set result = result + 'PV2-OverVoltage, '%}
+    {% endif %}
+    {% if val_int | bitwise_and(0x0004)%}
+        {% set result = result + 'EquipmentOverheating, '%}
+    {% endif %}
+    {% if val_int | bitwise_and(0x0008)%}
+        {% set result = result + 'EquipmentLowTemp, '%}
+    {% endif %}
+    {% if val_int | bitwise_and(0x0010)%}
+        {% set result = result + 'BMS-CommFailed, '%}
+    {% endif %}
+    {% if val_int | bitwise_and(0x0020)%}
+        {% set result = result + 'UnderVoltageProt, '%}
+    {% endif %}
+    {% if val_int | bitwise_and(0x0040)%}
+        {% set result = result + 'ChargingHighTemp, '%}
+    {% endif %}
+    {% if val_int | bitwise_and(0x0080)%}
+        {% set result = result + 'ChargingLowTemp, '%}
+    {% endif %}
+    {% if val_int | bitwise_and(0x0100)%}
+        {% set result = result + 'DischargeHighTemp, '%}
+    {% endif %}
+    {% if val_int | bitwise_and(0x0200)%}
+        {% set result = result + 'DischargeLowTemp, '%}
+    {% endif %}
+    {% if val_int | bitwise_and(0x0400)%}
+        {% set result = result + 'BatterieOverVoltage, '%}
+    {% endif %}
+    {% if val_int | bitwise_and(0x0800)%}
+        {% set result = result + 'SingleCorePressureDifferenceIsTooLarge, '%}
+    {% endif %}
+    {% if val_int | bitwise_and(0x1000)%}
+        {% set result = result + 'Bit-12, '%}
+    {% endif %}
+    {% if val_int | bitwise_and(0x2000)%}
+        {% set result = result + 'Bit-13, '%}
+    {% endif %}
+    {% if val_int | bitwise_and(0x4000)%}
+        {% set result = result + 'Bit-14, '%}
+    {% endif %}
+    {% if val_int | bitwise_and(0x8000)%}
+        {% set result = result + 'Bit-15, '%}
     {% endif %}
   {% endif %}
   {{ result }}
@@ -566,8 +629,8 @@ class Infos:
         # 0xffffff03:  {'name':['proxy', 'Voltage'],                        'level': logging.DEBUG, 'unit': 'V',    'ha':{'dev':'proxy', 'dev_cla': 'voltage',     'stat_cla': 'measurement', 'id':'proxy_volt_',  'fmt':FMT_FLOAT,'name': 'Grid Voltage'}},  # noqa: E501
 
         # events
-        Register.EVENT_ALARM:  {'name': ['events', 'Inverter_Alarm'],              'level': logging.INFO, 'unit': '', 'ha': {'dev': 'inverter', 'comp': 'sensor', 'dev_cla': None, 'stat_cla': None, 'id': 'inv_alarm_', 'name': 'Inverter Alarm', 'val_tpl': __inv_alarm_val_tpl, 'icon': 'mdi:alarm-light'}},  # noqa: E501
-        Register.EVENT_FAULT:  {'name': ['events', 'Inverter_Fault'],              'level': logging.INFO, 'unit': '', 'ha': {'dev': 'inverter', 'comp': 'sensor', 'dev_cla': None, 'stat_cla': None, 'id': 'inv_fault_', 'name': 'Inverter Fault', 'val_tpl': __inv_fault_val_tpl, 'icon': 'mdi:alarm-light'}},  # noqa: E501
+        Register.EVENT_ALARM:  {'name': ['events', 'Inverter_Alarm'],              'level': logging.INFO, 'unit': '', 'ha': {'dev': 'inverter', 'comp': 'sensor', 'dev_cla': None, 'stat_cla': None, 'id': 'inv_alarm_', 'name': 'Inverter Alarm', 'val_tpl': __inv_alarm_val_tpl, 'icon': ALARM_LIGHT}},  # noqa: E501
+        Register.EVENT_FAULT:  {'name': ['events', 'Inverter_Fault'],              'level': logging.INFO, 'unit': '', 'ha': {'dev': 'inverter', 'comp': 'sensor', 'dev_cla': None, 'stat_cla': None, 'id': 'inv_fault_', 'name': 'Inverter Fault', 'val_tpl': __inv_fault_val_tpl, 'icon': ALARM_LIGHT}},  # noqa: E501
         Register.EVENT_BF1:    {'name': ['events', 'Inverter_Bitfield_1'],         'level': logging.INFO, 'unit': ''},  # noqa: E501
         Register.EVENT_BF2:    {'name': ['events', 'Inverter_bitfield_2'],         'level': logging.INFO, 'unit': ''},  # noqa: E501
         # Register.EVENT_409:  {'name': ['events', '409_No_Utility'],                'level': logging.DEBUG, 'unit': ''},  # noqa: E501
@@ -684,7 +747,7 @@ class Infos:
         Register.BATT_TEMP_2:        {'name': ['batterie', 'cell', 'Temp_2'],       'level': logging.INFO, 'unit': '°C',   'ha': {'dev': 'batterie', 'dev_cla': 'temperature', 'stat_cla': 'measurement', 'id': 'temp_2_', 'val_tpl': "{{ (value_json['cell']['Temp_2'] | int)}}", 'name': 'Cell Temp-2', 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.BATT_TEMP_3:        {'name': ['batterie', 'cell', 'Temp_3'],       'level': logging.INFO, 'unit': '°C',   'ha': {'dev': 'batterie', 'dev_cla': 'temperature', 'stat_cla': 'measurement', 'id': 'temp_3_', 'val_tpl': "{{ (value_json['cell']['Temp_3'] | int)}}", 'name': 'Cell Temp-3', 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.BATT_TEMP_4:        {'name': ['batterie', 'Controller_Temp'],      'level': logging.INFO, 'unit': '°C',   'ha': {'dev': 'batterie', 'dev_cla': 'temperature', 'stat_cla': 'measurement', 'id': 'temp_4_', 'fmt': FMT_INT, 'name': 'Temperature'}},  # noqa: E501
-        Register.BATT_74:            {'name': ['batterie', 'Reg_74'],               'level': logging.INFO, 'unit': '',     'ha': {'dev': 'batterie', 'dev_cla': 'power',   'stat_cla': 'measurement', 'id': 'batt_74_', 'fmt': FMT_INT, 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.BATT_ALARM:         {'name': ['batterie', 'Batterie_Alarm'],       'level': logging.INFO, 'unit': '',     'ha': {'dev': 'batterie', 'comp': 'sensor', 'dev_cla': None, 'stat_cla': None, 'id': 'batt_alarm_', 'name': 'Batterie Alarm', 'val_tpl': __batt_alarm_val_tpl, 'icon': ALARM_LIGHT}},  # noqa: E501
         Register.BATT_HW_VERS:       {'name': ['batterie', 'Hardware_Version'],     'level': logging.INFO, 'unit': ''},  # noqa: E501
         Register.BATT_SW_VERS:       {'name': ['batterie', 'Software_Version'],     'level': logging.INFO, 'unit': ''},  # noqa: E501
 

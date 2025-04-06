@@ -221,7 +221,7 @@ def inv_data_seq2(): # Data indication from the controller
     return msg
 
 @pytest.fixture
-def inv_data_seq3(): # Inverter indication from MS-2000
+def inv_data_seq3(): # Inverter indication from MS-3000
 
     msg  =  b'\x00\x00\x01\x2c\x00\x00\x00\x64\x53\x00\x00'                      #  | ..^.....,...dS..
     msg +=  b'\x00\x00\x00\xc8\x53\x44\x00\x00\x00\x01\x2c\x53\x00\x00\x00\x00'  #  | ....SD....,S....

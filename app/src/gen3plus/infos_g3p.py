@@ -149,8 +149,8 @@ class RegisterMap:
         0x42010034: {'reg': Register.BATT_PV2_VOLT,        'fmt': '!H', 'ratio': 0.01},  # noqa: E501, DC Voltage PV2
         0x42010036: {'reg': Register.BATT_PV2_CUR,         'fmt': '!H', 'ratio': 0.01},  # noqa: E501, DC Current PV2
         0x42010038: {'reg': Register.BATT_TOTAL_CHARG,     'fmt': '!L', 'ratio': 0.01},  # noqa: E501
-        0x4201003c: {'reg': Register.BATT_PV1_STATUS,        'fmt': '!H'},                 # noqa: E501 MPTT-1 Operating Status: 0(Standby), 1(Work)
-        0x4201003e: {'reg': Register.BATT_PV2_STATUS,        'fmt': '!H'},                 # noqa: E501 MPTT-2 Operating Status: 0(Standby), 1(Work)
+        0x4201003c: {'reg': Register.BATT_PV1_STATUS,      'fmt': '!H'},                 # noqa: E501 MPTT-1 Operating Status: 0(Standby), 1(Work)
+        0x4201003e: {'reg': Register.BATT_PV2_STATUS,      'fmt': '!H'},                 # noqa: E501 MPTT-2 Operating Status: 0(Standby), 1(Work)
         0x42010040: {'reg': Register.BATT_VOLT,            'fmt': '!h', 'ratio': 0.01},  # noqa: E501
         0x42010042: {'reg': Register.BATT_CUR,             'fmt': '!h', 'ratio': 0.01},  # noqa: E501 => Batterie Status: <0(Discharging), 0(Static), 0>(Loading)
         0x42010044: {'reg': Register.BATT_SOC,             'fmt': '!H', 'ratio': 0.01},  # noqa: E501, state of charge (SOC) in percent
@@ -177,7 +177,7 @@ class RegisterMap:
         0x4201006e: {'reg': Register.BATT_OUT_CUR,         'fmt': '!H', 'ratio': 0.01},  # noqa: E501 Output Current
         0x42010070: {'reg': Register.BATT_OUT_STATUS,      'fmt': '!H'},                 # noqa: E501 Output Working Status: 0(Standby), 1(Work)
         0x42010072: {'reg': Register.BATT_TEMP_4,          'fmt': '!h'},                 # noqa: E50, Environment temp
-        0x42010074: {'reg': Register.BATT_74,              'fmt': '!H'},                 # noqa: E501 Warning Alarmcode 1, Bit 0..15
+        0x42010074: {'reg': Register.BATT_ALARM,           'fmt': '!H'},                 # noqa: E501 Warning Alarmcode 1, Bit 0..15
         0x42010076: {'reg': Register.BATT_HW_VERS,         'fmt': '!h'},                 # noqa: E501 hardware version
         0x42010078: {'reg': Register.BATT_SW_VERS,         'fmt': '!h'},                 # noqa: E501 software main version
         'calc': {
