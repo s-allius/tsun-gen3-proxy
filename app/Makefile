@@ -22,7 +22,16 @@ dev debug:
 	export IMAGE=$(PRIVAT_CONTAINER_REGISTRY)$(IMAGE) && \
 	docker buildx bake -f docker-bake.hcl $@
 
-preview rc rel:
+rc:
+	@[ "${RC}" ] || ( echo ">> RC is not set"; exit 1 )
+	@echo version: $(VERSION)  build-date: $(BUILD_DATE)   image: $(PUBLIC_CONTAINER_REGISTRY)$(IMAGE)
+	@echo login at $(PUBLIC_URL) as $(PUBLIC_USER)
+	@DO_LOGIN="$(shell echo $(PUBLIC_CR_KEY) | docker login $(PUBLIC_URL) -u $(PUBLIC_USER) --password-stdin)"
+	export VERSION=$(VERSION)-$@$(RC) && \
+	export IMAGE=$(PUBLIC_CONTAINER_REGISTRY)$(IMAGE) && \
+	docker buildx bake -f docker-bake.hcl $@
+
+preview rel:
 	@echo version: $(VERSION)  build-date: $(BUILD_DATE)   image: $(PUBLIC_CONTAINER_REGISTRY)$(IMAGE)
 	@echo login at $(PUBLIC_URL) as $(PUBLIC_USER)
 	@DO_LOGIN="$(shell echo $(PUBLIC_CR_KEY) | docker login $(PUBLIC_URL) -u $(PUBLIC_USER) --password-stdin)"
