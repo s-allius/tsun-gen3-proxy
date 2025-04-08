@@ -41,7 +41,7 @@ class InverterBase(InverterIfc, Proxy):
                                 self.remote)
 
         self.local = StreamPtr(
-            prot_class(self.addr, ifc, True, client_mode), ifc
+            prot_class(self, self.addr, ifc, True, client_mode), ifc
         )
 
     def __enter__(self):
@@ -122,11 +122,11 @@ class InverterBase(InverterIfc, Proxy):
             self.remote.ifc = ifc
             if hasattr(stream, 'id_str'):
                 self.remote.stream = self.prot_class(
-                    addr, ifc, server_side=False,
+                    self, addr, ifc, server_side=False,
                     client_mode=False, id_str=stream.id_str)
             else:
                 self.remote.stream = self.prot_class(
-                    addr, ifc, server_side=False,
+                    self, addr, ifc, server_side=False,
                     client_mode=False)
 
             logging.info(f'[{self.remote.stream.node_id}:'

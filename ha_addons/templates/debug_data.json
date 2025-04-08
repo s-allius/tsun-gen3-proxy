@@ -5,5 +5,7 @@
     "image": "docker.io/sallius/tsun-gen3-addon",
     "slug": "tsun-proxy-debug",
     "advanced": true,
-    "stage": "experimental"
+    "stage": "experimental",
+    "readme_descr": "This is a bleeding-edge version of the `TSUN Proxy`  Add-On with debuging enabled by default.\n\nThe versions may be based on different feature branches and therefore the range of functions may change.\n\nIt is intended to be used to simulate special situations/problems and should only be used in consultation with the maintainer.\n\nFor production please use the stable version `TSUN Proxy`. If you are interested in a bleeding edge version, we offer the `TSUN Proxy (dev)` version.",
+    "readme_links": ""
 }

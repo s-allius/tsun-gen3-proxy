@@ -5,13 +5,14 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-SOLARMAN_SNR = os.getenv('SOLARMAN_SNR', '00000080')
+SOLARMAN_INV_SNR = os.getenv('SOLARMAN_INV_SNR', '00000080')
+SOLARMAN_DCU_SNR = os.getenv('SOLARMAN_DCU_SNR', '00000080')
 
 def get_sn() -> bytes:
-    return bytes.fromhex(SOLARMAN_SNR)
+    return bytes.fromhex(SOLARMAN_INV_SNR)
 
 def get_dcu_sn() -> bytes:
-    return b'\x20\x43\x65\x7b'
+    return bytes.fromhex(SOLARMAN_DCU_SNR)
 
 def get_dcu_no() -> bytes:
     return b'4100000000000001'
@@ -27,7 +28,7 @@ def correct_checksum(buf):
     return checksum.to_bytes(length=1)
 
 @pytest.fixture
-def MsgContactInfo(): # Contact Info message
+def msg_contact_info(): # Contact Info message
     msg  = b'\xa5\xd4\x00\x10\x41\x00\x01' +get_sn()  +b'\x02\xba\xd2\x00\x00'
     msg += b'\x19\x00\x00\x00\x00\x00\x00\x00\x05\x3c\x78\x01\x64\x01\x4c\x53'
     msg += b'\x57\x35\x42\x4c\x45\x5f\x31\x37\x5f\x30\x32\x42\x30\x5f\x31\x2e'
@@ -46,13 +47,13 @@ def MsgContactInfo(): # Contact Info message
     return msg
 
 @pytest.fixture
-def MsgContactResp(): # Contact Response message
+def msg_contact_resp(): # Contact Response message
     msg  = b'\xa5\x0a\x00\x10\x11\x01\x01' +get_sn()  +b'\x02\x01\x6a\xfd\x8f'
     msg += b'\x65\x3c\x00\x00\x00\x75\x15'
     return msg
 
 @pytest.fixture
-def MsgDataInd(): 
+def msg_data_ind(): 
     msg  = b'\xa5\x99\x01\x10\x42\x59\x84' +get_sn()  +b'\x01\xb0\x02\x2c\x87'
     msg += b'\x22\x32\xb7\x29\x00\x00\xd6\xcf\xe1\x33\x01\x00\x0c\x05\x00\x00'
     msg += b'\x59\x31\x37\x45\x37\x41\x30\x46\x30\x31\x30\x42\x30\x31\x33\x45'
@@ -86,14 +87,14 @@ def MsgDataInd():
     return msg
 
 @pytest.fixture
-def MsgDataResp(): # Contact Response message
+def msg_data_rsp(): # Contact Response message
     msg  = b'\xa5\x0a\x00\x10\x12\x80\x84' +get_sn()  +b'\x01\x01\xd1\x96\x04'
     msg += b'\x66\x3c\x00\x00\x00\xed\x15'
     return msg
 
 
 @pytest.fixture
-def MsgInvalidInfo(): # Contact Info message wrong start byte
+def msg_invalid_info(): # Contact Info message wrong start byte
     msg  = b'\x47\xd4\x00\x10\x41\x00\x01' +get_sn()  +b'\x02\xba\xd2\x00\x00'
     msg += b'\x19\x00\x00\x00\x00\x00\x00\x00\x05\x3c\x78\x01\x64\x01\x4c\x53'
     msg += b'\x57\x35\x42\x4c\x45\x5f\x31\x37\x5f\x30\x32\x42\x30\x5f\x31\x2e'
@@ -152,9 +153,9 @@ def dcu_data_ind_msg(): # 0x4210
     msg += b'\x2d\x32\x28\x00\x00\x00\x84\x17\x79\x35\x01\x00\x4c\x12\x00\x00'
     msg += get_dcu_no()
     msg += b'\x0d\x3a\x00\x0a\x0d\x2c\x00\x00\x00\x00\x08\x20\x00\x00\x00\x00'
-    msg += b'\x14\x0e\xff\xfe\x03\xe8\x0c\x89\x0c\x89\x0c\x89\x0c\x8a\x0c\x89'
+    msg += b'\x14\x0e\x05\xfe\x03\xe8\x0c\x89\x0c\x89\x0c\x89\x0c\x8a\x0c\x89'
     msg += b'\x0c\x89\x0c\x8a\x0c\x89\x0c\x89\x0c\x8a\x0c\x8a\x0c\x89\x0c\x89'
-    msg += b'\x0c\x89\x0c\x89\x0c\x88\x00\x0f\x00\x0f\x00\x0f\x00\x0e\x00\x00'
+    msg += b'\x0c\x89\x0c\x89\x0c\x88\x00\x0f\x00\x0f\x00\x0f\x00\x0e\x02\x00'
     msg += b'\x00\x00\x00\x0f\x00\x00\x02\x05\x02\x01'
     msg += correct_checksum(msg)
     msg += b'\x15'
@@ -169,7 +170,7 @@ def dcu_data_rsp_msg():  # 0x1210
     return msg
 
 @pytest.fixture(scope="session")
-def ClientConnection():
+def client_connection():
     host = 'logger.talent-monitoring.com'
     port = 10000
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -178,15 +179,15 @@ def ClientConnection():
         yield s
         s.close()
 
-def checkResponse(data, Msg):
+def check_response(data, msg):
     check = bytearray(data)
-    check[5]= Msg[5]            # ignore seq
-    check[13:18]= Msg[13:18]    # ignore timestamp + first byte of repeat time
-    check[21]= Msg[21]          # ignore crc
-    assert check == Msg
+    check[5]= msg[5]            # ignore seq
+    check[13:18]= msg[13:18]    # ignore timestamp + first byte of repeat time
+    check[21]= msg[21]          # ignore crc
+    assert check == msg
 
 
-def tempClientConnection():
+def tempclient_connection():
     host = 'logger.talent-monitoring.com'
     port = 10000
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -198,53 +199,53 @@ def tempClientConnection():
 
 def test_open_close():
     try:
-        for _ in tempClientConnection():
-            pass  # test generator tempClientConnection()
-    except:
+        for _ in tempclient_connection():
+            pass  # test generator tempclient_connection()
+    except TimeoutError:
         assert False
 
-def test_conn_msg(ClientConnection,MsgContactInfo, MsgContactResp):
-    s = ClientConnection
+def test_conn_msg(client_connection,msg_contact_info, msg_contact_resp):
+    s = client_connection
     try:
-        s.sendall(MsgContactInfo)
-        # time.sleep(2.5)
+        s.sendall(msg_contact_info)
+        time.sleep(2.5)
         data = s.recv(1024)
     except TimeoutError:
         pass
     # time.sleep(2.5)
-    checkResponse(data, MsgContactResp)
+    check_response(data, msg_contact_resp)
 
-def test_data_ind(ClientConnection,MsgDataInd, MsgDataResp):
-    s = ClientConnection
+def test_data_ind(client_connection,msg_data_ind, msg_data_rsp):
+    s = client_connection
     try:
-        s.sendall(MsgDataInd)
+        s.sendall(msg_data_ind)
         # time.sleep(2.5)
         data = s.recv(1024)
     except TimeoutError:
         pass
     # time.sleep(2.5)
-    checkResponse(data, MsgDataResp)
+    check_response(data, msg_data_rsp)
 
-def test_inavlid_msg(ClientConnection,MsgInvalidInfo,MsgContactInfo, MsgContactResp):
-    s = ClientConnection
+def test_inavlid_msg(client_connection,msg_invalid_info,msg_contact_info, msg_contact_resp):
+    s = client_connection
     try:
-        s.sendall(MsgInvalidInfo)
+        s.sendall(msg_invalid_info)
         # time.sleep(2.5)
         data = s.recv(1024)
     except TimeoutError:
         pass
     # time.sleep(2.5)
     try:
-        s.sendall(MsgContactInfo)
+        s.sendall(msg_contact_info)
         # time.sleep(2.5)
         data = s.recv(1024)
     except TimeoutError:
         pass
     # time.sleep(2.5)
-    checkResponse(data, MsgContactResp)
+    check_response(data, msg_contact_resp)
 
-def test_dcu_dev(ClientConnection,dcu_dev_ind_msg, dcu_dev_rsp_msg):
-    s = ClientConnection
+def test_dcu_dev(client_connection,dcu_dev_ind_msg, dcu_dev_rsp_msg):
+    s = client_connection
     try:
         s.sendall(dcu_dev_ind_msg)
         # time.sleep(2.5)
@@ -252,10 +253,10 @@ def test_dcu_dev(ClientConnection,dcu_dev_ind_msg, dcu_dev_rsp_msg):
     except TimeoutError:
         pass
     # time.sleep(2.5)
-    checkResponse(data, dcu_dev_rsp_msg)
+    check_response(data, dcu_dev_rsp_msg)
 
-def test_dcu_ind(ClientConnection,dcu_data_ind_msg, dcu_data_rsp_msg):
-    s = ClientConnection
+def test_dcu_ind(client_connection,dcu_data_ind_msg, dcu_data_rsp_msg):
+    s = client_connection
     try:
         s.sendall(dcu_data_ind_msg)
         # time.sleep(2.5)
@@ -263,4 +264,4 @@ def test_dcu_ind(ClientConnection,dcu_data_ind_msg, dcu_data_rsp_msg):
     except TimeoutError:
         pass
     # time.sleep(2.5)
-    checkResponse(data, dcu_data_rsp_msg)
+    check_response(data, dcu_data_rsp_msg)

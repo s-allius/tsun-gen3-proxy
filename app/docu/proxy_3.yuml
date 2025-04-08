@@ -5,9 +5,10 @@
 [note: Example of instantiation for a GEN3PLUS inverter!{bg:cornsilk}]
 [<<AbstractIterMeta>>||__iter__()]
 
-[InverterG3P|addr;remote:StreamPtr;local:StreamPtr|create_remote();;close()]
-[InverterG3P]++->[local:StreamPtr]
-[InverterG3P]++->[remote:StreamPtr]
+[InverterBase|addr;remote:StreamPtr;local:StreamPtr|create_remote();;close()]
+[InverterBase]^[InverterG3P|forward_at_cmd_resp;]
+[InverterBase]++->[local:StreamPtr]
+[InverterBase]++->[remote:StreamPtr]
 
 [<<AsyncIfc>>||set_node_id();get_conn_no();;tx_add();tx_flush();tx_get();tx_peek();tx_log();tx_clear();tx_len();;fwd_add();fwd_log();rx_get();rx_peek();rx_log();rx_clear();rx_len();rx_set_cb();;prot_set_timeout_cb()]
 [AsyncIfcImpl|fwd_fifo:ByteFifo;tx_fifo:ByteFifo;rx_fifo:ByteFifo;conn_no:Count;node_id;timeout_cb]
@@ -19,7 +20,7 @@
 [AsyncStream]^[AsyncStreamServer]
 [AsyncStream]^[AsyncStreamClient]
 
-[SolarmanV5|conn_no;addr;;control;serial;snr;db:InfosG3P;switch|msg_unknown();;healthy();close()]
+[SolarmanV5|conn_no;addr;inverter:InverterG3P;control;serial;snr;db:InfosG3P;switch|msg_unknown();;healthy();close()]
 [SolarmanV5]<-++[local:StreamPtr]
 [local:StreamPtr]++->[AsyncStreamServer]
 [SolarmanV5]<-0..1[remote:StreamPtr]

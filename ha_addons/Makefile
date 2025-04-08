@@ -47,7 +47,16 @@ dev debug: local_add_on
 	export IMAGE=$(PRIVAT_CONTAINER_REGISTRY)$(IMAGE) && \
 	docker buildx bake -f docker-bake.hcl $@
 
-rc rel: local_add_on
+rc: local_add_on
+	@[ "${RC}" ] || ( echo ">> RC is not set"; exit 1 )
+	@echo version: $(VERSION)  build-date: $(BUILD_DATE)   image: $(PUBLIC_CONTAINER_REGISTRY)$(IMAGE)
+	@echo login at $(PUBLIC_URL) as $(PUBLIC_USER)
+	@DO_LOGIN="$(shell echo $(PUBLIC_CR_KEY) | docker login $(PUBLIC_URL) -u $(PUBLIC_USER) --password-stdin)"
+	export VERSION=$(VERSION)-$@$(RC) && \
+	export IMAGE=$(PUBLIC_CONTAINER_REGISTRY)$(IMAGE) && \
+	docker buildx bake -f docker-bake.hcl $@
+
+rel: local_add_on
 	@echo version: $(VERSION)  build-date: $(BUILD_DATE)   image: $(PUBLIC_CONTAINER_REGISTRY)$(IMAGE)
 	@echo login at $(PUBLIC_URL) as $(PUBLIC_USER)
 	@DO_LOGIN="$(shell echo $(PUBLIC_CR_KEY) | docker login $(PUBLIC_URL) -u $(PUBLIC_USER) --password-stdin)"
@@ -66,7 +75,7 @@ clean:
 # Build the local add-on with a rootfs and config.yaml
 # The rootfs is needed to build the add-on Docker container 
 # 
-local_add_on: rootfs $(ADDON_PATH)/config.yaml $(ADDON_PATH)/apparmor.txt
+local_add_on: rootfs $(ADDON_PATH)/config.yaml $(ADDON_PATH)/apparmor.txt $(ADDON_PATH)/README.md
 
 # collect source files 
 SRC_FILES := $(wildcard $(SRC_PROXY)/*.py)\
@@ -103,6 +112,9 @@ $(ADDON_PATH)/%.yaml: $(TEMPL)/%.jinja $(TEMPL)/.data.json
 $(ADDON_PATH)/%.txt: $(TEMPL)/%.jinja $(TEMPL)/.data.json
 	$(JINJA) --strict --format=json $^ -o $@
 
+$(ADDON_PATH)/%.md: $(TEMPL)/%.jinja $(TEMPL)/.data.json
+	$(JINJA) --strict --format=json $^ -o $@
+
 # build a common data.json file from STAGE depending source files
 # don't touch the destination if the checksum of src and dst is equal
 $(TEMPL)/.data.json: FORCE
@@ -119,6 +131,7 @@ repro_files = DOCS.md icon.png logo.png translations/de.yaml translations/en.yam
 repro_root = CHANGELOG.md LICENSE.md
 repro_templates = config.yaml
 repro_apparmor = apparmor.txt
+repro_readme = README.md
 repro_subdirs = translations rootfs
 repro_vers = debug dev rc rel
 
@@ -126,29 +139,34 @@ repro_all_files := $(foreach dir,$(repro_vers), $(foreach file,$(repro_files),$(
 repro_root_files := $(foreach dir,$(repro_vers), $(foreach file,$(repro_root),$(INST_BASE)/ha_addon_$(dir)/$(file)))
 repro_all_templates := $(foreach dir,$(repro_vers), $(foreach file,$(repro_templates),$(INST_BASE)/ha_addon_$(dir)/$(file)))
 repro_all_apparmor := $(foreach dir,$(repro_vers), $(foreach file,$(repro_apparmor),$(INST_BASE)/ha_addon_$(dir)/$(file)))
+repro_all_readme := $(foreach dir,$(repro_vers), $(foreach file,$(repro_readme),$(INST_BASE)/ha_addon_$(dir)/$(file)))
 repro_all_subdirs := $(foreach dir,$(repro_vers), $(foreach file,$(repro_subdirs),$(INST_BASE)/ha_addon_$(dir)/$(file)))
 
 debug: $(foreach file,$(repro_subdirs),$(INST_BASE)/ha_addon_debug/$(file)) \
        $(foreach file,$(repro_templates),$(INST_BASE)/ha_addon_debug/$(file)) \
        $(foreach file,$(repro_apparmor),$(INST_BASE)/ha_addon_debug/$(file)) \
+       $(foreach file,$(repro_readme),$(INST_BASE)/ha_addon_debug/$(file)) \
 	   $(foreach file,$(repro_files),$(INST_BASE)/ha_addon_debug/$(file)) \
 	   $(foreach file,$(repro_root),$(INST_BASE)/ha_addon_debug/$(file))
 
 dev: $(foreach file,$(repro_subdirs),$(INST_BASE)/ha_addon_dev/$(file)) \
      $(foreach file,$(repro_templates),$(INST_BASE)/ha_addon_dev/$(file)) \
      $(foreach file,$(repro_apparmor),$(INST_BASE)/ha_addon_dev/$(file)) \
+     $(foreach file,$(repro_readme),$(INST_BASE)/ha_addon_dev/$(file)) \
 	 $(foreach file,$(repro_files),$(INST_BASE)/ha_addon_dev/$(file)) \
 	 $(foreach file,$(repro_root),$(INST_BASE)/ha_addon_dev/$(file))
 
 rc: $(foreach file,$(repro_subdirs),$(INST_BASE)/ha_addon_rc/$(file)) \
     $(foreach file,$(repro_templates),$(INST_BASE)/ha_addon_rc/$(file)) \
     $(foreach file,$(repro_apparmor),$(INST_BASE)/ha_addon_rc/$(file)) \
+    $(foreach file,$(repro_readme),$(INST_BASE)/ha_addon_rc/$(file)) \
 	$(foreach file,$(repro_files),$(INST_BASE)/ha_addon_rc/$(file)) \
 	$(foreach file,$(repro_root),$(INST_BASE)/ha_addon_rc/$(file))
 
 rel: $(foreach file,$(repro_subdirs),$(INST_BASE)/ha_addon_rel/$(file)) \
      $(foreach file,$(repro_templates),$(INST_BASE)/ha_addon_rel/$(file)) \
      $(foreach file,$(repro_apparmor),$(INST_BASE)/ha_addon_rel/$(file)) \
+     $(foreach file,$(repro_readme),$(INST_BASE)/ha_addon_rel/$(file)) \
 	 $(foreach file,$(repro_files),$(INST_BASE)/ha_addon_rel/$(file)) \
 	 $(foreach file,$(repro_root),$(INST_BASE)/ha_addon_rel/$(file))
 
@@ -159,6 +177,9 @@ $(repro_all_templates) : $(INST_BASE)/ha_addon_%/config.yaml: $(TEMPL)/config.ji
 	$(JINJA) --strict -D AppVersion=$(VERSION)-$* -D BuildID=$(BUILD_ID) $< $(filter %.json,$^) -o $@
 
 $(repro_all_apparmor) : $(INST_BASE)/ha_addon_%/apparmor.txt: $(TEMPL)/apparmor.jinja $(TEMPL)/%_data.json
+	$(JINJA) --strict $< $(filter %.json,$^) -o $@
+
+$(repro_all_readme) : $(INST_BASE)/ha_addon_%/README.md: $(TEMPL)/README.jinja $(TEMPL)/%_data.json
 	$(JINJA) --strict $< $(filter %.json,$^) -o $@
 
 $(filter $(INST_BASE)/ha_addon_debug/%,$(repro_root_files)) : $(INST_BASE)/ha_addon_debug/% : ../%

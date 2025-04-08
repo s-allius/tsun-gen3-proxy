@@ -133,6 +133,9 @@ async def test_remote_except(config_conn, patch_open_connection):
         await asyncio.sleep(0)
         assert inverter.remote.stream==None
 
+    test = MockType.RD_TEST_0_BYTES
+
+
 @pytest.mark.asyncio
 async def test_mqtt_publish(config_conn, patch_open_connection):
     _ = config_conn
