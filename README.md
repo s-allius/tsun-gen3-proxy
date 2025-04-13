@@ -141,7 +141,7 @@ No special configuration is required for the Docker container if it is built and
 
 On the host, two directories (for log files and for config files) must be mapped. If necessary, the UID of the proxy process can be adjusted, which is also the owner of the log and configuration files.
 
-A description of the configuration parameters can be found [here](https://github.com/s-allius/tsun-gen3-proxy/wiki/Configuration-toml#docker-compose-environment-variables).
+A description of the configuration parameters can be found [here](https://github.com/s-allius/tsun-gen3-proxy/wiki/configuration-env#docker-compose-environment-variables)
 
 ## Proxy Configuration
 
