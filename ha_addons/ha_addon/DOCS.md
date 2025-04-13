@@ -50,9 +50,9 @@ Example add-on configuration after installation:
 
 ```yaml
 inverters:
-  - serial: R17E760702080400
-    node_id: PV-Garage
-    suggested_area: Garage
+  - serial: Y17E7A0F010B0118
+    node_id: 192.168.178.23
+    suggested_area: Studio
     modbus_polling: false
     pv1.manufacturer: Shinefar
     pv1.type: SF-M18/144550
@@ -66,12 +66,12 @@ Example add-on configuration for GEN3PLUS inverters:
 
 ```yaml
 inverters:
-  - serial: Y17000000000000
-    monitor_sn: 2000000000
-    node_id: inv_1
+  - serial: Y17E7A0F010B0118
+    monitor_sn: 2068495362
+    node_id: 192.168.178.23
     suggested_area: Roof
     modbus_polling: true
-    client_mode.host: 192.168.x.x
+    client_mode.host: 192.168.178.23
     client_mode.port: 8899
     client_mode.forward: true
     pv1.manufacturer: Shinefar
