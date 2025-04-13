@@ -32,8 +32,7 @@ rel : STAGE=rel
 
 
 export BUILD_DATE := ${shell date -Iminutes}
-BUILD_ID := ${shell date +'%y%m%d%H%M'}
-rel : BUILD_ID=
+debug dev : BUILD_ID := ${shell date +'%y%m%d%H%M'}
 VERSION := $(shell cat $(SRC)/.version)
 export MAJOR  := $(shell echo $(VERSION) | cut -f1 -d.)
 
