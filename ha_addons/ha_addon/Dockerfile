@@ -18,7 +18,7 @@ ARG BUILD_FROM="ghcr.io/hassio-addons/base:17.2.4"
 FROM $BUILD_FROM AS base
 
 # Installiere Python, pip und virtuelle Umgebungstools
-RUN apk add --no-cache python3=3.12.9-r0 py3-pip=24.3.1-r0 && \
+RUN apk add --no-cache python3=3.12.10-r0 py3-pip=24.3.1-r0 && \
     python -m venv /opt/venv && \
     . /opt/venv/bin/activate
 
