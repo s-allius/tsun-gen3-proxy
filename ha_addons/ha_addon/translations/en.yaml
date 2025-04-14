@@ -10,7 +10,7 @@ configuration:
       in the configuration block.
 
       The serial numbers of all GEN3 inverters start with `R17` or `R47` and that of the GEN3PLUS
-      inverters with ‘Y17’ or ‘Y47’!
+      inverters with 'Y00', ‘Y17’ or ‘Y47’!
       
       For reference see example configuration in Documentation Tab
 

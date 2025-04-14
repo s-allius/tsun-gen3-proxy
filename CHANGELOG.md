@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+- allow `Y00` serial numbers for GEN3PLUS devices
+
 ## [0.13.0] - 2025-04-13
 
 - update dependency python to 3.13
