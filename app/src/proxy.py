@@ -96,8 +96,8 @@ class Proxy():
             Infos.new_stat_data[key] = False
 
     @classmethod
-    def class_close(cls, loop) -> None:   # pragma: no cover
+    async def class_close(cls, loop) -> None:   # pragma: no cover
         logging.debug('Proxy.class_close')
         logging.info('Close MQTT Task')
-        loop.run_until_complete(cls.mqtt.close())
+        await cls.mqtt.close()
         cls.mqtt = None
