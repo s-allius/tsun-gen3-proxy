@@ -106,3 +106,4 @@ configuration:
 network:
   5005/tcp: listening Port für TSUN GEN3 Wechselrichter
   10000/tcp: listening Port für TSUN GEN3PLUS Wechselrichter
+  8127/tcp: Port für das TSUN-Proxy Dashboard

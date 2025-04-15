@@ -107,3 +107,4 @@ configuration:
 network:
   5005/tcp: listening Port for TSUN GEN3 Devices
   10000/tcp: listening Port for TSUN GEN3PLUS Devices
+  8127/tcp: Port for the TSUN-Proxy Dashboard
