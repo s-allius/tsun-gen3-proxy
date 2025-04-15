@@ -17,7 +17,18 @@ from cnf.config_read_toml import ConfigReadToml
 from cnf.config_read_json import ConfigReadJson
 from modbus_tcp import ModbusTcp
 
-proxy_is_up = False
+
+class ProxyState:
+    _is_up = False
+
+    @staticmethod
+    def is_up() -> bool:
+        return ProxyState._is_up
+
+    @staticmethod
+    def set_up(value: bool):
+        ProxyState._is_up = value
+
 
 app = Quart(__name__)
 
@@ -29,7 +40,7 @@ async def hello():
 
 @app.route('/-/ready')
 async def ready():
-    if proxy_is_up:
+    if ProxyState.is_up():
         status = 200
         text = 'Is ready'
     else:
@@ -41,7 +52,7 @@ async def ready():
 @app.route('/-/healthy')
 async def healthy():
 
-    if proxy_is_up:
+    if ProxyState.is_up():
         # logging.info('web reqeust healthy()')
         for inverter in InverterIfc:
             try:
@@ -62,13 +73,12 @@ async def handle_client(reader: StreamReader, writer: StreamWriter, inv_class):
 
 
 @app.after_serving
-async def handle_shutdown():
+async def handle_shutdown():   # pragma: no cover
     '''Close all TCP connections and stop the event loop'''
 
     logging.info('Shutdown due to SIGTERM')
     loop = asyncio.get_event_loop()
-    global proxy_is_up
-    proxy_is_up = False
+    ProxyState.set_up(False)
 
     #
     # first, disc all open TCP connections gracefully
@@ -190,8 +200,7 @@ def main():   # pragma: no cover
 
     loop.set_debug(log_level == logging.DEBUG)
     try:
-        global proxy_is_up
-        proxy_is_up = True
+        ProxyState.set_up(True)
         logging.info("Start Quart")
         app.run(host='0.0.0.0', port=8127, use_reloader=False, loop=loop)
         logging.info("Quart stopped")
