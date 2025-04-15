@@ -83,7 +83,8 @@ SRC_FILES := $(wildcard $(SRC_PROXY)/*.py)\
  $(wildcard $(SRC_PROXY)/cnf/*.py)\
  $(wildcard $(SRC_PROXY)/cnf/*.toml)\
  $(wildcard $(SRC_PROXY)/gen3/*.py)\
- $(wildcard $(SRC_PROXY)/gen3plus/*.py)
+ $(wildcard $(SRC_PROXY)/gen3plus/*.py)\
+ $(wildcard $(SRC_PROXY)/web/*.py)
 CNF_FILES := $(wildcard $(CNF_PROXY)/*.toml)
 
 # determine destination files

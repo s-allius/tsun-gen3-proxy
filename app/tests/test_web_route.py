@@ -1,6 +1,6 @@
 # test_with_pytest.py
 import pytest
-from web.route import app
+from server import app
 
 pytest_plugins = ('pytest_asyncio',)
 

@@ -15,6 +15,7 @@ from cnf.config import Config
 from cnf.config_read_env import ConfigReadEnv
 from cnf.config_read_toml import ConfigReadToml
 from cnf.config_read_json import ConfigReadJson
+from web.routes import web_routes
 from modbus_tcp import ModbusTcp
 
 
@@ -31,6 +32,7 @@ class ProxyState:
 
 
 app = Quart(__name__)
+app.register_blueprint(web_routes)
 
 
 @app.route('/-/ready')
