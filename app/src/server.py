@@ -33,11 +33,6 @@ class ProxyState:
 app = Quart(__name__)
 
 
-@app.route('/')
-async def hello():
-    return Response(response="Hello, world")
-
-
 @app.route('/-/ready')
 async def ready():
     if ProxyState.is_up():
