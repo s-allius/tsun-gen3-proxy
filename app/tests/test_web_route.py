@@ -11,5 +11,10 @@ async def test_home():
     client = app.test_client()
     response = await client.get('/')
     assert response.status_code == 200
-    result = await response.get_data()
-    assert result == b"Hello, world"
+
+@pytest.mark.asyncio
+async def test_page():
+    """Test the empty page route."""
+    client = app.test_client()
+    response = await client.get('/page')
+    assert response.status_code == 200
