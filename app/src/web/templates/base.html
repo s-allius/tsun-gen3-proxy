@@ -5,10 +5,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href=".{{ url_for('static', filename= 'css/style.css') }}">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Raleway">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href=".{{ url_for('static', filename= 'font-awesome/css/all.min.css') }}">
+    <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
     <style>
-        html,body,h1,h2,h3,h4,h5 {font-family: "Raleway", sans-serif}
+        @font-face {
+            font-family: Roboto;
+            src: url(".{{ url_for('static', filename= 'font/roboto-light.ttf') }}");
+        }
+        html,body,h1,h2,h3,h4,h5 {font-family: Roboto, sans-serif}
     </style>
   </head>
   <body class="w3-light-grey">
@@ -23,7 +31,7 @@
     <nav class="w3-sidebar w3-collapse w3-white w3-animate-left" style="z-index:3;width:250px;" id="mySidebar"><br>
       <div class="w3-container w3-row">
         <div class="w3-col s4">
-          <img src=".{{ url_for('static', filename= 'images/logo.png') }}" alt="" class="w3-circle w3-margin-right" style="width:60px">
+          <img src=".{{ url_for('static', filename= 'images/favicon.svg') }}" alt="" class="w3-circle w3-margin-right" style="width:60px">
         </div>
         <div class="w3-col s8 w3-bar">
           <h3>TSUN-Proxy</h3><br>
@@ -39,9 +47,9 @@
         <a href=".{{ url_for('web_routes.empty')}}" class="w3-bar-item w3-button w3-padding {% block menu2_class %}{% endblock %}"><i class="fa fa-eye fa-fw"></i>  Views</a>
         <a href="#" class="w3-bar-item w3-button w3-padding"><i class="fa fa-users fa-fw {% block menu3_class %}{% endblock %}"></i>  Traffic</a>
         <a href="#" class="w3-bar-item w3-button w3-padding"><i class="fa fa-bullseye fa-fw {% block menu4_class %}{% endblock %}"></i>  Geo</a>
-        <a href="#" class="w3-bar-item w3-button w3-padding"><i class="fa fa-diamond fa-fw {% block menu5_class %}{% endblock %}"></i>  Orders</a>
+        <a href="#" class="w3-bar-item w3-button w3-padding"><i class="fa fa-gem fa-fw {% block menu5_class %}{% endblock %}"></i>  Orders</a>
         <a href="#" class="w3-bar-item w3-button w3-padding"><i class="fa fa-bell fa-fw {% block menu6_class %}{% endblock %}"></i>  News</a>
-        <a href="#" class="w3-bar-item w3-button w3-padding"><i class="fa fa-bank fa-fw {% block menu7_class %}{% endblock %}"></i>  General</a>
+        <a href="#" class="w3-bar-item w3-button w3-padding"><i class="fa fa-university fa-fw {% block menu7_class %}{% endblock %}"></i>  General</a>
         <a href="#" class="w3-bar-item w3-button w3-padding"><i class="fa fa-history fa-fw {% block menu8_class %}{% endblock %}"></i>  History</a>
         <a href="#" class="w3-bar-item w3-button w3-padding"><i class="fa fa-cog fa-fw {% block menu9_class %}{% endblock %}"></i>  Settings</a><br><br>
       </div>
