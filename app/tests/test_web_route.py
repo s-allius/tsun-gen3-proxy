@@ -11,6 +11,7 @@ async def test_home():
     client = app.test_client()
     response = await client.get('/')
     assert response.status_code == 200
+    assert response.mimetype == 'text/html'
 
 @pytest.mark.asyncio
 async def test_page():
@@ -18,3 +19,12 @@ async def test_page():
     client = app.test_client()
     response = await client.get('/page')
     assert response.status_code == 200
+    assert response.mimetype == 'text/html'
+
+@pytest.mark.asyncio
+async def test_favicon():
+    """Test the favicon.ico route."""
+    client = app.test_client()
+    response = await client.get('/favicon.ico')
+    assert response.status_code == 200
+    assert response.mimetype == 'image/x-icon'
