@@ -84,7 +84,13 @@ SRC_FILES := $(wildcard $(SRC_PROXY)/*.py)\
  $(wildcard $(SRC_PROXY)/cnf/*.toml)\
  $(wildcard $(SRC_PROXY)/gen3/*.py)\
  $(wildcard $(SRC_PROXY)/gen3plus/*.py)\
- $(wildcard $(SRC_PROXY)/web/*.py)
+ $(wildcard $(SRC_PROXY)/web/*.py)\
+ $(wildcard $(SRC_PROXY)/web/templates/*.html)\
+ $(wildcard $(SRC_PROXY)/web/static/css/*.css)\
+ $(wildcard $(SRC_PROXY)/web/static/font/*)\
+ $(wildcard $(SRC_PROXY)/web/static/font-awesome/*/*)\
+ $(wildcard $(SRC_PROXY)/web/static/images/*)
+
 CNF_FILES := $(wildcard $(CNF_PROXY)/*.toml)
 
 # determine destination files

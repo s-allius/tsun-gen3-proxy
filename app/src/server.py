@@ -31,7 +31,9 @@ class ProxyState:
         ProxyState._is_up = value
 
 
-app = Quart(__name__)
+app = Quart(__name__,
+            template_folder='web/templates',
+            static_folder='web/static')
 app.register_blueprint(web_routes)
 
 

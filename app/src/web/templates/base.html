@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>{% block title %}{% endblock title %}</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href=".{{ url_for('static', filename= 'css/style.css') }}">
+    <link rel="stylesheet" href=".{{ url_for('static', filename= 'font-awesome/css/all.min.css') }}">
+    <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <style>
+        @font-face {
+            font-family: Roboto;
+            src: url(".{{ url_for('static', filename= 'font/roboto-light.ttf') }}");
+        }
+        html,body,h1,h2,h3,h4,h5 {font-family: Roboto, sans-serif}
+    </style>
+  </head>
+  <body class="w3-light-grey">
+  
+    <!-- Top container -->
+    <div class="w3-bar w3-top w3-black w3-large" style="z-index:4">
+      <button class="w3-bar-item w3-button w3-hide-large w3-hover-none w3-hover-text-light-grey" onclick="w3_open();"><i class="fa fa-bars"></i>  Menu</button>
+      <span class="w3-bar-item w3-right">Logo</span>
+    </div>
+  
+    <!-- Sidebar/menu -->
+    <nav class="w3-sidebar w3-collapse w3-white w3-animate-left" style="z-index:3;width:250px;" id="mySidebar"><br>
+      <div class="w3-container w3-row">
+        <div class="w3-col s4">
+          <img src=".{{ url_for('static', filename= 'images/favicon.svg') }}" alt="" class="w3-circle w3-margin-right" style="width:60px">
+        </div>
+        <div class="w3-col s8 w3-bar">
+          <h3>TSUN-Proxy</h3><br>
+        </div>
+      </div>
+      <hr>
+      <div class="w3-container">
+        <h5>Dashboard</h5>
+      </div>
+      <div class="w3-bar-block">
+        <button href="#" class="w3-bar-item w3-button w3-padding-16 w3-hide-large w3-dark-grey w3-hover-black" onclick="w3_close()" title="close menu"><i class="fa fa-remove fa-fw"></i>  Close Menu</button>
+        <a href=".{{ url_for('web_routes.index')}}" class="w3-bar-item w3-button w3-padding {% block menu1_class %}{% endblock %}"><i class="fa fa-users fa-fw"></i>  Overview</a>
+        <a href=".{{ url_for('web_routes.empty')}}" class="w3-bar-item w3-button w3-padding {% block menu2_class %}{% endblock %}"><i class="fa fa-eye fa-fw"></i>  Views</a>
+        <a href="#" class="w3-bar-item w3-button w3-padding"><i class="fa fa-users fa-fw {% block menu3_class %}{% endblock %}"></i>  Traffic</a>
+        <a href="#" class="w3-bar-item w3-button w3-padding"><i class="fa fa-bullseye fa-fw {% block menu4_class %}{% endblock %}"></i>  Geo</a>
+        <a href="#" class="w3-bar-item w3-button w3-padding"><i class="fa fa-gem fa-fw {% block menu5_class %}{% endblock %}"></i>  Orders</a>
+        <a href="#" class="w3-bar-item w3-button w3-padding"><i class="fa fa-bell fa-fw {% block menu6_class %}{% endblock %}"></i>  News</a>
+        <a href="#" class="w3-bar-item w3-button w3-padding"><i class="fa fa-university fa-fw {% block menu7_class %}{% endblock %}"></i>  General</a>
+        <a href="#" class="w3-bar-item w3-button w3-padding"><i class="fa fa-history fa-fw {% block menu8_class %}{% endblock %}"></i>  History</a>
+        <a href="#" class="w3-bar-item w3-button w3-padding"><i class="fa fa-cog fa-fw {% block menu9_class %}{% endblock %}"></i>  Settings</a><br><br>
+      </div>
+    </nav>
+  
+  
+    <!-- Overlay effect when opening sidebar on small screens -->
+    <button class="w3-overlay w3-hide-large w3-animate-opacity" onclick="w3_close()" style="cursor:pointer" title="close side menu" id="myOverlay"></button>
+  
+    <!-- !PAGE CONTENT! -->
+    <div class="w3-main" style="margin-left:250px;margin-top:43px;">
+    
+      <!-- Header -->
+      {% block header %} 
+      <header class="w3-container" style="padding-top:22px">
+        <h5><b>{% block headline %}{% endblock headline %}</b></h5>
+      </header>
+      {% endblock header %}
+
+      {% block content %} {% endblock content%}
+    
+      <!-- Footer -->
+      {% block footer %}
+      <footer class="w3-container w3-padding-16 w3-light-grey">
+        <h4>FOOTER</h4>
+        <p>Powered by <a href="https://www.w3schools.com/w3css/default.asp" target="_blank">w3.css</a></p>
+      </footer>
+      {% endblock footer %}
+    
+      <!-- End page content -->
+    </div>
+
+    {% block trailer %} 
+    <script>
+      // Get the Sidebar
+      var mySidebar = document.getElementById("mySidebar");
+      
+      // Get the DIV with overlay effect
+      var overlayBg = document.getElementById("myOverlay");
+      
+      // Toggle between showing and hiding the sidebar, and add overlay effect
+      function w3_open() {
+        if (mySidebar.style.display === 'block') {
+          mySidebar.style.display = 'none';
+          overlayBg.style.display = "none";
+        } else {
+          mySidebar.style.display = 'block';
+          overlayBg.style.display = "block";
+        }
+      }
+      
+      // Close the sidebar with the close button
+      function w3_close() {
+        mySidebar.style.display = "none";
+        overlayBg.style.display = "none";
+      }
+    </script>
+    {% endblock trailer %}
+  
+  </body>
+</html>
