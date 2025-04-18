@@ -6,6 +6,7 @@ import argparse
 from asyncio import StreamReader, StreamWriter
 from quart import Quart, Response, request
 from quart_babel import Babel
+from quart_babel.locale import get_locale
 from logging import config  # noqa F401
 from proxy import Proxy
 from inverter_ifc import InverterIfc
@@ -32,9 +33,9 @@ class ProxyState:
         ProxyState._is_up = value
 
 
-def get_locale():
-    # hass.selectedLanguage
-    logging.info("get_locale(%s)", request.accept_languages)
+def my_get_locale():
+    # check how to get the locale form for the add-on - hass.selectedLanguage
+    # logging.info("get_locale(%s)", request.accept_languages)
     return request.accept_languages.best_match(
         ['de', 'en']
     )
@@ -44,9 +45,14 @@ app = Quart(__name__,
             template_folder='web/templates',
             static_folder='web/static')
 babel = Babel(app,
-              locale_selector=get_locale,
+              locale_selector=my_get_locale,
               default_translation_directories='../translations')
 app.register_blueprint(web_routes)
+
+
+@app.context_processor
+def utility_processor():
+    return dict(lang=get_locale())
 
 
 @app.route('/-/ready')
