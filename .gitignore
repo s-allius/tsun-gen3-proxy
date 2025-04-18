@@ -13,3 +13,7 @@ Doku/**
 .env
 .venv
 coverage.xml
+*.pot
+*.mo
+*.log
+*.log.*
