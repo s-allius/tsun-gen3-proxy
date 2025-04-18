@@ -2,3 +2,4 @@
     schema==0.7.7
     aiocron==2.1
     quart==0.20
+    quart-babel==1.0.7
