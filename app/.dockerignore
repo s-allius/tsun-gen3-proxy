@@ -3,3 +3,5 @@ tests/
 *.pyc
 .DS_Store
 build.sh
+*.pot
+*.po
