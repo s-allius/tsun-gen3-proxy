@@ -106,6 +106,36 @@
         mySidebar.style.display = "none";
         overlayBg.style.display = "none";
       }
+      {% if fetch_url is defined %}
+      function fetch_data() {
+        fetch("{{fetch_url}}")
+          .then(response => response.json())
+          .then(function (data) {
+            Object.keys(data).forEach(key => {
+              //console.log(`${key}: ${data[key]}`);
+              try {
+                elm = document.getElementById(key)
+                elm.innerHTML = data[key]
+              }
+              catch(err) {
+                console.log('error: ' + err + ' (for key: ' + key + ')');
+              }
+            });
+          })
+          .catch(function (err) {
+            console.log('error: ' + err);
+          });
+      }
+
+      window.addEventListener('load', function () {
+        // Your document is loaded.
+        var fetchInterval = 5000; // 5 seconds.
+
+        // Invoke the request every 5 seconds.
+        setInterval(fetch_data, fetchInterval);
+      });
+      {% endif %}
+
     </script>
     {% endblock trailer %}
   
