@@ -10,7 +10,7 @@ APP=.
 SRC=$(APP)/src
 # Folders for Babel translation
 BABEL_INPUT_JINJA=$(SRC)/web/templates
-BABEL_INPUT= $(foreach dir,$(BABEL_INPUT_JINJA),$(wildcard $(dir)/*.html)) \
+BABEL_INPUT= $(foreach dir,$(BABEL_INPUT_JINJA),$(wildcard $(dir)/*.html.j2)) \
 
 BABEL_TRANSLATIONS=$(APP)/translations
 

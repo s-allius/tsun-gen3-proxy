@@ -1,5 +1,5 @@
 from quart import Blueprint
-from quart import render_template
+from quart import render_template, url_for
 from quart import send_from_directory
 import os
 
@@ -13,14 +13,44 @@ async def get_icon(file: str, mime: str = 'image/png'):
         mimetype=mime)
 
 
+def get_inv_count():
+    return 1234
+
+
+TsunCnt = 0
+
+
+def get_tsun_count():
+    global TsunCnt
+    TsunCnt += 1
+    return TsunCnt
+
+
+@web_routes.context_processor
+def utility_processor():
+    return dict(inv_count=get_inv_count(),
+                tsun_count=get_tsun_count())
+
+
 @web_routes.route('/')
 async def index():
-    return await render_template('index.html')
+    return await render_template(
+        'index.html.j2',
+        fetch_url='.'+url_for('web_routes.data_fetch'))
 
 
 @web_routes.route('/page')
 async def empty():
-    return await render_template('empty.html')
+    return await render_template('empty.html.j2')
+
+
+@web_routes.route('/data-fetch')
+async def data_fetch():
+    global TsunCnt
+    TsunCnt += 1
+    return {
+        "geology-fact": f"<h3>{TsunCnt}</h3>",
+    }
 
 
 @web_routes.route('/favicon-96x96.png')
