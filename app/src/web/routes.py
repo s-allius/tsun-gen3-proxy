@@ -34,12 +34,12 @@ def utility_processor():
 
 @web_routes.route('/')
 async def index():
-    return await render_template('index.html', fetch_url='/data-fetch')
+    return await render_template('index.html.j2', fetch_url='/data-fetch')
 
 
 @web_routes.route('/page')
 async def empty():
-    return await render_template('empty.html')
+    return await render_template('empty.html.j2')
 
 
 @web_routes.route('/data-fetch')
