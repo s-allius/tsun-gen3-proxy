@@ -68,8 +68,6 @@ async def test_data_fetch():
     client = app.test_client()
     response = await client.get('/data-fetch')
     assert response.status_code == 200
-    result = await response.get_data()
 
     response = await client.get('/data-fetch')
     assert response.status_code == 200
-    result = await response.get_data()
