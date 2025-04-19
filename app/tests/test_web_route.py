@@ -61,3 +61,15 @@ async def test_manifest():
     response = await client.get('/site.webmanifest')
     assert response.status_code == 200
     assert response.mimetype == 'application/manifest+json'
+
+@pytest.mark.asyncio
+async def test_data_fetch():
+    """Test the healthy route."""
+    client = app.test_client()
+    response = await client.get('/data-fetch')
+    assert response.status_code == 200
+    result = await response.get_data()
+
+    response = await client.get('/data-fetch')
+    assert response.status_code == 200
+    result = await response.get_data()
