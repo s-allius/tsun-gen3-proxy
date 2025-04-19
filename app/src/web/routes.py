@@ -1,5 +1,5 @@
 from quart import Blueprint
-from quart import render_template
+from quart import render_template, url_for
 from quart import send_from_directory
 import os
 
@@ -34,7 +34,9 @@ def utility_processor():
 
 @web_routes.route('/')
 async def index():
-    return await render_template('index.html.j2', fetch_url='/data-fetch')
+    return await render_template(
+        'index.html.j2',
+        fetch_url='.'+url_for('web_routes.data_fetch'))
 
 
 @web_routes.route('/page')
