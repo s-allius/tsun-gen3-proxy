@@ -1,6 +1,7 @@
 from quart import Blueprint
 from quart import render_template, url_for
 from quart import send_from_directory
+from quart_babel import format_datetime
 import os
 
 web_routes = Blueprint('web_routes', __name__)
@@ -50,6 +51,7 @@ async def data_fetch():
     TsunCnt += 1
     return {
         "proxy-cnt": f"<h3>{TsunCnt}</h3>",
+        "update-time": format_datetime(format="medium"),
     }
 
 

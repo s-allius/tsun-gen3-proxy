@@ -41,11 +41,16 @@ def my_get_locale():
     )
 
 
+def my_get_tz():
+    return 'CET'
+
+
 app = Quart(__name__,
             template_folder='web/templates',
             static_folder='web/static')
 babel = Babel(app,
               locale_selector=my_get_locale,
+              timezone_selector=my_get_tz,
               default_translation_directories='../translations')
 app.register_blueprint(web_routes)
 
