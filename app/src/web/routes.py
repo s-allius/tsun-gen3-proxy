@@ -49,7 +49,7 @@ async def data_fetch():
     global TsunCnt
     TsunCnt += 1
     return {
-        "geology-fact": f"<h3>{TsunCnt}</h3>",
+        "proxy-cnt": f"<h3>{TsunCnt}</h3>",
     }
 
 

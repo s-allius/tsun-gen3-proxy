@@ -1,122 +1,56 @@
 {% extends 'base.html.j2' %}
 
-{% block title %} TSUN Proxy - Dashboard {% endblock title%}
+{% block title %} TSUN Proxy - Connections {% endblock title%}
 {% block menu1_class %}w3-blue{% endblock %}
-{% block headline %}<i class="fa fa-dashboard"></i> {{_('My Dashboard')}}{% endblock headline %}
+{% block headline %}<i class="fa fa-network-wired"></i>  {{_('Proxy Connection Overview')}}{% endblock headline %}
 
 {% block content %}
   <div class="w3-row-padding w3-margin-bottom">
     <div class="w3-quarter">
       <div class="w3-container w3-red w3-padding-16">
-        <div class="w3-left"><i class="fa fa-comment w3-xxxlarge"></i></div>
-        <div class="w3-right">
-          <h3>{{inv_count}}</h3>
+        <div class="w3-left"><i class="fa fa-upload w3-xxxlarge"></i></div>
+        <div id = "server-cnt" class="w3-right">
+          <h3>-</h3>
         </div>
         <div class="w3-clear"></div>
-        <h4>Messages</h4>
+        <h4>{{_('Server Mode')}}</h4>
+        <div class="w3-hide-small w3-hide-medium">{{_('Established from device to proxy')}}</div>
       </div>
     </div>
     <div class="w3-quarter">
       <div class="w3-container w3-blue w3-padding-16">
-        <div class="w3-left"><i class="fa fa-eye w3-xxxlarge"></i></div>
-        <div class="w3-right">
-          <h3>{{tsun_count}}</h3>
+        <div class="w3-left"><i class="fa fa-download w3-xxxlarge"></i></div>
+        <div id = "client-cnt" class="w3-right">
+          <h3>-</h3>
         </div>
         <div class="w3-clear"></div>
-        <h4>Views</h4>
+        <h4>{{_('Client Mode')}}</h4>
+        <div class="w3-hide-small w3-hide-medium">{{_('Established from proxy to device')}}</div>
       </div>
     </div>
     <div class="w3-quarter">
       <div class="w3-container w3-teal w3-padding-16">
-        <div class="w3-left"><i class="fa fa-share-alt w3-xxxlarge"></i></div>
-        <div id = "geology-fact" class="w3-right">
-          <h3>23</h3>
+        <div class="w3-left"><i class="fa fa-cloud w3-xxxlarge"></i></div>
+        <div id = "proxy-cnt" class="w3-right">
+          <h3>-</h3>
         </div>
         <div class="w3-clear"></div>
-        <h4>Shares</h4>
+        <h4>{{_('Proxy Mode')}}</h4>
+        <div class="w3-hide-small w3-hide-medium">{{_('Forwarding data to cloud')}}</div>
       </div>
     </div>
     <div class="w3-quarter">
       <div class="w3-container w3-orange w3-text-white w3-padding-16">
-        <div class="w3-left"><i class="fa fa-users w3-xxxlarge"></i></div>
-        <div class="w3-right">
-          <h3>50</h3>
+        <div class="w3-left"><i class="fa fa-cloud w3-xxxlarge"></i></div>
+        <div id = "emulation-cnt" class="w3-right">
+          <h3>-</h3>
         </div>
         <div class="w3-clear"></div>
-        <h4>Users</h4>
+        <h4>{{_('Emu Mode')}}</h4>
+        <div class="w3-hide-small w3-hide-medium">{{_('Emulation sends data to cloud')}}</div>
       </div>
     </div>
   </div>
-
-  <div class="w3-panel">
-    <div class="w3-row-padding" style="margin:0 -16px">
-      <div class="w3-third">
-        <h5>Regions</h5>
-      </div>
-      <div class="w3-twothird">
-        <h5>Feeds</h5>
-        <table class="w3-table w3-striped w3-white">
-            <tr>
-                <th class="w3-hide-large"></th>
-              </tr>
-                  <tr>
-            <td><i class="fa fa-user w3-text-blue w3-large"></i></td>
-            <td>New record, over 90 views.</td>
-            <td><i>10 mins</i></td>
-          </tr>
-          <tr>
-            <td><i class="fa fa-bell w3-text-red w3-large"></i></td>
-            <td>Database error.</td>
-            <td><i>15 mins</i></td>
-          </tr>
-          <tr>
-            <td><i class="fa fa-users w3-text-yellow w3-large"></i></td>
-            <td>New record, over 40 users.</td>
-            <td><i>17 mins</i></td>
-          </tr>
-          <tr>
-            <td><i class="fa fa-comment w3-text-red w3-large"></i></td>
-            <td>New comments.</td>
-            <td><i>25 mins</i></td>
-          </tr>
-          <tr>
-            <td><i class="fa fa-bookmark w3-text-blue w3-large"></i></td>
-            <td>Check transactions.</td>
-            <td><i>28 mins</i></td>
-          </tr>
-          <tr>
-            <td><i class="fa fa-laptop w3-text-red w3-large"></i></td>
-            <td>CPU overload.</td>
-            <td><i>35 mins</i></td>
-          </tr>
-          <tr>
-            <td><i class="fa fa-share-alt w3-text-green w3-large"></i></td>
-            <td>New shares.</td>
-            <td><i>39 mins</i></td>
-          </tr>
-        </table>
-      </div>
-    </div>
-  </div>
-  <hr>
-  <div class="w3-container">
-    <h5>General Stats</h5>
-    <p>New Visitors</p>
-    <div class="w3-grey">
-      <div class="w3-container w3-center w3-padding w3-green" style="width:25%">+25%</div>
-    </div>
-
-    <p>New Users</p>
-    <div class="w3-grey">
-      <div class="w3-container w3-center w3-padding w3-orange" style="width:50%">50%</div>
-    </div>
-
-    <p>Bounce Rate</p>
-    <div class="w3-grey">
-      <div class="w3-container w3-center w3-padding w3-red" style="width:75%">75%</div>
-    </div>
-  </div>
-  <hr>
 
   <div class="w3-container">
     <h5>Countries</h5>

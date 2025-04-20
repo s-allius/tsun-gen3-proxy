@@ -28,7 +28,7 @@
     </div>
   
     <!-- Sidebar/menu -->
-    <nav class="w3-sidebar w3-collapse w3-white w3-animate-left" style="z-index:3;width:250px;" id="mySidebar"><br>
+    <nav class="w3-sidebar w3-collapse w3-white" style="z-index:3;width:250px;" id="mySidebar"><br>
       <div class="w3-container w3-row">
         <div class="w3-col s4">
           <img src=".{{ url_for('static', filename= 'images/favicon.svg') }}" alt="" class="w3-circle w3-margin-right" style="width:60px">
@@ -43,7 +43,7 @@
       </div>
       <div class="w3-bar-block">
         <button href="#" class="w3-bar-item w3-button w3-padding-16 w3-hide-large w3-dark-grey w3-hover-black" onclick="w3_close()" title="close menu"><i class="fa fa-remove fa-fw"></i>  Close Menu</button>
-        <a href=".{{ url_for('web_routes.index')}}" class="w3-bar-item w3-button w3-padding {% block menu1_class %}{% endblock %}"><i class="fa fa-users fa-fw"></i>  Overview</a>
+        <a href=".{{ url_for('web_routes.index')}}" class="w3-bar-item w3-button w3-padding {% block menu1_class %}{% endblock %}"><i class="fa fa-network-wired fa-fw"></i>  {{_('Connections')}}</a>
         <a href=".{{ url_for('web_routes.empty')}}" class="w3-bar-item w3-button w3-padding {% block menu2_class %}{% endblock %}"><i class="fa fa-eye fa-fw"></i>  Views</a>
         <a href="#" class="w3-bar-item w3-button w3-padding"><i class="fa fa-users fa-fw {% block menu3_class %}{% endblock %}"></i>  Traffic</a>
         <a href="#" class="w3-bar-item w3-button w3-padding"><i class="fa fa-bullseye fa-fw {% block menu4_class %}{% endblock %}"></i>  Geo</a>
@@ -130,7 +130,7 @@
       window.addEventListener('load', function () {
         // Your document is loaded.
         var fetchInterval = 5000; // 5 seconds.
-
+        fetch_data()
         // Invoke the request every 5 seconds.
         setInterval(fetch_data, fetchInterval);
       });
