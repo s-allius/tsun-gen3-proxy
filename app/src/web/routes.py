@@ -2,6 +2,7 @@ from quart import Blueprint
 from quart import render_template, url_for
 from quart import send_from_directory
 from quart_babel import format_datetime
+from infos import Infos
 import os
 
 web_routes = Blueprint('web_routes', __name__)
@@ -12,25 +13,6 @@ async def get_icon(file: str, mime: str = 'image/png'):
         os.path.join(web_routes.root_path, 'static/images'),
         file,
         mimetype=mime)
-
-
-def get_inv_count():
-    return 1234
-
-
-TsunCnt = 0
-
-
-def get_tsun_count():
-    global TsunCnt
-    TsunCnt += 1
-    return TsunCnt
-
-
-@web_routes.context_processor
-def utility_processor():
-    return dict(inv_count=get_inv_count(),
-                tsun_count=get_tsun_count())
 
 
 @web_routes.route('/')
@@ -47,11 +29,12 @@ async def empty():
 
 @web_routes.route('/data-fetch')
 async def data_fetch():
-    global TsunCnt
-    TsunCnt += 1
     return {
-        "proxy-cnt": f"<h3>{TsunCnt}</h3>",
         "update-time": format_datetime(format="medium"),
+        "server-cnt": f"<h3>{Infos.get_counter('ServerMode_Cnt')}</h3>",
+        "client-cnt": f"<h3>{Infos.get_counter('ClientMode_Cnt')}</h3>",
+        "proxy-cnt": f"<h3>{Infos.get_counter('ProxyMode_Cnt')}</h3>",
+        "emulation-cnt": f"<h3>{Infos.get_counter('EmuMode_Cnt')}</h3>",
     }
 
 

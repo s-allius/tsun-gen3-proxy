@@ -31,8 +31,10 @@ class InverterBase(InverterIfc, Proxy):
         self.config_id = config_id
         if remote_prot_class:
             self.prot_class = remote_prot_class
+            self.use_emulation = True
         else:
             self.prot_class = prot_class
+            self.use_emulation = False
         self.__ha_restarts = -1
         self.remote = StreamPtr(None)
         ifc = AsyncStreamServer(reader, writer,
@@ -117,7 +119,8 @@ class InverterBase(InverterIfc, Proxy):
                     Config.act_config[self.config_id]['enabled'] = False
 
             ifc = AsyncStreamClient(
-                reader, writer, self.local, self.__del_remote)
+                reader, writer, self.local,
+                self.__del_remote, self.use_emulation)
 
             self.remote.ifc = ifc
             if hasattr(stream, 'id_str'):

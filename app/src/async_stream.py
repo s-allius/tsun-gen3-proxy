@@ -327,8 +327,10 @@ class AsyncStreamServer(AsyncStream):
         logger.info(f'[{self.node_id}:{self.conn_no}] '
                     f'Accept connection from {self.r_addr}')
         Infos.inc_counter('Inverter_Cnt')
+        Infos.inc_counter('ServerMode_Cnt')
         await self.publish_outstanding_mqtt()
         await self.loop()
+        Infos.dec_counter('ServerMode_Cnt')
         Infos.dec_counter('Inverter_Cnt')
         await self.publish_outstanding_mqtt()
         logger.info(f'[{self.node_id}:{self.conn_no}] Server loop stopped for'
@@ -359,9 +361,11 @@ class AsyncStreamServer(AsyncStream):
 
 class AsyncStreamClient(AsyncStream):
     def __init__(self, reader: StreamReader, writer: StreamWriter,
-                 rstream: "StreamPtr", close_cb) -> None:
+                 rstream: "StreamPtr", close_cb,
+                 use_emu: bool = False) -> None:
         AsyncStream.__init__(self, reader, writer, rstream)
         self.close_cb = close_cb
+        self.emu_mode = use_emu
 
     async def disc(self) -> None:
         logging.debug('AsyncStreamClient.disc()')
@@ -376,8 +380,16 @@ class AsyncStreamClient(AsyncStream):
     async def client_loop(self, _: str) -> None:
         '''Loop for receiving messages from the TSUN cloud (client-side)'''
         Infos.inc_counter('Cloud_Conn_Cnt')
+        if self.emu_mode:
+            Infos.inc_counter('EmuMode_Cnt')
+        else:
+            Infos.inc_counter('ProxyMode_Cnt')
         await self.publish_outstanding_mqtt()
         await self.loop()
+        if self.emu_mode:
+            Infos.dec_counter('EmuMode_Cnt')
+        else:
+            Infos.dec_counter('ProxyMode_Cnt')
         Infos.dec_counter('Cloud_Conn_Cnt')
         await self.publish_outstanding_mqtt()
         logger.info(f'[{self.node_id}:{self.conn_no}] '
