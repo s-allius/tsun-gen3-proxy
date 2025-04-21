@@ -8,6 +8,7 @@ from infos import Infos
 from inverter_base import InverterBase
 from async_stream import AsyncStreamServer, AsyncStreamClient, StreamPtr
 from messages import Message
+from mock import patch, call
 
 from test_modbus_tcp import FakeReader, FakeWriter
 from test_inverter_base import config_conn, patch_open_connection
@@ -73,6 +74,13 @@ def test_health():
         print(f'InverterBase refs:{gc.get_referrers(inv)}')
         cnt += 1
     assert cnt == 0
+
+
+@pytest.fixture
+def spy_inc_cnt():
+    with patch.object(Infos, 'inc_counter', wraps=Infos.inc_counter) as infos:
+        yield infos
+
 
 @pytest.mark.asyncio
 async def test_close_cb():
@@ -529,9 +537,10 @@ async def test_forward_runtime_error2():
     del ifc
 
 @pytest.mark.asyncio
-async def test_forward_runtime_error3():
+async def test_forward_runtime_error3(spy_inc_cnt):
     assert asyncio.get_running_loop()
     remote = StreamPtr(None)
+    spy = spy_inc_cnt
     cnt = 0
 
     async def _create_remote():
@@ -543,13 +552,17 @@ async def test_forward_runtime_error3():
     ifc =  AsyncStreamServer(fake_reader_fwd(), FakeWriter(), None, _create_remote, remote)
     ifc.fwd_add(b'test-forward_msg')
     await ifc.server_loop()
+    spy.assert_has_calls([call('Inverter_Cnt'), call('ServerMode_Cnt')])
+    assert Infos.get_counter('Inverter_Cnt') == 0
+    assert Infos.get_counter('ServerMode_Cnt') == 0
     assert cnt == 1
     del ifc
 
 @pytest.mark.asyncio
-async def test_forward_resp():
+async def test_forward_resp(spy_inc_cnt):
     assert asyncio.get_running_loop()
     remote = StreamPtr(None)
+    spy = spy_inc_cnt
     cnt = 0
 
     def _close_cb():
@@ -557,27 +570,35 @@ async def test_forward_resp():
         cnt += 1
     
     cnt = 0
-    ifc =  AsyncStreamClient(fake_reader_fwd(), FakeWriter(), remote, _close_cb)
+    ifc =  AsyncStreamClient(fake_reader_fwd(), FakeWriter(), remote, _close_cb, use_emu = True)
     create_remote(remote, TestType.FWD_NO_EXCPT)
     ifc.fwd_add(b'test-forward_msg')
     await ifc.client_loop('')
+    spy.assert_has_calls([call('Cloud_Conn_Cnt'), call('EmuMode_Cnt')])
+    assert Infos.get_counter('Cloud_Conn_Cnt') == 0
+    assert Infos.get_counter('EmuMode_Cnt') == 0
     assert cnt == 1
     del ifc
 
+
 @pytest.mark.asyncio
-async def test_forward_resp2():
+async def test_forward_resp2(spy_inc_cnt):
     assert asyncio.get_running_loop()
     remote = StreamPtr(None)
+    spy = spy_inc_cnt
     cnt = 0
     def _close_cb():
         nonlocal cnt
         cnt += 1
     
     cnt = 0
-    ifc =  AsyncStreamClient(fake_reader_fwd(), FakeWriter(), None, _close_cb)
+    ifc =  AsyncStreamClient(fake_reader_fwd(), FakeWriter(), None, _close_cb, use_emu = False)
     create_remote(remote, TestType.FWD_NO_EXCPT)
     ifc.fwd_add(b'test-forward_msg')
     await ifc.client_loop('')
+    spy.assert_has_calls([call('Cloud_Conn_Cnt'), call('ProxyMode_Cnt'), call('SW_Exception')])
+    assert Infos.get_counter('Cloud_Conn_Cnt') == 0
+    assert Infos.get_counter('ProxyMode_Cnt') == 0
     assert cnt == 1
     del ifc
  
