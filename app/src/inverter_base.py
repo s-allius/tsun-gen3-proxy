@@ -28,6 +28,7 @@ class InverterBase(InverterIfc, Proxy):
         Proxy.__init__(self)
         self._registry.append(weakref.ref(self))
         self.addr = writer.get_extra_info('peername')
+        self.client_mode = client_mode
         self.config_id = config_id
         if remote_prot_class:
             self.prot_class = remote_prot_class
