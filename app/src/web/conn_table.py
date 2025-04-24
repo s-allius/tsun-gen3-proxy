@@ -19,16 +19,13 @@ def _get_cloud_icon(emu_mode: bool):
 
 def _get_row(inv: InverterBase):
     '''build one row for the connection table'''
-    ip1, port1 = inv.addr
     client_mode = inv.client_mode
-    icon1 = ''
+    inv_serial = inv.local.stream.inv_serial
+    icon1 = _get_device_icon(client_mode)
+    ip1, port1 = inv.addr
     icon2 = ''
     ip2 = '--'
     port2 = '--'
-    inv_serial = ''
-    if inv.local.stream:
-        inv_serial = inv.local.stream.inv_serial
-        icon1 = _get_device_icon(client_mode)
 
     if inv.remote.ifc:
         ip2, port2 = inv.remote.ifc.r_addr

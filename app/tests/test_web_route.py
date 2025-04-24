@@ -9,6 +9,13 @@ from test_inverter_g3p import FakeReader, FakeWriter, config_conn
 pytest_plugins = ('pytest_asyncio',)
 
 @pytest.fixture
+def create_inverter(config_conn):
+    _ = config_conn
+    inv = InverterG3P(FakeReader(), FakeWriter(), client_mode=False)
+
+    return inv
+
+@pytest.fixture
 def create_inverter_server(config_conn):
     _ = config_conn
     inv = InverterG3P(FakeReader(), FakeWriter(), client_mode=False)
@@ -84,6 +91,17 @@ async def test_manifest():
     response = await client.get('/site.webmanifest')
     assert response.status_code == 200
     assert response.mimetype == 'application/manifest+json'
+
+@pytest.mark.asyncio
+async def test_data_fetch(create_inverter):
+    """Test the healthy route."""
+    _ = create_inverter
+    client = app.test_client()
+    response = await client.get('/data-fetch')
+    assert response.status_code == 200
+
+    response = await client.get('/data-fetch')
+    assert response.status_code == 200
 
 @pytest.mark.asyncio
 async def test_data_fetch1(create_inverter_server):
