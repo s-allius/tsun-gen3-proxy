@@ -2,8 +2,38 @@
 import pytest
 from server import app
 
+from async_stream import AsyncStreamClient
+from gen3plus.inverter_g3p import InverterG3P
+from test_inverter_g3p import FakeReader, FakeWriter, config_conn
+
 pytest_plugins = ('pytest_asyncio',)
 
+@pytest.fixture
+def create_inverter(config_conn):
+    _ = config_conn
+    inv = InverterG3P(FakeReader(), FakeWriter(), client_mode=False)
+
+    return inv
+
+@pytest.fixture
+def create_inverter_server(config_conn):
+    _ = config_conn
+    inv = InverterG3P(FakeReader(), FakeWriter(), client_mode=False)
+    ifc = AsyncStreamClient(FakeReader(), FakeWriter(), inv.local,
+                            None, inv.use_emulation)
+    inv.remote.ifc = ifc
+
+    return inv
+
+@pytest.fixture
+def create_inverter_client(config_conn):
+    _ = config_conn
+    inv = InverterG3P(FakeReader(), FakeWriter(), client_mode=True)
+    ifc = AsyncStreamClient(FakeReader(), FakeWriter(), inv.local,
+                            None, inv.use_emulation)
+    inv.remote.ifc = ifc
+
+    return inv
 
 @pytest.mark.asyncio
 async def test_home():
@@ -63,8 +93,31 @@ async def test_manifest():
     assert response.mimetype == 'application/manifest+json'
 
 @pytest.mark.asyncio
-async def test_data_fetch():
+async def test_data_fetch(create_inverter):
     """Test the healthy route."""
+    _ = create_inverter
+    client = app.test_client()
+    response = await client.get('/data-fetch')
+    assert response.status_code == 200
+
+    response = await client.get('/data-fetch')
+    assert response.status_code == 200
+
+@pytest.mark.asyncio
+async def test_data_fetch1(create_inverter_server):
+    """Test the healthy route."""
+    _ = create_inverter_server
+    client = app.test_client()
+    response = await client.get('/data-fetch')
+    assert response.status_code == 200
+
+    response = await client.get('/data-fetch')
+    assert response.status_code == 200
+
+@pytest.mark.asyncio
+async def test_data_fetch2(create_inverter_client):
+    """Test the healthy route."""
+    _ = create_inverter_client
     client = app.test_client()
     response = await client.get('/data-fetch')
     assert response.status_code == 200

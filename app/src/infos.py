@@ -838,7 +838,10 @@ class Infos:
     def inc_counter(cls, counter: str) -> None:
         '''inc proxy statistic counter'''
         db_dict = cls.stat['proxy']
-        db_dict[counter] += 1
+        try:
+            db_dict[counter] += 1
+        except Exception:
+            db_dict[counter] = 1
         cls.new_stat_data['proxy'] = True
 
     @classmethod
@@ -847,6 +850,15 @@ class Infos:
         db_dict = cls.stat['proxy']
         db_dict[counter] -= 1
         cls.new_stat_data['proxy'] = True
+
+    @classmethod
+    def get_counter(cls, counter: str) -> int:
+        '''get proxy statistic counter'''
+        try:
+            db_dict = cls.stat['proxy']
+            return db_dict[counter]
+        except Exception:
+            return 0
 
     def ha_proxy_confs(self, ha_prfx: str, node_id: str, snr: str) \
             -> Generator[tuple[str, str, str, str], None, None]:

@@ -108,6 +108,7 @@ class Message(ProtocolIfc):
         self.header_len = 0
         self.data_len = 0
         self.unique_id = 0
+        self.inv_serial = ''
         self.sug_area = ''
         self.new_data = {}
         self.state = State.init
@@ -140,8 +141,9 @@ class Message(ProtocolIfc):
         # to our _recv_buffer
         return  # pragma: no cover
 
-    def _set_config_parms(self, inv: dict):
+    def _set_config_parms(self, inv: dict, inv_serial: str):
         '''init connection with params from the configuration'''
+        self.inv_serial = inv_serial
         self.node_id = inv['node_id']
         self.sug_area = inv['suggested_area']
         self.modbus_polling = inv['modbus_polling']

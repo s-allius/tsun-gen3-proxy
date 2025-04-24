@@ -100,7 +100,7 @@ class Talent(Message):
 
             if serial_no in inverters:
                 inv = inverters[serial_no]
-                self._set_config_parms(inv)
+                self._set_config_parms(inv, serial_no)
                 self.db.set_pv_module_details(inv)
                 logger.debug(f'SerialNo {serial_no} allowed! area:{self.sug_area}')  # noqa: E501
             else:

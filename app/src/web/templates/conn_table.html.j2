@@ -1,0 +1,37 @@
+{% macro table_elm(elm, col_class, tag='td') -%}
+    {% if elm is mapping %}
+    <{{tag}} 
+    {% if (col_class|length) > 0  or elm.class is defined%}class="{{col_class}} {{elm.class}}"{% endif %}
+    {% if elm.colspan is defined %}colspan="{{elm.colspan}}"{% endif %} 
+    {% if elm.rowspan is defined %}rowspan="{{elm.rowspan}}"{% endif %}
+    >{{elm.val}}</{{tag}}>
+    {% else %}
+    <{{tag}} 
+    {% if (col_class|length) > 0 %}class="{{col_class}}"{% endif %}
+    >{{elm}}</{{tag}}>
+    {% endif %}
+{%- endmacro%}
+
+<h5>Connections</h5>
+<table class="w3-table w3-striped w3-bordered w3-border w3-hoverable w3-white">
+  {% if table.thead is defined%}
+  <thead>
+  {% for row in table.thead %}
+    <tr>
+      {% for col in row %}
+      {{table_elm(col, table.col_classes[loop.index0], 'th')}}
+      {% endfor %}
+    </tr>
+  {% endfor %}
+  </thead>
+  {% endif %}
+  <tbody>
+  {% for row in table.tbody %}
+    <tr>
+      {% for col in row %}
+      {{table_elm(col, table.col_classes[loop.index0])}}
+      {% endfor %}
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>

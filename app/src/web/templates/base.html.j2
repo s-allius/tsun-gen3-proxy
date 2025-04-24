@@ -22,13 +22,17 @@
   <body class="w3-light-grey">
   
     <!-- Top container -->
-    <div class="w3-bar w3-top w3-black w3-large" style="z-index:4">
+    <div class="w3-bar w3-top w3-dark-grey w3-large" style="z-index:4">
       <button class="w3-bar-item w3-button w3-hide-large w3-hover-none w3-hover-text-light-grey" onclick="w3_open();"><i class="fa fa-bars"></i>  Menu</button>
+      {% if fetch_url is defined %}
+      <button class="w3-bar-item w3-button w3-hover-none w3-hover-text-light-grey w3-right" onclick="fetch_data();"><span class="w3-hide-small">{{_('Updated:')}}  </span><span id="update-time"></span>  <i class="fa fa-rotate-right w3-medium"></i></button>
+      {% else %}
       <span class="w3-bar-item w3-right">Logo</span>
+      {% endif %}
     </div>
   
     <!-- Sidebar/menu -->
-    <nav class="w3-sidebar w3-collapse w3-white w3-animate-left" style="z-index:3;width:250px;" id="mySidebar"><br>
+    <nav class="w3-sidebar w3-collapse w3-white" style="z-index:3;width:250px;" id="mySidebar"><br>
       <div class="w3-container w3-row">
         <div class="w3-col s4">
           <img src=".{{ url_for('static', filename= 'images/favicon.svg') }}" alt="" class="w3-circle w3-margin-right" style="width:60px">
@@ -43,15 +47,9 @@
       </div>
       <div class="w3-bar-block">
         <button href="#" class="w3-bar-item w3-button w3-padding-16 w3-hide-large w3-dark-grey w3-hover-black" onclick="w3_close()" title="close menu"><i class="fa fa-remove fa-fw"></i>  Close Menu</button>
-        <a href=".{{ url_for('web_routes.index')}}" class="w3-bar-item w3-button w3-padding {% block menu1_class %}{% endblock %}"><i class="fa fa-users fa-fw"></i>  Overview</a>
-        <a href=".{{ url_for('web_routes.empty')}}" class="w3-bar-item w3-button w3-padding {% block menu2_class %}{% endblock %}"><i class="fa fa-eye fa-fw"></i>  Views</a>
-        <a href="#" class="w3-bar-item w3-button w3-padding"><i class="fa fa-users fa-fw {% block menu3_class %}{% endblock %}"></i>  Traffic</a>
-        <a href="#" class="w3-bar-item w3-button w3-padding"><i class="fa fa-bullseye fa-fw {% block menu4_class %}{% endblock %}"></i>  Geo</a>
-        <a href="#" class="w3-bar-item w3-button w3-padding"><i class="fa fa-gem fa-fw {% block menu5_class %}{% endblock %}"></i>  Orders</a>
-        <a href="#" class="w3-bar-item w3-button w3-padding"><i class="fa fa-bell fa-fw {% block menu6_class %}{% endblock %}"></i>  News</a>
-        <a href="#" class="w3-bar-item w3-button w3-padding"><i class="fa fa-university fa-fw {% block menu7_class %}{% endblock %}"></i>  General</a>
-        <a href="#" class="w3-bar-item w3-button w3-padding"><i class="fa fa-history fa-fw {% block menu8_class %}{% endblock %}"></i>  History</a>
-        <a href="#" class="w3-bar-item w3-button w3-padding"><i class="fa fa-cog fa-fw {% block menu9_class %}{% endblock %}"></i>  Settings</a><br><br>
+        <a href=".{{ url_for('web_routes.index')}}" class="w3-bar-item w3-button w3-padding {% block menu1_class %}{% endblock %}"><i class="fa fa-network-wired fa-fw"></i>  {{_('Connections')}}</a>
+        <a href=".{{ url_for('web_routes.empty')}}" class="w3-bar-item w3-button w3-padding {% block menu2_class %}{% endblock %}"><i class="fa fa-database fa-fw"></i>  MQTT</a>
+        <a href=".{{ url_for('web_routes.empty')}}" class="w3-bar-item w3-button w3-padding"><i class="fa fa-file-export fa-fw {% block menu3_class %}{% endblock %}"></i>  Downloads</a>
       </div>
     </nav>
   
@@ -130,7 +128,7 @@
       window.addEventListener('load', function () {
         // Your document is loaded.
         var fetchInterval = 5000; // 5 seconds.
-
+        fetch_data()
         // Invoke the request every 5 seconds.
         setInterval(fetch_data, fetchInterval);
       });

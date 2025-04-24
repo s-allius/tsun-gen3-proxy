@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: tsun-gen3-proxy 0.14.0\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2025-04-20 00:01+0200\n"
+"POT-Creation-Date: 2025-04-20 21:21+0200\n"
 "PO-Revision-Date: 2025-04-18 16:24+0200\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: de\n"
@@ -19,7 +19,47 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.17.0\n"
 
+#: src/web/templates/base.html.j2:27
+msgid "Updated:"
+msgstr "Aktualisiert:"
+
+#: src/web/templates/base.html.j2:46
+msgid "Connections"
+msgstr "Verbindungen"
+
 #: src/web/templates/index.html.j2:5
-msgid "My Dashboard"
-msgstr "Mein Dashboard"
+msgid "Proxy Connection Overview"
+msgstr "Proxy Verbindungen"
+
+#: src/web/templates/index.html.j2:16
+msgid "Server Mode"
+msgstr "Server Modus"
+
+#: src/web/templates/index.html.j2:17
+msgid "Established from device to proxy"
+msgstr "Vom Gerät zum Proxy aufgebaut"
+
+#: src/web/templates/index.html.j2:27
+msgid "Client Mode"
+msgstr "Client Modus"
+
+#: src/web/templates/index.html.j2:28
+msgid "Established from proxy to device"
+msgstr "Vom Proxy zum Gerät aufgebaut"
+
+#: src/web/templates/index.html.j2:38
+msgid "Proxy Mode"
+msgstr "Proxy Modus"
+
+#: src/web/templates/index.html.j2:39
+msgid "Forwarding data to cloud"
+msgstr "Weiterleitung in die Cloud"
+
+#: src/web/templates/index.html.j2:49
+msgid "Emu Mode"
+msgstr "Emu Modus"
+
+#: src/web/templates/index.html.j2:50
+msgid "Emulation sends data to cloud"
+msgstr "Emulation sendet in die Cloud"
 

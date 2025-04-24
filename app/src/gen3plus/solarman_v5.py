@@ -393,7 +393,7 @@ class SolarmanV5(SolarmanBase):
 
     def _set_config_parms(self, inv: dict, serial_no: str = ""):
         '''init connection with params from the configuration'''
-        super()._set_config_parms(inv)
+        super()._set_config_parms(inv, serial_no)
         snr = serial_no[:3]
         if '410' == snr:
             self.db.set_db_def_value(Register.EQUIPMENT_MODEL,
