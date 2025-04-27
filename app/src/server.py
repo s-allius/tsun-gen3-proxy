@@ -35,7 +35,7 @@ app = Quart(__name__,
             template_folder='web/templates',
             static_folder='web/static')
 Web(app, '../translations')
-app.secret_key = 'super secret key'  # fixme define a secret
+app.secret_key = 'JKLdks.dajlKKKdladkflKwolafallsdfl'
 
 
 @app.route('/-/ready')
