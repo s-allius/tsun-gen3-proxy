@@ -60,6 +60,7 @@ RUN python -m pip install --no-cache-dir --no-cache --no-index /root/wheels/* &&
 # copy the content of the local src and config directory to the working directory
 COPY --chmod=0700 entrypoint.sh /root/entrypoint.sh
 COPY src .
+COPY translations ./translations
 RUN echo ${VERSION} > /proxy-version.txt \
   && date > /build-date.txt
 EXPOSE 5005 8127 10000

@@ -23,7 +23,7 @@ if [ "$user" = '0' ]; then
     echo "######################################################"
     echo "#"
 
-    exec su-exec $SERVICE_NAME "$@"
+    exec su-exec $SERVICE_NAME "$@" -tr './translations/'
 else
     exec "$@"
 fi

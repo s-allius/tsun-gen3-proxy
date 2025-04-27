@@ -87,6 +87,7 @@ SRC_FILES := $(wildcard $(SRC_PROXY)/*.py)\
  $(wildcard $(SRC_PROXY)/cnf/*.toml)\
  $(wildcard $(SRC_PROXY)/gen3/*.py)\
  $(wildcard $(SRC_PROXY)/gen3plus/*.py)\
+ $(wildcard $(SRC_PROXY)/utils/*.py)\
  $(wildcard $(SRC_PROXY)/web/*.py)\
  $(wildcard $(SRC_PROXY)/web/templates/*.html.j2)\
  $(wildcard $(SRC_PROXY)/web/static/css/*.css)\
