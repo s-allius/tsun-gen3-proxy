@@ -1,4 +1,9 @@
 from inverter_base import InverterBase
+from quart import render_template
+from quart_babel import format_datetime
+from infos import Infos
+
+from . import web
 
 
 def _get_device_icon(client_mode: bool):
@@ -59,3 +64,19 @@ def get_table_data():
         table['tbody'].append(_get_row(inverter))
 
     return table
+
+
+@web.route('/data-fetch')
+async def data_fetch():
+    data = {
+        "update-time": format_datetime(format="medium"),
+        "server-cnt": f"<h3>{Infos.get_counter('ServerMode_Cnt')}</h3>",
+        "client-cnt": f"<h3>{Infos.get_counter('ClientMode_Cnt')}</h3>",
+        "proxy-cnt": f"<h3>{Infos.get_counter('ProxyMode_Cnt')}</h3>",
+        "emulation-cnt": f"<h3>{Infos.get_counter('EmuMode_Cnt')}</h3>",
+    }
+    data["conn-table"] = await render_template('conn_table.html.j2',
+                                               table=get_table_data())
+
+    data["notes-list"] = await render_template('notes_list.html.j2')
+    return data
