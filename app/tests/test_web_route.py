@@ -124,3 +124,34 @@ async def test_data_fetch2(create_inverter_client):
 
     response = await client.get('/data-fetch')
     assert response.status_code == 200
+
+@pytest.fixture
+def client():
+    app.secret_key = 'super secret key'
+    return app.test_client()
+
+@pytest.mark.asyncio
+async def test_language_en(client):
+    """Test the language/en route."""
+    response = await client.get('/language/en')
+    assert response.status_code == 302
+    assert response.mimetype == 'text/html'
+
+    client.set_cookie('test', key='language', value='de')
+    response = await client.get('/page')
+    assert response.status_code == 200
+    assert response.mimetype == 'text/html'
+
+@pytest.mark.asyncio
+async def test_language_de(client):
+    """Test the language/en route."""
+    response = await client.get('/language/de')
+    assert response.status_code == 302
+    assert response.mimetype == 'text/html'
+
+@pytest.mark.asyncio
+async def test_language_unknown(client):
+    """Test the language/en route."""
+    response = await client.get('/language/unknonw')
+    assert response.status_code == 400
+    assert response.mimetype == 'text/html'

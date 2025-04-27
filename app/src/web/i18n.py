@@ -1,4 +1,4 @@
-from quart import request, session, redirect
+from quart import request, session, redirect, abort
 from quart_babel import _
 from quart_babel.locale import get_locale as babel_get_locale
 
@@ -39,4 +39,5 @@ def utility_processor():
 def set_language(language=None):
     if language in LANGUAGES:
         session['language'] = language
-    return redirect(request.referrer)
+        return redirect(request.referrer)
+    return abort(400)
