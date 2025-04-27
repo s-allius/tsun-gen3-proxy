@@ -55,9 +55,9 @@
       </div>
       <div class="w3-bar-block">
         <button href="#" class="w3-bar-item w3-button w3-padding-16 w3-hide-large w3-dark-grey w3-hover-black" onclick="w3_close()" title="close menu"><i class="fa fa-remove fa-fw"></i>  Close Menu</button>
-        <a href=".{{ url_for('web_routes.index')}}" class="w3-bar-item w3-button w3-padding {% block menu1_class %}{% endblock %}"><i class="fa fa-network-wired fa-fw"></i>  {{_('Connections')}}</a>
-        <a href=".{{ url_for('web_routes.empty')}}" class="w3-bar-item w3-button w3-padding {% block menu2_class %}{% endblock %}"><i class="fa fa-database fa-fw"></i>  MQTT</a>
-        <a href=".{{ url_for('web_routes.empty')}}" class="w3-bar-item w3-button w3-padding"><i class="fa fa-file-export fa-fw {% block menu3_class %}{% endblock %}"></i>  Downloads</a>
+        <a href=".{{ url_for('web.index')}}" class="w3-bar-item w3-button w3-padding {% block menu1_class %}{% endblock %}"><i class="fa fa-network-wired fa-fw"></i>  {{_('Connections')}}</a>
+        <a href=".{{ url_for('web.empty')}}" class="w3-bar-item w3-button w3-padding {% block menu2_class %}{% endblock %}"><i class="fa fa-database fa-fw"></i>  MQTT</a>
+        <a href=".{{ url_for('web.empty')}}" class="w3-bar-item w3-button w3-padding"><i class="fa fa-file-export fa-fw {% block menu3_class %}{% endblock %}"></i>  Downloads</a>
       </div>
     </nav>
   

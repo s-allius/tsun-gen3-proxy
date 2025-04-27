@@ -5,8 +5,6 @@ import os
 import argparse
 from asyncio import StreamReader, StreamWriter
 from quart import Quart, Response
-from quart_babel import Babel
-from quart_babel.locale import get_locale
 from logging import config  # noqa F401
 from proxy import Proxy
 from inverter_ifc import InverterIfc
@@ -17,8 +15,7 @@ from cnf.config import Config
 from cnf.config_read_env import ConfigReadEnv
 from cnf.config_read_toml import ConfigReadToml
 from cnf.config_read_json import ConfigReadJson
-from web.routes import web_routes
-from web.i18n import i18n_routes, my_get_locale, LANGUAGES
+from web import Web
 from modbus_tcp import ModbusTcp
 
 
@@ -34,27 +31,11 @@ class ProxyState:
         ProxyState._is_up = value
 
 
-def my_get_tz():
-    return 'CET'
-
-
 app = Quart(__name__,
             template_folder='web/templates',
             static_folder='web/static')
-babel = Babel(app,
-              locale_selector=my_get_locale,
-              timezone_selector=my_get_tz,
-              default_translation_directories='../translations')
-app.register_blueprint(web_routes)
-app.register_blueprint(i18n_routes)
-app.secret_key = 'super secret key'
-
-
-@app.context_processor
-def utility_processor():
-    return dict(lang=get_locale(),
-                lang_str=LANGUAGES.get(str(get_locale()), "English"),
-                languages=LANGUAGES)
+Web(app, '../translations')
+app.secret_key = 'super secret key'  # fixme define a secret
 
 
 @app.route('/-/ready')

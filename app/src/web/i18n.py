@@ -1,7 +1,8 @@
-from quart import Blueprint
 from quart import request, session, redirect
 from quart_babel import _
+from quart_babel.locale import get_locale as babel_get_locale
 
+from . import web
 
 LANGUAGES = {
     'en': _('English'),
@@ -9,10 +10,8 @@ LANGUAGES = {
     'fr': _('French')
 }
 
-i18n_routes = Blueprint('i18n_routes', __name__)
 
-
-def my_get_locale():
+def get_locale():
     try:
         language = session['language']
     except KeyError:
@@ -25,7 +24,18 @@ def my_get_locale():
     return request.accept_languages.best_match(LANGUAGES.keys())
 
 
-@i18n_routes.route('/language/<language>')
+def get_tz():
+    return 'CET'
+
+
+@web.context_processor
+def utility_processor():
+    return dict(lang=babel_get_locale(),
+                lang_str=LANGUAGES.get(str(babel_get_locale()), "English"),
+                languages=LANGUAGES)
+
+
+@web.route('/language/<language>')
 def set_language(language=None):
     if language in LANGUAGES:
         session['language'] = language
