@@ -16,7 +16,11 @@ load_modules(__loader__)
 class Web:
     '''Helper Class to register the Blueprint at Quart and
     initializing Babel'''
-    def __init__(self, app: Quart, translation_directories: str | list[str]):
+    def __init__(self,
+                 app: Quart,
+                 translation_directories: str | list[str],
+                 rel_urls: bool):
+        web.build_relative_urls = rel_urls
         app.register_blueprint(web)
 
         from .i18n import get_locale, get_tz

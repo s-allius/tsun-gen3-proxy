@@ -16,6 +16,8 @@ from cnf.config_read_env import ConfigReadEnv
 from cnf.config_read_toml import ConfigReadToml
 from cnf.config_read_json import ConfigReadJson
 from web import Web
+from web.wrapper import url_for
+
 from modbus_tcp import ModbusTcp
 
 
@@ -34,8 +36,8 @@ class ProxyState:
 app = Quart(__name__,
             template_folder='web/templates',
             static_folder='web/static')
-Web(app, '../translations')
 app.secret_key = 'JKLdks.dajlKKKdladkflKwolafallsdfl'
+app.jinja_env.globals.update(url_for=url_for)
 
 
 @app.route('/-/ready')
@@ -130,6 +132,12 @@ def main():   # pragma: no cover
     parser.add_argument('-b', '--log_backups', type=int,
                         default=0,
                         help='set max number of daily log-files')
+    parser.add_argument('-tr', '--trans_path', type=str,
+                        default='../translations/',
+                        help='set path for the translations files')
+    parser.add_argument('-r', '--rel_urls', type=bool,
+                        default=False,
+                        help='use relative dashboard urls')
     args = parser.parse_args()
     #
     # Setup our daily, rotating logger
@@ -148,6 +156,8 @@ def main():   # pragma: no cover
     logging.info(f"config_path: {args.config_path}")
     logging.info(f"json_config: {args.json_config}")
     logging.info(f"toml_config: {args.toml_config}")
+    logging.info(f"trans_path:  {args.trans_path}")
+    logging.info(f"rel_urls:    {args.rel_urls}")
     logging.info(f"log_path:    {args.log_path}")
     if args.log_backups == 0:
         logging.info("log_backups: unlimited")
@@ -186,6 +196,7 @@ def main():   # pragma: no cover
     Proxy.class_init()
     Schedule.start()
     ModbusTcp(loop)
+    Web(app, args.trans_path, args.rel_urls)
 
     #
     # Create tasks for our listening servers. These must be tasks! If we call
@@ -202,7 +213,8 @@ def main():   # pragma: no cover
     try:
         ProxyState.set_up(True)
         logging.info("Start Quart")
-        app.run(host='0.0.0.0', port=8127, use_reloader=False, loop=loop)
+        app.run(host='0.0.0.0', port=8127, use_reloader=False, loop=loop,
+                debug=True,)
         logging.info("Quart stopped")
 
     except KeyboardInterrupt:

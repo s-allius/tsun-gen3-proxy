@@ -1,4 +1,5 @@
-from quart import render_template, url_for
+from quart import render_template
+from .wrapper import url_for
 
 from . import web
 
