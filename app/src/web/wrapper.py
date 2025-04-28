@@ -21,7 +21,6 @@ def url_for(*args, **kwargs):
             the endpoint rule.
     """
     url = quart_url_for(*args, **kwargs)
-    print(f"wrapper url_for: {url}")
     if '/' == url[0] and web.build_relative_urls:
         url = '.' + url
     return url
