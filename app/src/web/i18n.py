@@ -6,7 +6,7 @@ from . import web
 LANGUAGES = {
     'en': 'English',
     'de': 'Deutsch',
-    'fr': 'Français'
+    # 'fr': 'Français'
 }
 
 
