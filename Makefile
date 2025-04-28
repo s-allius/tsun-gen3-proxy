@@ -1,10 +1,18 @@
 .PHONY: build babel clean addon-dev addon-debug addon-rc addon-rel debug dev preview rc rel check-docker-compose install
 
-babel debug dev preview rc rel:
+babel:
 	$(MAKE) -C app $@
 
-clean build:
+build:
 	$(MAKE) -C ha_addons $@ 
+
+clean build:
+	$(MAKE) -C app $@
+	$(MAKE) -C ha_addons $@ 
+
+debug dev preview rc rel:
+	$(MAKE) -C app babel
+	$(MAKE) -C app $@
 
 addon-dev addon-debug addon-rc addon-rel:
 	$(MAKE) -C app babel

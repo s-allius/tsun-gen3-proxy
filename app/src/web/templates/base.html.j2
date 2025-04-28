@@ -4,8 +4,8 @@
     <title>{% block title %}{% endblock title %}</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href=".{{ url_for('static', filename= 'css/style.css') }}">
-    <link rel="stylesheet" href=".{{ url_for('static', filename= 'font-awesome/css/all.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename= 'css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename= 'font-awesome/css/all.min.css') }}">
     <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="shortcut icon" href="/favicon.ico" />
@@ -14,7 +14,7 @@
     <style>
         @font-face {
             font-family: Roboto;
-            src: url(".{{ url_for('static', filename= 'font/roboto-light.ttf') }}");
+            src: url("{{ url_for('static', filename= 'font/roboto-light.ttf') }}");
         }
         html,body,h1,h2,h3,h4,h5 {font-family: Roboto, sans-serif}
     </style>
@@ -22,20 +22,28 @@
   <body class="w3-light-grey">
   
     <!-- Top container -->
-    <div class="w3-bar w3-top w3-dark-grey w3-large" style="z-index:4">
-      <button class="w3-bar-item w3-button w3-hide-large w3-hover-none w3-hover-text-light-grey" onclick="w3_open();"><i class="fa fa-bars"></i>  Menu</button>
+    <div class="w3-bar w3-dark-grey w3-large" style="z-index:4">
+      <button class="w3-bar-item w3-button w3-hide-large" onclick="w3_open();"><i class="fa fa-bars"></i>  Menu</button>
+      <div class="w3-dropdown-hover w3-right">
+        <button class="w3-button">{{lang_str}}</button>
+        <div class="w3-dropdown-content w3-bar-block w3-card-4" style="right:0">
+          {% for language in languages %}
+          <a href="{{url_for('web.set_language', language=language)}}" class="w3-bar-item w3-button">{{languages[language]}}</a>
+          {% endfor %}
+        </div>
+      </div>
+
       {% if fetch_url is defined %}
-      <button class="w3-bar-item w3-button w3-hover-none w3-hover-text-light-grey w3-right" onclick="fetch_data();"><span class="w3-hide-small">{{_('Updated:')}}  </span><span id="update-time"></span>  <i class="fa fa-rotate-right w3-medium"></i></button>
-      {% else %}
-      <span class="w3-bar-item w3-right">Logo</span>
+      <button class="w3-bar-item w3-button w3-right" onclick="fetch_data();"><span class="w3-hide-small">{{_('Updated:')}}  </span><span id="update-time"></span>  <i class="w3-hover fa fa-rotate-right w3-medium"></i></button>
       {% endif %}
+      <div class="w3-clear"></div>
     </div>
   
     <!-- Sidebar/menu -->
     <nav class="w3-sidebar w3-collapse w3-white" style="z-index:3;width:250px;" id="mySidebar"><br>
       <div class="w3-container w3-row">
         <div class="w3-col s4">
-          <img src=".{{ url_for('static', filename= 'images/favicon.svg') }}" alt="" class="w3-circle w3-margin-right" style="width:60px">
+          <img src="{{url_for('static', filename= 'images/favicon.svg') }}" alt="" class="w3-circle w3-margin-right" style="width:60px">
         </div>
         <div class="w3-col s8 w3-bar">
           <h3>TSUN-Proxy</h3><br>
@@ -47,9 +55,9 @@
       </div>
       <div class="w3-bar-block">
         <button href="#" class="w3-bar-item w3-button w3-padding-16 w3-hide-large w3-dark-grey w3-hover-black" onclick="w3_close()" title="close menu"><i class="fa fa-remove fa-fw"></i>  Close Menu</button>
-        <a href=".{{ url_for('web_routes.index')}}" class="w3-bar-item w3-button w3-padding {% block menu1_class %}{% endblock %}"><i class="fa fa-network-wired fa-fw"></i>  {{_('Connections')}}</a>
-        <a href=".{{ url_for('web_routes.empty')}}" class="w3-bar-item w3-button w3-padding {% block menu2_class %}{% endblock %}"><i class="fa fa-database fa-fw"></i>  MQTT</a>
-        <a href=".{{ url_for('web_routes.empty')}}" class="w3-bar-item w3-button w3-padding"><i class="fa fa-file-export fa-fw {% block menu3_class %}{% endblock %}"></i>  Downloads</a>
+        <a href="{{ url_for('web.index')}}" class="w3-bar-item w3-button w3-padding {% block menu1_class %}{% endblock %}"><i class="fa fa-network-wired fa-fw"></i>  {{_('Connections')}}</a>
+        <a href="{{ url_for('web.empty')}}" class="w3-bar-item w3-button w3-padding {% block menu2_class %}{% endblock %}"><i class="fa fa-database fa-fw"></i>  MQTT</a>
+        <a href="{{ url_for('web.empty')}}" class="w3-bar-item w3-button w3-padding"><i class="fa fa-file-export fa-fw {% block menu3_class %}{% endblock %}"></i>  Downloads</a>
       </div>
     </nav>
   

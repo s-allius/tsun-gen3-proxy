@@ -1,4 +1,9 @@
 from inverter_base import InverterBase
+from quart import render_template
+from quart_babel import format_datetime, _
+from infos import Infos
+
+from . import web
 
 
 def _get_device_icon(client_mode: bool):
@@ -12,7 +17,7 @@ def _get_device_icon(client_mode: bool):
 def _get_cloud_icon(emu_mode: bool):
     '''returns the icon for the cloud conntection'''
     if emu_mode:
-        return 'fa-cloud-arrow-down-alt'
+        return 'fa-cloud-arrow-up-alt'
 
     return 'fa-cloud'
 
@@ -49,9 +54,9 @@ def get_table_data():
             "w3-hide-small w3-hide-medium", "w3-hide-large",
         ],
         "thead": [[
-            'Device-IP:Port', 'Device-IP',
-            "Serial-No",
-            "Cloud-IP:Port", "Cloud-IP"
+            _('Device-IP:Port'), _('Device-IP'),
+            _("Serial-No"),
+            _("Cloud-IP:Port"), _("Cloud-IP")
         ]],
         "tbody": []
     }
@@ -59,3 +64,19 @@ def get_table_data():
         table['tbody'].append(_get_row(inverter))
 
     return table
+
+
+@web.route('/data-fetch')
+async def data_fetch():
+    data = {
+        "update-time": format_datetime(format="medium"),
+        "server-cnt": f"<h3>{Infos.get_counter('ServerMode_Cnt')}</h3>",
+        "client-cnt": f"<h3>{Infos.get_counter('ClientMode_Cnt')}</h3>",
+        "proxy-cnt": f"<h3>{Infos.get_counter('ProxyMode_Cnt')}</h3>",
+        "emulation-cnt": f"<h3>{Infos.get_counter('EmuMode_Cnt')}</h3>",
+    }
+    data["conn-table"] = await render_template('conn_table.html.j2',
+                                               table=get_table_data())
+
+    data["notes-list"] = await render_template('notes_list.html.j2')
+    return data

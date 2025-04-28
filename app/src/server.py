@@ -4,9 +4,7 @@ import logging.handlers
 import os
 import argparse
 from asyncio import StreamReader, StreamWriter
-from quart import Quart, Response, request
-from quart_babel import Babel
-from quart_babel.locale import get_locale
+from quart import Quart, Response
 from logging import config  # noqa F401
 from proxy import Proxy
 from inverter_ifc import InverterIfc
@@ -17,7 +15,9 @@ from cnf.config import Config
 from cnf.config_read_env import ConfigReadEnv
 from cnf.config_read_toml import ConfigReadToml
 from cnf.config_read_json import ConfigReadJson
-from web.routes import web_routes
+from web import Web
+from web.wrapper import url_for
+
 from modbus_tcp import ModbusTcp
 
 
@@ -33,31 +33,11 @@ class ProxyState:
         ProxyState._is_up = value
 
 
-def my_get_locale():
-    # check how to get the locale form for the add-on - hass.selectedLanguage
-    # logging.info("get_locale(%s)", request.accept_languages)
-    return request.accept_languages.best_match(
-        ['de', 'en']
-    )
-
-
-def my_get_tz():
-    return 'CET'
-
-
 app = Quart(__name__,
             template_folder='web/templates',
             static_folder='web/static')
-babel = Babel(app,
-              locale_selector=my_get_locale,
-              timezone_selector=my_get_tz,
-              default_translation_directories='../translations')
-app.register_blueprint(web_routes)
-
-
-@app.context_processor
-def utility_processor():
-    return dict(lang=get_locale())
+app.secret_key = 'JKLdks.dajlKKKdladkflKwolafallsdfl'
+app.jinja_env.globals.update(url_for=url_for)
 
 
 @app.route('/-/ready')
@@ -152,6 +132,12 @@ def main():   # pragma: no cover
     parser.add_argument('-b', '--log_backups', type=int,
                         default=0,
                         help='set max number of daily log-files')
+    parser.add_argument('-tr', '--trans_path', type=str,
+                        default='../translations/',
+                        help='set path for the translations files')
+    parser.add_argument('-r', '--rel_urls', type=bool,
+                        default=False,
+                        help='use relative dashboard urls')
     args = parser.parse_args()
     #
     # Setup our daily, rotating logger
@@ -170,6 +156,8 @@ def main():   # pragma: no cover
     logging.info(f"config_path: {args.config_path}")
     logging.info(f"json_config: {args.json_config}")
     logging.info(f"toml_config: {args.toml_config}")
+    logging.info(f"trans_path:  {args.trans_path}")
+    logging.info(f"rel_urls:    {args.rel_urls}")
     logging.info(f"log_path:    {args.log_path}")
     if args.log_backups == 0:
         logging.info("log_backups: unlimited")
@@ -208,6 +196,7 @@ def main():   # pragma: no cover
     Proxy.class_init()
     Schedule.start()
     ModbusTcp(loop)
+    Web(app, args.trans_path, args.rel_urls)
 
     #
     # Create tasks for our listening servers. These must be tasks! If we call
@@ -224,7 +213,8 @@ def main():   # pragma: no cover
     try:
         ProxyState.set_up(True)
         logging.info("Start Quart")
-        app.run(host='0.0.0.0', port=8127, use_reloader=False, loop=loop)
+        app.run(host='0.0.0.0', port=8127, use_reloader=False, loop=loop,
+                debug=True,)
         logging.info("Quart stopped")
 
     except KeyboardInterrupt:

@@ -21,6 +21,8 @@ export MAJOR  := $(shell echo $(VERSION) | cut -f1 -d.)
 PUBLIC_URL := $(shell echo $(PUBLIC_CONTAINER_REGISTRY) | cut -f1 -d/)
 PUBLIC_USER :=$(shell echo $(PUBLIC_CONTAINER_REGISTRY) | cut -f2 -d/)
 
+clean:
+	rm -f $(BABEL_TRANSLATIONS)/*.pot
 
 dev debug:
 	@echo version: $(VERSION)  build-date: $(BUILD_DATE)   image: $(PRIVAT_CONTAINER_REGISTRY)$(IMAGE)
@@ -58,4 +60,4 @@ $(BABEL_TRANSLATIONS)/%/LC_MESSAGES/messages.po : $(BABEL_TRANSLATIONS)/messages
 $(BABEL_TRANSLATIONS)/%/LC_MESSAGES/messages.mo : $(BABEL_TRANSLATIONS)/%/LC_MESSAGES/messages.po
 	@pybabel compile  -d $(BABEL_TRANSLATIONS) -l $*
 
-.PHONY: babel debug dev preview rc rel
+.PHONY: babel clean debug dev preview rc rel
