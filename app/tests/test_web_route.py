@@ -153,5 +153,5 @@ async def test_language_de(client):
 async def test_language_unknown(client):
     """Test the language/en route."""
     response = await client.get('/language/unknonw')
-    assert response.status_code == 400
+    assert response.status_code == 404
     assert response.mimetype == 'text/html'

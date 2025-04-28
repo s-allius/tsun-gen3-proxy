@@ -1,13 +1,12 @@
-from quart import request, session, redirect, abort
-from quart_babel import _
+from quart import request, session, redirect, abort, url_for
 from quart_babel.locale import get_locale as babel_get_locale
 
 from . import web
 
 LANGUAGES = {
-    'en': _('English'),
-    'de': _('German'),
-    'fr': _('French')
+    'en': 'English',
+    'de': 'Deutsch',
+    'fr': 'Français'
 }
 
 
@@ -36,8 +35,10 @@ def utility_processor():
 
 
 @web.route('/language/<language>')
-def set_language(language=None):
+async def set_language(language=None):
     if language in LANGUAGES:
         session['language'] = language
-        return redirect(request.referrer)
-    return abort(400)
+        if request.referrer is not None:
+            return redirect(request.referrer)
+        return redirect(url_for('web.index'))
+    return abort(404)

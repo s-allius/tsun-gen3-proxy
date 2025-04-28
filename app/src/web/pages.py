@@ -7,7 +7,7 @@ from . import web
 async def index():
     return await render_template(
         'index.html.j2',
-        fetch_url='.'+url_for('web.data_fetch'))
+        fetch_url=url_for('web.data_fetch'))
 
 
 @web.route('/page')
