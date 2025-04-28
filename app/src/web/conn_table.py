@@ -1,6 +1,6 @@
 from inverter_base import InverterBase
 from quart import render_template
-from quart_babel import format_datetime
+from quart_babel import format_datetime, _
 from infos import Infos
 
 from . import web
@@ -17,7 +17,7 @@ def _get_device_icon(client_mode: bool):
 def _get_cloud_icon(emu_mode: bool):
     '''returns the icon for the cloud conntection'''
     if emu_mode:
-        return 'fa-cloud-arrow-down-alt'
+        return 'fa-cloud-arrow-up-alt'
 
     return 'fa-cloud'
 
@@ -54,9 +54,9 @@ def get_table_data():
             "w3-hide-small w3-hide-medium", "w3-hide-large",
         ],
         "thead": [[
-            'Device-IP:Port', 'Device-IP',
-            "Serial-No",
-            "Cloud-IP:Port", "Cloud-IP"
+            _('Device-IP:Port'), _('Device-IP'),
+            _("Serial-No"),
+            _("Cloud-IP:Port"), _("Cloud-IP")
         ]],
         "tbody": []
     }
