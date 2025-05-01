@@ -215,7 +215,7 @@ def main():   # pragma: no cover
         ProxyState.set_up(True)
         logging.info("Start Quart")
         app.run(host='0.0.0.0', port=8127, use_reloader=False, loop=loop,
-                debug=True,)
+                debug=log_level == logging.DEBUG)
         logging.info("Quart stopped")
 
     except KeyboardInterrupt:
