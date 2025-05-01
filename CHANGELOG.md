@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+- Dashboard: add Log-File page
+- Dashboard: add Connection page
 - add web UI to add-on
 - allow `Y00` serial numbers for GEN3PLUS devices
 
