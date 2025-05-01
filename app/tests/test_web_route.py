@@ -186,7 +186,7 @@ async def test_send_file(client, config_conn):
     """Test the send-file route."""
     _ = config_conn
     assert Config.log_path == 'app/tests/log/'
-    response = await client.get('/send-file/test.log')
+    response = await client.get('/send-file/test.txt')
     assert response.status_code == 200
 
 
