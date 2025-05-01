@@ -173,32 +173,36 @@ async def test_language_unknown(client):
 
 
 @pytest.mark.asyncio
-async def test_file_fetch(client):
+async def test_file_fetch(client, config_conn):
     """Test the data-fetch route."""
+    _ = config_conn
     assert Config.log_path == 'app/tests/log/'
     response = await client.get('/file-fetch')
     assert response.status_code == 200
 
 
 @pytest.mark.asyncio
-async def test_send_file(client):
+async def test_send_file(client, config_conn):
     """Test the send-file route."""
+    _ = config_conn
     assert Config.log_path == 'app/tests/log/'
     response = await client.get('/send-file/test.log')
     assert response.status_code == 200
 
 
 @pytest.mark.asyncio
-async def test_missing_send_file(client):
+async def test_missing_send_file(client, config_conn):
     """Test the send-file route (file not found)."""
+    _ = config_conn
     assert Config.log_path == 'app/tests/log/'
     response = await client.get('/send-file/no_file.log')
     assert response.status_code == 404
 
 
 @pytest.mark.asyncio
-async def test_invalid_send_file(client):
+async def test_invalid_send_file(client, config_conn):
     """Test the send-file route (invalid filename)."""
+    _ = config_conn
     assert Config.log_path == 'app/tests/log/'
     response = await client.get('/send-file/../test_web_route.py')
     assert response.status_code == 404
