@@ -5,6 +5,7 @@ from web import Web, web
 from async_stream import AsyncStreamClient
 from gen3plus.inverter_g3p import InverterG3P
 from test_inverter_g3p import FakeReader, FakeWriter, config_conn
+from cnf.config import Config
 
 pytest_plugins = ('pytest_asyncio',)
 
@@ -65,6 +66,13 @@ async def test_rel_page(client):
     web.build_relative_urls = False
 
 @pytest.mark.asyncio
+async def test_logging(client):
+    """Test the logging page route."""
+    response = await client.get('/logging')
+    assert response.status_code == 200
+    assert response.mimetype == 'text/html'
+
+@pytest.mark.asyncio
 async def test_favicon96(client):
     """Test the favicon-96x96.png route."""
     response = await client.get('/favicon-96x96.png')
@@ -101,7 +109,7 @@ async def test_manifest(client):
 
 @pytest.mark.asyncio
 async def test_data_fetch(create_inverter):
-    """Test the healthy route."""
+    """Test the data-fetch route."""
     _ = create_inverter
     client = app.test_client()
     response = await client.get('/data-fetch')
@@ -112,7 +120,7 @@ async def test_data_fetch(create_inverter):
 
 @pytest.mark.asyncio
 async def test_data_fetch1(create_inverter_server):
-    """Test the healthy route."""
+    """Test the data-fetch route with server connection."""
     _ = create_inverter_server
     client = app.test_client()
     response = await client.get('/data-fetch')
@@ -123,7 +131,7 @@ async def test_data_fetch1(create_inverter_server):
 
 @pytest.mark.asyncio
 async def test_data_fetch2(create_inverter_client):
-    """Test the healthy route."""
+    """Test the data-fetch route with client connection."""
     _ = create_inverter_client
     client = app.test_client()
     response = await client.get('/data-fetch')
@@ -134,9 +142,11 @@ async def test_data_fetch2(create_inverter_client):
 
 @pytest.mark.asyncio
 async def test_language_en(client):
-    """Test the language/en route."""
-    response = await client.get('/language/en')
+    """Test the language/en route and cookie."""
+    response = await client.get('/language/en', headers={'referer': '/index'})
     assert response.status_code == 302
+    assert response.content_language.pop() == 'en'
+    assert response.location == '/index'
     assert response.mimetype == 'text/html'
 
     client.set_cookie('test', key='language', value='de')
@@ -146,14 +156,49 @@ async def test_language_en(client):
 
 @pytest.mark.asyncio
 async def test_language_de(client):
-    """Test the language/en route."""
-    response = await client.get('/language/de')
+    """Test the language/de route."""
+    response = await client.get('/language/de', headers={'referer': '/'})
     assert response.status_code == 302
+    assert response.content_language.pop() == 'de'
+    assert response.location == '/'
     assert response.mimetype == 'text/html'
+
 
 @pytest.mark.asyncio
 async def test_language_unknown(client):
-    """Test the language/en route."""
-    response = await client.get('/language/unknonw')
+    """Test the language/unknown route."""
+    response = await client.get('/language/unknown')
     assert response.status_code == 404
     assert response.mimetype == 'text/html'
+
+
+@pytest.mark.asyncio
+async def test_file_fetch(client):
+    """Test the data-fetch route."""
+    assert Config.log_path == 'app/tests/log/'
+    response = await client.get('/file-fetch')
+    assert response.status_code == 200
+
+
+@pytest.mark.asyncio
+async def test_send_file(client):
+    """Test the send-file route."""
+    assert Config.log_path == 'app/tests/log/'
+    response = await client.get('/send-file/test.log')
+    assert response.status_code == 200
+
+
+@pytest.mark.asyncio
+async def test_missing_send_file(client):
+    """Test the send-file route (file not found)."""
+    assert Config.log_path == 'app/tests/log/'
+    response = await client.get('/send-file/no_file.log')
+    assert response.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_invalid_send_file(client):
+    """Test the send-file route (invalid filename)."""
+    assert Config.log_path == 'app/tests/log/'
+    response = await client.get('/send-file/../test_web_route.py')
+    assert response.status_code == 404
