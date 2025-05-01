@@ -179,7 +179,8 @@ def main():   # pragma: no cover
     asyncio.set_event_loop(loop)
 
     # read config file
-    Config.init(ConfigReadToml(src_dir + "cnf/default_config.toml"))
+    Config.init(ConfigReadToml(src_dir + "cnf/default_config.toml"),
+                log_path=args.log_path)
     ConfigReadEnv()
     ConfigReadJson(args.config_path + "config.json")
     ConfigReadToml(args.config_path + "config.toml")
