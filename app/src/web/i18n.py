@@ -38,5 +38,8 @@ def utility_processor():
 async def set_language(language=None):
     if language in LANGUAGES:
         session['language'] = language
-        return redirect('../#')
+
+        rsp = redirect(request.referrer if request.referrer else '../#')
+        rsp.content_language = language
+        return rsp
     return abort(404)
