@@ -179,7 +179,8 @@ def main():   # pragma: no cover
     asyncio.set_event_loop(loop)
 
     # read config file
-    Config.init(ConfigReadToml(src_dir + "cnf/default_config.toml"))
+    Config.init(ConfigReadToml(src_dir + "cnf/default_config.toml"),
+                log_path=args.log_path)
     ConfigReadEnv()
     ConfigReadJson(args.config_path + "config.json")
     ConfigReadToml(args.config_path + "config.toml")
@@ -214,7 +215,7 @@ def main():   # pragma: no cover
         ProxyState.set_up(True)
         logging.info("Start Quart")
         app.run(host='0.0.0.0', port=8127, use_reloader=False, loop=loop,
-                debug=True,)
+                debug=log_level == logging.DEBUG)
         logging.info("Quart stopped")
 
     except KeyboardInterrupt:

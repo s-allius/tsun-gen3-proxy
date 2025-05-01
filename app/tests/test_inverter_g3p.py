@@ -37,6 +37,7 @@ def config_conn():
         },
         'solarman':{'enabled': True, 'host': 'test_cloud.local', 'port': 1234}, 'inverters':{'allow_all':True}
     }
+    Config.log_path='app/tests/log/'
 
 @pytest.fixture(scope="module", autouse=True)
 def module_init():

@@ -162,12 +162,13 @@ class Config():
     )
 
     @classmethod
-    def init(cls, def_reader: ConfigIfc) -> None | str:
+    def init(cls, def_reader: ConfigIfc, log_path: str = '') -> None | str:
         '''Initialise the Proxy-Config
 
 Copy the internal default config file into the config directory
 and initialise the Config with the default configuration '''
         cls.err = None
+        cls.log_path = log_path
         cls.def_config = {}
         try:
             # make the default config transparaent by copying it
@@ -247,3 +248,7 @@ here. The default config reader is handled in the Config.init method'''
         '''Check if the member is the default value'''
 
         return cls.act_config.get(member) == cls.def_config.get(member)
+
+    @classmethod
+    def get_log_path(cls) -> str:
+        return cls.log_path
