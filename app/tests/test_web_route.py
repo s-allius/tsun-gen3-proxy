@@ -6,6 +6,8 @@ from async_stream import AsyncStreamClient
 from gen3plus.inverter_g3p import InverterG3P
 from test_inverter_g3p import FakeReader, FakeWriter, config_conn
 from cnf.config import Config
+from mock import patch, Mock
+import os, errno
 
 pytest_plugins = ('pytest_asyncio',)
 
@@ -205,4 +207,40 @@ async def test_invalid_send_file(client, config_conn):
     _ = config_conn
     assert Config.log_path == 'app/tests/log/'
     response = await client.get('/send-file/../test_web_route.py')
+    assert response.status_code == 404
+
+@pytest.fixture
+def patch_os_remove_err():
+    def new_remove(file_path: str):
+        raise OSError(errno.ENOENT, os.strerror(errno.ENOENT), file_path)
+
+
+    with patch.object(os, 'remove', new_remove) as wrapped_os:
+        yield wrapped_os
+
+@pytest.fixture
+def patch_os_remove_ok():
+    def new_remove(file_path: str):
+        return
+
+    with patch.object(os, 'remove', new_remove) as wrapped_os:
+        yield wrapped_os
+
+@pytest.mark.asyncio
+async def test_del_file_ok(client, config_conn, patch_os_remove_ok):
+    """Test the del-file route with no error."""
+    _ = config_conn
+    _ = patch_os_remove_ok
+    assert Config.log_path == 'app/tests/log/'
+    response = await client.delete ('/del-file/test.txt')
+    assert response.status_code == 204
+
+
+@pytest.mark.asyncio
+async def test_del_file_err(client, config_conn, patch_os_remove_err):
+    """Test the send-file route with OSError."""
+    _ = config_conn
+    _ = patch_os_remove_err
+    assert Config.log_path == 'app/tests/log/'
+    response = await client.delete ('/del-file/test.txt')
     assert response.status_code == 404
