@@ -3,7 +3,7 @@
   <div class="w3-quarter w3-margin-bottom">
 
      <div class="w3-card-4">
-      <header class="w3-container w3-blue">
+      <header class="w3-container w3-blue" style="min-height:80px">
         <h4>{{file.name}}</h4>
       </header>
   
@@ -17,13 +17,15 @@
       </table>
   
       <footer class="w3-blue">
-        <a href="{{ url_for('web.send',file=file.name)}}" class="w3-button w3-hover-blue w3-hover-text-black"><i class="fa fa-file-export"></i>  {{_('Download File')}}</a>
+        <a href="{{ url_for('.send',file=file.name)}}" class="w3-button w3-hover-blue w3-hover-text-black"><i class="fa fa-file-download"></i>  {{_('Download File')}}</a>
+        <a class="w3-button w3-right w3-hover-blue w3-hover-text-black" 
+        onclick="document.getElementById('id03').innerHTML='{{file.name}}'; document.getElementById('id02').href='{{ url_for('.delete',file=file.name)}}'; document.getElementById('id01').style.display='block';"><i class="fa fa-trash"></i></a>
       </footer>
     </div>
 
    </div>
 {% if 0 == (loop.index%4) and not last %}
-</div>
+</div> 
 <div class="w3-row-padding w3-margin-bottom">
 {% endif %}
 {% endfor %}  
