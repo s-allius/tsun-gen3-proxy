@@ -50,3 +50,12 @@ async def send(file):
         directory=Config.get_log_path(),
         file_name=secure_filename(file),
         as_attachment=True)
+
+
+@web.route('/del-file/<file>', methods=['DELETE'])
+async def delete(file):
+    try:
+        os.remove(Config.get_log_path() + secure_filename(file))
+    except OSError:
+        return 'File not found', 404
+    return '', 204
