@@ -6,7 +6,7 @@ from async_stream import AsyncStreamClient
 from gen3plus.inverter_g3p import InverterG3P
 from test_inverter_g3p import FakeReader, FakeWriter, config_conn
 from cnf.config import Config
-from mock import patch, Mock
+from mock import patch
 import os, errno
 
 pytest_plugins = ('pytest_asyncio',)
