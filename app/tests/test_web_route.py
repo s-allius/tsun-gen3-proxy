@@ -53,16 +53,16 @@ async def test_home(client):
 
 @pytest.mark.asyncio
 async def test_page(client):
-    """Test the empty page route."""
-    response = await client.get('/page')
+    """Test the mqtt page route."""
+    response = await client.get('/mqtt')
     assert response.status_code == 200
     assert response.mimetype == 'text/html'
 
 @pytest.mark.asyncio
 async def test_rel_page(client):
-    """Test the empty page route."""
+    """Test the mqtt route."""
     web.build_relative_urls = True
-    response = await client.get('/page')
+    response = await client.get('/mqtt')
     assert response.status_code == 200
     assert response.mimetype == 'text/html'
     web.build_relative_urls = False
@@ -152,7 +152,7 @@ async def test_language_en(client):
     assert response.mimetype == 'text/html'
 
     client.set_cookie('test', key='language', value='de')
-    response = await client.get('/page')
+    response = await client.get('/mqtt')
     assert response.status_code == 200
     assert response.mimetype == 'text/html'
 
