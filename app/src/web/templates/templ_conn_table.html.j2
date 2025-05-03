@@ -12,7 +12,10 @@
     {% endif %}
 {%- endmacro%}
 
+<div class="w3-container w3-margin-bottom">
 <h5>{{_('Connections')}}</h5>
+<div class="w3-card-4">
+
 <table class="w3-table w3-striped w3-bordered w3-border w3-hoverable w3-white">
   {% if table.thead is defined%}
   <thead>
@@ -35,3 +38,5 @@
   {% endfor %}
   </tbody>
 </table>
+</div>
+</div>
