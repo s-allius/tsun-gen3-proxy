@@ -40,7 +40,6 @@ async def file_fetch():
     data["file-list"] = await render_template('templ_log_files_list.html.j2',
                                               dir_list=get_list_data())
 
-    data["notes-list"] = await render_template('templ_notes_list.html.j2')
     return data
 
 
