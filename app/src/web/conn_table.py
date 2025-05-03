@@ -48,6 +48,7 @@ def _get_row(inv: InverterBase):
 def get_table_data():
     '''build the connection table'''
     table = {
+        "headline": _('Connections'),
         "col_classes": [
             "w3-hide-small w3-hide-medium", "w3-hide-large",
             "",
@@ -75,7 +76,7 @@ async def data_fetch():
         "proxy-cnt": f"<h3>{Infos.get_counter('ProxyMode_Cnt')}</h3>",
         "emulation-cnt": f"<h3>{Infos.get_counter('EmuMode_Cnt')}</h3>",
     }
-    data["conn-table"] = await render_template('templ_conn_table.html.j2',
+    data["conn-table"] = await render_template('templ_table.html.j2',
                                                table=get_table_data())
 
     data["notes-list"] = await render_template('templ_notes_list.html.j2')

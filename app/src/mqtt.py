@@ -7,13 +7,18 @@ from modbus import Modbus
 from messages import Message
 from cnf.config import Config
 from singleton import Singleton
+from datetime import datetime
+
 
 logger_mqtt = logging.getLogger('mqtt')
 
 
 class Mqtt(metaclass=Singleton):
-    __client = None
+    __client: aiomqtt.Client = None
     __cb_mqtt_is_up = None
+    ctime = None
+    published: int = 0
+    received: int = 0
 
     def __init__(self, cb_mqtt_is_up):
         logger_mqtt.debug('MQTT: __init__')
@@ -52,6 +57,7 @@ class Mqtt(metaclass=Singleton):
                       | int | float | None = None) -> None:
         if self.__client:
             await self.__client.publish(topic, payload)
+            self.published += 1
 
     async def __loop(self) -> None:
         mqtt = Config.get('mqtt')
@@ -69,6 +75,9 @@ class Mqtt(metaclass=Singleton):
             try:
                 async with self.__client:
                     logger_mqtt.info('MQTT broker connection established')
+                    self.ctime = datetime.now()
+                    self.published = 0
+                    self.received = 0
 
                     if self.__cb_mqtt_is_up:
                         await self.__cb_mqtt_is_up()
@@ -84,6 +93,8 @@ class Mqtt(metaclass=Singleton):
                         await self.dispatch_msg(message)
 
             except aiomqtt.MqttError:
+                self.ctime = None
+
                 if Config.is_default('mqtt'):
                     logger_mqtt.info(
                         "MQTT is unconfigured; Check your config.toml!")
@@ -101,11 +112,14 @@ class Mqtt(metaclass=Singleton):
                 return
             except Exception:
                 # self.inc_counter('SW_Exception')   # fixme
+                self.ctime = None
                 logger_mqtt.error(
                     f"Exception:\n"
                     f"{traceback.format_exc()}")
 
     async def dispatch_msg(self, message):
+        self.received += 1
+
         if message.topic.matches(self.ha_status_topic):
             status = message.payload.decode("UTF-8")
             logger_mqtt.info('Home-Assistant Status:'

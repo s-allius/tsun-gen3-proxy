@@ -145,6 +145,10 @@ def main():   # pragma: no cover
     serv_name = os.getenv('SERVICE_NAME', 'proxy')
     version = os.getenv('VERSION', 'unknown')
 
+    @app.context_processor
+    def utility_processor():
+        return dict(version=version)
+
     setattr(logging.handlers, "log_path", args.log_path)
     setattr(logging.handlers, "log_backups", args.log_backups)
     os.makedirs(args.log_path, exist_ok=True)

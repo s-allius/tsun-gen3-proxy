@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: tsun-gen3-proxy 0.14.0\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2025-05-02 17:00+0200\n"
+"POT-Creation-Date: 2025-05-03 21:59+0200\n"
 "PO-Revision-Date: 2025-04-18 16:24+0200\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: de\n"
@@ -19,34 +19,49 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.17.0\n"
 
-#: src/web/conn_table.py:57
+#: src/web/conn_table.py:51 src/web/templates/base.html.j2:58
+msgid "Connections"
+msgstr "Verbindungen"
+
+#: src/web/conn_table.py:58
 msgid "Device-IP:Port"
 msgstr "Geräte-IP:Port"
 
-#: src/web/conn_table.py:57
+#: src/web/conn_table.py:58
 msgid "Device-IP"
 msgstr "Geräte-IP"
 
-#: src/web/conn_table.py:58
+#: src/web/conn_table.py:59 src/web/mqtt_table.py:33
 msgid "Serial-No"
 msgstr "Seriennummer"
 
-#: src/web/conn_table.py:59
+#: src/web/conn_table.py:60
 msgid "Cloud-IP:Port"
 msgstr "Cloud-IP:Port"
 
-#: src/web/conn_table.py:59
+#: src/web/conn_table.py:60
 msgid "Cloud-IP"
 msgstr "Cloud-IP"
+
+#: src/web/mqtt_table.py:26
+msgid "MQTT devices"
+msgstr "MQTT Geräte"
+
+#: src/web/mqtt_table.py:34
+msgid "Node-ID"
+msgstr ""
+
+#: src/web/mqtt_table.py:35
+msgid "HA-Area"
+msgstr ""
 
 #: src/web/templates/base.html.j2:37
 msgid "Updated:"
 msgstr "Aktualisiert:"
 
-#: src/web/templates/base.html.j2:58
-#: src/web/templates/templ_conn_table.html.j2:15
-msgid "Connections"
-msgstr "Verbindungen"
+#: src/web/templates/base.html.j2:49
+msgid "Version:"
+msgstr ""
 
 #: src/web/templates/base.html.j2:60 src/web/templates/page_logging.html.j2:5
 msgid "Log Files"
@@ -56,35 +71,35 @@ msgstr "Log Dateien"
 msgid "Proxy Connection Overview"
 msgstr "Proxy Verbindungen"
 
-#: src/web/templates/page_index.html.j2:16
+#: src/web/templates/page_index.html.j2:17
 msgid "Server Mode"
 msgstr "Server Modus"
 
-#: src/web/templates/page_index.html.j2:17
+#: src/web/templates/page_index.html.j2:18
 msgid "Established from device to proxy"
 msgstr "Vom Gerät zum Proxy aufgebaut"
 
-#: src/web/templates/page_index.html.j2:27
+#: src/web/templates/page_index.html.j2:30
 msgid "Client Mode"
 msgstr "Client Modus"
 
-#: src/web/templates/page_index.html.j2:28
+#: src/web/templates/page_index.html.j2:31
 msgid "Established from proxy to device"
 msgstr "Vom Proxy zum Gerät aufgebaut"
 
-#: src/web/templates/page_index.html.j2:38
+#: src/web/templates/page_index.html.j2:43
 msgid "Proxy Mode"
 msgstr "Proxy Modus"
 
-#: src/web/templates/page_index.html.j2:39
+#: src/web/templates/page_index.html.j2:44
 msgid "Forwarding data to cloud"
 msgstr "Weiterleitung in die Cloud"
 
-#: src/web/templates/page_index.html.j2:49
+#: src/web/templates/page_index.html.j2:56
 msgid "Emu Mode"
 msgstr "Emu Modus"
 
-#: src/web/templates/page_index.html.j2:50
+#: src/web/templates/page_index.html.j2:57
 msgid "Emulation sends data to cloud"
 msgstr "Emulation sendet in die Cloud"
 
@@ -99,6 +114,34 @@ msgstr "File löschen"
 #: src/web/templates/page_logging.html.j2:13
 msgid "Abort"
 msgstr "Abbruch"
+
+#: src/web/templates/page_mqtt.html.j2:5
+msgid "MQTT Overview"
+msgstr "MQTT Überblick"
+
+#: src/web/templates/page_mqtt.html.j2:16
+msgid "Connection Time"
+msgstr "Verbindungszeit"
+
+#: src/web/templates/page_mqtt.html.j2:17
+msgid "Time at which the connection was established"
+msgstr "Zeitpunkt des Verbindungsaufbaus"
+
+#: src/web/templates/page_mqtt.html.j2:29
+msgid "Published Topics"
+msgstr "Gesendete Topics"
+
+#: src/web/templates/page_mqtt.html.j2:30
+msgid "Number of published topics"
+msgstr "Anzahl der veröffentlichten Topics"
+
+#: src/web/templates/page_mqtt.html.j2:42
+msgid "Received Topics"
+msgstr "Empfangene Topics"
+
+#: src/web/templates/page_mqtt.html.j2:43
+msgid "Number of topics received"
+msgstr "Anzahl der empfangenen Topics"
 
 #: src/web/templates/templ_log_files_list.html.j2:11
 msgid "Created"
@@ -115,4 +158,25 @@ msgstr "Größe"
 #: src/web/templates/templ_log_files_list.html.j2:20
 msgid "Download File"
 msgstr "Datei Download"
+
+#~ msgid "MQTT Server"
+#~ msgstr ""
+
+#~ msgid "MQTT User"
+#~ msgstr ""
+
+#~ msgid "MQTT Connected"
+#~ msgstr ""
+
+#~ msgid "Home Assistant Status"
+#~ msgstr ""
+
+#~ msgid "MQTT Publish Count"
+#~ msgstr ""
+
+#~ msgid "MQTT Reveiced Count"
+#~ msgstr ""
+
+#~ msgid "MQTT Connect Time"
+#~ msgstr "MQTT Verbindungszeit"
 

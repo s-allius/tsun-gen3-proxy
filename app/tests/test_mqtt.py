@@ -140,6 +140,7 @@ async def test_ha_reconnect(config_mqtt_conn):
         assert on_connect.is_set()
 
     finally:
+        assert m.received == 2
         await m.close()
 
 @pytest.mark.asyncio

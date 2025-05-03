@@ -41,12 +41,12 @@
   
     <!-- Sidebar/menu -->
     <nav class="w3-sidebar w3-collapse w3-white" style="z-index:3;width:250px;" id="mySidebar"><br>
-      <div class="w3-container w3-row">
-        <div class="w3-col s4">
+      <div class="w3-container w3-cell-row">
+        <div class="w3-cell w3-cell-middle">
           <img src="{{url_for('static', filename= 'images/favicon.svg') }}" alt="" class="w3-circle w3-margin-right" style="width:60px">
         </div>
-        <div class="w3-col s8 w3-bar">
-          <h3>TSUN-Proxy</h3><br>
+        <div class="w3-cell">
+          <span><b class="w3-xlarge">TSUN-Proxy</b><br>{{_('Version:')}} {{version}}</span>
         </div>
       </div>
       <hr>
@@ -56,7 +56,7 @@
       <div class="w3-bar-block">
         <button href="#" class="w3-bar-item w3-button w3-padding-16 w3-hide-large w3-dark-grey w3-hover-black" onclick="w3_close()" title="close menu"><i class="fa fa-remove fa-fw"></i>  Close Menu</button>
         <a href="{{ url_for('.index')}}" class="w3-bar-item w3-button w3-padding {% block menu1_class %}{% endblock %}"><i class="fa fa-network-wired fa-fw"></i>  {{_('Connections')}}</a>
-        <a href="{{ url_for('.empty')}}" class="w3-bar-item w3-button w3-padding {% block menu2_class %}{% endblock %}"><i class="fa fa-database fa-fw"></i>  MQTT</a>
+        <a href="{{ url_for('.mqtt')}}" class="w3-bar-item w3-button w3-padding {% block menu2_class %}{% endblock %}"><i class="fa fa-database fa-fw"></i>  MQTT</a>
         <a href="{{ url_for('.logging')}}" class="w3-bar-item w3-button w3-padding {% block menu3_class %}{% endblock %}"><i class="fa fa-file-export fa-fw"></i>  {{_('Log Files')}}</a>
       </div>
     </nav>

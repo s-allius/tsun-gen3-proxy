@@ -11,9 +11,11 @@ async def index():
         fetch_url=url_for('.data_fetch'))
 
 
-@web.route('/page')
-async def empty():
-    return await render_template('empty.html.j2')
+@web.route('/mqtt')
+async def mqtt():
+    return await render_template(
+        'page_mqtt.html.j2',
+        fetch_url=url_for('.mqtt_fetch'))
 
 
 @web.route('/logging')
