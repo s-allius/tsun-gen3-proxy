@@ -44,7 +44,7 @@ def get_table_data():
 
 @web.route('/mqtt-fetch')
 async def mqtt_fetch():
-    mqtt = Mqtt()
+    mqtt = Mqtt(None)
     ctime = format_datetime(dt=mqtt.ctime, format='short')
     data = {
         "update-time": format_datetime(format="medium"),
