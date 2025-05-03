@@ -91,7 +91,6 @@ class Mqtt(metaclass=Singleton):
 
                     async for message in self.__client.messages:
                         await self.dispatch_msg(message)
-                        self.received += 1
 
             except aiomqtt.MqttError:
                 self.ctime = None
@@ -119,6 +118,8 @@ class Mqtt(metaclass=Singleton):
                     f"{traceback.format_exc()}")
 
     async def dispatch_msg(self, message):
+        self.received += 1
+
         if message.topic.matches(self.ha_status_topic):
             status = message.payload.decode("UTF-8")
             logger_mqtt.info('Home-Assistant Status:'
