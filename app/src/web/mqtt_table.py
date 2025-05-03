@@ -1,7 +1,6 @@
 from inverter_base import InverterBase
 from quart import render_template
 from quart_babel import format_datetime, _
-from infos import Infos
 from mqtt import Mqtt
 
 from . import web
@@ -49,6 +48,7 @@ def _get_row(inv: InverterBase):
 def get_table_data():
     '''build the connection table'''
     table = {
+        "headline": _('MQTT devices'),
         "col_classes": [
             "w3-hide-small w3-hide-medium", "w3-hide-large",
             "",
@@ -77,7 +77,7 @@ async def mqtt_fetch():
         "mqtt-tx": f"<h3>{mqtt.published}</h3>",
         "mqtt-rx": f"<h3>{mqtt.received}</h3>",
     }
-    # data["conn-table"] = await render_template('templ_conn_table.html.j2',
-    #                                            table=get_table_data())
+    data["mqtt-table"] = await render_template('templ_table.html.j2',
+                                               table=get_table_data())
 
     return data
