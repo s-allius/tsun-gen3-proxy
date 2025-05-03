@@ -7,6 +7,7 @@ from gen3plus.inverter_g3p import InverterG3P
 from test_inverter_g3p import FakeReader, FakeWriter, config_conn
 from cnf.config import Config
 from mock import patch
+from proxy import Proxy
 import os, errno
 
 pytest_plugins = ('pytest_asyncio',)
@@ -172,6 +173,16 @@ async def test_language_unknown(client):
     response = await client.get('/language/unknown')
     assert response.status_code == 404
     assert response.mimetype == 'text/html'
+
+
+@pytest.mark.asyncio
+async def test_mqtt_fetch(client, create_inverter):
+    """Test the mqtt-fetch route."""
+    _ = create_inverter
+    Proxy.class_init()
+
+    response = await client.get('/mqtt-fetch')
+    assert response.status_code == 200
 
 
 @pytest.mark.asyncio
