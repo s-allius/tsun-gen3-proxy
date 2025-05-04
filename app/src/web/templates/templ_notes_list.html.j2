@@ -1,14 +1,23 @@
 {% if notes|length > 0 %}
 <div class="w3-container w3-margin-bottom">
-  <h5>Notes</h5>
+  <h5>{{_("Warnings and error messages")}}  </h5>
   <ul class="w3-ul w3-card-4">
   {% for note in notes %}
     <li class="{% if note.level is le(30) %}w3-leftbar w3-rightbar w3-pale-blue w3-border-blue{% else %}w3-leftbar w3-rightbar w3-pale-red w3-border-red{% endif %}">
-      <span class="w3-col" style="width:160px">{{note.ctime|datetimeformat}}</span>
+      <span class="w3-col" style="width:150px">{{note.ctime|datetimeformat(format='short')}}</span>
       <span class="w3-col w3-hide-small" style="width:100px">{{note.lname|e}}</span>
       <span class="w3-rest">{{note.msg|e}}</span>
     </li>
   {% endfor %}
   </ul>
+</div>
+{% elif not hide_if_empty %}
+<div class="w3-container w3-margin-bottom">
+  <div class="w3-leftbar w3-rightbar w3-pale-green w3-border-green">
+    <div class="w3-container">
+        <h2>{{_("Well done!")}}</h2>
+        <p>{{_("No warnings or errors have been logged since the last proxy start.")}}</p>
+    </div>
+  </div>
 </div>
 {% endif %}

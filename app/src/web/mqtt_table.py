@@ -58,6 +58,7 @@ async def mqtt_fetch():
 
     data["notes-list"] = await render_template(
         'templ_notes_list.html.j2',
-        notes=LogHandler().get_buffer(3))
+        notes=LogHandler().get_buffer(3),
+        hide_if_empty=True)
 
     return data
