@@ -4,6 +4,7 @@ from quart_babel import format_datetime, _
 from mqtt import Mqtt
 
 from . import web
+from .log_handler import LogHandler
 
 
 def _get_row(inv: InverterBase):
@@ -54,5 +55,10 @@ async def mqtt_fetch():
     }
     data["mqtt-table"] = await render_template('templ_table.html.j2',
                                                table=get_table_data())
+
+    data["notes-list"] = await render_template(
+        'templ_notes_list.html.j2',
+        notes=LogHandler().get_buffer(3),
+        hide_if_empty=True)
 
     return data

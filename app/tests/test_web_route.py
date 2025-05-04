@@ -69,6 +69,13 @@ async def test_rel_page(client):
     web.build_relative_urls = False
 
 @pytest.mark.asyncio
+async def test_notes(client):
+    """Test the notes page route."""
+    response = await client.get('/notes')
+    assert response.status_code == 200
+    assert response.mimetype == 'text/html'
+
+@pytest.mark.asyncio
 async def test_logging(client):
     """Test the logging page route."""
     response = await client.get('/logging')
@@ -182,6 +189,15 @@ async def test_mqtt_fetch(client, create_inverter):
     Proxy.class_init()
 
     response = await client.get('/mqtt-fetch')
+    assert response.status_code == 200
+
+
+@pytest.mark.asyncio
+async def test_notes_fetch(client, config_conn):
+    """Test the notes-fetch route."""
+    _ = create_inverter
+
+    response = await client.get('/notes-fetch')
     assert response.status_code == 200
 
 

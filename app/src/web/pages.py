@@ -18,6 +18,13 @@ async def mqtt():
         fetch_url=url_for('.mqtt_fetch'))
 
 
+@web.route('/notes')
+async def notes():
+    return await render_template(
+        'page_notes.html.j2',
+        fetch_url=url_for('.notes_fetch'))
+
+
 @web.route('/logging')
 async def logging():
     return await render_template(
