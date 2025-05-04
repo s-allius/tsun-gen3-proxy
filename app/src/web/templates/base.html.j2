@@ -57,7 +57,7 @@
         <button href="#" class="w3-bar-item w3-button w3-padding-16 w3-hide-large w3-dark-grey w3-hover-black" onclick="w3_close()" title="close menu"><i class="fa fa-remove fa-fw"></i>  Close Menu</button>
         <a href="{{ url_for('.index')}}" class="w3-bar-item w3-button w3-padding {% block menu1_class %}{% endblock %}"><i class="fa fa-network-wired fa-fw"></i>  {{_('Connections')}}</a>
         <a href="{{ url_for('.mqtt')}}" class="w3-bar-item w3-button w3-padding {% block menu2_class %}{% endblock %}"><i class="fa fa-database fa-fw"></i>  MQTT</a>
-        <a href="{{ url_for('.notes')}}" class="w3-bar-item w3-button w3-padding {% block menu3_class %}{% endblock %}"><i class="fa fa-exclamation-triangle fa-fw"></i>  {{_('Warnings and Errors')}}</a>
+        <a href="{{ url_for('.notes')}}" class="w3-bar-item w3-button w3-padding {% block menu3_class %}{% endblock %}"><i class="fa fa-exclamation-triangle fa-fw"></i>  {{_('Important Messages')}}</a>
         <a href="{{ url_for('.logging')}}" class="w3-bar-item w3-button w3-padding {% block menu4_class %}{% endblock %}"><i class="fa fa-file-export fa-fw"></i>  {{_('Log Files')}}</a>
       </div>
     </nav>
