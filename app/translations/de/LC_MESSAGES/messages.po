@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: tsun-gen3-proxy 0.14.0\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2025-05-03 21:59+0200\n"
+"POT-Creation-Date: 2025-05-04 18:16+0200\n"
 "PO-Revision-Date: 2025-04-18 16:24+0200\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: de\n"
@@ -19,39 +19,39 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.17.0\n"
 
-#: src/web/conn_table.py:51 src/web/templates/base.html.j2:58
+#: src/web/conn_table.py:52 src/web/templates/base.html.j2:58
 msgid "Connections"
 msgstr "Verbindungen"
 
-#: src/web/conn_table.py:58
+#: src/web/conn_table.py:59
 msgid "Device-IP:Port"
 msgstr "Geräte-IP:Port"
 
-#: src/web/conn_table.py:58
+#: src/web/conn_table.py:59
 msgid "Device-IP"
 msgstr "Geräte-IP"
 
-#: src/web/conn_table.py:59 src/web/mqtt_table.py:33
+#: src/web/conn_table.py:60 src/web/mqtt_table.py:34
 msgid "Serial-No"
 msgstr "Seriennummer"
 
-#: src/web/conn_table.py:60
+#: src/web/conn_table.py:61
 msgid "Cloud-IP:Port"
 msgstr "Cloud-IP:Port"
 
-#: src/web/conn_table.py:60
+#: src/web/conn_table.py:61
 msgid "Cloud-IP"
 msgstr "Cloud-IP"
 
-#: src/web/mqtt_table.py:26
+#: src/web/mqtt_table.py:27
 msgid "MQTT devices"
 msgstr "MQTT Geräte"
 
-#: src/web/mqtt_table.py:34
+#: src/web/mqtt_table.py:35
 msgid "Node-ID"
 msgstr ""
 
-#: src/web/mqtt_table.py:35
+#: src/web/mqtt_table.py:36
 msgid "HA-Area"
 msgstr ""
 
@@ -63,9 +63,17 @@ msgstr "Aktualisiert:"
 msgid "Version:"
 msgstr ""
 
-#: src/web/templates/base.html.j2:60 src/web/templates/page_logging.html.j2:5
+#: src/web/templates/base.html.j2:60 src/web/templates/page_notes.html.j2:5
+msgid "Important Messages"
+msgstr "Wichtige Hinweise"
+
+#: src/web/templates/base.html.j2:61 src/web/templates/page_logging.html.j2:5
 msgid "Log Files"
 msgstr "Log Dateien"
+
+#: src/web/templates/page_index.html.j2:3
+msgid "TSUN Proxy - Connections"
+msgstr "TSUN Proxy - Verbindungen"
 
 #: src/web/templates/page_index.html.j2:5
 msgid "Proxy Connection Overview"
@@ -103,6 +111,10 @@ msgstr "Emu Modus"
 msgid "Emulation sends data to cloud"
 msgstr "Emulation sendet in die Cloud"
 
+#: src/web/templates/page_logging.html.j2:3
+msgid "TSUN Proxy - Log Files"
+msgstr "TSUN Proxy - Log Dateien"
+
 #: src/web/templates/page_logging.html.j2:10
 msgid "Do you really want to delete the log file"
 msgstr "Soll die Datei wirklich gelöscht werden"
@@ -114,6 +126,10 @@ msgstr "File löschen"
 #: src/web/templates/page_logging.html.j2:13
 msgid "Abort"
 msgstr "Abbruch"
+
+#: src/web/templates/page_mqtt.html.j2:3
+msgid "TSUN Proxy - MQTT Status"
+msgstr ""
 
 #: src/web/templates/page_mqtt.html.j2:5
 msgid "MQTT Overview"
@@ -143,6 +159,10 @@ msgstr "Empfangene Topics"
 msgid "Number of topics received"
 msgstr "Anzahl der empfangenen Topics"
 
+#: src/web/templates/page_notes.html.j2:3
+msgid "TSUN Proxy - Important Messages"
+msgstr "TSUN Proxy - Wichtige Hinweise"
+
 #: src/web/templates/templ_log_files_list.html.j2:11
 msgid "Created"
 msgstr "Erzeugt"
@@ -159,24 +179,17 @@ msgstr "Größe"
 msgid "Download File"
 msgstr "Datei Download"
 
-#~ msgid "MQTT Server"
-#~ msgstr ""
+#: src/web/templates/templ_notes_list.html.j2:3
+msgid "Warnings and error messages"
+msgstr "Warnungen und Fehlermeldungen"
 
-#~ msgid "MQTT User"
-#~ msgstr ""
+#: src/web/templates/templ_notes_list.html.j2:18
+msgid "Well done!"
+msgstr "Gut gemacht!"
 
-#~ msgid "MQTT Connected"
-#~ msgstr ""
-
-#~ msgid "Home Assistant Status"
-#~ msgstr ""
-
-#~ msgid "MQTT Publish Count"
-#~ msgstr ""
-
-#~ msgid "MQTT Reveiced Count"
-#~ msgstr ""
-
-#~ msgid "MQTT Connect Time"
-#~ msgstr "MQTT Verbindungszeit"
+#: src/web/templates/templ_notes_list.html.j2:19
+msgid "No warnings or errors have been logged since the last proxy start."
+msgstr ""
+"Seit dem letzten Proxystart wurden keine Warnungen oder Fehler "
+"protokolliert."
 
