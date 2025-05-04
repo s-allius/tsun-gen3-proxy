@@ -7,6 +7,8 @@ Usage:
 from quart import Quart, Blueprint
 from quart_babel import Babel
 from utils import load_modules
+from .log_handler import LogHandler
+import logging
 
 web = Blueprint('web', __name__)
 
@@ -30,3 +32,8 @@ class Web:
             locale_selector=get_locale,
             timezone_selector=get_tz,
             default_translation_directories=translation_directories)
+
+        h = LogHandler()
+        logging.getLogger().addHandler(h)
+        for name in logging.root.manager.loggerDict:
+            logging.getLogger(name).addHandler(h)
