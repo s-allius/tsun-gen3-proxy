@@ -1,0 +1,14 @@
+{% if notes|length > 0 %}
+<div class="w3-container w3-margin-bottom">
+  <h5>Notes</h5>
+  <ul class="w3-ul w3-card-4">
+  {% for note in notes %}
+    <li class="{% if note.level is le(30) %}w3-leftbar w3-rightbar w3-pale-blue w3-border-blue{% else %}w3-leftbar w3-rightbar w3-pale-red w3-border-red{% endif %}">
+      <span class="w3-col" style="width:160px">{{note.ctime|datetimeformat}}</span>
+      <span class="w3-col w3-hide-small" style="width:100px">{{note.lname|e}}</span>
+      <span class="w3-rest">{{note.msg|e}}</span>
+    </li>
+  {% endfor %}
+  </ul>
+</div>
+{% endif %}
