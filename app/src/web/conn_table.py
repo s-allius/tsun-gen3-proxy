@@ -4,6 +4,7 @@ from quart_babel import format_datetime, _
 from infos import Infos
 
 from . import web
+from .log_handler import LogHandler
 
 
 def _get_device_icon(client_mode: bool):
@@ -79,5 +80,7 @@ async def data_fetch():
     data["conn-table"] = await render_template('templ_table.html.j2',
                                                table=get_table_data())
 
-    data["notes-list"] = await render_template('templ_notes_list.html.j2')
+    data["notes-list"] = await render_template(
+        'templ_notes_list.html.j2',
+        notes=LogHandler().get_buffer(3))
     return data
