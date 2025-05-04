@@ -6,7 +6,7 @@ babel:
 build:
 	$(MAKE) -C ha_addons $@ 
 
-clean build:
+clean:
 	$(MAKE) -C app $@
 	$(MAKE) -C ha_addons $@ 
 
