@@ -24,20 +24,36 @@ from modbus_tcp import ModbusTcp
 class HypercornLogHndl:
     access_hndl = []
     error_hndl = []
+    must_fix = False
+    HYPERC_ERR = 'hypercorn.error'
+    HYPERC_ACC = 'hypercorn.access'
 
     @classmethod
     def save(cls):
         cls.access_hndl = logging.getLogger(
-            'hypercorn.access').handlers
+            cls.HYPERC_ACC).handlers
         cls.error_hndl = logging.getLogger(
-            'hypercorn.error').handlers
+            cls.HYPERC_ERR).handlers
+        cls.must_fix = True
 
     @classmethod
     def restore(cls):
-        logging.getLogger(
-            'hypercorn.access').handlers = cls.access_hndl
-        logging.getLogger(
-            'hypercorn.error').handlers = cls.error_hndl
+        if not cls.must_fix:
+            return
+        cls.must_fix = False
+        access_hndl = logging.getLogger(
+            cls.HYPERC_ACC).handlers
+        if access_hndl != cls.access_hndl:
+            print(' * Fix hypercorn.access setting')
+            logging.getLogger(
+                cls.HYPERC_ACC).handlers = cls.access_hndl
+
+        error_hndl = logging.getLogger(
+            cls.HYPERC_ERR).handlers
+        if error_hndl != cls.error_hndl:
+            print(' * Fix hypercorn.error setting')
+            logging.getLogger(
+                cls.HYPERC_ERR).handlers = cls.error_hndl
 
 
 class ProxyState:
@@ -94,7 +110,7 @@ async def handle_client(reader: StreamReader, writer: StreamWriter, inv_class):
 
 
 @app.before_request
-async def startup_app():
+async def startup_request():
     HypercornLogHndl.restore()
 
 
