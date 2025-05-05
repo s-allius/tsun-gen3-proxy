@@ -1,6 +1,6 @@
 # test_with_pytest.py
 import pytest
-from server import app
+from app import app
 from web import Web, web
 from async_stream import AsyncStreamClient
 from gen3plus.inverter_g3p import InverterG3P
@@ -15,7 +15,6 @@ pytest_plugins = ('pytest_asyncio',)
 @pytest.fixture(scope="session")
 def client():
     app.secret_key = 'super secret key'
-    Web(app, '../transfer', False)
     return app.test_client()
 
 @pytest.fixture
