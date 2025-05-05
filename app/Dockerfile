@@ -67,4 +67,4 @@ EXPOSE 5005 8127 10000
 
 # command to run on container start
 ENTRYPOINT ["/root/entrypoint.sh"]
-CMD [ "python3", "./server.py" ]
+CMD [ "python3", "./app.py" ]
