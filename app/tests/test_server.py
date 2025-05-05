@@ -3,34 +3,41 @@ import pytest
 import logging
 import os
 from mock import patch
-from server import get_log_level, app, ProxyState
+from app import app, ProxyState
+from server import Server
 
 pytest_plugins = ('pytest_asyncio',)
 
+
+class FakeServer(Server):
+    def __init__(self):
+        pass  # don't call the suoer(.__init__ for unit tests
+
 def test_get_log_level():
+    s = FakeServer()
 
     with patch.dict(os.environ, {}):
-        log_lvl = get_log_level()
+        log_lvl = s.get_log_level()
         assert log_lvl == None
 
     with patch.dict(os.environ, {'LOG_LVL': 'DEBUG'}):
-        log_lvl = get_log_level()
+        log_lvl = s.get_log_level()
         assert log_lvl == logging.DEBUG
 
     with patch.dict(os.environ, {'LOG_LVL': 'INFO'}):
-        log_lvl = get_log_level()
+        log_lvl = s.get_log_level()
         assert log_lvl == logging.INFO
 
     with patch.dict(os.environ, {'LOG_LVL': 'WARN'}):
-        log_lvl = get_log_level()
+        log_lvl = s.get_log_level()
         assert log_lvl == logging.WARNING
 
     with patch.dict(os.environ, {'LOG_LVL': 'ERROR'}):
-        log_lvl = get_log_level()
+        log_lvl = s.get_log_level()
         assert log_lvl == logging.ERROR
 
     with patch.dict(os.environ, {'LOG_LVL': 'UNKNOWN'}):
-        log_lvl = get_log_level()
+        log_lvl = s.get_log_level()
         assert log_lvl == None
 
 @pytest.mark.asyncio
