@@ -21,6 +21,25 @@ from web.wrapper import url_for
 from modbus_tcp import ModbusTcp
 
 
+class HypercornLogHndl:
+    access_hndl = []
+    error_hndl = []
+
+    @classmethod
+    def save(cls):
+        cls.access_hndl = logging.getLogger(
+            'hypercorn.access').handlers
+        cls.error_hndl = logging.getLogger(
+            'hypercorn.error').handlers
+
+    @classmethod
+    def restore(cls):
+        logging.getLogger(
+            'hypercorn.access').handlers = cls.access_hndl
+        logging.getLogger(
+            'hypercorn.error').handlers = cls.error_hndl
+
+
 class ProxyState:
     _is_up = False
 
@@ -72,6 +91,11 @@ async def handle_client(reader: StreamReader, writer: StreamWriter, inv_class):
 
     with inv_class(reader, writer) as inv:
         await inv.local.ifc.server_loop()
+
+
+@app.before_request
+async def startup_app():
+    HypercornLogHndl.restore()
 
 
 @app.after_serving
@@ -155,6 +179,8 @@ def main():   # pragma: no cover
 
     src_dir = os.path.dirname(__file__) + '/'
     logging.config.fileConfig(src_dir + 'logging.ini')
+    HypercornLogHndl.save()
+
     logging.info(f'Server "{serv_name} - {version}" will be started')
     logging.info(f'current dir: {os.getcwd()}')
     logging.info(f"config_path: {args.config_path}")
