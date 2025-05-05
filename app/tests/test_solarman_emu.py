@@ -125,10 +125,8 @@ def heartbeat_ind():
     msg  = b'\xa5\x01\x00\x10G\x00\x01\x00\x00\x00\x00\x00Y\x15'
     return msg
 
-def test_emu_init_close():
-    # received a message with wrong start byte plus an valid message
-    # the complete receive buffer must be cleared to 
-    # find the next valid message
+def test_emu_init_close(config_tsun_inv1):
+    _ = config_tsun_inv1
     inv = InvStream()
     cld = CldStream(inv)
     cld.close()
