@@ -43,7 +43,6 @@ class Server():
             return dict(version=self.version)
 
     def parse_args(self, arg_list: list[str] | None):
-        print("in Server.read_cli1")
         parser = argparse.ArgumentParser()
         parser.add_argument('-c', '--config_path', type=str,
                             default='./config/',
@@ -65,7 +64,6 @@ class Server():
                             help='use relative dashboard urls')
         args = parser.parse_args(arg_list)
 
-        print(f"rel_urls-1:    {args.rel_urls}")
         self.config_path = args.config_path
         self.json_config = args.json_config
         self.toml_config = args.toml_config
