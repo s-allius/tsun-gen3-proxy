@@ -91,6 +91,34 @@ class TestServerClass:
             s.parse_args(['--inalid', '/tmp/my-config'])
         assert exc_info.value.code == 2
 
+    def test_init_logging_system(self):
+        s = self.FakeServer()
+        s.src_dir = 'app/src/'
+        s.init_logging_system()
+        assert s.log_backups == 0
+        assert s.log_level == None
+        assert logging.handlers.log_path == './log/'
+        assert logging.handlers.log_backups == 0
+        assert logging.getLogger().level == logging.DEBUG
+        assert logging.getLogger('msg').level == logging.DEBUG
+        assert logging.getLogger('conn').level == logging.DEBUG
+        assert logging.getLogger('data').level == logging.DEBUG
+        assert logging.getLogger('tracer').level == logging.INFO
+        assert logging.getLogger('asyncio').level == logging.INFO
+
+        os.environ["LOG_LVL"] = "WARN"
+        s.parse_args(['--log_backups', '3'])
+        s.init_logging_system()
+        assert s.log_backups == 3
+        assert s.log_level == logging.WARNING
+        assert logging.handlers.log_backups == 3
+        assert logging.getLogger().level == s.log_level
+        assert logging.getLogger('msg').level == s.log_level
+        assert logging.getLogger('conn').level == s.log_level
+        assert logging.getLogger('data').level == s.log_level
+        assert logging.getLogger('tracer').level == s.log_level
+        assert logging.getLogger('asyncio').level == s.log_level
+
 
 class TestApp:
     @pytest.mark.asyncio

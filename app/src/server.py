@@ -26,6 +26,12 @@ class Server():
     serv_name = ''
     version = ''
     src_dir = ''
+
+    ####
+    # The following default values are used for the unit tests only, since
+    # `Server.parse_args()' will not be called during test setup.
+    # Ofcorse, we can call `Server.parse_args()' in a test case explicitly
+    # to overwrite this values
     config_path = './config/'
     json_config = ''
     toml_config = ''
@@ -86,8 +92,7 @@ class Server():
         self.log_path = args.log_path
         self.log_backups = args.log_backups
 
-    def init_logging_system(self):   # pragma: no cover
-
+    def init_logging_system(self):
         setattr(logging.handlers, "log_path", self.log_path)
         setattr(logging.handlers, "log_backups", self.log_backups)
         os.makedirs(self.log_path, exist_ok=True)
