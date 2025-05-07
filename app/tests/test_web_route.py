@@ -1,6 +1,6 @@
 # test_with_pytest.py
 import pytest
-from app import app
+from server import app
 from web import Web, web
 from async_stream import AsyncStreamClient
 from gen3plus.inverter_g3p import InverterG3P
