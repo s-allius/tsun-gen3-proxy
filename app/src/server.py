@@ -137,7 +137,7 @@ class Server():
 
         if config_err is not None:
             logging.info(f'config_err: {config_err}')
-            return  # fixme raise an exception
+            return
 
         logging.info('******')
 
@@ -239,7 +239,9 @@ async def healthy():
     return Response(status=200, response="I'm fine")
 
 
-async def handle_client(reader: StreamReader, writer: StreamWriter, inv_class):
+async def handle_client(reader: StreamReader,
+                        writer: StreamWriter,
+                        inv_class):    # pragma: no cover
     '''Handles a new incoming connection and starts an async loop'''
 
     with inv_class(reader, writer) as inv:
@@ -247,7 +249,7 @@ async def handle_client(reader: StreamReader, writer: StreamWriter, inv_class):
 
 
 @app.before_serving
-async def startup_app():
+async def startup_app():    # pragma: no cover
     HypercornLogHndl.save()
     loop = asyncio.get_event_loop()
     Proxy.class_init()

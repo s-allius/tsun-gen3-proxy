@@ -123,6 +123,17 @@ class TestServerClass:
         assert logging.getLogger('hypercorn.access').level == logging.INFO
         assert logging.getLogger('hypercorn.error').level == logging.INFO
 
+    def test_build_config_error(self, caplog):
+        s = self.FakeServer()
+        s.src_dir = 'app/src/'
+        s.toml_config = 'app/tests/cnf/invalid_config.toml'
+
+        with caplog.at_level(logging.ERROR):
+            s.build_config()
+        assert "Can't read from app/tests/cnf/invalid_config.toml" in caplog.text
+        assert "Key 'port' error:" in caplog.text
+
+
 class TestHypercornLogHndl:
     class FakeServer(Server):
         def __init__(self):
