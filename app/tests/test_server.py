@@ -139,7 +139,7 @@ class TestHypercornLogHndl:
         def __init__(self):
             pass  # don't call the suoer(.__init__ for unit tests
 
-    def test_save_and_restore(self):
+    def test_save_and_restore(self, capsys):
         s = self.FakeServer()
         s.src_dir = 'app/src/'
         s.init_logging_system()
@@ -158,14 +158,27 @@ class TestHypercornLogHndl:
 
         logging.getLogger('hypercorn.access').handlers = []
         logging.getLogger('hypercorn.error').handlers = []
-
+        
         h.restore()
         assert h.must_fix == False
         assert h.access_hndl == logging.getLogger('hypercorn.access').handlers
         assert h.error_hndl == logging.getLogger('hypercorn.error').handlers
+        output = capsys.readouterr().out.rstrip()
+        assert "* Fix hypercorn.access setting" in output
+        assert "* Fix hypercorn.error setting" in output
 
-        h.restore()
+        h.restore()  # second restore do nothing
         assert h.must_fix == False
+        output = capsys.readouterr().out.rstrip()
+        assert output == ''
+
+        h.save()     # save the same values second time
+        assert h.must_fix == True
+
+        h.restore()  # restore without changing the handlers
+        assert h.must_fix == False
+        output = capsys.readouterr().out.rstrip()
+        assert output == ''
 
 
 class TestApp:
