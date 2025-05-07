@@ -1048,7 +1048,8 @@ def msg_inverter_ms3000_ind(): # Data indication from the controller
     msg +=  b'\x53\x00\x66'                                                      #  | S.f'
     return msg
 
-def test_read_message(msg_contact_info):
+@pytest.mark.asyncio
+async def test_read_message(msg_contact_info):
     Config.act_config = {'tsun':{'enabled': True}}
     m = MemoryStream(msg_contact_info, (0,))
     m.read()         # read complete msg, and dispatch msg

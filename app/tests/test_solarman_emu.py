@@ -9,6 +9,9 @@ from infos import Infos, Register
 from test_solarman import FakeIfc, FakeInverter, MemoryStream, get_sn_int, get_sn, correct_checksum, config_tsun_inv1, msg_modbus_rsp
 from test_infos_g3p import str_test_ip, bytes_test_ip
 
+
+pytest_plugins = ('pytest_asyncio',)
+
 timestamp = 0x3224c8bc
 
 class InvStream(MemoryStream):
@@ -125,15 +128,17 @@ def heartbeat_ind():
     msg  = b'\xa5\x01\x00\x10G\x00\x01\x00\x00\x00\x00\x00Y\x15'
     return msg
 
-def test_emu_init_close(config_tsun_inv1):
+@pytest.mark.asyncio
+async def test_emu_init_close(my_loop, config_tsun_inv1):
     _ = config_tsun_inv1
+    assert asyncio.get_running_loop()
     inv = InvStream()
     cld = CldStream(inv)
     cld.close()
 
 
 @pytest.mark.asyncio
-async def test_emu_start(config_tsun_inv1, msg_modbus_rsp, str_test_ip, device_ind_msg):
+async def test_emu_start(my_loop, config_tsun_inv1, msg_modbus_rsp, str_test_ip, device_ind_msg):
     _ = config_tsun_inv1
     assert asyncio.get_running_loop()
     inv = InvStream(msg_modbus_rsp)
@@ -150,7 +155,8 @@ async def test_emu_start(config_tsun_inv1, msg_modbus_rsp, str_test_ip, device_i
     assert inv.ifc.fwd_fifo.peek() == device_ind_msg
     cld.close()
 
-def test_snd_hb(config_tsun_inv1, heartbeat_ind):
+@pytest.mark.asyncio
+async def test_snd_hb(my_loop, config_tsun_inv1, heartbeat_ind):
     _ = config_tsun_inv1
     inv = InvStream()
     cld = CldStream(inv)
@@ -161,7 +167,7 @@ def test_snd_hb(config_tsun_inv1, heartbeat_ind):
     cld.close()
 
 @pytest.mark.asyncio
-async def test_snd_inv_data(config_tsun_inv1, inverter_ind_msg, inverter_rsp_msg):
+async def test_snd_inv_data(my_loop, config_tsun_inv1, inverter_ind_msg, inverter_rsp_msg):
     _ = config_tsun_inv1
     inv = InvStream()
     inv.db.set_db_def_value(Register.INVERTER_STATUS, 1)
@@ -203,7 +209,7 @@ async def test_snd_inv_data(config_tsun_inv1, inverter_ind_msg, inverter_rsp_msg
     cld.close()
 
 @pytest.mark.asyncio
-async def test_rcv_invalid(config_tsun_inv1, inverter_ind_msg, inverter_rsp_msg):
+async def test_rcv_invalid(my_loop, config_tsun_inv1, inverter_ind_msg, inverter_rsp_msg):
     _ = config_tsun_inv1
     inv = InvStream()
     assert asyncio.get_running_loop() == inv.mb_timer.loop

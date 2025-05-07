@@ -19,7 +19,8 @@ class ModbusTestHelper(Modbus):
     def resp_handler(self):
         self.recv_responses += 1
 
-def test_modbus_crc():
+@pytest.mark.asyncio
+async def test_modbus_crc():
     '''Check CRC-16 calculation'''
     mb = Modbus(None)
     assert 0x0b02 == mb._Modbus__calc_crc(b'\x01\x06\x20\x08\x00\x04')
@@ -37,7 +38,8 @@ def test_modbus_crc():
     msg += b'\x00\x00\x00\x00\x00\x00\x00\xe6\xef'
     assert 0 == mb._Modbus__calc_crc(msg)
 
-def test_build_modbus_pdu():
+@pytest.mark.asyncio
+async def test_build_modbus_pdu():
     '''Check building and sending a MODBUS RTU'''
     mb = ModbusTestHelper()
     mb.build_msg(1,6,0x2000,0x12)
@@ -49,7 +51,8 @@ def test_build_modbus_pdu():
     assert mb.last_len == 18
     assert mb.err == 0
 
-def test_recv_req():
+@pytest.mark.asyncio
+async def test_recv_req():
     '''Receive a valid request, which must transmitted'''
     mb = ModbusTestHelper()
     assert mb.recv_req(b'\x01\x06\x20\x00\x00\x12\x02\x07')
@@ -58,7 +61,8 @@ def test_recv_req():
     assert mb.last_len == 0x12
     assert mb.err == 0
 
-def test_recv_req_crc_err():
+@pytest.mark.asyncio
+async def test_recv_req_crc_err():
     '''Receive a request with invalid CRC, which must be dropped'''
     mb = ModbusTestHelper()
     assert not mb.recv_req(b'\x01\x06\x20\x00\x00\x12\x02\x08')
@@ -68,7 +72,8 @@ def test_recv_req_crc_err():
     assert mb.last_len == 0
     assert mb.err == 1
 
-def test_recv_resp_crc_err():
+@pytest.mark.asyncio
+async def test_recv_resp_crc_err():
     '''Receive a response with invalid CRC, which must be dropped'''
     mb = ModbusTestHelper()
     # simulate a transmitted request
@@ -89,7 +94,8 @@ def test_recv_resp_crc_err():
     mb._Modbus__stop_timer()
     assert not mb.req_pend
 
-def test_recv_resp_invalid_addr():
+@pytest.mark.asyncio
+async def test_recv_resp_invalid_addr():
     '''Receive a response with wrong server addr, which must be dropped'''
     mb = ModbusTestHelper()
     mb.req_pend = True
@@ -113,7 +119,8 @@ def test_recv_resp_invalid_addr():
     mb._Modbus__stop_timer()
     assert not mb.req_pend
 
-def test_recv_recv_fcode():
+@pytest.mark.asyncio
+async def test_recv_recv_fcode():
     '''Receive a response with wrong function code, which must be dropped'''
     mb = ModbusTestHelper()
     mb.build_msg(1,4,0x300e,2)
@@ -135,7 +142,8 @@ def test_recv_recv_fcode():
     mb._Modbus__stop_timer()
     assert not mb.req_pend
 
-def test_recv_resp_len():
+@pytest.mark.asyncio
+async def test_recv_resp_len():
     '''Receive a response with wrong data length, which must be dropped'''
     mb = ModbusTestHelper()
     mb.build_msg(1,3,0x300e,3)
@@ -158,7 +166,8 @@ def test_recv_resp_len():
     mb._Modbus__stop_timer()
     assert not mb.req_pend
 
-def test_recv_unexpect_resp():
+@pytest.mark.asyncio
+async def test_recv_unexpect_resp():
     '''Receive a response when we havb't sent a request'''
     mb = ModbusTestHelper()
     assert not mb.req_pend
@@ -174,7 +183,8 @@ def test_recv_unexpect_resp():
     assert mb.req_pend == False
     assert mb.que.qsize() == 0
 
-def test_parse_resp():
+@pytest.mark.asyncio
+async def test_parse_resp():
     '''Receive matching response and parse the values'''
     mb = ModbusTestHelper()
     mb.build_msg(1,3,0x3007,6)
@@ -200,7 +210,8 @@ def test_parse_resp():
     assert mb.que.qsize() == 0
     assert not mb.req_pend
 
-def test_queue():
+@pytest.mark.asyncio
+async def test_queue():
     mb = ModbusTestHelper()
     mb.build_msg(1,3,0x3022,4)
     assert mb.que.qsize() == 0
@@ -218,7 +229,8 @@ def test_queue():
     mb._Modbus__stop_timer()
     assert not mb.req_pend
 
-def test_queue2():
+@pytest.mark.asyncio
+async def test_queue2():
     '''Check queue handling for build_msg() calls'''
     mb = ModbusTestHelper()
     mb.build_msg(1,3,0x3007,6)
@@ -267,7 +279,8 @@ def test_queue2():
     assert mb.que.qsize() == 0
     assert not mb.req_pend
 
-def test_queue3():
+@pytest.mark.asyncio
+async def test_queue3():
     '''Check queue handling for recv_req() calls'''
     mb = ModbusTestHelper()
     assert mb.recv_req(b'\x01\x03\x30\x07\x00\x06{\t', mb.resp_handler)
@@ -324,7 +337,7 @@ def test_queue3():
     assert not mb.req_pend
 
 @pytest.mark.asyncio
-async def test_timeout():
+async def test_timeout(my_loop):
     '''Test MODBUS response timeout and RTU retransmitting'''
     assert asyncio.get_running_loop()
     mb = ModbusTestHelper()
@@ -371,7 +384,8 @@ async def test_timeout():
     assert mb.retry_cnt == 0
     assert mb.send_calls == 4
 
-def test_recv_unknown_data():
+@pytest.mark.asyncio
+async def test_recv_unknown_data():
     '''Receive a response with an unknwon register'''
     mb = ModbusTestHelper()
     assert 0x9000 not in mb.mb_reg_mapping
@@ -390,7 +404,8 @@ def test_recv_unknown_data():
 
     del mb.mb_reg_mapping[0x9000]
 
-def test_close():
+@pytest.mark.asyncio
+async def test_close():
     '''Check queue handling for build_msg() calls'''
     mb = ModbusTestHelper()
     mb.build_msg(1,3,0x3007,6)
