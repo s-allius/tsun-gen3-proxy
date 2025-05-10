@@ -382,7 +382,7 @@ class Infos:
     __mppt2_status_type_val_tpl = "{%set mppt_status = ['Standby', 'On', 'Off'] %}{{mppt_status[value_json['pv2']['MPPT-Status']|int(0)]|default(value_json['pv2']['MPPT-Status'])}}"    # noqa: E501
     __supply_status_type_val_tpl = "{%set supply_status = ['Idle', 'Power-Supply'] %}{{supply_status[value_json['out']['Suppl_State']|int(0)]|default(value_json['out']['Suppl_State'])}}"    # noqa: E501
     __batt_status_type_val_tpl = "{%set batt_status = ['Discharging', 'Static', 'Loading'] %}{{batt_status[value_json['batt']['Batt_State']|int(0)]|default(value_json['batt']['Batt_State'])}}"    # noqa: E501
-    __out_status_type_val_tpl = "{%set out_status = ['Standby', 'On'] %}{{out_status[value_json['out']['Out_Status']|int(0)]|default(value_json['out']['Out_Status'])}}"    # noqa: E501
+    __out_status_type_val_tpl = "{%set out_status = ['Standby', 'On', 'Off'] %}{{out_status[value_json['out']['Out_Status']|int(0)]|default(value_json['out']['Out_Status'])}}"    # noqa: E501
     __rated_power_val_tpl = "{% if 'Rated_Power' in value_json and value_json['Rated_Power'] != None %}{{value_json['Rated_Power']|string() +' W'}}{% else %}{{ this.state }}{% endif %}"  # noqa: E501
     __designed_power_val_tpl = '''
 {% if 'Max_Designed_Power' in value_json and
@@ -838,7 +838,10 @@ class Infos:
     def inc_counter(cls, counter: str) -> None:
         '''inc proxy statistic counter'''
         db_dict = cls.stat['proxy']
-        db_dict[counter] += 1
+        try:
+            db_dict[counter] += 1
+        except Exception:
+            db_dict[counter] = 1
         cls.new_stat_data['proxy'] = True
 
     @classmethod
@@ -847,6 +850,15 @@ class Infos:
         db_dict = cls.stat['proxy']
         db_dict[counter] -= 1
         cls.new_stat_data['proxy'] = True
+
+    @classmethod
+    def get_counter(cls, counter: str) -> int:
+        '''get proxy statistic counter'''
+        try:
+            db_dict = cls.stat['proxy']
+            return db_dict[counter]
+        except Exception:
+            return 0
 
     def ha_proxy_confs(self, ha_prfx: str, node_id: str, snr: str) \
             -> Generator[tuple[str, str, str, str], None, None]:

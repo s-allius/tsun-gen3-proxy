@@ -10,7 +10,7 @@ configuration:
       in the configuration block.
 
       The serial numbers of all GEN3 inverters start with `R17` or `R47` and that of the GEN3PLUS
-      inverters with ‘Y17’ or ‘Y47’!
+      inverters with 'Y00', ‘Y17’ or ‘Y47’!
       
       For reference see example configuration in Documentation Tab
 
@@ -107,3 +107,4 @@ configuration:
 network:
   5005/tcp: listening Port for TSUN GEN3 Devices
   10000/tcp: listening Port for TSUN GEN3PLUS Devices
+  8127/tcp: Port for the TSUN-Proxy Dashboard

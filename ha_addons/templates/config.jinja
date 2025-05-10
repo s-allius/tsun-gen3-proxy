@@ -23,8 +23,11 @@ services:
 ports:
   5005/tcp: 5005
   10000/tcp: 10000
-
+webui: "http://[HOST]:[PORT:8127]/"
 watchdog: "http://[HOST]:[PORT:8127]/-/healthy"
+ingress: true
+ingress_port: 8127
+panel_icon: "mdi:application-cog-outline"
 
 # Definition of parameters in the configuration tab of the addon
 # parameters are available within the container as /data/options.json
@@ -32,7 +35,7 @@ watchdog: "http://[HOST]:[PORT:8127]/-/healthy"
 
 schema:
   inverters:
-    - serial: match(^(R17|R47|Y17|Y47).{13}$)
+    - serial: match(^(R17|R47|Y00|Y17|Y47).{13}$)
       monitor_sn: int?
       node_id: str
       suggested_area: str

@@ -12,11 +12,14 @@ IMAGE = tsun-gen3-addon
 SRC=../app
 SRC_PROXY=$(SRC)/src
 CNF_PROXY=$(SRC)/config
+TRANSLATION_PROXY=$(SRC)/translations
 
 # Target folders for building the local add-on and the docker container
 ADDON_PATH = ha_addon
 DST=$(ADDON_PATH)/rootfs
 DST_PROXY=$(DST)/home/proxy
+DST_TRANSLATION=$(DST)/home/translations
+
 
 # base director of the add-on repro for installing the add-on git repros
 INST_BASE=../../ha-addons
@@ -32,7 +35,7 @@ rel : STAGE=rel
 
 
 export BUILD_DATE := ${shell date -Iminutes}
-BUILD_ID := ${shell date +'%y%m%d%H%M'}
+debug dev : BUILD_ID := ${shell date +'%y%m%d%H%M'}
 VERSION := $(shell cat $(SRC)/.version)
 export MAJOR  := $(shell echo $(VERSION) | cut -f1 -d.)
 
@@ -83,14 +86,24 @@ SRC_FILES := $(wildcard $(SRC_PROXY)/*.py)\
  $(wildcard $(SRC_PROXY)/cnf/*.py)\
  $(wildcard $(SRC_PROXY)/cnf/*.toml)\
  $(wildcard $(SRC_PROXY)/gen3/*.py)\
- $(wildcard $(SRC_PROXY)/gen3plus/*.py)
+ $(wildcard $(SRC_PROXY)/gen3plus/*.py)\
+ $(wildcard $(SRC_PROXY)/utils/*.py)\
+ $(wildcard $(SRC_PROXY)/web/*.py)\
+ $(wildcard $(SRC_PROXY)/web/templates/*.html.j2)\
+ $(wildcard $(SRC_PROXY)/web/static/css/*.css)\
+ $(wildcard $(SRC_PROXY)/web/static/font/*)\
+ $(wildcard $(SRC_PROXY)/web/static/font-awesome/*/*)\
+ $(wildcard $(SRC_PROXY)/web/static/images/*)
+
 CNF_FILES := $(wildcard $(CNF_PROXY)/*.toml)
+MO_FILES := $(wildcard $(TRANSLATION_PROXY)/de/LC_MESSAGES/*.mo)
 
 # determine destination files
 TARGET_FILES = $(SRC_FILES:$(SRC_PROXY)/%=$(DST_PROXY)/%)
 CONFIG_FILES = $(CNF_FILES:$(CNF_PROXY)/%=$(DST_PROXY)/%)
+TRANSLATION_FILES = $(MO_FILES:$(TRANSLATION_PROXY)/%=$(DST_TRANSLATION)/%)
 
-rootfs: $(TARGET_FILES) $(CONFIG_FILES) $(DST)/requirements.txt
+rootfs: $(TARGET_FILES) $(CONFIG_FILES) $(TRANSLATION_FILES) $(DST)/requirements.txt
 
 $(CONFIG_FILES): $(DST_PROXY)/% : $(CNF_PROXY)/%
 	@echo Copy $< to $@
@@ -98,6 +111,11 @@ $(CONFIG_FILES): $(DST_PROXY)/% : $(CNF_PROXY)/%
 	@cp $< $@
 
 $(TARGET_FILES): $(DST_PROXY)/% : $(SRC_PROXY)/%
+	@echo Copy $< to $@
+	@mkdir -p $(@D)
+	@cp $< $@
+
+$(TRANSLATION_FILES): $(DST_TRANSLATION)/% : $(TRANSLATION_PROXY)/%
 	@echo Copy $< to $@
 	@mkdir -p $(@D)
 	@cp $< $@

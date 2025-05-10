@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="{{lang}}" >
+  <head>
+    <title>{% block title %}{% endblock title %}</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="{{ url_for('static', filename= 'css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename= 'font-awesome/css/all.min.css') }}">
+    <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <style>
+        @font-face {
+            font-family: Roboto;
+            src: url("{{ url_for('static', filename= 'font/roboto-light.ttf') }}");
+        }
+        html,body,h1,h2,h3,h4,h5 {font-family: Roboto, sans-serif}
+    </style>
+  </head>
+  <body class="w3-light-grey">
+  
+    <!-- Top container -->
+    <div class="w3-bar w3-dark-grey w3-large" style="z-index:4">
+      <button class="w3-bar-item w3-button w3-hide-large" onclick="w3_open();"><i class="fa fa-bars"></i>  Menu</button>
+      <div class="w3-dropdown-hover w3-right">
+        <button class="w3-button">{{lang_str}}</button>
+        <div class="w3-dropdown-content w3-bar-block w3-card-4" style="right:0">
+          {% for language in languages %}
+          <a href="{{url_for('web.set_language', language=language)}}" class="w3-bar-item w3-button">{{languages[language]}}</a>
+          {% endfor %}
+        </div>
+      </div>
+
+      {% if fetch_url is defined %}
+      <button class="w3-bar-item w3-button w3-right" onclick="fetch_data();"><span class="w3-hide-small">{{_('Updated:')}}  </span><span id="update-time"></span>  <i class="w3-hover fa fa-rotate-right w3-medium"></i></button>
+      {% endif %}
+      <div class="w3-clear"></div>
+    </div>
+  
+    <!-- Sidebar/menu -->
+    <nav class="w3-sidebar w3-collapse w3-white" style="z-index:3;width:250px;" id="mySidebar"><br>
+      <div class="w3-container w3-cell-row">
+        <div class="w3-cell w3-cell-middle">
+          <img src="{{url_for('static', filename= 'images/favicon.svg') }}" alt="" class="w3-circle w3-margin-right" style="width:60px">
+        </div>
+        <div class="w3-cell">
+          <span><b class="w3-xlarge">TSUN-Proxy</b><br>{{_('Version:')}} {{version}}</span>
+        </div>
+      </div>
+      <hr>
+      <div class="w3-container">
+        <h5>Dashboard</h5>
+      </div>
+      <div class="w3-bar-block">
+        <button href="#" class="w3-bar-item w3-button w3-padding-16 w3-hide-large w3-dark-grey w3-hover-black" onclick="w3_close()" title="close menu"><i class="fa fa-remove fa-fw"></i>  Close Menu</button>
+        <a href="{{ url_for('.index')}}" class="w3-bar-item w3-button w3-padding {% block menu1_class %}{% endblock %}"><i class="fa fa-network-wired fa-fw"></i>  {{_('Connections')}}</a>
+        <a href="{{ url_for('.mqtt')}}" class="w3-bar-item w3-button w3-padding {% block menu2_class %}{% endblock %}"><i class="fa fa-database fa-fw"></i>  MQTT</a>
+        <a href="{{ url_for('.notes')}}" class="w3-bar-item w3-button w3-padding {% block menu3_class %}{% endblock %}"><i class="fa fa-exclamation-triangle fa-fw"></i>  {{_('Important Messages')}}</a>
+        <a href="{{ url_for('.logging')}}" class="w3-bar-item w3-button w3-padding {% block menu4_class %}{% endblock %}"><i class="fa fa-file-export fa-fw"></i>  {{_('Log Files')}}</a>
+      </div>
+    </nav>
+  
+  
+    <!-- Overlay effect when opening sidebar on small screens -->
+    <button class="w3-overlay w3-hide-large w3-animate-opacity" onclick="w3_close()" style="cursor:pointer" title="close side menu" id="myOverlay"></button>
+    
+    <!-- !PAGE CONTENT! -->
+    <div class="w3-main" style="margin-left:250px;margin-top:43px;">
+    
+      <!-- Header -->
+      {% block header %} 
+      <header class="w3-container" style="padding-top:22px">
+        <h5><b>{% block headline %}{% endblock headline %}</b></h5>
+      </header>
+      {% endblock header %}
+
+      {% block content %} {% endblock content%}
+    
+      <!-- Footer -->
+      {% block footer %}
+      <footer class="w3-container w3-padding-16 w3-light-grey">
+        <h4>FOOTER</h4>
+        <p>Powered by <a href="https://www.w3schools.com/w3css/default.asp" target="_blank">w3.css</a></p>
+      </footer>
+      {% endblock footer %}
+    
+      <!-- End page content -->
+    </div>
+
+    {% block trailer %} 
+    <script>
+      // Get the Sidebar
+      var mySidebar = document.getElementById("mySidebar");
+      
+      // Get the DIV with overlay effect
+      var overlayBg = document.getElementById("myOverlay");
+      
+      // Toggle between showing and hiding the sidebar, and add overlay effect
+      function w3_open() {
+        if (mySidebar.style.display === 'block') {
+          mySidebar.style.display = 'none';
+          overlayBg.style.display = "none";
+        } else {
+          mySidebar.style.display = 'block';
+          overlayBg.style.display = "block";
+        }
+      }
+      
+      // Close the sidebar with the close button
+      function w3_close() {
+        mySidebar.style.display = "none";
+        overlayBg.style.display = "none";
+      }
+      {% if fetch_url is defined %}
+      function fetch_data() {
+        fetch("{{fetch_url}}")
+          .then(response => response.json())
+          .then(function (data) {
+            Object.keys(data).forEach(key => {
+              //console.log(`${key}: ${data[key]}`);
+              try {
+                elm = document.getElementById(key)
+                elm.innerHTML = data[key]
+              }
+              catch(err) {
+                console.log('error: ' + err + ' (for key: ' + key + ')');
+              }
+            });
+          })
+          .catch(function (err) {
+            console.log('error: ' + err);
+          });
+      }
+
+      window.addEventListener('load', function () {
+        // Your document is loaded.
+        var fetchInterval = 5000; // 5 seconds.
+        fetch_data()
+        // Invoke the request every 5 seconds.
+        setInterval(fetch_data, fetchInterval);
+      });
+      {% endif %}
+
+    </script>
+    {% endblock trailer %}
+  
+  </body>
+</html>

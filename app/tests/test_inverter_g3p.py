@@ -37,6 +37,7 @@ def config_conn():
         },
         'solarman':{'enabled': True, 'host': 'test_cloud.local', 'port': 1234}, 'inverters':{'allow_all':True}
     }
+    Config.log_path='app/tests/log/'
 
 @pytest.fixture(scope="module", autouse=True)
 def module_init():
@@ -93,7 +94,8 @@ def patch_open_connection():
     with patch.object(asyncio, 'open_connection', new_open) as conn:
         yield conn
 
-def test_method_calls(config_conn):
+@pytest.mark.asyncio
+async def test_method_calls(my_loop, config_conn):
     _ = config_conn
     reader = FakeReader()
     writer =  FakeWriter()
@@ -104,7 +106,7 @@ def test_method_calls(config_conn):
         assert inverter.local.ifc
 
 @pytest.mark.asyncio
-async def test_remote_conn(config_conn, patch_open_connection):
+async def test_remote_conn(my_loop, config_conn, patch_open_connection):
     _ = config_conn
     _ = patch_open_connection
     assert asyncio.get_running_loop()
@@ -115,7 +117,7 @@ async def test_remote_conn(config_conn, patch_open_connection):
         assert inverter.remote.stream
 
 @pytest.mark.asyncio
-async def test_remote_except(config_conn, patch_open_connection):
+async def test_remote_except(my_loop, config_conn, patch_open_connection):
     _ = config_conn
     _ = patch_open_connection
     assert asyncio.get_running_loop()
@@ -137,7 +139,7 @@ async def test_remote_except(config_conn, patch_open_connection):
 
 
 @pytest.mark.asyncio
-async def test_mqtt_publish(config_conn, patch_open_connection):
+async def test_mqtt_publish(my_loop, config_conn, patch_open_connection):
     _ = config_conn
     _ = patch_open_connection
     assert asyncio.get_running_loop()
@@ -164,7 +166,7 @@ async def test_mqtt_publish(config_conn, patch_open_connection):
         assert Infos.new_stat_data['proxy'] == False
 
 @pytest.mark.asyncio
-async def test_mqtt_err(config_conn, patch_open_connection, patch_mqtt_err):
+async def test_mqtt_err(my_loop, config_conn, patch_open_connection, patch_mqtt_err):
     _ = config_conn
     _ = patch_open_connection
     _ = patch_mqtt_err
@@ -181,7 +183,7 @@ async def test_mqtt_err(config_conn, patch_open_connection, patch_mqtt_err):
         assert stream.new_data['inverter'] == True
 
 @pytest.mark.asyncio
-async def test_mqtt_except(config_conn, patch_open_connection, patch_mqtt_except):
+async def test_mqtt_except(my_loop, config_conn, patch_open_connection, patch_mqtt_except):
     _ = config_conn
     _ = patch_open_connection
     _ = patch_mqtt_except

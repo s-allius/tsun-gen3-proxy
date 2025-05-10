@@ -28,10 +28,12 @@ class ModbusConn():
         logging.info(f'[{stream.node_id}:{stream.conn_no}] '
                      f'Connected to {self.addr}')
         Infos.inc_counter('Inverter_Cnt')
+        Infos.inc_counter('ClientMode_Cnt')
         await self.inverter.local.ifc.publish_outstanding_mqtt()
         return self.inverter
 
     async def __aexit__(self, exc_type, exc, tb):
+        Infos.dec_counter('ClientMode_Cnt')
         Infos.dec_counter('Inverter_Cnt')
         await self.inverter.local.ifc.publish_outstanding_mqtt()
         self.inverter.__exit__(exc_type, exc, tb)

@@ -1,0 +1,19 @@
+2025-04-30 00:01:23  INFO | root | Server "proxy - unknown" will be started
+2025-04-30 00:01:23  INFO | root | current dir: /Users/sallius/tsun/tsun-gen3-proxy
+2025-04-30 00:01:23  INFO | root | config_path: ./config/
+2025-04-30 00:01:23  INFO | root | json_config: None
+2025-04-30 00:01:23  INFO | root | toml_config: None
+2025-04-30 00:01:23  INFO | root | trans_path:  ../translations/
+2025-04-30 00:01:23  INFO | root | rel_urls:    False
+2025-04-30 00:01:23  INFO | root | log_path:    ./log/
+2025-04-30 00:01:23  INFO | root | log_backups: unlimited
+2025-04-30 00:01:23  INFO | root | LOG_LVL    : None
+2025-04-30 00:01:23  INFO | root | ******
+2025-04-30 00:01:23  INFO | root | Read from /Users/sallius/tsun/tsun-gen3-proxy/app/src/cnf/default_config.toml => ok
+2025-04-30 00:01:23  INFO | root | Read from environment => ok
+2025-04-30 00:01:23  INFO | root | Read from ./config/config.json => n/a
+2025-04-30 00:01:23  INFO | root | Read from ./config/config.toml => n/a
+2025-04-30 00:01:23  INFO | root | ******
+2025-04-30 00:01:23  INFO | root | listen on port: 5005 for inverters
+2025-04-30 00:01:23  INFO | root | listen on port: 10000 for inverters
+2025-04-30 00:01:23  INFO | root | Start Quart

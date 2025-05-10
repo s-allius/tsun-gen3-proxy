@@ -1,0 +1,33 @@
+<div class="w3-row-padding w3-margin-bottom">
+{% for file in dir_list %}
+  <div class="w3-quarter w3-margin-bottom">
+
+     <div class="w3-card-4">
+      <header class="w3-container w3-teal" style="min-height:80px">
+        <h4>{{file.name}}</h4>
+      </header>
+  
+      <table class="w3-table">
+        {% for idx, name in [('created',_('Created')), ('modified', _('Modified')), ('size', _('Size'))]%}
+        <tr>
+        <td>{{_(name)}}:</td>
+        <td>{{file[idx]}}</td>
+        </tr>
+        {% endfor %}
+      </table>
+  
+      <footer class="w3-teal">
+        <a href="{{ url_for('.send',file=file.name)}}" class="w3-button w3-hover-teal w3-hover-text-black"><i class="fa fa-file-download"></i>  {{_('Download File')}}</a>
+        <a class="w3-button w3-right w3-hover-teal w3-hover-text-black" 
+        onclick="document.getElementById('id03').innerHTML='{{file.name}}'; document.getElementById('id02').href='{{ url_for('.delete',file=file.name)}}'; document.getElementById('id01').style.display='block';"><i class="fa fa-trash"></i></a>
+      </footer>
+    </div>
+
+   </div>
+{% if 0 == (loop.index%4) and not last %}
+</div>
+<div class="w3-row-padding w3-margin-bottom">
+{% endif %}
+{% endfor %}  
+</div>
+

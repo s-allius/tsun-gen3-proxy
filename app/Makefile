@@ -6,15 +6,23 @@ IMAGE = tsun-gen3-proxy
 
 
 # Folders
-SRC=.
+APP=.
+SRC=$(APP)/src
+# Folders for Babel translation
+BABEL_INPUT_JINJA=$(SRC)/web/templates
+BABEL_INPUT= $(foreach dir,$(BABEL_INPUT_JINJA),$(wildcard $(dir)/*.html.j2)) \
+
+BABEL_TRANSLATIONS=$(APP)/translations
 
 export BUILD_DATE := ${shell date -Iminutes}
-VERSION := $(shell cat $(SRC)/.version)
+VERSION := $(shell cat $(APP)/.version)
 export MAJOR  := $(shell echo $(VERSION) | cut -f1 -d.)
 
 PUBLIC_URL := $(shell echo $(PUBLIC_CONTAINER_REGISTRY) | cut -f1 -d/)
 PUBLIC_USER :=$(shell echo $(PUBLIC_CONTAINER_REGISTRY) | cut -f2 -d/)
 
+clean:
+	rm -f $(BABEL_TRANSLATIONS)/*.pot
 
 dev debug:
 	@echo version: $(VERSION)  build-date: $(BUILD_DATE)   image: $(PRIVAT_CONTAINER_REGISTRY)$(IMAGE)
@@ -39,5 +47,17 @@ preview rel:
 	export IMAGE=$(PUBLIC_CONTAINER_REGISTRY)$(IMAGE) && \
 	docker buildx bake -f docker-bake.hcl $@
 
+babel: $(BABEL_TRANSLATIONS)/de/LC_MESSAGES/messages.mo $(BABEL_TRANSLATIONS)/de/LC_MESSAGES/messages.po $(BABEL_TRANSLATIONS)/messages.pot
 
-.PHONY: debug dev preview rc rel
+$(BABEL_TRANSLATIONS)/%.pot : $(SRC)/.babel.cfg $(BABEL_INPUT)
+	@mkdir -p $(@D)
+	@pybabel extract -F $< --project=$(IMAGE) --version=$(VERSION) -o $@ $(SRC)
+
+$(BABEL_TRANSLATIONS)/%/LC_MESSAGES/messages.po : $(BABEL_TRANSLATIONS)/messages.pot
+	@mkdir -p $(@D)
+	@pybabel update  --init-missing -i $< -d $(BABEL_TRANSLATIONS) -l $*
+
+$(BABEL_TRANSLATIONS)/%/LC_MESSAGES/messages.mo : $(BABEL_TRANSLATIONS)/%/LC_MESSAGES/messages.po
+	@pybabel compile  -d $(BABEL_TRANSLATIONS) -l $*
+
+.PHONY: babel clean debug dev preview rc rel

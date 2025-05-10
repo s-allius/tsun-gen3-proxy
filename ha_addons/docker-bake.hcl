@@ -90,6 +90,7 @@ target "preview" {
 target "rc" {
   inherits = ["_common", "_prod"]
   tags = ["${IMAGE}:rc", "${IMAGE}:${VERSION}"]
+  no-cache = true
 }
 
 target "rel" {
