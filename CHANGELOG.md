@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+- Cleanup startup code for Quart and the Proxy
+- Redirect the hypercorn traces to a separate log-file
+- Configure the dashboard trace handler by the logging.ini file
 - Dashboard: add Notes page and table for important messages
 - Dashboard: add Log-File page
 - Dashboard: add Connection page
