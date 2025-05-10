@@ -113,7 +113,9 @@ def patch_unhealthy_remote():
     with patch.object(AsyncStreamClient, 'healthy', new_healthy) as conn:
         yield conn
 
-def test_inverter_iter():
+@pytest.mark.asyncio
+async def test_inverter_iter(my_loop):
+    _ = my_loop
     InverterBase._registry.clear()
     cnt = 0
     reader = FakeReader()
@@ -216,7 +218,8 @@ def test_unhealthy_remote(patch_unhealthy_remote):
     assert cnt == 0
 
 @pytest.mark.asyncio
-async def test_remote_conn(config_conn, patch_open_connection):
+async def test_remote_conn(my_loop, config_conn, patch_open_connection):
+    _ = my_loop
     _ = config_conn
     _ = patch_open_connection
     assert asyncio.get_running_loop()
@@ -242,8 +245,9 @@ async def test_remote_conn(config_conn, patch_open_connection):
     assert cnt == 0
 
 @pytest.mark.asyncio
-async def test_remote_conn_to_private(config_conn, patch_open_connection):
+async def test_remote_conn_to_private(my_loop, config_conn, patch_open_connection):
     '''check DNS resolving of the TSUN FQDN to a local address'''
+    _ = my_loop
     _ = config_conn
     _ = patch_open_connection
     assert asyncio.get_running_loop()
@@ -280,8 +284,9 @@ async def test_remote_conn_to_private(config_conn, patch_open_connection):
 
 
 @pytest.mark.asyncio
-async def test_remote_conn_to_loopback(config_conn, patch_open_connection):
+async def test_remote_conn_to_loopback(my_loop, config_conn, patch_open_connection):
     '''check DNS resolving of the TSUN FQDN to the loopback address'''
+    _ = my_loop
     _ = config_conn
     _ = patch_open_connection
     assert asyncio.get_running_loop()
@@ -317,8 +322,9 @@ async def test_remote_conn_to_loopback(config_conn, patch_open_connection):
     assert cnt == 0
 
 @pytest.mark.asyncio
-async def test_remote_conn_to_none(config_conn, patch_open_connection):
+async def test_remote_conn_to_none(my_loop, config_conn, patch_open_connection):
     '''check if get_extra_info() return None in case of an error'''
+    _ = my_loop
     _ = config_conn
     _ = patch_open_connection
     assert asyncio.get_running_loop()
@@ -354,7 +360,8 @@ async def test_remote_conn_to_none(config_conn, patch_open_connection):
     assert cnt == 0
 
 @pytest.mark.asyncio
-async def test_unhealthy_remote(config_conn, patch_open_connection, patch_unhealthy_remote):
+async def test_unhealthy_remote(my_loop, config_conn, patch_open_connection, patch_unhealthy_remote):
+    _ = my_loop
     _ = config_conn
     _ = patch_open_connection
     _ = patch_unhealthy_remote
@@ -391,10 +398,10 @@ async def test_unhealthy_remote(config_conn, patch_open_connection, patch_unheal
     assert cnt == 0
 
 @pytest.mark.asyncio
-async def test_remote_disc(config_conn, patch_open_connection):
+async def test_remote_disc(my_loop, config_conn, patch_open_connection):
+    _ = my_loop
     _ = config_conn
     _ = patch_open_connection
-    assert asyncio.get_running_loop()
     reader = FakeReader()
     writer =  FakeWriter()
 

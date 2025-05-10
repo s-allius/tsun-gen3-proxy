@@ -15,7 +15,6 @@ pytest_plugins = ('pytest_asyncio',)
 @pytest.fixture(scope="session")
 def client():
     app.secret_key = 'super secret key'
-    Web(app, '../transfer', False)
     return app.test_client()
 
 @pytest.fixture

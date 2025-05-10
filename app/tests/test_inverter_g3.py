@@ -99,7 +99,8 @@ def patch_healthy():
     with patch.object(AsyncStream, 'healthy') as conn:
         yield conn
 
-def test_method_calls(patch_healthy):
+@pytest.mark.asyncio
+async def test_method_calls(my_loop, patch_healthy):
     spy = patch_healthy
     reader = FakeReader()
     writer =  FakeWriter()
@@ -119,7 +120,7 @@ def test_method_calls(patch_healthy):
     assert cnt == 0
 
 @pytest.mark.asyncio
-async def test_remote_conn(config_conn, patch_open_connection):
+async def test_remote_conn(my_loop, config_conn, patch_open_connection):
     _ = config_conn
     _ = patch_open_connection
     assert asyncio.get_running_loop()
@@ -137,7 +138,7 @@ async def test_remote_conn(config_conn, patch_open_connection):
     assert cnt == 0
 
 @pytest.mark.asyncio
-async def test_remote_except(config_conn, patch_open_connection):
+async def test_remote_except(my_loop, config_conn, patch_open_connection):
     _ = config_conn
     _ = patch_open_connection
     assert asyncio.get_running_loop()
@@ -164,7 +165,7 @@ async def test_remote_except(config_conn, patch_open_connection):
     assert cnt == 0
 
 @pytest.mark.asyncio
-async def test_mqtt_publish(config_conn, patch_open_connection):
+async def test_mqtt_publish(my_loop, config_conn, patch_open_connection):
     _ = config_conn
     _ = patch_open_connection
     assert asyncio.get_running_loop()
@@ -191,7 +192,7 @@ async def test_mqtt_publish(config_conn, patch_open_connection):
         assert Infos.new_stat_data['proxy'] == False
 
 @pytest.mark.asyncio
-async def test_mqtt_err(config_conn, patch_open_connection, patch_mqtt_err):
+async def test_mqtt_err(my_loop, config_conn, patch_open_connection, patch_mqtt_err):
     _ = config_conn
     _ = patch_open_connection
     _ = patch_mqtt_err
@@ -208,7 +209,7 @@ async def test_mqtt_err(config_conn, patch_open_connection, patch_mqtt_err):
         assert stream.new_data['inverter'] == True
 
 @pytest.mark.asyncio
-async def test_mqtt_except(config_conn, patch_open_connection, patch_mqtt_except):
+async def test_mqtt_except(my_loop, config_conn, patch_open_connection, patch_mqtt_except):
     _ = config_conn
     _ = patch_open_connection
     _ = patch_mqtt_except
