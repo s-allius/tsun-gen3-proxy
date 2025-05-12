@@ -6,6 +6,7 @@ from cnf.config import Config
 from datetime import datetime
 from os import DirEntry
 import os
+from dateutil import tz
 
 from . import web
 
@@ -19,10 +20,10 @@ def _get_birth_from_log(path: str) -> None | datetime:
             first_line = first_line.lstrip("'")
             fmt = "%Y-%m-%d %H:%M:%S" if first_line[4] == '-' \
                 else "%d-%m-%Y %H:%M:%S"
-            dt = datetime.strptime(first_line[0:19], fmt)
+            dt = datetime.strptime(first_line[0:19], fmt). \
+                replace(tzinfo=tz.tzlocal())
     except Exception:
         pass
-        # print(f"except: '{e}' for {first_line}")
     return dt
 
 
