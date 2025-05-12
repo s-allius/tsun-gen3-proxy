@@ -9,6 +9,8 @@ from cnf.config import Config
 from mock import patch
 from proxy import Proxy
 import os, errno
+from os import DirEntry, stat_result
+import datetime
 
 pytest_plugins = ('pytest_asyncio',)
 
@@ -201,13 +203,32 @@ async def test_notes_fetch(client, config_conn):
 
 
 @pytest.mark.asyncio
-async def test_file_fetch(client, config_conn):
+async def test_file_fetch(client, config_conn, monkeypatch):
     """Test the data-fetch route."""
     _ = config_conn
     assert Config.log_path == 'app/tests/log/'
+    def my_stat1(*arg):
+        stat = stat_result
+        stat.st_size = 20
+        stat.st_birthtime = datetime.datetime(2024, 1, 31, 10, 30, 15)
+        stat.st_mtime = datetime.datetime(2024, 1, 1, 1, 30, 15).timestamp()
+        return stat
+
+    monkeypatch.setattr(DirEntry, "stat", my_stat1)
     response = await client.get('/file-fetch')
     assert response.status_code == 200
 
+
+    def my_stat2(*arg):
+        stat = stat_result
+        stat.st_size = 20
+        stat.st_mtime = datetime.datetime(2024, 1, 1, 1, 30, 15).timestamp()
+        return stat
+
+    monkeypatch.setattr(DirEntry, "stat", my_stat2)
+    monkeypatch.delattr(stat_result, "st_birthtime")
+    response = await client.get('/file-fetch')
+    assert response.status_code == 200
 
 @pytest.mark.asyncio
 async def test_send_file(client, config_conn):
