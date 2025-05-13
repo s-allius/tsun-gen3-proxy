@@ -7,9 +7,9 @@
   <div id="id01" class="w3-modal">
     <div class="w3-modal-content" style="width:600px">
       <div class="w3-container w3-padding-24">
-        <h2>{{_("Do you really want to delete the log file")}}:<br><b><span id="id03"></span></b> ?</h2>
+        <h2>{{_('Do you really want to delete the log file: <br>%(file)s ?', file='<b><span id="id03"></span></b>')}}</h2>
         <div class="w3-bar">
-          <button id="id02" class="w3-button w3-red" onclick="deleteFile(); document.getElementById('id01').style.display='none'">{{_('Delete File</button')}}>
+          <button id="id02" class="w3-button w3-red" onclick="deleteFile(); document.getElementById('id01').style.display='none'">{{_('Delete File')}}</button>
           <button class="w3-button w3-grey w3-right" onclick="document.getElementById('id01').style.display='none'">{{_('Abort')}}</button>
         </div>
       </div>
