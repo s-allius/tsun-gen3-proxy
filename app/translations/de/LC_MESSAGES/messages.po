@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: tsun-gen3-proxy 0.14.0\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2025-05-04 18:16+0200\n"
+"POT-Creation-Date: 2025-05-13 20:55+0200\n"
 "PO-Revision-Date: 2025-04-18 16:24+0200\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: de\n"
@@ -42,6 +42,10 @@ msgstr "Cloud-IP:Port"
 #: src/web/conn_table.py:61
 msgid "Cloud-IP"
 msgstr "Cloud-IP"
+
+#: src/web/log_files.py:48
+msgid "n/a"
+msgstr "keine Angabe"
 
 #: src/web/mqtt_table.py:27
 msgid "MQTT devices"
