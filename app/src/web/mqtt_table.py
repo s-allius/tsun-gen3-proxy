@@ -46,10 +46,13 @@ def get_table_data():
 @web.route('/mqtt-fetch')
 async def mqtt_fetch():
     mqtt = Mqtt(None)
-    ctime = format_datetime(dt=mqtt.ctime, format='short')
+    cdatetime = format_datetime(dt=mqtt.ctime, format='d.MM. HH:mm')
     data = {
         "update-time": format_datetime(format="medium"),
-        "mqtt-ctime": f"<h3>{ctime}</h3>",
+        "mqtt-ctime": f"""
+<h3 class="w3-hide-small w3-hide-medium">{cdatetime}</h3>
+<h4 class="w3-hide-large">{cdatetime}</h4>
+""",
         "mqtt-tx": f"<h3>{mqtt.published}</h3>",
         "mqtt-rx": f"<h3>{mqtt.received}</h3>",
     }
