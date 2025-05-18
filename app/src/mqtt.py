@@ -2,6 +2,7 @@ import asyncio
 import logging
 import aiomqtt
 import traceback
+import struct
 
 from modbus import Modbus
 from messages import Message
@@ -32,6 +33,7 @@ class Mqtt(metaclass=Singleton):
         self.ha_status_topic = f"{ha['auto_conf_prefix']}/status"
         self.mb_rated_topic = f"{ha['entity_prefix']}/+/rated_load"
         self.mb_out_coeff_topic = f"{ha['entity_prefix']}/+/out_coeff"
+        self.dcu_power_topic = f"{ha['entity_prefix']}/+/dcu_power"
         self.mb_reads_topic = f"{ha['entity_prefix']}/+/modbus_read_regs"
         self.mb_inputs_topic = f"{ha['entity_prefix']}/+/modbus_read_inputs"
         self.mb_at_cmd_topic = f"{ha['entity_prefix']}/+/at_cmd"
@@ -85,6 +87,7 @@ class Mqtt(metaclass=Singleton):
                     await self.__client.subscribe(self.ha_status_topic)
                     await self.__client.subscribe(self.mb_rated_topic)
                     await self.__client.subscribe(self.mb_out_coeff_topic)
+                    await self.__client.subscribe(self.dcu_power_topic)
                     await self.__client.subscribe(self.mb_reads_topic)
                     await self.__client.subscribe(self.mb_inputs_topic)
                     await self.__client.subscribe(self.mb_at_cmd_topic)
@@ -145,6 +148,21 @@ class Mqtt(metaclass=Singleton):
                     await self.modbus_cmd(message,
                                           Modbus.WRITE_SINGLE_REG,
                                           0, 0x202c, val)
+            except Exception:
+                pass
+
+        if message.topic.matches(self.dcu_power_topic):
+            payload = message.payload.decode("UTF-8")
+            try:
+                val = round(float(payload) * 10)
+                if val < 1000 or val > 8000:
+                    logger_mqtt.error('dcu_power: value must be in'
+                                      'the range 100..800,'
+                                      f' got: {payload}')
+                else:
+                    pdu = struct.pack('>BBBBBBH', 1, 1, 6, 1, 0, 1, val)
+                    for fnc in self.each_inverter(message, "send_dcu_cmd"):
+                        fnc(pdu)
             except Exception:
                 pass
 
