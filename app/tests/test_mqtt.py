@@ -17,7 +17,7 @@ NO_MOSQUITTO_TEST = False
 
 pytest_plugins = ('pytest_asyncio',)
 
-@pytest.fixture(scope="module", autouse=True)
+@pytest.fixture(scope="function", autouse=True)
 def module_init():
     Singleton._instances.clear()
     yield
