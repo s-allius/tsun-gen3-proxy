@@ -3,8 +3,9 @@ import pytest
 import asyncio
 import aiomqtt
 import logging
-
+from aiomqtt import MqttError
 from mock import patch, Mock
+
 from async_stream import AsyncIfcImpl
 from singleton import Singleton
 from mqtt import Mqtt
@@ -44,6 +45,14 @@ def config_no_conn(test_port):
     Config.act_config = {'mqtt':{'host': "", 'port': test_port, 'user': '', 'passwd': ''},
                          'ha':{'auto_conf_prefix': 'homeassistant','discovery_prefix': 'homeassistant', 'entity_prefix': 'tsun'}
                         }
+    Config.def_config = {}
+
+@pytest.fixture
+def config_def_conn(test_port):
+    Config.act_config = {'mqtt':{'host': "unknown_url", 'port': test_port, 'user': '', 'passwd': ''},
+                         'ha':{'auto_conf_prefix': 'homeassistant','discovery_prefix': 'homeassistant', 'entity_prefix': 'tsun'}
+                        }
+    Config.def_config = Config.act_config
 
 @pytest.fixture
 def spy_at_cmd():
@@ -176,6 +185,76 @@ async def test_mqtt_no_config(config_no_conn):
         await m.close()
 
 @pytest.mark.asyncio
+async def test_mqtt_except_no_config(config_no_conn, monkeypatch, caplog):
+    _ = config_no_conn
+
+    assert asyncio.get_running_loop()
+
+    on_connect =  asyncio.Event()
+    async def cb():
+        on_connect.set()
+
+    async def my_aenter(self):
+        raise MqttError('TestException') from None
+    
+    monkeypatch.setattr(aiomqtt.Client, "__aenter__", my_aenter)
+
+    LOGGER = logging.getLogger("mqtt")
+    LOGGER.propagate = True
+    LOGGER.setLevel(logging.INFO)
+
+    with caplog.at_level(logging.INFO):
+        m = Mqtt(cb)
+        assert m.task
+        await asyncio.sleep(0)
+        assert not on_connect.is_set()
+        try:
+            await m.publish('homeassistant/status', 'online')
+            assert False
+        except MqttError:
+            pass
+        except Exception:
+            assert False          
+        finally:
+            await m.close()
+    assert 'Connection lost; Reconnecting in 5 seconds' in caplog.text
+
+@pytest.mark.asyncio
+async def test_mqtt_except_def_config(config_def_conn, monkeypatch, caplog):
+    _ = config_def_conn
+
+    assert asyncio.get_running_loop()
+
+    on_connect =  asyncio.Event()
+    async def cb():
+        on_connect.set()
+
+    async def my_aenter(self):
+        raise MqttError('TestException') from None
+    
+    monkeypatch.setattr(aiomqtt.Client, "__aenter__", my_aenter)
+
+    LOGGER = logging.getLogger("mqtt")
+    LOGGER.propagate = True
+    LOGGER.setLevel(logging.INFO)
+
+    with caplog.at_level(logging.INFO):
+        m = Mqtt(cb)
+        assert m.task
+        await asyncio.sleep(0)
+        assert not on_connect.is_set()
+        try:
+            await m.publish('homeassistant/status', 'online')
+            assert False
+        except MqttError:
+            pass
+        except Exception:
+            assert False          
+        finally:
+            await m.close()
+    assert 'MQTT is unconfigured; Check your config.toml!' in caplog.text
+
+@pytest.mark.asyncio
 async def test_msg_dispatch(config_mqtt_conn, spy_modbus_cmd):
     _ = config_mqtt_conn
     spy = spy_modbus_cmd
@@ -235,6 +314,12 @@ async def test_msg_dispatch_err(config_mqtt_conn, spy_modbus_cmd):
         msg = aiomqtt.Message(topic= 'tsun/inv_1/modbus_read_regs', payload= b'0x3000, 10, 7', qos= 0, retain = False, mid= 0, properties= None)
         await m.dispatch_msg(msg)
         spy.assert_not_called()
+
+        spy.reset_mock()
+        msg = aiomqtt.Message(topic= 'tsun/inv_1/dcu_power', payload= b'100W', qos= 0, retain = False, mid= 0, properties= None)
+        await m.dispatch_msg(msg)
+        spy.assert_not_called()
+
     finally:
         await m.close()
 
