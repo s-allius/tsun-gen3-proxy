@@ -287,3 +287,19 @@ async def test_dcu_dispatch(config_mqtt_conn, spy_dcu_cmd):
         spy.assert_called_once_with(b'\x01\x01\x06\x01\x00\x01\x03\xe8')
     finally:
         await m.close()
+
+@pytest.mark.asyncio
+async def test_dcu_inv_value(config_mqtt_conn, spy_dcu_cmd):
+    _ = config_mqtt_conn
+    spy = spy_dcu_cmd
+    try:
+        m = Mqtt(None)
+        msg = aiomqtt.Message(topic= 'tsun/inv_3/dcu_power', payload= b'99.9', qos= 0, retain = False, mid= 0, properties= None)
+        await m.dispatch_msg(msg)
+        spy.assert_not_called()
+
+        msg = aiomqtt.Message(topic= 'tsun/inv_3/dcu_power', payload= b'800.1', qos= 0, retain = False, mid= 0, properties= None)
+        await m.dispatch_msg(msg)
+        spy.assert_not_called()
+    finally:
+        await m.close()
