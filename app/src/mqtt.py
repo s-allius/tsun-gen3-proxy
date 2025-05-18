@@ -148,7 +148,8 @@ class Mqtt(metaclass=Singleton):
                          f' {status}')
         if status == 'online':
             self.ha_restarts += 1
-            await self.__cb_mqtt_is_up()
+            if self.__cb_mqtt_is_up:
+                await self.__cb_mqtt_is_up()
 
     async def _out_coeff(self, message):
         payload = message.payload.decode("UTF-8")

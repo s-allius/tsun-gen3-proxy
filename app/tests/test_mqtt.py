@@ -255,6 +255,10 @@ async def test_msg_dispatch(config_mqtt_conn, spy_modbus_cmd):
     spy = spy_modbus_cmd
     try:
         m = Mqtt(None)
+        msg = aiomqtt.Message(topic= 'homeassistant/status', payload= b'online', qos= 0, retain = False, mid= 0, properties= None)
+        await m.dispatch_msg(msg)
+        assert m.ha_restarts == 1
+
         msg = aiomqtt.Message(topic= 'tsun/inv_1/rated_load', payload= b'2', qos= 0, retain = False, mid= 0, properties= None)
         await m.dispatch_msg(msg)
         spy.assert_awaited_once_with(Modbus.WRITE_SINGLE_REG, 0x2008, 2, logging.INFO)
@@ -278,6 +282,23 @@ async def test_msg_dispatch(config_mqtt_conn, spy_modbus_cmd):
         msg = aiomqtt.Message(topic= 'tsun/inv_1/modbus_read_inputs', payload= b'0x3000, 10', qos= 0, retain = False, mid= 0, properties= None)
         await m.dispatch_msg(msg)
         spy.assert_awaited_once_with(Modbus.READ_INPUTS, 0x3000, 10, logging.INFO)
+
+        # test dispatching with empty mapping table
+        m.topic_defs.clear()
+        spy.reset_mock()
+        msg = aiomqtt.Message(topic= 'tsun/inv_1/modbus_read_inputs', payload= b'0x3000, 10', qos= 0, retain = False, mid= 0, properties= None)
+        await m.dispatch_msg(msg)
+        spy.assert_not_called()
+
+        # test dispatching with incomplete mapping table - invalid fnc defined
+        m.topic_defs.append(
+            {'prefix': 'entity_prefix', 'topic': '/+/dcu_power',
+             'full_topic': 'entity_prefix/+/dcu_power', 'fnc': 'invalid'}
+        )
+        spy.reset_mock()
+        msg = aiomqtt.Message(topic= 'tsun/inv_1/modbus_read_inputs', payload= b'0x3000, 10', qos= 0, retain = False, mid= 0, properties= None)
+        await m.dispatch_msg(msg)
+        spy.assert_not_called()
 
     finally:
         await m.close()
