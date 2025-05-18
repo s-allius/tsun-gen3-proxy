@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: tsun-gen3-proxy 0.14.0\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2025-05-13 22:34+0200\n"
+"POT-Creation-Date: 2025-05-18 15:30+0200\n"
 "PO-Revision-Date: 2025-04-18 16:24+0200\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: de\n"
@@ -120,6 +120,7 @@ msgid "TSUN Proxy - Log Files"
 msgstr "TSUN Proxy - Log Dateien"
 
 #: src/web/templates/page_logging.html.j2:10
+#, python-format
 msgid "Do you really want to delete the log file: <br>%(file)s ?"
 msgstr "Soll die Datei: <br>%(file)s<br>wirklich gelöscht werden?"
 
