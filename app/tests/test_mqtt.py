@@ -220,6 +220,10 @@ async def test_mqtt_except_def_config(config_def_conn, monkeypatch, caplog):
 
     assert asyncio.get_running_loop()
 
+    on_connect =  asyncio.Event()
+    async def cb():
+        on_connect.set()
+
     async def my_aenter(self):
         raise MqttError('TestException') from None
     
@@ -230,9 +234,10 @@ async def test_mqtt_except_def_config(config_def_conn, monkeypatch, caplog):
     LOGGER.setLevel(logging.INFO)
 
     with caplog.at_level(logging.INFO):
-        m = Mqtt(None)
+        m = Mqtt(cb)
         assert m.task
         await asyncio.sleep(0)
+        assert not on_connect.is_set()
         try:
             await m.publish('homeassistant/status', 'online')
             assert False
