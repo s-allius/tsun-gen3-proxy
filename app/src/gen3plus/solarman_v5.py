@@ -543,6 +543,8 @@ class SolarmanV5(SolarmanBase):
             logger.warning(f'[{self.node_id}] ignore DCU CMD,'
                            ' cause the state is not UP anymore')
             return
+
+        self.inverter.forward_dcu_cmd_resp = False
         self._build_header(0x4510)
         self.ifc.tx_add(struct.pack('<BHLLL', self.DCU_CMD,
                                     self.sensor_list, 0, 0, 0))
@@ -666,6 +668,10 @@ class SolarmanV5(SolarmanBase):
             self.inc_counter('AT_Command')
             self.inverter.forward_at_cmd_resp = True
 
+        if ftype == self.DCU_CMD:
+            self.inc_counter('DCU_Command')
+            self.inverter.forward_dcu_cmd_resp = True
+
         elif ftype == self.MB_RTU_CMD:
             rstream = self.ifc.remote.stream
             if rstream.mb.recv_req(data[15:],
@@ -689,6 +695,10 @@ class SolarmanV5(SolarmanBase):
             if self.inverter.forward_at_cmd_resp:
                 return logging.INFO
             return logging.DEBUG
+        elif ftype == self.DCU_CMD:
+            if self.inverter.forward_dcu_cmd_resp:
+                return logging.INFO
+            return logging.DEBUG
         elif ftype == self.MB_RTU_CMD \
                 and self.server_side:
             return self.mb.last_log_lvl
@@ -708,6 +718,16 @@ class SolarmanV5(SolarmanBase):
                 logger.info(f'{key}: {data_json}')
                 self.publish_mqtt(f'{Proxy.entity_prfx}{node_id}{key}', data_json)  # noqa: E501
                 return
+
+        elif ftype == self.DCU_CMD:
+            if not self.inverter.forward_dcu_cmd_resp:
+                data_json = '+ok'
+                node_id = self.node_id
+                key = 'dcu_resp'
+                logger.info(f'{key}: {data_json}')
+                self.publish_mqtt(f'{Proxy.entity_prfx}{node_id}{key}', data_json)  # noqa: E501
+                return
+
         elif ftype == self.MB_RTU_CMD:
             self.__modbus_command_rsp(data)
             return
