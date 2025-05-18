@@ -203,15 +203,12 @@ class Mqtt(metaclass=Singleton):
 
     def dcu_cmd(self, message):
         payload = message.payload.decode("UTF-8")
-        try:
-            val = round(float(payload) * 10)
-            if val < 1000 or val > 8000:
-                logger_mqtt.error('dcu_power: value must be in'
-                                  'the range 100..800,'
-                                  f' got: {payload}')
-            else:
-                pdu = struct.pack('>BBBBBBH', 1, 1, 6, 1, 0, 1, val)
-                for fnc in self.each_inverter(message, "send_dcu_cmd"):
-                    fnc(pdu)
-        except Exception:
-            pass
+        val = round(float(payload) * 10)
+        if val < 1000 or val > 8000:
+            logger_mqtt.error('dcu_power: value must be in'
+                              'the range 100..800,'
+                              f' got: {payload}')
+        else:
+            pdu = struct.pack('>BBBBBBH', 1, 1, 6, 1, 0, 1, val)
+            for fnc in self.each_inverter(message, "send_dcu_cmd"):
+                fnc(pdu)
