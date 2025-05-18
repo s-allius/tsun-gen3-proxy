@@ -292,8 +292,8 @@ async def test_msg_dispatch(config_mqtt_conn, spy_modbus_cmd):
 
         # test dispatching with incomplete mapping table - invalid fnc defined
         m.topic_defs.append(
-            {'prefix': 'entity_prefix', 'topic': '/+/dcu_power',
-             'full_topic': 'entity_prefix/+/dcu_power', 'fnc': 'invalid'}
+            {'prefix': 'entity_prefix', 'topic': '/+/modbus_read_inputs',
+             'full_topic': 'tsun/+/modbus_read_inputs', 'fnc': 'invalid'}
         )
         spy.reset_mock()
         msg = aiomqtt.Message(topic= 'tsun/inv_1/modbus_read_inputs', payload= b'0x3000, 10', qos= 0, retain = False, mid= 0, properties= None)
