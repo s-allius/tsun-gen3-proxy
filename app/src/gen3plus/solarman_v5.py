@@ -247,6 +247,7 @@ class SolarmanBase(Message):
 class SolarmanV5(SolarmanBase):
     AT_CMD = 1
     MB_RTU_CMD = 2
+    DCU_CMD = 5
     AT_CMD_RSP = 8
     MB_CLIENT_DATA_UP = 30
     '''Data up time in client mode'''
@@ -531,6 +532,24 @@ class SolarmanV5(SolarmanBase):
             self.ifc.tx_flush()
         except Exception:
             self.ifc.tx_clear()
+
+    def send_dcu_cmd(self, pdu: bytearray):
+        if self.sensor_list != 0x3026:
+            logger.debug(f'[{self.node_id}] DCU CMD not allowed,'
+                         f' for sensor: {self.sensor_list:#04x}')
+            return
+
+        if self.state != State.up:
+            logger.warning(f'[{self.node_id}] ignore DCU CMD,'
+                           ' cause the state is not UP anymore')
+            return
+        self._build_header(0x4510)
+        self.ifc.tx_add(struct.pack('<BHLLL', self.DCU_CMD,
+                                    self.sensor_list, 0, 0, 0))
+        self.ifc.tx_add(pdu)
+        self._finish_send_msg()
+        self.ifc.tx_log(logging.INFO, f'Send DCU CMD :{self.addr}:')
+        self.ifc.tx_flush()
 
     def __forward_msg(self):
         self.forward(self.ifc.rx_peek(), self.header_len+self.data_len+2)
