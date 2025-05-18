@@ -69,6 +69,14 @@ def spy_modbus_cmd_client():
         yield wrapped_conn
     conn.close()
 
+@pytest.fixture
+def spy_dcu_cmd():
+    conn = SolarmanV5(None, ('test.local', 1234), server_side=True, client_mode= False, ifc=AsyncIfcImpl())
+    conn.node_id = 'inv_3/'
+    with patch.object(conn, 'send_dcu_cmd', wraps=conn.send_dcu_cmd) as wrapped_conn:
+        yield wrapped_conn
+    conn.close()
+
 def test_native_client(test_hostname, test_port):
     """Sanity check: Make sure the paho-mqtt client can connect to the test
     MQTT server. Otherwise the test set NO_MOSQUITTO_TEST to True and disable
@@ -265,5 +273,17 @@ async def test_at_cmd_dispatch(config_mqtt_conn, spy_at_cmd):
         await m.dispatch_msg(msg)
         spy.assert_awaited_once_with('AT+')
         
+    finally:
+        await m.close()
+
+@pytest.mark.asyncio
+async def test_dcu_dispatch(config_mqtt_conn, spy_dcu_cmd):
+    _ = config_mqtt_conn
+    spy = spy_dcu_cmd
+    try:
+        m = Mqtt(None)
+        msg = aiomqtt.Message(topic= 'tsun/inv_3/dcu_power', payload= b'100.0', qos= 0, retain = False, mid= 0, properties= None)
+        await m.dispatch_msg(msg)
+        spy.assert_called_once_with(b'\x01\x01\x06\x01\x00\x01\x03\xe8')
     finally:
         await m.close()
