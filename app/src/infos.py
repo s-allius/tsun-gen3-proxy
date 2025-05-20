@@ -44,6 +44,7 @@ class Register(Enum):
     MODBUS_COMMAND = 60
     AT_COMMAND_BLOCKED = 61
     CLOUD_CONN_CNT = 62
+    DCU_COMMAND = 63
     OUTPUT_POWER = 83
     RATED_POWER = 84
     INVERTER_TEMP = 85
@@ -625,6 +626,7 @@ class Infos:
         Register.INVALID_MSG_FMT:    {'name': ['proxy', 'Invalid_Msg_Format'], 'singleton': True,   'ha': {'dev': 'proxy', 'comp': 'sensor', 'dev_cla': None, 'stat_cla': None, 'id': 'inv_msg_fmt_',   'fmt': FMT_INT, 'name': 'Invalid Message Format', 'icon': COUNTER, 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.AT_COMMAND:         {'name': ['proxy', 'AT_Command'],         'singleton': True,   'ha': {'dev': 'proxy', 'comp': 'sensor', 'dev_cla': None, 'stat_cla': None, 'id': 'at_cmd_',        'fmt': FMT_INT, 'name': 'AT Command',           'icon': COUNTER, 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.AT_COMMAND_BLOCKED: {'name': ['proxy', 'AT_Command_Blocked'], 'singleton': True,   'ha': {'dev': 'proxy', 'comp': 'sensor', 'dev_cla': None, 'stat_cla': None, 'id': 'at_cmd_blocked_', 'fmt': FMT_INT, 'name': 'AT Command Blocked',   'icon': COUNTER, 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.DCU_COMMAND:        {'name': ['proxy', 'DCU_Command'],        'singleton': True,   'ha': {'dev': 'proxy', 'comp': 'sensor', 'dev_cla': None, 'stat_cla': None, 'id': 'dcu_cmd_',       'fmt': FMT_INT, 'name': 'DCU Command',          'icon': COUNTER, 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.MODBUS_COMMAND:     {'name': ['proxy', 'Modbus_Command'],     'singleton': True,   'ha': {'dev': 'proxy', 'comp': 'sensor', 'dev_cla': None, 'stat_cla': None, 'id': 'modbus_cmd_',    'fmt': FMT_INT, 'name': 'Modbus Command',       'icon': COUNTER, 'ent_cat': 'diagnostic'}},  # noqa: E501
         # 0xffffff03:  {'name':['proxy', 'Voltage'],                        'level': logging.DEBUG, 'unit': 'V',    'ha':{'dev':'proxy', 'dev_cla': 'voltage',     'stat_cla': 'measurement', 'id':'proxy_volt_',  'fmt':FMT_FLOAT,'name': 'Grid Voltage'}},  # noqa: E501
 
