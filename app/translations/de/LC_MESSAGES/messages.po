@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: tsun-gen3-proxy 0.14.0\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2025-05-13 22:34+0200\n"
+"POT-Creation-Date: 2025-05-20 23:33+0200\n"
 "PO-Revision-Date: 2025-04-18 16:24+0200\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: de\n"
@@ -19,31 +19,35 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.17.0\n"
 
-#: src/web/conn_table.py:51 src/web/templates/base.html.j2:58
+#: src/web/conn_table.py:53 src/web/templates/base.html.j2:58
 msgid "Connections"
 msgstr "Verbindungen"
 
-#: src/web/conn_table.py:58
+#: src/web/conn_table.py:60
 msgid "Device-IP:Port"
 msgstr "Geräte-IP:Port"
 
-#: src/web/conn_table.py:58
+#: src/web/conn_table.py:60
 msgid "Device-IP"
 msgstr "Geräte-IP"
 
-#: src/web/conn_table.py:59 src/web/mqtt_table.py:33
+#: src/web/conn_table.py:61 src/web/mqtt_table.py:34
 msgid "Serial-No"
 msgstr "Seriennummer"
 
-#: src/web/conn_table.py:60
+#: src/web/conn_table.py:62
 msgid "Cloud-IP:Port"
 msgstr "Cloud-IP:Port"
 
-#: src/web/conn_table.py:60
+#: src/web/conn_table.py:62
 msgid "Cloud-IP"
 msgstr "Cloud-IP"
 
-#: src/web/mqtt_table.py:26
+#: src/web/log_files.py:48
+msgid "n/a"
+msgstr ""
+
+#: src/web/mqtt_table.py:27
 msgid "MQTT devices"
 msgstr "MQTT Geräte"
 
@@ -116,6 +120,7 @@ msgid "TSUN Proxy - Log Files"
 msgstr "TSUN Proxy - Log Dateien"
 
 #: src/web/templates/page_logging.html.j2:10
+#, python-format
 msgid "Do you really want to delete the log file: <br>%(file)s ?"
 msgstr "Soll die Datei: <br>%(file)s<br>wirklich gelöscht werden?"
 
