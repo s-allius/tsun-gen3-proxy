@@ -1493,7 +1493,7 @@ async def test_build_modell_800(my_loop, config_tsun_allow_all, inverter_ind_msg
     m.read()         # read complete msg, and dispatch msg
     assert 800 == m.db.get_db_value(Register.MAX_DESIGNED_POWER, 0)
     assert 800 == m.db.get_db_value(Register.RATED_POWER, 0)
-    assert 'TSOL-MSxx00' == m.db.get_db_value(Register.EQUIPMENT_MODEL, 0)
+    assert 'TSOL-MS800' == m.db.get_db_value(Register.EQUIPMENT_MODEL, 0)
     m.close()
 
 @pytest.mark.asyncio
