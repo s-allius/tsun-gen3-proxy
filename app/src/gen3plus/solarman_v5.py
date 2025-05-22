@@ -568,6 +568,10 @@ class SolarmanV5(SolarmanBase):
                 model = f'TSOL-MS{max_pow}'
         elif max_pow == 1800 or max_pow == 1600:
             model = f'TSOL-MS{max_pow}'
+        elif max_pow <= 800:
+            self.db.set_db_def_value(Register.NO_INPUTS, 2)
+            model = f'TSOL-MS{max_pow}'
+
         if model:
             logger.info(f'Model: {model}')
             self.db.set_db_def_value(Register.EQUIPMENT_MODEL, model)
