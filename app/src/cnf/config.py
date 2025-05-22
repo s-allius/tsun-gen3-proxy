@@ -162,7 +162,8 @@ class Config():
     )
 
     @classmethod
-    def init(cls, def_reader: ConfigIfc, log_path: str = '') -> None | str:
+    def init(cls, def_reader: ConfigIfc, log_path: str = '',
+             cnf_path: str = 'config') -> None | str:
         '''Initialise the Proxy-Config
 
 Copy the internal default config file into the config directory
@@ -173,12 +174,13 @@ and initialise the Config with the default configuration '''
         try:
             # make the default config transparaent by copying it
             # in the config.example file
-            logging.debug('Copy Default Config to config.example.toml')
+            logging.info(
+                f'Copy Default Config to {cnf_path}config.example.toml')
 
-            shutil.copy2("default_config.toml",
-                         "config/config.example.toml")
-        except Exception:
-            pass
+            shutil.copy2("cnf/default_config.toml",
+                         cnf_path + "config.example.toml")
+        except Exception as e:
+            logging.error(e)
 
         # read example config file as default configuration
         try:
