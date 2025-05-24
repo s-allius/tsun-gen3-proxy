@@ -562,14 +562,15 @@ class SolarmanV5(SolarmanBase):
         rated = db.get_db_value(Register.RATED_POWER, 0)
         model = None
         if max_pow == 2000:
+            db.set_db_def_value(Register.NO_INPUTS, 4)
             if rated == 800 or rated == 600:
                 model = f'TSOL-MS{max_pow}({rated})'
             else:
                 model = f'TSOL-MS{max_pow}'
         elif max_pow == 1800 or max_pow == 1600:
+            db.set_db_def_value(Register.NO_INPUTS, 4)
             model = f'TSOL-MS{max_pow}'
         elif max_pow <= 800:
-            self.db.set_db_def_value(Register.NO_INPUTS, 2)
             model = f'TSOL-MS{max_pow}'
 
         if model:

@@ -1468,6 +1468,7 @@ async def test_build_modell_600(my_loop, config_tsun_allow_all, inverter_ind_msg
     m.read()         # read complete msg, and dispatch msg
     assert 2000 == m.db.get_db_value(Register.MAX_DESIGNED_POWER, 0)
     assert 600 == m.db.get_db_value(Register.RATED_POWER, 0)
+    assert 4 == m.db.get_db_value(Register.NO_INPUTS, 0)
     assert 'TSOL-MS2000(600)' == m.db.get_db_value(Register.EQUIPMENT_MODEL, 0)
     assert '02b0' == m.db.get_db_value(Register.SENSOR_LIST, None)
     assert 0 == m.sensor_list   # must not been set by an inverter data ind
@@ -1487,6 +1488,7 @@ async def test_build_modell_1600(my_loop, config_tsun_allow_all, inverter_ind_ms
     m.read()         # read complete msg, and dispatch msg
     assert 1600 == m.db.get_db_value(Register.MAX_DESIGNED_POWER, 0)
     assert 1600 == m.db.get_db_value(Register.RATED_POWER, 0)
+    assert 4 == m.db.get_db_value(Register.NO_INPUTS, 0)
     assert 'TSOL-MS1600' == m.db.get_db_value(Register.EQUIPMENT_MODEL, 0)
     m.close()
 
@@ -1500,6 +1502,7 @@ async def test_build_modell_1800(my_loop, config_tsun_allow_all, inverter_ind_ms
     m.read()         # read complete msg, and dispatch msg
     assert 1800 == m.db.get_db_value(Register.MAX_DESIGNED_POWER, 0)
     assert 1800 == m.db.get_db_value(Register.RATED_POWER, 0)
+    assert 4 == m.db.get_db_value(Register.NO_INPUTS, 0)
     assert 'TSOL-MS1800' == m.db.get_db_value(Register.EQUIPMENT_MODEL, 0)
     m.close()
 
@@ -1513,6 +1516,7 @@ async def test_build_modell_2000(my_loop, config_tsun_allow_all, inverter_ind_ms
     m.read()         # read complete msg, and dispatch msg
     assert 2000 == m.db.get_db_value(Register.MAX_DESIGNED_POWER, 0)
     assert 2000 == m.db.get_db_value(Register.RATED_POWER, 0)
+    assert 4 == m.db.get_db_value(Register.NO_INPUTS, 0)
     assert 'TSOL-MS2000' == m.db.get_db_value(Register.EQUIPMENT_MODEL, 0)
     m.close()
 
@@ -1526,6 +1530,7 @@ async def test_build_modell_800(my_loop, config_tsun_allow_all, inverter_ind_msg
     m.read()         # read complete msg, and dispatch msg
     assert 800 == m.db.get_db_value(Register.MAX_DESIGNED_POWER, 0)
     assert 800 == m.db.get_db_value(Register.RATED_POWER, 0)
+    assert 2 == m.db.get_db_value(Register.NO_INPUTS, 0)
     assert 'TSOL-MS800' == m.db.get_db_value(Register.EQUIPMENT_MODEL, 0)
     m.close()
 
@@ -1539,6 +1544,7 @@ async def test_build_modell_900(my_loop, config_tsun_allow_all, inverter_ind_msg
     m.read()         # read complete msg, and dispatch msg
     assert 900 == m.db.get_db_value(Register.MAX_DESIGNED_POWER, 0)
     assert 900 == m.db.get_db_value(Register.RATED_POWER, 0)
+    assert 2 == m.db.get_db_value(Register.NO_INPUTS, 0)
     assert 'TSOL-MSxx00' == m.db.get_db_value(Register.EQUIPMENT_MODEL, 0)
     m.close()
 
@@ -2588,6 +2594,7 @@ async def test_proxy_dcu_cmd(my_loop, config_tsun_dcu1, patch_open_connection, d
         assert l.db.stat['proxy']['AT_Command'] == 0
         assert l.db.stat['proxy']['AT_Command_Blocked'] == 0
         assert l.db.stat['proxy']['Modbus_Command'] == 0
+        assert 2 == l.db.get_db_value(Register.NO_INPUTS, 0)
 
         l.append_msg(dcu_command_rsp_msg)
         l.read() # read at resp
