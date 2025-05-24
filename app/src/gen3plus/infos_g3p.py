@@ -216,7 +216,7 @@ class InfosG3P(Infos):
         self.set_db_def_value(Register.MANUFACTURER, 'TSUN')
         self.set_db_def_value(Register.EQUIPMENT_MODEL, 'TSOL-MSxx00')
         self.set_db_def_value(Register.CHIP_TYPE, 'IGEN TECH')
-        self.set_db_def_value(Register.NO_INPUTS, 4)
+        self.set_db_def_value(Register.NO_INPUTS, 2)
 
     def __hide_topic(self, row: dict) -> bool:
         if 'dep' in row:

@@ -463,6 +463,39 @@ def inverter_ind_msg800():  # 0x4210 rated Power 800W
     return msg
 
 @pytest.fixture
+def inverter_ind_msg900():  # 0x4210 rated Power 900W 
+    msg  = b'\xa5\x99\x01\x10\x42\xe6\x9e' +get_sn()  +b'\x01\xb0\x02\xbc\xc8'
+    msg += b'\x24\x32\x6c\x1f\x00\x00\xa0\x47\xe4\x33\x01\x00\x03\x08\x00\x00'
+    msg += b'\x59\x31\x37\x45\x37\x41\x30\x46\x30\x31\x30\x42\x30\x31\x33\x45'
+    msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+    msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+    msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+    msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+    msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+    msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+    msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+    msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+    msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+    msg += b'\x00\x01\x00\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+    msg +=  b'\x40\x10\x08\xc8\x00\x49\x13\x8d\x00\x36\x00\x00\x03\x84\x06\x7a'
+    msg += b'\x01\x61\x00\xa8\x02\x54\x01\x5a\x00\x8a\x01\xe4\x01\x5a\x00\xbd'
+    msg += b'\x02\x8f\x00\x11\x00\x01\x00\x00\x00\x0b\x00\x00\x27\x98\x00\x04'
+    msg += b'\x00\x00\x0c\x04\x00\x03\x00\x00\x0a\xe7\x00\x05\x00\x00\x0c\x75'
+    msg += b'\x00\x00\x00\x00\x06\x16\x02\x00\x00\x00\x55\xaa\x00\x01\x00\x00'
+    msg +=  b'\x00\x00\x00\x00\xff\xff\x03\x84\x00\x03\x04\x00\x04\x00\x04\x00'
+    msg += b'\x04\x00\x00\x01\xff\xff\x00\x01\x00\x06\x00\x68\x00\x68\x05\x00'
+    msg += b'\x09\xcd\x07\xb6\x13\x9c\x13\x24\x00\x01\x07\xae\x04\x0f\x00\x41'
+    msg += b'\x00\x0f\x0a\x64\x0a\x64\x00\x06\x00\x06\x09\xf6\x12\x8c\x12\x8c'
+    msg += b'\x00\x10\x00\x10\x14\x52\x14\x52\x00\x10\x00\x10\x01\x51\x00\x05'
+    msg += b'\x04\x00\x00\x01\x13\x9c\x0f\xa0\x00\x4e\x00\x66\x03\xe8\x04\x00'
+    msg += b'\x09\xce\x07\xa8\x13\x9c\x13\x26\x00\x00\x00\x00\x00\x00\x00\x00'
+    msg += b'\x00\x00\x00\x00\x04\x00\x04\x00\x00\x00\x00\x00\xff\xff\x00\x00'
+    msg += b'\x00\x00\x00\x00'
+    msg += correct_checksum(msg)
+    msg += b'\x15'
+    return msg
+
+@pytest.fixture
 def inverter_ind_msg_81():  # 0x4210 fcode 0x81
     msg  = b'\xa5\x99\x01\x10\x42\x02\x03' +get_sn()  +b'\x81\xb0\x02\xbc\xc8'
     msg += b'\x24\x32\x6c\x1f\x00\x00\xa0\x07\x04\x03\x01\x00\x03\x08\x00\x00'
@@ -1435,6 +1468,7 @@ async def test_build_modell_600(my_loop, config_tsun_allow_all, inverter_ind_msg
     m.read()         # read complete msg, and dispatch msg
     assert 2000 == m.db.get_db_value(Register.MAX_DESIGNED_POWER, 0)
     assert 600 == m.db.get_db_value(Register.RATED_POWER, 0)
+    assert 4 == m.db.get_db_value(Register.NO_INPUTS, 0)
     assert 'TSOL-MS2000(600)' == m.db.get_db_value(Register.EQUIPMENT_MODEL, 0)
     assert '02b0' == m.db.get_db_value(Register.SENSOR_LIST, None)
     assert 0 == m.sensor_list   # must not been set by an inverter data ind
@@ -1454,6 +1488,7 @@ async def test_build_modell_1600(my_loop, config_tsun_allow_all, inverter_ind_ms
     m.read()         # read complete msg, and dispatch msg
     assert 1600 == m.db.get_db_value(Register.MAX_DESIGNED_POWER, 0)
     assert 1600 == m.db.get_db_value(Register.RATED_POWER, 0)
+    assert 4 == m.db.get_db_value(Register.NO_INPUTS, 0)
     assert 'TSOL-MS1600' == m.db.get_db_value(Register.EQUIPMENT_MODEL, 0)
     m.close()
 
@@ -1467,6 +1502,7 @@ async def test_build_modell_1800(my_loop, config_tsun_allow_all, inverter_ind_ms
     m.read()         # read complete msg, and dispatch msg
     assert 1800 == m.db.get_db_value(Register.MAX_DESIGNED_POWER, 0)
     assert 1800 == m.db.get_db_value(Register.RATED_POWER, 0)
+    assert 4 == m.db.get_db_value(Register.NO_INPUTS, 0)
     assert 'TSOL-MS1800' == m.db.get_db_value(Register.EQUIPMENT_MODEL, 0)
     m.close()
 
@@ -1480,6 +1516,7 @@ async def test_build_modell_2000(my_loop, config_tsun_allow_all, inverter_ind_ms
     m.read()         # read complete msg, and dispatch msg
     assert 2000 == m.db.get_db_value(Register.MAX_DESIGNED_POWER, 0)
     assert 2000 == m.db.get_db_value(Register.RATED_POWER, 0)
+    assert 4 == m.db.get_db_value(Register.NO_INPUTS, 0)
     assert 'TSOL-MS2000' == m.db.get_db_value(Register.EQUIPMENT_MODEL, 0)
     m.close()
 
@@ -1493,6 +1530,21 @@ async def test_build_modell_800(my_loop, config_tsun_allow_all, inverter_ind_msg
     m.read()         # read complete msg, and dispatch msg
     assert 800 == m.db.get_db_value(Register.MAX_DESIGNED_POWER, 0)
     assert 800 == m.db.get_db_value(Register.RATED_POWER, 0)
+    assert 2 == m.db.get_db_value(Register.NO_INPUTS, 0)
+    assert 'TSOL-MS800' == m.db.get_db_value(Register.EQUIPMENT_MODEL, 0)
+    m.close()
+
+@pytest.mark.asyncio
+async def test_build_modell_900(my_loop, config_tsun_allow_all, inverter_ind_msg900):
+    _ = config_tsun_allow_all
+    m = MemoryStream(inverter_ind_msg900, (0,))
+    assert 0 == m.db.get_db_value(Register.MAX_DESIGNED_POWER, 0)
+    assert None == m.db.get_db_value(Register.RATED_POWER, None)
+    assert None == m.db.get_db_value(Register.INVERTER_TEMP, None)
+    m.read()         # read complete msg, and dispatch msg
+    assert 900 == m.db.get_db_value(Register.MAX_DESIGNED_POWER, 0)
+    assert 900 == m.db.get_db_value(Register.RATED_POWER, 0)
+    assert 2 == m.db.get_db_value(Register.NO_INPUTS, 0)
     assert 'TSOL-MSxx00' == m.db.get_db_value(Register.EQUIPMENT_MODEL, 0)
     m.close()
 
@@ -2542,6 +2594,7 @@ async def test_proxy_dcu_cmd(my_loop, config_tsun_dcu1, patch_open_connection, d
         assert l.db.stat['proxy']['AT_Command'] == 0
         assert l.db.stat['proxy']['AT_Command_Blocked'] == 0
         assert l.db.stat['proxy']['Modbus_Command'] == 0
+        assert 2 == l.db.get_db_value(Register.NO_INPUTS, 0)
 
         l.append_msg(dcu_command_rsp_msg)
         l.read() # read at resp
