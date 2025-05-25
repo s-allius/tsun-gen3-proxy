@@ -192,7 +192,7 @@ $(repro_all_subdirs) :
 	mkdir -p $@
 
 $(repro_all_templates) : $(INST_BASE)/ha_addon_%/config.yaml: $(TEMPL)/config.jinja $(TEMPL)/%_data.json $(SRC)/.version FORCE
-	$(JINJA) --strict -D AppVersion=$(VERSION)-$* -D BuildID=$(BUILD_ID) $< $(filter %.json,$^) -o $@
+	$(JINJA) --strict -D AppVersion=$(VERSION)-$*$(RC) -D BuildID=$(BUILD_ID) $< $(filter %.json,$^) -o $@
 
 $(repro_all_apparmor) : $(INST_BASE)/ha_addon_%/apparmor.txt: $(TEMPL)/apparmor.jinja $(TEMPL)/%_data.json
 	$(JINJA) --strict $< $(filter %.json,$^) -o $@
