@@ -323,6 +323,28 @@ async def test_mqtt_dispatch(config_mqtt_conn, aiomqtt_mock, spy_modbus_cmd):
         await m.close()
 
 @pytest.mark.asyncio
+async def test_mqtt_dispatch_cb(config_mqtt_conn, aiomqtt_mock):
+    _ = config_mqtt_conn
+    _ = aiomqtt_mock
+
+    on_connect =  asyncio.Event()
+    async def cb():
+        on_connect.set()
+    try:
+        m = Mqtt(cb)
+        assert m.ha_restarts == 0
+        await m.receive('homeassistant/status', b'online')  # send the message
+        assert on_connect.is_set()
+        assert m.ha_restarts == 1
+
+    except MqttError:
+        assert False
+    except Exception:
+        assert False          
+    finally:
+        await m.close()
+
+@pytest.mark.asyncio
 async def test_mqtt_dispatch_err(config_mqtt_conn, aiomqtt_mock, spy_modbus_cmd, caplog):
     _ = config_mqtt_conn
     _ = aiomqtt_mock
