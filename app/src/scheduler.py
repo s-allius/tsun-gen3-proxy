@@ -12,7 +12,7 @@ class Schedule:
     count = 0
 
     @classmethod
-    def start(cls) -> None:
+    def start(cls) -> None:    # pragma: no cover
         '''Start the scheduler and schedule the tasks (cron jobs)'''
         logging.debug("Scheduler init")
         cls.mqtt = Mqtt(None)
@@ -20,7 +20,7 @@ class Schedule:
         crontab('0 0 * * *', func=cls.atmidnight, start=True)
 
     @classmethod
-    async def atmidnight(cls) -> None:
+    async def atmidnight(cls) -> None:    # pragma: no cover
         '''Clear daily counters at midnight'''
         logging.info("Clear daily counters at midnight")
 

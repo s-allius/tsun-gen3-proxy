@@ -4,6 +4,10 @@ import logging
 import os
 from mock import patch
 from server import app, Server, ProxyState, HypercornLogHndl
+from inverter_base import InverterBase
+from gen3.talent import Talent
+
+from test_inverter_base import FakeReader, FakeWriter
 
 pytest_plugins = ('pytest_asyncio',)
 
@@ -108,20 +112,20 @@ class TestServerClass:
         assert logging.getLogger('hypercorn.access').level == logging.INFO
         assert logging.getLogger('hypercorn.error').level == logging.INFO
 
-        os.environ["LOG_LVL"] = "WARN"
-        s.parse_args(['--log_backups', '3'])
-        s.init_logging_system()
-        assert s.log_backups == 3
-        assert s.log_level == logging.WARNING
-        assert logging.handlers.log_backups == 3
-        assert logging.getLogger().level == s.log_level
-        assert logging.getLogger('msg').level == s.log_level
-        assert logging.getLogger('conn').level == s.log_level
-        assert logging.getLogger('data').level == s.log_level
-        assert logging.getLogger('tracer').level == s.log_level
-        assert logging.getLogger('asyncio').level == s.log_level
-        assert logging.getLogger('hypercorn.access').level == logging.INFO
-        assert logging.getLogger('hypercorn.error').level == logging.INFO
+        with patch.dict(os.environ, {'LOG_LVL': 'WARN'}):
+            s.parse_args(['--log_backups', '3'])
+            s.init_logging_system()
+            assert s.log_backups == 3
+            assert s.log_level == logging.WARNING
+            assert logging.handlers.log_backups == 3
+            assert logging.getLogger().level == s.log_level
+            assert logging.getLogger('msg').level == s.log_level
+            assert logging.getLogger('conn').level == s.log_level
+            assert logging.getLogger('data').level == s.log_level
+            assert logging.getLogger('tracer').level == s.log_level
+            assert logging.getLogger('asyncio').level == s.log_level
+            assert logging.getLogger('hypercorn.access').level == logging.INFO
+            assert logging.getLogger('hypercorn.error').level == logging.INFO
 
     def test_build_config_error(self, caplog):
         s = self.FakeServer()
@@ -202,17 +206,81 @@ class TestApp:
     @pytest.mark.asyncio
     async def test_healthy(self):
         """Test the healthy route."""
+        reader = FakeReader()
+        writer =  FakeWriter()
 
-        ProxyState.set_up(False)
-        client = app.test_client()
-        response = await client.get('/-/healthy')
-        assert response.status_code == 200
-        result = await response.get_data()
-        assert result == b"I'm fine"
+        with InverterBase(reader, writer, 'tsun', Talent):
+            ProxyState.set_up(False)
+            client = app.test_client()
+            response = await client.get('/-/healthy')
+            assert response.status_code == 200
+            result = await response.get_data()
+            assert result == b"I'm fine"
 
-        ProxyState.set_up(True)
-        response = await client.get('/-/healthy')
-        assert response.status_code == 200
-        result = await response.get_data()
-        assert result == b"I'm fine"
+            ProxyState.set_up(True)
+            response = await client.get('/-/healthy')
+            assert response.status_code == 200
+            result = await response.get_data()
+            assert result == b"I'm fine"
 
+    @pytest.mark.asyncio
+    async def test_unhealthy(self, monkeypatch, caplog):
+        """Test the healthy route."""
+        def result_false(self):
+            return False
+        
+        LOGGER = logging.getLogger("mqtt")
+        LOGGER.propagate = True
+        LOGGER.setLevel(logging.INFO)
+
+        monkeypatch.setattr(InverterBase, "healthy", result_false)
+        InverterBase._registry.clear()
+        reader = FakeReader()
+        writer = FakeWriter()
+
+        with caplog.at_level(logging.INFO) and InverterBase(reader, writer, 'tsun', Talent):
+            ProxyState.set_up(False)
+            client = app.test_client()
+            response = await client.get('/-/healthy')
+            assert response.status_code == 200
+            result = await response.get_data()
+            assert result == b"I'm fine"
+            assert "" == caplog.text
+
+            ProxyState.set_up(True)
+            response = await client.get('/-/healthy')
+            assert response.status_code == 503
+            result = await response.get_data()
+            assert result == b"I have a problem"
+            assert "" == caplog.text
+
+    @pytest.mark.asyncio
+    async def test_healthy_exception(self, monkeypatch, caplog):
+        """Test the healthy route."""
+        def result_except(self):
+            raise ValueError
+        
+        LOGGER = logging.getLogger("mqtt")
+        LOGGER.propagate = True
+        LOGGER.setLevel(logging.INFO)
+
+        monkeypatch.setattr(InverterBase, "healthy", result_except)
+        InverterBase._registry.clear()
+        reader = FakeReader()
+        writer = FakeWriter()
+
+        with caplog.at_level(logging.INFO) and InverterBase(reader, writer, 'tsun', Talent):
+            ProxyState.set_up(False)
+            client = app.test_client()
+            response = await client.get('/-/healthy')
+            assert response.status_code == 200
+            result = await response.get_data()
+            assert result == b"I'm fine"
+            assert "" == caplog.text
+
+            ProxyState.set_up(True)
+            response = await client.get('/-/healthy')
+            assert response.status_code == 200
+            result = await response.get_data()
+            assert result == b"I'm fine"
+            assert "Exception:" in caplog.text
