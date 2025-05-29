@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+## [0.14.0] - 2025-05-29
+
 - add-on: bump python to version 3.12.10-r1
 - set no of pv modules for MS800 GEN3PLUS inverters
 - fix the paths to copy the config.example.toml file during proxy start
