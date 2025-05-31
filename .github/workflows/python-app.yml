@@ -5,7 +5,7 @@ name: Python application
 
 on:
   push:
-    branches: [ "main", "dev-*", "*/issue*" ]
+    branches: [ "main", "dev-*", "*/issue*", "releases/*" ]
     paths-ignore:
     - '**.md' # Do no build on *.md changes
     - '**.yml' # Do no build on *.yml changes
@@ -18,7 +18,7 @@ on:
     - '**.dockerfile' # Do no build on *.dockerfile changes
     - '**.sh' # Do no build on *.sh changes     
   pull_request:
-    branches: [ "main", "dev-*" ]
+    branches: [ "main", "dev-*", "releases/*" ]
 
 permissions:
   contents: read
