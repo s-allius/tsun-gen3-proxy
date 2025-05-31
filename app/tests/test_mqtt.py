@@ -182,13 +182,17 @@ async def test_ha_reconnect(config_mqtt_conn):
         await m.close()
 
 @pytest.mark.asyncio
-async def test_mqtt_no_config(config_no_conn):
+async def test_mqtt_no_config(config_no_conn, monkeypatch):
     _ = config_no_conn
     assert asyncio.get_running_loop()
 
     on_connect =  asyncio.Event()
     async def cb():
         on_connect.set()
+    async def my_publish(*args):
+        return
+
+    monkeypatch.setattr(aiomqtt.Client, "publish", my_publish)
 
     try:
         m = Mqtt(cb)
@@ -197,9 +201,9 @@ async def test_mqtt_no_config(config_no_conn):
         assert not on_connect.is_set()
         try:
             await m.publish('homeassistant/status', 'online')
-            assert False
+            assert m.published == 1
         except Exception:
-            pass          
+            assert False          
     except TimeoutError:
         assert False
     finally:
@@ -314,6 +318,28 @@ async def test_mqtt_dispatch(config_mqtt_conn, aiomqtt_mock, spy_modbus_cmd):
         spy.reset_mock()
         await m.receive(topic= 'tsun/inv_1/modbus_read_inputs', payload= b'0x3000, 10')
         spy.assert_not_called()
+
+    except MqttError:
+        assert False
+    except Exception:
+        assert False          
+    finally:
+        await m.close()
+
+@pytest.mark.asyncio
+async def test_mqtt_dispatch_cb(config_mqtt_conn, aiomqtt_mock):
+    _ = config_mqtt_conn
+    _ = aiomqtt_mock
+
+    on_connect =  asyncio.Event()
+    async def cb():
+        on_connect.set()
+    try:
+        m = Mqtt(cb)
+        assert m.ha_restarts == 0
+        await m.receive('homeassistant/status', b'online')  # send the message
+        assert on_connect.is_set()
+        assert m.ha_restarts == 1
 
     except MqttError:
         assert False
