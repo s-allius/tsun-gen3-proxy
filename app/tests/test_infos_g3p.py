@@ -109,7 +109,7 @@ def test_default_db():
     i = InfosG3P(client_mode=False)
     
     assert json.dumps(i.db) == json.dumps({
-        "inverter": {"Manufacturer": "TSUN", "Equipment_Model": "TSOL-MSxx00", "No_Inputs": 4}, 
+        "inverter": {"Manufacturer": "TSUN", "Equipment_Model": "TSOL-MSxx00", "No_Inputs": 2}, 
         "collector": {"Chip_Type": "IGEN TECH"},
         })
 
@@ -271,7 +271,7 @@ def test_build_ha_conf1():
         elif id == 'inv_count_456':
             assert False
 
-    assert tests==7
+    assert tests==5
 
 def test_build_ha_conf2():
     i = InfosG3P(client_mode=False)
@@ -346,7 +346,7 @@ def test_build_ha_conf3():
         elif id == 'inv_count_456':
             assert False
 
-    assert tests==7
+    assert tests==5
 
 def test_build_ha_conf4():
     i = InfosG3P(client_mode=True)

@@ -127,7 +127,8 @@ class Server():
     def build_config(self):
         # read config file
         Config.init(ConfigReadToml(self.src_dir + "cnf/default_config.toml"),
-                    log_path=self.log_path)
+                    log_path=self.log_path,
+                    cnf_path=self.config_path)
         ConfigReadEnv()
         ConfigReadJson(self.config_path + "config.json")
         ConfigReadToml(self.config_path + "config.toml")
