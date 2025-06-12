@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: tsun-gen3-proxy 0.14.0\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2025-05-13 22:34+0200\n"
+"POT-Creation-Date: 2025-06-01 00:59+0200\n"
 "PO-Revision-Date: 2025-04-18 16:24+0200\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: de\n"
@@ -75,6 +75,11 @@ msgstr "Wichtige Hinweise"
 msgid "Log Files"
 msgstr "Log Dateien"
 
+#: src/web/templates/base.html.j2:62
+#: src/web/templates/page_network_tests.html.j2:5
+msgid "Network Tests"
+msgstr ""
+
 #: src/web/templates/page_index.html.j2:3
 msgid "TSUN Proxy - Connections"
 msgstr "TSUN Proxy - Verbindungen"
@@ -120,14 +125,18 @@ msgid "TSUN Proxy - Log Files"
 msgstr "TSUN Proxy - Log Dateien"
 
 #: src/web/templates/page_logging.html.j2:10
+#: src/web/templates/page_network_tests.html.j2:10
+#, python-format
 msgid "Do you really want to delete the log file: <br>%(file)s ?"
 msgstr "Soll die Datei: <br>%(file)s<br>wirklich gelöscht werden?"
 
 #: src/web/templates/page_logging.html.j2:12
+#: src/web/templates/page_network_tests.html.j2:12
 msgid "Delete File"
 msgstr "Datei löschen"
 
 #: src/web/templates/page_logging.html.j2:13
+#: src/web/templates/page_network_tests.html.j2:13
 msgid "Abort"
 msgstr "Abbruch"
 
@@ -162,6 +171,11 @@ msgstr "Empfangene Topics"
 #: src/web/templates/page_mqtt.html.j2:43
 msgid "Number of topics received"
 msgstr "Anzahl der empfangenen Topics"
+
+#: src/web/templates/page_network_tests.html.j2:3
+#, fuzzy
+msgid "TSUN Proxy - Network Tests"
+msgstr "TSUN Proxy - Verbindungen"
 
 #: src/web/templates/page_notes.html.j2:3
 msgid "TSUN Proxy - Important Messages"
