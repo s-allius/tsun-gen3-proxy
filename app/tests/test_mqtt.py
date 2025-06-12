@@ -3,8 +3,9 @@ import pytest
 import asyncio
 import aiomqtt
 import logging
-
+from aiomqtt import MqttError
 from mock import patch, Mock
+
 from async_stream import AsyncIfcImpl
 from singleton import Singleton
 from mqtt import Mqtt
@@ -17,7 +18,7 @@ NO_MOSQUITTO_TEST = False
 
 pytest_plugins = ('pytest_asyncio',)
 
-@pytest.fixture(scope="module", autouse=True)
+@pytest.fixture(scope="function", autouse=True)
 def module_init():
     Singleton._instances.clear()
     yield
@@ -44,6 +45,14 @@ def config_no_conn(test_port):
     Config.act_config = {'mqtt':{'host': "", 'port': test_port, 'user': '', 'passwd': ''},
                          'ha':{'auto_conf_prefix': 'homeassistant','discovery_prefix': 'homeassistant', 'entity_prefix': 'tsun'}
                         }
+    Config.def_config = {}
+
+@pytest.fixture
+def config_def_conn(test_port):
+    Config.act_config = {'mqtt':{'host': "unknown_url", 'port': test_port, 'user': '', 'passwd': ''},
+                         'ha':{'auto_conf_prefix': 'homeassistant','discovery_prefix': 'homeassistant', 'entity_prefix': 'tsun'}
+                        }
+    Config.def_config = Config.act_config
 
 @pytest.fixture
 def spy_at_cmd():
@@ -176,11 +185,80 @@ async def test_mqtt_no_config(config_no_conn):
         await m.close()
 
 @pytest.mark.asyncio
+async def test_mqtt_except_no_config(config_no_conn, monkeypatch, caplog):
+    _ = config_no_conn
+
+    assert asyncio.get_running_loop()
+
+    async def my_aenter(self):
+        raise MqttError('TestException') from None
+    
+    monkeypatch.setattr(aiomqtt.Client, "__aenter__", my_aenter)
+
+    LOGGER = logging.getLogger("mqtt")
+    LOGGER.propagate = True
+    LOGGER.setLevel(logging.INFO)
+
+    with caplog.at_level(logging.INFO):
+        m = Mqtt(None)
+        assert m.task
+        await asyncio.sleep(0)
+        try:
+            await m.publish('homeassistant/status', 'online')
+            assert False
+        except MqttError:
+            pass
+        except Exception:
+            assert False          
+        finally:
+            await m.close()
+    assert 'Connection lost; Reconnecting in 5 seconds' in caplog.text
+
+@pytest.mark.asyncio
+async def test_mqtt_except_def_config(config_def_conn, monkeypatch, caplog):
+    _ = config_def_conn
+
+    assert asyncio.get_running_loop()
+
+    on_connect =  asyncio.Event()
+    async def cb():
+        on_connect.set()
+
+    async def my_aenter(self):
+        raise MqttError('TestException') from None
+    
+    monkeypatch.setattr(aiomqtt.Client, "__aenter__", my_aenter)
+
+    LOGGER = logging.getLogger("mqtt")
+    LOGGER.propagate = True
+    LOGGER.setLevel(logging.INFO)
+
+    with caplog.at_level(logging.INFO):
+        m = Mqtt(cb)
+        assert m.task
+        await asyncio.sleep(0)
+        assert not on_connect.is_set()
+        try:
+            await m.publish('homeassistant/status', 'online')
+            assert False
+        except MqttError:
+            pass
+        except Exception:
+            assert False          
+        finally:
+            await m.close()
+    assert 'MQTT is unconfigured; Check your config.toml!' in caplog.text
+
+@pytest.mark.asyncio
 async def test_msg_dispatch(config_mqtt_conn, spy_modbus_cmd):
     _ = config_mqtt_conn
     spy = spy_modbus_cmd
     try:
         m = Mqtt(None)
+        msg = aiomqtt.Message(topic= 'homeassistant/status', payload= b'online', qos= 0, retain = False, mid= 0, properties= None)
+        await m.dispatch_msg(msg)
+        assert m.ha_restarts == 1
+
         msg = aiomqtt.Message(topic= 'tsun/inv_1/rated_load', payload= b'2', qos= 0, retain = False, mid= 0, properties= None)
         await m.dispatch_msg(msg)
         spy.assert_awaited_once_with(Modbus.WRITE_SINGLE_REG, 0x2008, 2, logging.INFO)
@@ -204,6 +282,23 @@ async def test_msg_dispatch(config_mqtt_conn, spy_modbus_cmd):
         msg = aiomqtt.Message(topic= 'tsun/inv_1/modbus_read_inputs', payload= b'0x3000, 10', qos= 0, retain = False, mid= 0, properties= None)
         await m.dispatch_msg(msg)
         spy.assert_awaited_once_with(Modbus.READ_INPUTS, 0x3000, 10, logging.INFO)
+
+        # test dispatching with empty mapping table
+        m.topic_defs.clear()
+        spy.reset_mock()
+        msg = aiomqtt.Message(topic= 'tsun/inv_1/modbus_read_inputs', payload= b'0x3000, 10', qos= 0, retain = False, mid= 0, properties= None)
+        await m.dispatch_msg(msg)
+        spy.assert_not_called()
+
+        # test dispatching with incomplete mapping table - invalid fnc defined
+        m.topic_defs.append(
+            {'prefix': 'entity_prefix', 'topic': '/+/modbus_read_inputs',
+             'full_topic': 'tsun/+/modbus_read_inputs', 'fnc': 'invalid'}
+        )
+        spy.reset_mock()
+        msg = aiomqtt.Message(topic= 'tsun/inv_1/modbus_read_inputs', payload= b'0x3000, 10', qos= 0, retain = False, mid= 0, properties= None)
+        await m.dispatch_msg(msg)
+        spy.assert_not_called()
 
     finally:
         await m.close()
@@ -235,6 +330,12 @@ async def test_msg_dispatch_err(config_mqtt_conn, spy_modbus_cmd):
         msg = aiomqtt.Message(topic= 'tsun/inv_1/modbus_read_regs', payload= b'0x3000, 10, 7', qos= 0, retain = False, mid= 0, properties= None)
         await m.dispatch_msg(msg)
         spy.assert_not_called()
+
+        spy.reset_mock()
+        msg = aiomqtt.Message(topic= 'tsun/inv_1/dcu_power', payload= b'100W', qos= 0, retain = False, mid= 0, properties= None)
+        await m.dispatch_msg(msg)
+        spy.assert_not_called()
+
     finally:
         await m.close()
 
@@ -285,5 +386,21 @@ async def test_dcu_dispatch(config_mqtt_conn, spy_dcu_cmd):
         msg = aiomqtt.Message(topic= 'tsun/inv_3/dcu_power', payload= b'100.0', qos= 0, retain = False, mid= 0, properties= None)
         await m.dispatch_msg(msg)
         spy.assert_called_once_with(b'\x01\x01\x06\x01\x00\x01\x03\xe8')
+    finally:
+        await m.close()
+
+@pytest.mark.asyncio
+async def test_dcu_inv_value(config_mqtt_conn, spy_dcu_cmd):
+    _ = config_mqtt_conn
+    spy = spy_dcu_cmd
+    try:
+        m = Mqtt(None)
+        msg = aiomqtt.Message(topic= 'tsun/inv_3/dcu_power', payload= b'99.9', qos= 0, retain = False, mid= 0, properties= None)
+        await m.dispatch_msg(msg)
+        spy.assert_not_called()
+
+        msg = aiomqtt.Message(topic= 'tsun/inv_3/dcu_power', payload= b'800.1', qos= 0, retain = False, mid= 0, properties= None)
+        await m.dispatch_msg(msg)
+        spy.assert_not_called()
     finally:
         await m.close()

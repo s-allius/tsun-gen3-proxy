@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+- add MQTT topic `dcu_power` for setting output power on DCUs
 - Update ghcr.io/hassio-addons/base Docker tag to v17.2.5
 - fix a lot of pytest-asyncio problems in the unit tests  
 - Cleanup startup code for Quart and the Proxy

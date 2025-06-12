@@ -822,6 +822,17 @@ def dcu_command_ind_msg():  # 0x4510
     return msg
 
 @pytest.fixture
+def dcu_command_rsp_msg():  # 0x1510
+    msg  = b'\xa5\x11\x00\x10\x15\x94\x03' +get_dcu_sn()  +b'\x05\x01'
+    msg += total()  
+    msg += hb()
+    msg += b'\x00\x00\x00\x00'
+    msg += b'\x01\x01\x01'
+    msg += correct_checksum(msg)
+    msg += b'\x15'
+    return msg
+
+@pytest.fixture
 def config_tsun_allow_all():
     Config.act_config = {
         'ha':{
@@ -863,7 +874,17 @@ def config_tsun_scan_dcu():
 
 @pytest.fixture
 def config_tsun_dcu1():
-    Config.act_config = {'solarman':{'enabled': True},'batteries':{'4100000000000001':{'monitor_sn': 2070233888, 'node_id':'inv1/', 'modbus_polling': True, 'suggested_area':'roof', 'sensor_list': 0}}}
+    Config.act_config = {
+        'ha':{
+            'auto_conf_prefix': 'homeassistant',
+            'discovery_prefix': 'homeassistant', 
+            'entity_prefix': 'tsun',
+            'proxy_node_id': 'test_1',
+            'proxy_unique_id': ''
+        },
+        'solarman':{'enabled': True, 'host': 'test_cloud.local', 'port': 1234},'batteries':{'4100000000000001':{'monitor_sn': 2070233888, 'node_id':'inv1/', 'modbus_polling': True, 'suggested_area':'roof', 'sensor_list': 0}}}
+    Proxy.class_init()
+    Proxy.mqtt = Mqtt()
 
 @pytest.mark.asyncio
 async def test_read_message(device_ind_msg):
@@ -2413,7 +2434,8 @@ async def test_proxy_at_blocked(my_loop, config_tsun_inv1, patch_open_connection
         assert Proxy.mqtt.data == "+ok"
 
 @pytest.mark.asyncio
-async def test_dcu_cmd(my_loop, config_tsun_allow_all, dcu_dev_ind_msg, dcu_dev_rsp_msg, dcu_data_ind_msg, dcu_data_rsp_msg, dcu_command_ind_msg, at_command_rsp_msg):
+async def test_dcu_cmd(my_loop, config_tsun_allow_all, dcu_dev_ind_msg, dcu_dev_rsp_msg, dcu_data_ind_msg, dcu_data_rsp_msg, dcu_command_ind_msg, dcu_command_rsp_msg):
+    '''test dcu_power command fpr a DCU device with sensor 0x3026'''
     _ = config_tsun_allow_all
     m = MemoryStream(dcu_dev_ind_msg, (0,), True)
     m.read()   # read device ind
@@ -2447,19 +2469,20 @@ async def test_dcu_cmd(my_loop, config_tsun_allow_all, dcu_dev_ind_msg, dcu_dev_
     assert Proxy.mqtt.key == ''
     assert Proxy.mqtt.data == ""
 
-    # m.append_msg(at_command_rsp_msg)
-    # m.read() # read at resp
-    # assert m.control == 0x1510
-    # assert str(m.seq) == '03:03'
-    # assert m.ifc.rx_get()==b''
-    # assert m.ifc.tx_fifo.get()==b''
-    # assert m.ifc.fwd_fifo.get()==b''
-    # assert Proxy.mqtt.key == 'tsun/at_resp'
-    # assert Proxy.mqtt.data == "+ok"
+    m.append_msg(dcu_command_rsp_msg)
+    m.read() # read at resp
+    assert m.control == 0x1510
+    assert str(m.seq) == '03:94'
+    assert m.ifc.rx_get()==b''
+    assert m.ifc.tx_fifo.get()==b''
+    assert m.ifc.fwd_fifo.get()==b''
+    assert Proxy.mqtt.key == 'tsun/dcu_resp'
+    assert Proxy.mqtt.data == "+ok"
     Proxy.mqtt.clear()  # clear last test result
 
 @pytest.mark.asyncio
 async def test_dcu_cmd_not_supported(my_loop, config_tsun_allow_all, device_ind_msg, device_rsp_msg, inverter_ind_msg, inverter_rsp_msg):
+    '''test that an inverter don't accept the dcu_power command'''
     _ = config_tsun_allow_all
     m = MemoryStream(device_ind_msg, (0,), True)
     m.read()   # read device ind
@@ -2488,3 +2511,44 @@ async def test_dcu_cmd_not_supported(my_loop, config_tsun_allow_all, device_ind_
     assert m.ifc.tx_fifo.get()== b''
     assert m.sent_pdu == b''
     Proxy.mqtt.clear()  # clear last test result
+
+@pytest.mark.asyncio
+async def test_proxy_dcu_cmd(my_loop, config_tsun_dcu1, patch_open_connection, dcu_command_ind_msg, dcu_command_rsp_msg):
+    _ = config_tsun_inv1
+    _ = patch_open_connection
+    assert asyncio.get_running_loop()
+
+    with InverterTest(FakeReader(), FakeWriter(), client_mode=False) as inverter:
+        await inverter.create_remote()
+        await asyncio.sleep(0)
+        r = inverter.remote.stream
+        l = inverter.local.stream
+
+        l.db.stat['proxy']['DCU_Command'] = 0
+        l.db.stat['proxy']['AT_Command'] = 0
+        l.db.stat['proxy']['Unknown_Ctrl'] = 0
+        l.db.stat['proxy']['AT_Command_Blocked'] = 0
+        l.db.stat['proxy']['Modbus_Command'] = 0
+        inverter.forward_dcu_cmd_resp = False
+        r.append_msg(dcu_command_ind_msg)
+        r.read()         # read complete msg, and dispatch msg
+        assert inverter.forward_dcu_cmd_resp
+        inverter.forward(r,l)
+
+        assert l.ifc.tx_fifo.get()==dcu_command_ind_msg
+
+        assert l.db.stat['proxy']['Invalid_Msg_Format'] == 0
+        assert l.db.stat['proxy']['DCU_Command'] == 1
+        assert l.db.stat['proxy']['AT_Command'] == 0
+        assert l.db.stat['proxy']['AT_Command_Blocked'] == 0
+        assert l.db.stat['proxy']['Modbus_Command'] == 0
+
+        l.append_msg(dcu_command_rsp_msg)
+        l.read() # read at resp
+        assert l.ifc.fwd_fifo.peek()==dcu_command_rsp_msg
+        inverter.forward(l,r)
+        assert r.ifc.tx_fifo.get()==dcu_command_rsp_msg
+
+        assert Proxy.mqtt.key == ''
+        assert Proxy.mqtt.data == ""
+
