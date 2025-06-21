@@ -1624,7 +1624,7 @@ async def test_msg_build_modbus_req(my_loop, config_tsun_inv1, device_ind_msg, d
     assert m.ifc.tx_fifo.get()==device_rsp_msg
     assert m.ifc.fwd_fifo.get()==device_ind_msg
 
-    await m.send_modbus_cmd(Modbus.WRITE_SINGLE_REG, 0x2008, 0, logging.DEBUG)
+    m.send_modbus_cmd(Modbus.WRITE_SINGLE_REG, 0x2008, 0, logging.DEBUG)
     assert 0 == m.send_msg_ofs
     assert m.ifc.fwd_fifo.get() == b''
     assert m.sent_pdu == b'' # modbus command must be ignore, cause connection is still not up
@@ -1642,7 +1642,7 @@ async def test_msg_build_modbus_req(my_loop, config_tsun_inv1, device_ind_msg, d
     assert m.ifc.tx_fifo.get()==inverter_rsp_msg
     assert m.ifc.fwd_fifo.get()==inverter_ind_msg
 
-    await m.send_modbus_cmd(Modbus.WRITE_SINGLE_REG, 0x2008, 0, logging.DEBUG)
+    m.send_modbus_cmd(Modbus.WRITE_SINGLE_REG, 0x2008, 0, logging.DEBUG)
     assert 0 == m.send_msg_ofs
     assert m.ifc.fwd_fifo.get() == b''
     assert m.sent_pdu == msg_modbus_cmd

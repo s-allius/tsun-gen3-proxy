@@ -195,7 +195,7 @@ class Mqtt(metaclass=Singleton):
             elif params == 2:
                 addr = int(res[0], base=16)
                 val = int(res[1])  # lenght
-            await fnc(func, addr, val, logging.INFO)
+            fnc(func, addr, val, logging.INFO)
 
     async def _at_cmd(self, message):
         payload = message.payload.decode("UTF-8")
