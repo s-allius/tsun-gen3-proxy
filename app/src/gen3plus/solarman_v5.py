@@ -341,9 +341,9 @@ class SolarmanV5(SolarmanBase):
         self.log_lvl.clear()
         super().close()
 
-    async def send_start_cmd(self, snr: int, host: str,
-                             forward: bool,
-                             start_timeout=MB_CLIENT_DATA_UP):
+    def send_start_cmd(self, snr: int, host: str,
+                       forward: bool,
+                       start_timeout=MB_CLIENT_DATA_UP):
         self.no_forwarding = True
         self.establish_inv_emu = forward
         self.snr = snr

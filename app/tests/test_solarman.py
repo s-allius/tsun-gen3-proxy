@@ -2318,7 +2318,7 @@ async def test_start_client_mode(my_loop, config_tsun_inv1, str_test_ip):
     assert m.no_forwarding == False
     assert m.mb_timer.tim == None
     assert asyncio.get_running_loop() == m.mb_timer.loop
-    await m.send_start_cmd(get_sn_int(), str_test_ip, False, m.mb_first_timeout)
+    m.send_start_cmd(get_sn_int(), str_test_ip, False, m.mb_first_timeout)
     assert m.sent_pdu==bytearray(b'\xa5\x17\x00\x10E\x01\x00!Ce{\x02\xb0\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x030\x00\x000J\xde\xf1\x15')
     assert m.db.get_db_value(Register.IP_ADDRESS) == str_test_ip
     assert isclose(m.db.get_db_value(Register.POLLING_INTERVAL), 0.5)
@@ -2351,7 +2351,7 @@ async def test_start_client_mode_scan(config_tsun_scan_dcu, str_test_ip, dcu_mod
     assert m.no_forwarding == False
     assert m.mb_timer.tim == None
     assert asyncio.get_running_loop() == m.mb_timer.loop
-    await m.send_start_cmd(get_dcu_sn_int(), str_test_ip, False, m.mb_first_timeout)
+    m.send_start_cmd(get_dcu_sn_int(), str_test_ip, False, m.mb_first_timeout)
     assert m.mb_start_reg == 0x0000
     assert m.mb_step == 0x100
     assert m.mb_bytes == 0x2d
