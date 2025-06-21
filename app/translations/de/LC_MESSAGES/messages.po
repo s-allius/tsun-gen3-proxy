@@ -120,6 +120,7 @@ msgid "TSUN Proxy - Log Files"
 msgstr "TSUN Proxy - Log Dateien"
 
 #: src/web/templates/page_logging.html.j2:10
+#, python-format
 msgid "Do you really want to delete the log file: <br>%(file)s ?"
 msgstr "Soll die Datei: <br>%(file)s<br>wirklich gelöscht werden?"
 

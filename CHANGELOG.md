@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+- remove unused 32-bit architectures
 - Babel don't build new po file if only the pot creation-date was changed
 - Improve Makefile
 - Update dependency pytest-asyncio to v1
