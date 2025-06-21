@@ -112,7 +112,7 @@ class Mqtt(metaclass=Singleton):
             except asyncio.CancelledError:
                 logger_mqtt.debug("MQTT task cancelled")
                 self.__client = None
-                return
+                raise
             except Exception:
                 # self.inc_counter('SW_Exception')   # fixme
                 self.ctime = None
