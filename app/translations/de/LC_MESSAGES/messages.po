@@ -75,6 +75,14 @@ msgstr "Wichtige Hinweise"
 msgid "Log Files"
 msgstr "Log Dateien"
 
+#: src/web/templates/base.html.j2:64
+msgid "Add-on Config"
+msgstr ""
+
+#: src/web/templates/base.html.j2:65
+msgid "Add-on Log"
+msgstr ""
+
 #: src/web/templates/page_index.html.j2:3
 msgid "TSUN Proxy - Connections"
 msgstr "TSUN Proxy - Verbindungen"

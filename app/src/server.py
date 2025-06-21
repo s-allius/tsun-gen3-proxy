@@ -60,7 +60,16 @@ class Server():
 
         @app.context_processor
         def utility_processor():
-            return {'version': self.version}
+            var = {'version': self.version,
+                   'slug': os.getenv("SLUG"),
+                   'hostname': os.getenv("HOSTNAME"),
+                   }
+            if var['slug']:
+                var['hassio'] = True
+                slug_len = len(var['slug'])
+                var['addonname'] = var['slug'] + '_' + \
+                    var['hostname'][slug_len+1:]
+            return var
 
     def parse_args(self, arg_list: list[str] | None):
         parser = argparse.ArgumentParser()

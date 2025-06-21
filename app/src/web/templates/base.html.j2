@@ -59,6 +59,11 @@
         <a href="{{ url_for('.mqtt')}}" class="w3-bar-item w3-button w3-padding {% block menu2_class %}{% endblock %}"><i class="fa fa-database fa-fw"></i>  MQTT</a>
         <a href="{{ url_for('.notes')}}" class="w3-bar-item w3-button w3-padding {% block menu3_class %}{% endblock %}"><i class="fa fa-info fa-fw"></i>  {{_('Important Messages')}}</a>
         <a href="{{ url_for('.logging')}}" class="w3-bar-item w3-button w3-padding {% block menu4_class %}{% endblock %}"><i class="fa fa-file-export fa-fw"></i>  {{_('Log Files')}}</a>
+        {% if hassio is defined %}
+        <br>
+        <a href="/hassio/addon/{{addonname}}/config" target="_top" class="w3-bar-item w3-button w3-padding"><i class="fa fa-gear fa-fw"></i>  {{_('Add-on Config')}}</a>
+        <a href="/hassio/addon/{{addonname}}/logs" target="_top" class="w3-bar-item w3-button w3-padding"><i class="fa fa-file fa-fw"></i>  {{_('Add-on Log')}}</a>
+        {% endif %}
       </div>
     </nav>
   
