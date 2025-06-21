@@ -60,7 +60,7 @@ class Server():
 
         @app.context_processor
         def utility_processor():
-            return dict(version=self.version)
+            return {'version': self.version}
 
     def parse_args(self, arg_list: list[str] | None):
         parser = argparse.ArgumentParser()
