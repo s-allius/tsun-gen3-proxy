@@ -55,7 +55,7 @@ $(BABEL_TRANSLATIONS)/%.pot : $(SRC)/.babel.cfg $(BABEL_INPUT)
 
 $(BABEL_TRANSLATIONS)/%/LC_MESSAGES/messages.po : $(BABEL_TRANSLATIONS)/messages.pot
 	@mkdir -p $(@D)
-	@pybabel update  --init-missing -i $< -d $(BABEL_TRANSLATIONS) -l $*
+	@pybabel update  --init-missing --ignore-pot-creation-date -i $< -d $(BABEL_TRANSLATIONS) -l $*
 
 $(BABEL_TRANSLATIONS)/%/LC_MESSAGES/messages.mo : $(BABEL_TRANSLATIONS)/%/LC_MESSAGES/messages.po
 	@pybabel compile  -d $(BABEL_TRANSLATIONS) -l $*
