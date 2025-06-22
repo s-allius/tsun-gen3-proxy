@@ -180,11 +180,14 @@ async def test_language_en(client):
     assert response.content_language.pop() == 'en'
     assert response.location == '/index'
     assert response.mimetype == 'text/html'
+    assert b'<html lang=en' in await response.data
+    assert b'<title>Redirecting...</title>' in await response.data
 
     client.set_cookie('test', key='language', value='de')
     response = await client.get('/')
     assert response.status_code == 200
     assert response.mimetype == 'text/html'
+    assert b'<html lang="en"' in await response.data
     assert b'<title>TSUN Proxy - Connections</title>' in await response.data
 
 @pytest.mark.asyncio
@@ -195,11 +198,14 @@ async def test_language_de(client):
     assert response.content_language.pop() == 'de'
     assert response.location == '/'
     assert response.mimetype == 'text/html'
+    assert b'<html lang=en>' in await response.data
+    assert b'<title>Redirecting...</title>' in await response.data
 
     client.set_cookie('test', key='language', value='en')
     response = await client.get('/')
     assert response.status_code == 200
     assert response.mimetype == 'text/html'
+    assert b'<html lang="de"' in await response.data
     assert b'<title>TSUN Proxy - Verbindungen</title>' in await response.data
 
     """Switch back to english"""
@@ -208,6 +214,8 @@ async def test_language_de(client):
     assert response.content_language.pop() == 'en'
     assert response.location == '/index'
     assert response.mimetype == 'text/html'
+    assert b'<html lang=en>' in await response.data
+    assert b'<title>Redirecting...</title>' in await response.data
 
 @pytest.mark.asyncio
 async def test_language_unknown(client):
