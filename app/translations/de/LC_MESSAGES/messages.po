@@ -80,11 +80,11 @@ msgstr "Log Dateien"
 msgid "Network Tests"
 msgstr ""
 
-#: src/web/templates/base.html.j2:64
+#: src/web/templates/base.html.j2:65
 msgid "Add-on Config"
 msgstr "Add-on Konfiguration"
 
-#: src/web/templates/base.html.j2:65
+#: src/web/templates/base.html.j2:66
 msgid "Add-on Log"
 msgstr "Add-on Protokoll"
 
