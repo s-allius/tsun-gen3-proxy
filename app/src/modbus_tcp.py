@@ -66,7 +66,7 @@ class ModbusTcp():
             try:
                 async with ModbusConn(host, port) as inverter:
                     stream = inverter.local.stream
-                    await stream.send_start_cmd(snr, host, forward)
+                    stream.send_start_cmd(snr, host, forward)
                     await stream.ifc.loop()
                     logger.info(f'[{stream.node_id}:{stream.conn_no}] '
                                 f'Connection closed - Shutdown: '

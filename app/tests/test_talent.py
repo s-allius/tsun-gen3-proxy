@@ -2411,14 +2411,14 @@ async def test_msg_build_modbus_req(config_tsun_inv1, msg_modbus_cmd):
     _ = config_tsun_inv1
     m = MemoryStream(b'', (0,), True)
     m.id_str = b"R170000000000001" 
-    await m.send_modbus_cmd(Modbus.WRITE_SINGLE_REG, 0x2008, 0, logging.DEBUG)
+    m.send_modbus_cmd(Modbus.WRITE_SINGLE_REG, 0x2008, 0, logging.DEBUG)
     assert 0 == m.send_msg_ofs
     assert m.ifc.fwd_fifo.get() == b''
     assert m.ifc.tx_fifo.get() == b''
     assert m.sent_pdu == b''
 
     m.state = State.up
-    await m.send_modbus_cmd(Modbus.WRITE_SINGLE_REG, 0x2008, 0, logging.DEBUG)
+    m.send_modbus_cmd(Modbus.WRITE_SINGLE_REG, 0x2008, 0, logging.DEBUG)
     assert 0 == m.send_msg_ofs
     assert m.ifc.fwd_fifo.get() == b''
     assert m.ifc.tx_fifo.get() == b''

@@ -144,7 +144,7 @@ async def test_emu_start(my_loop, config_tsun_inv1, msg_modbus_rsp, str_test_ip,
     inv = InvStream(msg_modbus_rsp)
 
     assert asyncio.get_running_loop() == inv.mb_timer.loop
-    await inv.send_start_cmd(get_sn_int(), str_test_ip, True, inv.mb_first_timeout)
+    inv.send_start_cmd(get_sn_int(), str_test_ip, True, inv.mb_first_timeout)
     inv.read()         # read complete msg, and dispatch msg
     assert not inv.header_valid  # must be invalid, since msg was handled and buffer flushed
     assert inv.msg_count == 1
@@ -161,7 +161,7 @@ async def test_snd_hb(my_loop, config_tsun_inv1, heartbeat_ind):
     inv = InvStream()
     cld = CldStream(inv)
 
-    # await inv.send_start_cmd(get_sn_int(), str_test_ip, False, inv.mb_first_timeout)
+    # inv.send_start_cmd(get_sn_int(), str_test_ip, False, inv.mb_first_timeout)
     cld.send_heartbeat_cb(0)
     assert cld.ifc.tx_fifo.peek() == heartbeat_ind
     cld.close()
@@ -178,7 +178,7 @@ async def test_snd_inv_data(my_loop, config_tsun_inv1, inverter_ind_msg, inverte
     inv.db.set_db_def_value(Register.GRID_FREQUENCY, 50.05)
     inv.db.set_db_def_value(Register.PROD_COMPL_TYPE, 6)
     assert asyncio.get_running_loop() == inv.mb_timer.loop
-    await inv.send_start_cmd(get_sn_int(), str_test_ip, False, inv.mb_first_timeout)
+    inv.send_start_cmd(get_sn_int(), str_test_ip, False, inv.mb_first_timeout)
     inv.db.set_db_def_value(Register.DATA_UP_INTERVAL, 17)  # set test value
 
     cld = CldStream(inv)
@@ -213,7 +213,7 @@ async def test_rcv_invalid(my_loop, config_tsun_inv1, inverter_ind_msg, inverter
     _ = config_tsun_inv1
     inv = InvStream()
     assert asyncio.get_running_loop() == inv.mb_timer.loop
-    await inv.send_start_cmd(get_sn_int(), str_test_ip, False, inv.mb_first_timeout)
+    inv.send_start_cmd(get_sn_int(), str_test_ip, False, inv.mb_first_timeout)
     inv.db.set_db_def_value(Register.DATA_UP_INTERVAL, 17)  # set test value
 
     cld = CldStream(inv)

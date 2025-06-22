@@ -193,7 +193,7 @@ class Message(ProtocolIfc):
             return
         self.mb.build_msg(dev_id, func, addr, val, log_lvl)
 
-    async def send_modbus_cmd(self, func, addr, val, log_lvl) -> None:
+    def send_modbus_cmd(self, func, addr, val, log_lvl) -> None:
         self._send_modbus_cmd(Modbus.INV_ADDR, func, addr, val, log_lvl)
 
     def _send_modbus_scan(self):

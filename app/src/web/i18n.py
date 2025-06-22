@@ -29,9 +29,9 @@ def get_tz():
 
 @web.context_processor
 def utility_processor():
-    return dict(lang=babel_get_locale(),
-                lang_str=LANGUAGES.get(str(babel_get_locale()), "English"),
-                languages=LANGUAGES)
+    return {'lang': babel_get_locale(),
+            'lang_str': LANGUAGES.get(str(babel_get_locale()), "English"),
+            'languages': LANGUAGES}
 
 
 @web.route('/language/<language>')

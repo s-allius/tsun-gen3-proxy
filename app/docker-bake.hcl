@@ -53,7 +53,7 @@ target "_common" {
   ]
 
   no-cache = false
-  platforms = ["linux/amd64", "linux/arm64", "linux/arm/v7"]
+  platforms = ["linux/amd64", "linux/arm64"]
 }
 
 target "_debug" {

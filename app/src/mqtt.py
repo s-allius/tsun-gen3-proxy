@@ -112,7 +112,7 @@ class Mqtt(metaclass=Singleton):
             except asyncio.CancelledError:
                 logger_mqtt.debug("MQTT task cancelled")
                 self.__client = None
-                return
+                raise
             except Exception:
                 # self.inc_counter('SW_Exception')   # fixme
                 self.ctime = None
@@ -151,7 +151,7 @@ class Mqtt(metaclass=Singleton):
             if self.__cb_mqtt_is_up:
                 await self.__cb_mqtt_is_up()
 
-    async def _out_coeff(self, message):
+    def _out_coeff(self, message):
         payload = message.payload.decode("UTF-8")
         try:
             val = round(float(payload) * 1024/100)
@@ -160,9 +160,9 @@ class Mqtt(metaclass=Singleton):
                                   'the range 0..100,'
                                   f' got: {payload}')
             else:
-                await self._modbus_cmd(message,
-                                       Modbus.WRITE_SINGLE_REG,
-                                       0, 0x202c, val)
+                self._modbus_cmd(message,
+                                 Modbus.WRITE_SINGLE_REG,
+                                 0, 0x202c, val)
         except Exception:
             pass
 
@@ -182,7 +182,7 @@ class Mqtt(metaclass=Singleton):
         else:
             logger_mqtt.warning(f'Node_id: {node_id} not found')
 
-    async def _modbus_cmd(self, message, func, params=0, addr=0, val=0):
+    def _modbus_cmd(self, message, func, params=0, addr=0, val=0):
         payload = message.payload.decode("UTF-8")
         for fnc in self.each_inverter(message, "send_modbus_cmd"):
             res = payload.split(',')
@@ -195,7 +195,7 @@ class Mqtt(metaclass=Singleton):
             elif params == 2:
                 addr = int(res[0], base=16)
                 val = int(res[1])  # lenght
-            await fnc(func, addr, val, logging.INFO)
+            fnc(func, addr, val, logging.INFO)
 
     async def _at_cmd(self, message):
         payload = message.payload.decode("UTF-8")
