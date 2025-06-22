@@ -9,7 +9,7 @@ from mock import patch
 
 from server import app as my_app
 from server import Server
-from web import Web, web
+from web import web
 from async_stream import AsyncStreamClient
 from gen3plus.inverter_g3p import InverterG3P
 from web.log_handler import LogHandler
@@ -193,6 +193,11 @@ async def test_language_en(client):
 @pytest.mark.asyncio
 async def test_language_de(client):
     """Test the language/de route."""
+
+    # s = FakeServer()
+    # s.src_dir = 'app/src/'
+    # assert "../translations/" == s.trans_path
+
     response = await client.get('/language/de', headers={'referer': '/'})
     assert response.status_code == 302
     assert response.content_language.pop() == 'de'

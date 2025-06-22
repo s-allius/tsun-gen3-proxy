@@ -16,6 +16,7 @@ def get_locale():
     except KeyError:
         language = None
     if language is not None:
+        print(f'in get_loal {language}')
         return language
 
     # check how to get the locale form for the add-on - hass.selectedLanguage
