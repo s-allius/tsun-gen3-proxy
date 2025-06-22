@@ -22,3 +22,6 @@ class LogHandler(Handler, metaclass=Singleton):
 
     def get_buffer(self, elms=0) -> list:
         return list(self.buffer)[-elms:]
+
+    def clear(self):
+        self.buffer.clear()

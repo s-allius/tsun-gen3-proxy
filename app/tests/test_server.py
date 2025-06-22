@@ -191,6 +191,7 @@ class TestApp:
         """Test the ready route."""
 
         ProxyState.set_up(False)
+        app.testing = True
         client = app.test_client()
         response = await client.get('/-/ready')
         assert response.status_code == 503
@@ -211,6 +212,7 @@ class TestApp:
 
         with InverterBase(reader, writer, 'tsun', Talent):
             ProxyState.set_up(False)
+            app.testing = True
             client = app.test_client()
             response = await client.get('/-/healthy')
             assert response.status_code == 200
@@ -240,6 +242,7 @@ class TestApp:
 
         with caplog.at_level(logging.INFO) and InverterBase(reader, writer, 'tsun', Talent):
             ProxyState.set_up(False)
+            app.testing = True
             client = app.test_client()
             response = await client.get('/-/healthy')
             assert response.status_code == 200
@@ -271,6 +274,7 @@ class TestApp:
 
         with caplog.at_level(logging.INFO) and InverterBase(reader, writer, 'tsun', Talent):
             ProxyState.set_up(False)
+            app.testing = True
             client = app.test_client()
             response = await client.get('/-/healthy')
             assert response.status_code == 200
