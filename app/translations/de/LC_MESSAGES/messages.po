@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: tsun-gen3-proxy 0.14.0\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2025-05-13 22:34+0200\n"
+"POT-Creation-Date: 2025-06-21 10:54+0200\n"
 "PO-Revision-Date: 2025-04-18 16:24+0200\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: de\n"
@@ -75,11 +75,16 @@ msgstr "Wichtige Hinweise"
 msgid "Log Files"
 msgstr "Log Dateien"
 
-#: src/web/templates/base.html.j2:64
+#: src/web/templates/base.html.j2:62
+#: src/web/templates/page_network_tests.html.j2:5
+msgid "Network Tests"
+msgstr ""
+
+#: src/web/templates/base.html.j2:65
 msgid "Add-on Config"
 msgstr "Add-on Konfiguration"
 
-#: src/web/templates/base.html.j2:65
+#: src/web/templates/base.html.j2:66
 msgid "Add-on Log"
 msgstr "Add-on Protokoll"
 
@@ -171,6 +176,11 @@ msgstr "Empfangene Topics"
 #: src/web/templates/page_mqtt.html.j2:43
 msgid "Number of topics received"
 msgstr "Anzahl der empfangenen Topics"
+
+#: src/web/templates/page_network_tests.html.j2:3
+#, fuzzy
+msgid "TSUN Proxy - Network Tests"
+msgstr "TSUN Proxy - Verbindungen"
 
 #: src/web/templates/page_notes.html.j2:3
 msgid "TSUN Proxy - Important Messages"
