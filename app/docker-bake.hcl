@@ -29,17 +29,17 @@ target "_common" {
     "type =sbom,generator=docker/scout-sbom-indexer:latest"
   ]
   annotations = [
-    "index:org.opencontainers.image.title=TSUN Gen3 Proxy",
-    "index:org.opencontainers.image.authors=Stefan Allius",
-    "index:org.opencontainers.image.created=${BUILD_DATE}",
-    "index:org.opencontainers.image.version=${VERSION}",
-    "index:org.opencontainers.image.revision=${BRANCH}",
-    "index:org.opencontainers.image.description=${DESCRIPTION}",
+    "index,manifest-descriptor:org.opencontainers.image.title=TSUN-Proxy",
+    "index,manifest-descriptor:org.opencontainers.image.authors=Stefan Allius",
+    "index,manifest-descriptor:org.opencontainers.image.created=${BUILD_DATE}",
+    "index,manifest-descriptor:org.opencontainers.image.version=${VERSION}",
+    "index,manifest-descriptor:org.opencontainers.image.revision=${BRANCH}",
+    "index,manifest-descriptor:org.opencontainers.image.description=${DESCRIPTION}",
     "index:org.opencontainers.image.licenses=BSD-3-Clause",
     "index:org.opencontainers.image.source=https://github.com/s-allius/tsun-gen3-proxy"
   ]
   labels = {
-    "org.opencontainers.image.title" = "TSUN Gen3 Proxy"
+    "org.opencontainers.image.title" = "TSUN-Proxy"
     "org.opencontainers.image.authors" = "Stefan Allius"
     "org.opencontainers.image.created" = "${BUILD_DATE}"
     "org.opencontainers.image.version" = "${VERSION}"
