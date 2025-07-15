@@ -4,6 +4,7 @@ import logging
 import traceback
 import json
 import gc
+import socket
 from aiomqtt import MqttCodeError
 from asyncio import StreamReader, StreamWriter
 from ipaddress import ip_address
@@ -138,7 +139,9 @@ class InverterBase(InverterIfc, Proxy):
                          f'Connected to {addr}')
             asyncio.create_task(self.remote.ifc.client_loop(addr))
 
-        except (ConnectionRefusedError, TimeoutError) as error:
+        except (ConnectionRefusedError,
+                TimeoutError,
+                socket.gaierror) as error:
             logging.info(f'{error}')
         except Exception:
             Infos.inc_counter('SW_Exception')
