@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+- add-on: bump base-image to version 18.0.3
+- add-on: remove armhf and armv7 support
 - add-on: add links to config and log-file to the web-UI
 - fix some SonarQube warnings
 - remove unused 32-bit architectures
