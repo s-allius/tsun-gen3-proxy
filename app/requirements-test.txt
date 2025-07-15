@@ -4,5 +4,5 @@
     pytest-cov==6.2.1
     python-dotenv==1.1.1
     mock==5.2.0
-    coverage==7.9.1
+    coverage==7.9.2
     jinja2-cli==0.8.2
