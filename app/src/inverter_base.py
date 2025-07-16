@@ -39,6 +39,7 @@ class InverterBase(InverterIfc, Proxy):
             self.use_emulation = False
         self.__ha_restarts = -1
         self.remote = StreamPtr(None)
+        self.background_tasks = set()
         ifc = AsyncStreamServer(reader, writer,
                                 self.async_publ_mqtt,
                                 self.create_remote,
@@ -73,6 +74,7 @@ class InverterBase(InverterIfc, Proxy):
         if self.remote.ifc:
             self.remote.ifc.close()
             self.remote.ifc = None
+        self.background_tasks.clear()
 
     async def disc(self, shutdown_started=False) -> None:
         if self.remote.stream:
@@ -137,7 +139,10 @@ class InverterBase(InverterIfc, Proxy):
             logging.info(f'[{self.remote.stream.node_id}:'
                          f'{self.remote.stream.conn_no}] '
                          f'Connected to {addr}')
-            asyncio.create_task(self.remote.ifc.client_loop(addr))
+            task = asyncio.create_task(
+                self.remote.ifc.client_loop(addr))
+            self.background_tasks.add(task)
+            task.add_done_callback(self.background_tasks.discard)
 
         except (ConnectionRefusedError,
                 TimeoutError,
