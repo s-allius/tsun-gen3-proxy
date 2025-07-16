@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+- Update dependency pytest-asyncio to v1.1.0
 - catch socket.gaierror exception and log this with info level
 - Update dependency coverage to v7.9.2
 - add-on: bump base-image to version 18.0.3
