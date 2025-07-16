@@ -43,6 +43,7 @@ class ModbusTcp():
 
     def __init__(self, loop, tim_restart=10) -> None:
         self.tim_restart = tim_restart
+        self.background_tasks = set()
 
         inverters = Config.get('inverters')
         batteries = Config.get('batteries')
@@ -54,10 +55,13 @@ class ModbusTcp():
                and 'client_mode' in inv):
                 client = inv['client_mode']
                 logger.info(f"'client_mode' for Monitoring-SN: {inv['monitor_sn']} host: {client['host']}:{client['port']}, forward: {client['forward']}")  # noqa: E501
-                loop.create_task(self.modbus_loop(client['host'],
-                                                  client['port'],
-                                                  inv['monitor_sn'],
-                                                  client['forward']))
+                task = loop.create_task(
+                    self.modbus_loop(client['host'],
+                                     client['port'],
+                                     inv['monitor_sn'],
+                                     client['forward']))
+                self.background_tasks.add(task)
+                task.add_done_callback(self.background_tasks.discard)
 
     async def modbus_loop(self, host, port,
                           snr: int, forward: bool) -> None:
