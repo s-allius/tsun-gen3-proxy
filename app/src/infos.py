@@ -31,6 +31,7 @@ class Register(Enum):
     GRID_VOLT_CAL_COEF = 29
     OUTPUT_COEFFICIENT = 30
     PROD_COMPL_TYPE = 31
+    AVAIL_STATUS = 32
     INVERTER_CNT = 50
     UNKNOWN_SNR = 51
     UNKNOWN_MSG = 52
@@ -577,6 +578,7 @@ class Infos:
     __output_coef_val_tpl = "{% if 'Output_Coefficient' in value_json and value_json['Output_Coefficient'] != None %}{{value_json['Output_Coefficient']|string() +' %'}}{% else %}{{ this.state }}{% endif %}"  # noqa: E501
 
     __info_defs = {
+        Register.AVAIL_STATUS: {'name': ['status', 'status']},
         # collector values used for device registration:
         Register.COLLECTOR_FW_VERSION:  {'name': ['collector', 'Collector_Fw_Version'],       'level': logging.INFO,  'unit': ''},  # noqa: E501
         Register.CHIP_TYPE:  {'name': ['collector', 'Chip_Type'],        'singleton': False,  'level': logging.DEBUG, 'unit': ''},  # noqa: E501
@@ -946,6 +948,9 @@ class Infos:
         attr['dev_cla'] = ha['dev_cla']
         attr['stat_cla'] = ha['stat_cla']
         attr['uniq_id'] = ha['id']+snr
+        # attr['availability_topic'] = prfx + "status"
+        # attr['payload_available'] = "online"
+        # attr['payload_not_available'] = "offline"
         if 'val_tpl' in ha:
             attr['val_tpl'] = ha['val_tpl']
         elif 'fmt' in ha:

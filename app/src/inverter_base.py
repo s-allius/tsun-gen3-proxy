@@ -167,6 +167,8 @@ class InverterBase(InverterIfc, Proxy):
                         stream.new_data['batterie'])
                     or ('collector' in stream.new_data and
                         stream.new_data['collector'])
+                    or ('status' in stream.new_data and
+                        stream.new_data['status'])
                     or self.mqtt.ha_restarts != self.__ha_restarts):
                 await self._register_proxy_stat_home_assistant()
                 await self.__register_home_assistant(stream)

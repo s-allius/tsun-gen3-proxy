@@ -2070,7 +2070,7 @@ def test_proxy_counter():
     m.id_str = b"R170000000000001" 
     c = m.createClientStream(b'')
 
-    assert m.new_data == {}
+    assert m.new_data == {'status': True}
     m.db.stat['proxy']['Unknown_Msg'] = 0
     c.db.stat['proxy']['Unknown_Msg'] = 0
     Infos.new_stat_data['proxy'] =  False
@@ -2079,7 +2079,7 @@ def test_proxy_counter():
     m.close()
     m = MemoryStream(b'')
    
-    assert m.new_data == {}
+    assert m.new_data == {'status': True}
     assert Infos.new_stat_data == {'proxy': True}
     assert m.db.new_stat_data == {'proxy': True}
     assert c.db.new_stat_data == {'proxy': True}
@@ -2088,7 +2088,7 @@ def test_proxy_counter():
     Infos.new_stat_data['proxy'] =  False
 
     c.inc_counter('Unknown_Msg')
-    assert m.new_data == {}
+    assert m.new_data == {'status': True}
     assert Infos.new_stat_data == {'proxy': True}
     assert m.db.new_stat_data == {'proxy': True}
     assert c.db.new_stat_data == {'proxy': True}
@@ -2097,7 +2097,7 @@ def test_proxy_counter():
     Infos.new_stat_data['proxy'] =  False
 
     c.inc_counter('Modbus_Command')
-    assert m.new_data == {}
+    assert m.new_data == {'status': True}
     assert Infos.new_stat_data == {'proxy': True}
     assert m.db.new_stat_data == {'proxy': True}
     assert c.db.new_stat_data == {'proxy': True}
@@ -2106,7 +2106,7 @@ def test_proxy_counter():
 
     Infos.new_stat_data['proxy'] =  False
     m.dec_counter('Unknown_Msg')
-    assert m.new_data == {}
+    assert m.new_data == {'status': True}
     assert Infos.new_stat_data == {'proxy': True}
     assert 1 == m.db.stat['proxy']['Unknown_Msg']
     m.close()
@@ -2258,7 +2258,7 @@ def test_msg_modbus_rsp2(config_tsun_inv1, msg_modbus_rsp20):
     m.mb.req_pend = True
     m.mb.err = 0
 
-    assert m.db.db == {}
+    assert m.db.db == {'status': {'status': 'on'}}
     m.new_data['inverter'] = False
 
     m.read()         # read complete msg, and dispatch msg
@@ -2267,7 +2267,7 @@ def test_msg_modbus_rsp2(config_tsun_inv1, msg_modbus_rsp20):
     assert m.msg_count == 2
     assert m.ifc.fwd_fifo.get()==msg_modbus_rsp20
     assert m.ifc.tx_fifo.get()==b''
-    assert m.db.db == {'collector': {'Serial_Number': 'R170000000000001'}, 'inverter': {'Version': 'V5.1.09', 'Rated_Power': 300}, 'grid': {'Timestamp': m._utc(), 'Voltage': 225.9, 'Current': 0.41, 'Frequency': 49.99, 'Output_Power': 94.8}, 'env': {'Inverter_Temp': 22}, 'input': {'Timestamp': m._utc(), 'pv1': {'Voltage': 0.8, 'Current': 0.0, 'Power': 0.0}, 'pv2': {'Voltage': 34.5, 'Current': 2.89, 'Power': 99.8}, 'pv3': {'Voltage': 0.0, 'Current': 0.0, 'Power': 0.0}, 'pv4': {'Voltage': 0.0, 'Current': 0.0, 'Power': 0.0}}}
+    assert m.db.db == {'status': {'status': 'on'}, 'collector': {'Serial_Number': 'R170000000000001'}, 'inverter': {'Version': 'V5.1.09', 'Rated_Power': 300}, 'grid': {'Timestamp': m._utc(), 'Voltage': 225.9, 'Current': 0.41, 'Frequency': 49.99, 'Output_Power': 94.8}, 'env': {'Inverter_Temp': 22}, 'input': {'Timestamp': m._utc(), 'pv1': {'Voltage': 0.8, 'Current': 0.0, 'Power': 0.0}, 'pv2': {'Voltage': 34.5, 'Current': 2.89, 'Power': 99.8}, 'pv3': {'Voltage': 0.0, 'Current': 0.0, 'Power': 0.0}, 'pv4': {'Voltage': 0.0, 'Current': 0.0, 'Power': 0.0}}}
     assert m.db.get_db_value(Register.VERSION) == 'V5.1.09'
     assert m.db.get_db_value(Register.TS_GRID) == m._utc()
     assert m.new_data['inverter'] == True
@@ -2288,7 +2288,7 @@ def test_msg_modbus_rsp3(config_tsun_inv1, msg_modbus_rsp21):
     m.mb.req_pend = True
     m.mb.err = 0
 
-    assert m.db.db == {}
+    assert m.db.db == {'status': {'status': 'on'}}
     m.new_data['inverter'] = False
 
     m.read()         # read complete msg, and dispatch msg
@@ -2297,7 +2297,7 @@ def test_msg_modbus_rsp3(config_tsun_inv1, msg_modbus_rsp21):
     assert m.msg_count == 2
     assert m.ifc.fwd_fifo.get()==msg_modbus_rsp21
     assert m.ifc.tx_fifo.get()==b''
-    assert m.db.db == {'collector': {'Serial_Number': 'R170000000000001'}, 'inverter': {'Version': 'V5.1.0E', 'Rated_Power': 300}, 'grid': {'Timestamp': m._utc(), 'Voltage': 225.9, 'Current': 0.41, 'Frequency': 49.99, 'Output_Power': 94.8}, 'env': {'Inverter_Temp': 22}, 'input': {'Timestamp': m._utc(), 'pv1': {'Voltage': 0.8, 'Current': 0.0, 'Power': 0.0}, 'pv2': {'Voltage': 34.5, 'Current': 2.89, 'Power': 99.8}, 'pv3': {'Voltage': 0.0, 'Current': 0.0, 'Power': 0.0}, 'pv4': {'Voltage': 0.0, 'Current': 0.0, 'Power': 0.0}}}
+    assert m.db.db == {'status': {'status': 'on'}, 'collector': {'Serial_Number': 'R170000000000001'}, 'inverter': {'Version': 'V5.1.0E', 'Rated_Power': 300}, 'grid': {'Timestamp': m._utc(), 'Voltage': 225.9, 'Current': 0.41, 'Frequency': 49.99, 'Output_Power': 94.8}, 'env': {'Inverter_Temp': 22}, 'input': {'Timestamp': m._utc(), 'pv1': {'Voltage': 0.8, 'Current': 0.0, 'Power': 0.0}, 'pv2': {'Voltage': 34.5, 'Current': 2.89, 'Power': 99.8}, 'pv3': {'Voltage': 0.0, 'Current': 0.0, 'Power': 0.0}, 'pv4': {'Voltage': 0.0, 'Current': 0.0, 'Power': 0.0}}}
     assert m.db.get_db_value(Register.VERSION) == 'V5.1.0E'
     assert m.db.get_db_value(Register.TS_GRID) == m._utc()
     assert m.new_data['inverter'] == True
