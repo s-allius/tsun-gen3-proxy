@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Update dependency coverage to v7.15.4
 - Update ghcr.io/hassio-addons/base Docker tag to v21.0.1
 - Update dependency aiohttp to v3.14.3
 - Update dependency quart to v0.21.0
