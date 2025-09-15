@@ -82,7 +82,7 @@ def spy_inc_cnt():
         yield infos
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_close_cb():
     assert asyncio.get_running_loop()
     reader = FakeReader()
@@ -122,7 +122,7 @@ async def test_close_cb():
         cnt += 1
     assert cnt == 0
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_read():
     assert asyncio.get_running_loop()
     reader = FakeReader()
@@ -161,7 +161,7 @@ async def test_read():
         cnt += 1
     assert cnt == 0
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_write():
     assert asyncio.get_running_loop()
     reader = FakeReader()
@@ -204,7 +204,7 @@ async def test_write():
         cnt += 1
     assert cnt == 0
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_publ_mqtt_cb():
     assert asyncio.get_running_loop()
     reader = FakeReader()
@@ -235,7 +235,7 @@ async def test_publ_mqtt_cb():
         cnt += 1
     assert cnt == 0
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_create_remote_cb():
     assert asyncio.get_running_loop()
     reader = FakeReader()
@@ -268,7 +268,7 @@ async def test_create_remote_cb():
         cnt += 1
     assert cnt == 0
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_sw_exception():
     assert asyncio.get_running_loop()
     reader = FakeReader()
@@ -300,7 +300,7 @@ async def test_sw_exception():
         cnt += 1
     assert cnt == 0
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_os_error():
     assert asyncio.get_running_loop()
     reader = FakeReader()
@@ -371,7 +371,7 @@ def create_remote(remote, test_type, with_close_hdr:bool = False):
     remote.ifc.prot_set_init_new_client_conn_cb(callback)
     remote.stream = FakeProto(remote.ifc, False)
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_forward():
     assert asyncio.get_running_loop()
     remote = StreamPtr(None)
@@ -393,7 +393,7 @@ async def test_forward():
     assert cnt == 1
     del ifc
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_forward_with_conn():
     assert asyncio.get_running_loop()
     remote = StreamPtr(None)
@@ -411,7 +411,7 @@ async def test_forward_with_conn():
     assert cnt == 0
     del ifc
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_forward_no_conn():
     assert asyncio.get_running_loop()
     remote = StreamPtr(None)
@@ -428,7 +428,7 @@ async def test_forward_no_conn():
     assert cnt == 1
     del ifc
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_forward_sw_except():
     assert asyncio.get_running_loop()
     remote = StreamPtr(None)
@@ -446,7 +446,7 @@ async def test_forward_sw_except():
     assert cnt == 1
     del ifc
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_forward_os_error():
     assert asyncio.get_running_loop()
     remote = StreamPtr(None)
@@ -464,7 +464,7 @@ async def test_forward_os_error():
     assert cnt == 1
     del ifc
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_forward_os_error2():
     assert asyncio.get_running_loop()
     remote = StreamPtr(None)
@@ -482,7 +482,7 @@ async def test_forward_os_error2():
     assert cnt == 1
     del ifc
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_forward_os_error3():
     assert asyncio.get_running_loop()
     remote = StreamPtr(None)
@@ -500,7 +500,7 @@ async def test_forward_os_error3():
     assert cnt == 1
     del ifc
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_forward_runtime_error():
     assert asyncio.get_running_loop()
     remote = StreamPtr(None)
@@ -518,7 +518,7 @@ async def test_forward_runtime_error():
     assert cnt == 1
     del ifc
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_forward_runtime_error2():
     assert asyncio.get_running_loop()
     remote = StreamPtr(None)
@@ -536,7 +536,7 @@ async def test_forward_runtime_error2():
     assert cnt == 1
     del ifc
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_forward_runtime_error3(spy_inc_cnt):
     assert asyncio.get_running_loop()
     remote = StreamPtr(None)
@@ -558,7 +558,7 @@ async def test_forward_runtime_error3(spy_inc_cnt):
     assert cnt == 1
     del ifc
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_forward_resp(spy_inc_cnt):
     assert asyncio.get_running_loop()
     remote = StreamPtr(None)
@@ -581,7 +581,7 @@ async def test_forward_resp(spy_inc_cnt):
     del ifc
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_forward_resp2(spy_inc_cnt):
     assert asyncio.get_running_loop()
     remote = StreamPtr(None)

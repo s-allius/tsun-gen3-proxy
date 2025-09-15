@@ -128,7 +128,7 @@ def heartbeat_ind():
     msg  = b'\xa5\x01\x00\x10G\x00\x01\x00\x00\x00\x00\x00Y\x15'
     return msg
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_emu_init_close(my_loop, config_tsun_inv1):
     _ = config_tsun_inv1
     assert asyncio.get_running_loop()
@@ -137,7 +137,7 @@ async def test_emu_init_close(my_loop, config_tsun_inv1):
     cld.close()
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_emu_start(my_loop, config_tsun_inv1, msg_modbus_rsp, str_test_ip, device_ind_msg):
     _ = config_tsun_inv1
     assert asyncio.get_running_loop()
@@ -155,7 +155,7 @@ async def test_emu_start(my_loop, config_tsun_inv1, msg_modbus_rsp, str_test_ip,
     assert inv.ifc.fwd_fifo.peek() == device_ind_msg
     cld.close()
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_snd_hb(my_loop, config_tsun_inv1, heartbeat_ind):
     _ = config_tsun_inv1
     inv = InvStream()
@@ -166,7 +166,7 @@ async def test_snd_hb(my_loop, config_tsun_inv1, heartbeat_ind):
     assert cld.ifc.tx_fifo.peek() == heartbeat_ind
     cld.close()
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_snd_inv_data(my_loop, config_tsun_inv1, inverter_ind_msg, inverter_rsp_msg):
     _ = config_tsun_inv1
     inv = InvStream()
@@ -208,7 +208,7 @@ async def test_snd_inv_data(my_loop, config_tsun_inv1, inverter_ind_msg, inverte
 
     cld.close()
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_rcv_invalid(my_loop, config_tsun_inv1, inverter_ind_msg, inverter_rsp_msg):
     _ = config_tsun_inv1
     inv = InvStream()

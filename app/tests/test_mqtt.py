@@ -132,7 +132,7 @@ def test_native_client(test_hostname, test_port):
     finally:
         c.loop_stop()
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_mqtt_connection(config_mqtt_conn):
     if NO_MOSQUITTO_TEST:
         pytest.skip('skipping, since Mosquitto is not reliable at the moment')
@@ -157,7 +157,7 @@ async def test_mqtt_connection(config_mqtt_conn):
         await m.close()
         await m.publish('homeassistant/status', 'online')
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_ha_reconnect(config_mqtt_conn):
     if NO_MOSQUITTO_TEST:
         pytest.skip('skipping, since Mosquitto is not reliable at the moment')
@@ -181,7 +181,7 @@ async def test_ha_reconnect(config_mqtt_conn):
         assert m.received == 2
         await m.close()
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_mqtt_no_config(config_no_conn, monkeypatch):
     _ = config_no_conn
     assert asyncio.get_running_loop()
@@ -209,7 +209,7 @@ async def test_mqtt_no_config(config_no_conn, monkeypatch):
     finally:
         await m.close()
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_mqtt_except_no_config(config_no_conn, monkeypatch, caplog):
     _ = config_no_conn
 
@@ -239,7 +239,7 @@ async def test_mqtt_except_no_config(config_no_conn, monkeypatch, caplog):
             await m.close()
     assert 'Connection lost; Reconnecting in 5 seconds' in caplog.text
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_mqtt_except_def_config(config_def_conn, monkeypatch, caplog):
     _ = config_def_conn
 
@@ -274,7 +274,7 @@ async def test_mqtt_except_def_config(config_def_conn, monkeypatch, caplog):
             await m.close()
     assert 'MQTT is unconfigured; Check your config.toml!' in caplog.text
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_mqtt_dispatch(config_mqtt_conn, aiomqtt_mock, spy_modbus_cmd):
     _ = config_mqtt_conn
     _ = aiomqtt_mock
@@ -326,7 +326,7 @@ async def test_mqtt_dispatch(config_mqtt_conn, aiomqtt_mock, spy_modbus_cmd):
     finally:
         await m.close()
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_mqtt_dispatch_cb(config_mqtt_conn, aiomqtt_mock):
     _ = config_mqtt_conn
     _ = aiomqtt_mock
@@ -348,7 +348,7 @@ async def test_mqtt_dispatch_cb(config_mqtt_conn, aiomqtt_mock):
     finally:
         await m.close()
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_mqtt_dispatch_err(config_mqtt_conn, aiomqtt_mock, spy_modbus_cmd, caplog):
     _ = config_mqtt_conn
     _ = aiomqtt_mock
@@ -391,7 +391,7 @@ async def test_mqtt_dispatch_err(config_mqtt_conn, aiomqtt_mock, spy_modbus_cmd,
     finally:
         await m.close()
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_msg_ignore_client_conn(config_mqtt_conn, spy_modbus_cmd_client):
     '''don't call function if connnection is not in server mode'''
     _ = config_mqtt_conn
@@ -404,7 +404,7 @@ async def test_msg_ignore_client_conn(config_mqtt_conn, spy_modbus_cmd_client):
     finally:
         await m.close()
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_ignore_unknown_func(config_mqtt_conn):
     '''don't dispatch for unknwon function names'''
     _ = config_mqtt_conn
@@ -416,7 +416,7 @@ async def test_ignore_unknown_func(config_mqtt_conn):
     finally:
         await m.close()
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_at_cmd_dispatch(config_mqtt_conn, spy_at_cmd):
     _ = config_mqtt_conn
     spy = spy_at_cmd
@@ -429,7 +429,7 @@ async def test_at_cmd_dispatch(config_mqtt_conn, spy_at_cmd):
     finally:
         await m.close()
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_dcu_dispatch(config_mqtt_conn, spy_dcu_cmd):
     _ = config_mqtt_conn
     spy = spy_dcu_cmd
@@ -441,7 +441,7 @@ async def test_dcu_dispatch(config_mqtt_conn, spy_dcu_cmd):
     finally:
         await m.close()
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_dcu_inv_value(config_mqtt_conn, spy_dcu_cmd):
     _ = config_mqtt_conn
     spy = spy_dcu_cmd
