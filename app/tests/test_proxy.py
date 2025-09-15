@@ -59,7 +59,7 @@ def config_conn(test_hostname, test_port):
                         }
     }
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_inverter_cb(config_conn):
     _ = config_conn
 
@@ -72,7 +72,7 @@ async def test_inverter_cb(config_conn):
         await Proxy._cb_mqtt_is_up()
         spy.assert_called_once()
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_mqtt_is_up(config_conn):
     _ = config_conn
 
@@ -81,7 +81,7 @@ async def test_mqtt_is_up(config_conn):
         await Proxy._cb_mqtt_is_up()
         spy.assert_called()
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_mqtt_proxy_statt_invalid(config_conn):
     _ = config_conn
 
