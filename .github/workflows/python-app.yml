@@ -34,7 +34,7 @@ jobs:
     runs-on: ubuntu-24.04
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
       with:
         fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
     - name: Set up Python 3.13
