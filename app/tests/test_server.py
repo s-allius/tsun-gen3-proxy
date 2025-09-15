@@ -257,7 +257,7 @@ class TestApp:
             assert result == b"I have a problem"
             assert "" == caplog.text
 
-    @pytest.mark.asyncio(loop_scope="session")
+    @pytest.mark.asyncio
     async def test_healthy_exception(self, monkeypatch, caplog):
         """Test the healthy route."""
         def result_except(self):
