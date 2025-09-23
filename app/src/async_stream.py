@@ -29,6 +29,7 @@ class AsyncIfcImpl(AsyncIfc):
         self.timeout_cb = None
         self.init_new_client_conn_cb = None
         self.update_header_cb = None
+        self.inv_disc_cb = None
 
     def close(self):
         self.timeout_cb = None
@@ -105,6 +106,9 @@ class AsyncIfcImpl(AsyncIfc):
 
     def prot_set_update_header_cb(self, callback):
         self.update_header_cb = callback
+
+    def prot_set_disc_cb(self, callback):
+        self.inv_disc_cb = callback
 
 
 class StreamPtr():
@@ -330,6 +334,8 @@ class AsyncStreamServer(AsyncStream):
         Infos.inc_counter('ServerMode_Cnt')
         await self.publish_outstanding_mqtt()
         await self.loop()
+        if self.inv_disc_cb:
+            self.inv_disc_cb()
         Infos.dec_counter('ServerMode_Cnt')
         Infos.dec_counter('Inverter_Cnt')
         await self.publish_outstanding_mqtt()
@@ -386,6 +392,8 @@ class AsyncStreamClient(AsyncStream):
             Infos.inc_counter('ProxyMode_Cnt')
         await self.publish_outstanding_mqtt()
         await self.loop()
+        if self.inv_disc_cb:
+            self.inv_disc_cb()
         if self.emu_mode:
             Infos.dec_counter('EmuMode_Cnt')
         else:
