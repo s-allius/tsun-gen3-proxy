@@ -4,7 +4,7 @@ ARG GID=1000
 
 #
 # first stage for our base image
-FROM python:3.13-alpine AS base
+FROM python:3.14-alpine AS base
 
 COPY --chmod=0700 ./hardening_base.sh /
 RUN apk upgrade --no-cache && \
