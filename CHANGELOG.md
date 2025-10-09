@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+- use python 3.14 in github action
 - Update ghcr.io/hassio-addons/base Docker tag to v18.1.4
 - Update dependency pytest-asyncio to v1.1.0
 - save task references, to avoid a task disappearing mid-execution
