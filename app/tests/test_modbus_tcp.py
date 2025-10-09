@@ -189,7 +189,7 @@ def patch_mqtt_except():
     with patch.object(Mqtt, 'publish', new_publish) as conn:
         yield conn
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_modbus_conn(config_conn, patch_open):
     _ = config_conn
     _ = patch_open
@@ -209,7 +209,7 @@ async def test_modbus_conn(config_conn, patch_open):
 
     assert Infos.stat['proxy']['Inverter_Cnt'] == 0
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_modbus_no_cnf():
     _ = config_conn
     assert Infos.stat['proxy']['Inverter_Cnt'] == 0
@@ -217,7 +217,7 @@ async def test_modbus_no_cnf():
     ModbusTcp(loop)
     assert Infos.stat['proxy']['Inverter_Cnt'] == 0
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_modbus_timeout(config_conn, patch_open_timeout):
     _ = config_conn
     _ = patch_open_timeout
@@ -235,7 +235,7 @@ async def test_modbus_timeout(config_conn, patch_open_timeout):
     await asyncio.sleep(0.01)
     assert Infos.stat['proxy']['Inverter_Cnt'] == 0
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_modbus_value_err(config_conn, patch_open_value_error):
     _ = config_conn
     _ = patch_open_value_error
@@ -253,7 +253,7 @@ async def test_modbus_value_err(config_conn, patch_open_value_error):
     await asyncio.sleep(0.01)
     assert Infos.stat['proxy']['Inverter_Cnt'] == 0
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_modbus_conn_abort(config_conn, patch_open_conn_abort):
     _ = config_conn
     _ = patch_open_conn_abort
@@ -271,7 +271,7 @@ async def test_modbus_conn_abort(config_conn, patch_open_conn_abort):
     await asyncio.sleep(0.01)
     assert Infos.stat['proxy']['Inverter_Cnt'] == 0
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_modbus_cnf2(config_conn, patch_no_mqtt, patch_open):
     _ = config_conn
     _ = patch_open
@@ -295,7 +295,7 @@ async def test_modbus_cnf2(config_conn, patch_no_mqtt, patch_open):
     await asyncio.sleep(0.01)
     assert Infos.stat['proxy']['Inverter_Cnt'] == 0
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_modbus_cnf3(config_conn, patch_no_mqtt, patch_open):
     _ = config_conn
     _ = patch_open
@@ -326,7 +326,7 @@ async def test_modbus_cnf3(config_conn, patch_no_mqtt, patch_open):
     await asyncio.sleep(0.01)
     assert Infos.stat['proxy']['Inverter_Cnt'] == 0
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_mqtt_err(config_conn, patch_mqtt_err, patch_open):
     _ = config_conn
     _ = patch_open
@@ -357,7 +357,7 @@ async def test_mqtt_err(config_conn, patch_mqtt_err, patch_open):
     await asyncio.sleep(0.01)
     assert Infos.stat['proxy']['Inverter_Cnt'] == 0
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_mqtt_except(config_conn, patch_mqtt_except, patch_open):
     _ = config_conn
     _ = patch_open
