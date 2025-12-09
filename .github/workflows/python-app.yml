@@ -58,7 +58,7 @@ jobs:
         coverage report
     - name: Analyze with SonarCloud
       if: ${{ env.SONAR_TOKEN != 0 }}
-      uses: SonarSource/sonarqube-scan-action@v6
+      uses: SonarSource/sonarqube-scan-action@v7
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
