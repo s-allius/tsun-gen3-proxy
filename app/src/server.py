@@ -270,7 +270,7 @@ async def startup_app():    # pragma: no cover
     for inv_class, port in [(InverterG3, 5005), (InverterG3P, 10000)]:
         config = Config.get(inv_class.client_mode)
         if not config.enabled:
-            logging.info(f'{inv_class.client_mode} not enabled, not listening on port: {port} for inverters')
+            logging.info(f'{inv_class.client_mode} not enabled in config, not listening on port: {port} for inverters')
             continue
         logging.info(f'listen on port: {port} for inverters')
         task = loop.create_task(
