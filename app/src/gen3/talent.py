@@ -36,6 +36,7 @@ class Talent(Message):
 
     def __init__(self, inverter, addr, ifc: "AsyncIfc", server_side: bool,
                  client_mode: bool = False, id_str=b''):
+        self.db = InfosG3()
         super().__init__('G3', ifc, server_side, self.send_modbus_cb,
                          mb_timeout=15)
         _ = inverter
@@ -51,7 +52,6 @@ class Talent(Message):
         self.contact_name = b''
         self.contact_mail = b''
         self.ts_offset = 0        # time offset between tsun cloud and local
-        self.db = InfosG3()
         self.switch = {
             0x00: self.msg_contact_info,
             0x13: self.msg_ota_update,

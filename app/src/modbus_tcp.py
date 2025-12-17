@@ -35,6 +35,8 @@ class ModbusConn():
     async def __aexit__(self, exc_type, exc, tb):
         Infos.dec_counter('ClientMode_Cnt')
         Infos.dec_counter('Inverter_Cnt')
+        if self.inverter.local.ifc.inv_disc_cb:
+            self.inverter.local.ifc.inv_disc_cb()
         await self.inverter.local.ifc.publish_outstanding_mqtt()
         self.inverter.__exit__(exc_type, exc, tb)
 
