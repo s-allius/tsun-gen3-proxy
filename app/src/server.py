@@ -267,7 +267,11 @@ async def startup_app():    # pragma: no cover
     Schedule.start()
     ModbusTcp(loop)
 
-    for inv_class, port in [(InverterG3, 5005), (InverterG3P, 10000)]:
+    for inv_class, config_id, port in [(InverterG3, 'tsun', 5005), (InverterG3P, 'solarman', 10000)]:
+        config = Config.get(config_id)
+        if not config['enabled']:
+            logging.info(f'{config_id} not enabled in config, not listening on port: {port} for inverters')
+            continue
         logging.info(f'listen on port: {port} for inverters')
         task = loop.create_task(
             asyncio.start_server(lambda r, w, i=inv_class:
