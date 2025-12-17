@@ -8,7 +8,7 @@ FROM python:3.14-alpine AS base
 
 COPY --chmod=0700 ./hardening_base.sh /
 RUN apk upgrade --no-cache && \
-    apk add --no-cache su-exec=0.2-r3	&& \
+    apk add --no-cache su-exec=0.3-r0	&& \
     /hardening_base.sh && \
     rm /hardening_base.sh
 
