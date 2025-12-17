@@ -1,0 +1,31 @@
+{% extends 'base.html.j2' %}
+
+{% block title %}{{_("TSUN Proxy - Network Tests")}}{% endblock title %}
+{% block menu5_class %}w3-blue{% endblock %}
+{% block headline %}<i class="fa fa-file-export fa-fw"></i>  {{_('Network Tests')}}{% endblock headline %}
+{% block content %}
+
+  <script>
+    url = "http://127.0.0.1:10000"
+    const req = new XMLHttpRequest();
+    req.open("POST", url, true);
+    //req.setRequestHeader("RESOLVE", "bla.com")
+    req.onload = (event) => {
+      // Uploaded
+    };
+
+    const blob = new Blob(["abc123"], { type: "text/plain" });
+
+    req.send(blob);
+
+    ws = new WebSocket("ws://127.0.0.1:10000");
+    // ws.open()
+    ws.onopen = () => {
+      console.log("Connection opened")
+      ws.send("Hi server, please send me the score of yesterday's game")
+    }
+
+  </script>
+{% endblock content%}
+
+{% block footer %}{% endblock footer %}

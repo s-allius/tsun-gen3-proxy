@@ -30,3 +30,9 @@ async def logging():
     return await render_template(
         'page_logging.html.j2',
         fetch_url=url_for('.file_fetch'))
+
+
+@web.route('/network_tests')
+async def network_tests():
+    return await render_template(
+        'page_network_tests.html.j2')
