@@ -2,7 +2,7 @@
     pytest==8.4.2
     pytest-asyncio==1.2.0
     pytest-cov==7.0.0
-    python-dotenv==1.1.1
+    python-dotenv==1.2.1
     mock==5.2.0
     coverage==7.10.7
     jinja2-cli==0.8.2
