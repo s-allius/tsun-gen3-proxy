@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+- Update dependency python-dotenv to v1.2.2
 - Update ghcr.io/hassio-addons/base Docker tag to v20
 - add-on: bump to py3-pip=25.1.1-r1
 - Update dependency jinja2-cli to v1
