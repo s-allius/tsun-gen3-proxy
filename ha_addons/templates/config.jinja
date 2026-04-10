@@ -72,6 +72,8 @@ schema:
       pv1.type: str?
       pv2.manufacturer: str?
       pv2.type: str?
+  logging:
+    retention_days: int
 
   # optionale parameter
 
@@ -119,6 +121,8 @@ options:
       pv1.type: SF-M18/144550
       pv2.manufacturer: Shinefar
       pv2.type: SF-M18/144550
+  logging:
+    retention_days: 4
   tsun.enabled: true # set default
   solarman.enabled: true # set default
   inverters.allow_all: false # set default
