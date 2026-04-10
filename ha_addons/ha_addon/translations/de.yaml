@@ -90,7 +90,7 @@ configuration:
       description: >-
         Liste erlaubter AT-Befehle für TSUN GEN3PLUS
   gen3plus.at_acl.tsun.block:
-      name: TSUN GEN3 ACL block
+      name: TSUN GEN3PLUS ACL block
       description: >-
           Liste blockierter AT-Befehle für TSUN GEN3PLUS
   gen3plus.at_acl.mqtt.allow:
@@ -101,6 +101,22 @@ configuration:
       name: MQTT GEN3PLUS ACL block
       description: >-
           Liste blockierter MQTT-Befehle für GEN3PLUS
+  logging:
+    name: Protokolldateien
+    description: >-
+      Test-logging
+    fields:
+      level:
+        name: Logging level
+        description: >-
+          DEBUG: Vollständige Protokollierung  -  
+          INFO(default): Informationen, Warnungen und Fehlermeldungen  -  
+          WARN: Nur Warnungen und Fehlermeldungen  -  
+          ERROR: Nur Fehlermeldungen
+      retention_days:
+        name: Retention Period
+        description: >+
+          Aufbewahrungfrist der Protokolldateien in Tagen
 
 
 network:

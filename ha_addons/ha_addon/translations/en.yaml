@@ -92,7 +92,7 @@ configuration:
       description: >-
         List of allowed TSUN GEN3PLUS AT commands
   gen3plus.at_acl.tsun.block:
-      name: TSUN GEN3 ACL block
+      name: TSUN GEN3PLUS ACL block
       description: >-
           List of blocked TSUN GEN3PLUS AT commands
   gen3plus.at_acl.mqtt.allow:
@@ -103,6 +103,22 @@ configuration:
       name: MQTT GEN3PLUS ACL block
       description: >-
           List of blocked MQTT GEN3PLUS commands
+  logging:
+    name: Log Files
+    description: >-
+      Test-logging
+    fields:
+      level:
+        name: Logging level
+        description: >-
+          DEBUG: Complete logging  -  
+          INFO(default): Information, warnings, and error messages  -  
+          WARN: Warnings and error messages only  -  
+          ERROR: Error messages only
+      retention_days:
+        name: Retention Period
+        description: >+
+          Retention period for log files in days
 
 network:
   5005/tcp: listening Port for TSUN GEN3 Devices
