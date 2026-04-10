@@ -27,6 +27,21 @@ def _get_birth_from_log(path: str) -> None | datetime:
     return dt
 
 
+def _get_creation_time(file_path: str, stat=None) -> None | float:
+    if stat is None:
+        stat = os.stat(file_path)
+    try:
+        dt = stat.st_birthtime
+
+    except Exception:
+        dt = _get_birth_from_log(file_path)
+
+    if dt:
+        # sort by creating date, if available
+        dt = dt if isinstance(dt, float) else dt.timestamp()
+    return dt
+
+
 def _get_file(file: DirEntry) -> dict:
     '''build one row for the connection table'''
     entry = {}
@@ -87,6 +102,24 @@ async def send(file):
 async def delete(file):
     try:
         os.remove(Config.get_log_path() + secure_filename(file))
+    except OSError:
+        return 'File not found', 404
+    return '', 204
+
+
+@web.route('/del-older-files/<file>', methods=['DELETE'])
+async def delete_older_files(file):
+    try:
+        file_path = Config.get_log_path() + secure_filename(file)
+        _get_creation_time(file_path)
+        created = _get_creation_time(file_path)
+        os.remove(file_path)
+        with os.scandir(Config.get_log_path()) as it:
+            for entry in it:
+                if entry.is_file():
+                    if _get_creation_time(entry.path, entry.stat) < created:
+                        os.remove(entry.path)
+
     except OSError:
         return 'File not found', 404
     return '', 204
