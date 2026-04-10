@@ -116,7 +116,8 @@ async def delete_older_files(file):
         with os.scandir(Config.get_log_path()) as it:
             for entry in it:
                 if entry.is_file():
-                    if _get_creation_time(entry.path, entry.stat) < created:
+                    ct = _get_creation_time(entry.path, entry.stat)
+                    if ct is not None and ct < created:
                         os.remove(entry.path)
 
     except OSError:

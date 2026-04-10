@@ -5,7 +5,7 @@ import os, errno
 import datetime
 from os import DirEntry, stat_result
 from quart import current_app
-from mock import patch
+from mock import patch, call
 
 from server import app as my_app
 from server import Server
@@ -351,21 +351,26 @@ def patch_os_remove_err():
 
 @pytest.fixture
 def patch_os_remove_ok():
-    def new_remove(file_path: str):
-        return
+    with patch.object(os, 'remove') as wrapped_os:
+        yield wrapped_os
 
-    with patch.object(os, 'remove', new_remove) as wrapped_os:
+@pytest.fixture
+def patch_os_stat_none():
+    def new_stat(file_path: str):
+        return None
+
+    with patch.object(os, 'stat', new_stat) as wrapped_os:
         yield wrapped_os
 
 @pytest.mark.asyncio(loop_scope="session")
 async def test_del_file_ok(client, config_conn, patch_os_remove_ok):
     """Test the del-file route with no error."""
     _ = config_conn
-    _ = patch_os_remove_ok
+    spy = patch_os_remove_ok
     assert Config.log_path == 'app/tests/log/'
     response = await client.delete ('/del-file/test.txt')
     assert response.status_code == 204
-
+    spy.assert_called_once()
 
 @pytest.mark.asyncio(loop_scope="session")
 async def test_del_file_err(client, config_conn, patch_os_remove_err):
@@ -374,6 +379,39 @@ async def test_del_file_err(client, config_conn, patch_os_remove_err):
     _ = patch_os_remove_err
     assert Config.log_path == 'app/tests/log/'
     response = await client.delete ('/del-file/test.txt')
+    assert response.status_code == 404
+
+@pytest.mark.asyncio(loop_scope="session")
+async def test_del_older_file_ok1(client, config_conn, patch_os_stat_none, patch_os_remove_ok):
+    """Test the del-older-files route with no error."""
+    _ = config_conn
+    _ = patch_os_stat_none
+    spy = patch_os_remove_ok
+    assert Config.log_path == 'app/tests/log/'
+    response = await client.delete ('/del-older-files/test-2025-04-20.txt')
+    assert response.status_code == 204
+    assert spy.call_count == 1
+    spy.assert_has_calls([call("app/tests/log/test-2025-04-20.txt")], any_order=True)
+
+@pytest.mark.asyncio(loop_scope="session")
+async def test_del_older_file_ok2(client, config_conn, patch_os_stat_none, patch_os_remove_ok):
+    """Test the del-older-files route with no error."""
+    _ = config_conn
+    _ = patch_os_stat_none
+    spy = patch_os_remove_ok
+    assert Config.log_path == 'app/tests/log/'
+    response = await client.delete ('/del-older-files/test.txt')
+    assert response.status_code == 204
+    assert spy.call_count == 2
+    spy.assert_has_calls([call("app/tests/log/test-2025-04-20.txt"), call("app/tests/log/test.txt")], any_order=True)
+
+@pytest.mark.asyncio(loop_scope="session")
+async def test_del_older_file_err(client, config_conn, patch_os_remove_err):
+    """Test the send-file route with OSError."""
+    _ = config_conn
+    _ = patch_os_remove_err
+    assert Config.log_path == 'app/tests/log/'
+    response = await client.delete ('/del-older-files/test.txt')
     assert response.status_code == 404
 
 @pytest.mark.asyncio(loop_scope="session")

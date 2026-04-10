@@ -43,7 +43,7 @@ msgstr "Cloud-IP:Port"
 msgid "Cloud-IP"
 msgstr "Cloud-IP"
 
-#: src/web/log_files.py:48
+#: src/web/log_files.py:63
 msgid "n/a"
 msgstr "keine Angabe"
 
@@ -209,3 +209,4 @@ msgid "No warnings or errors have been logged since the last proxy start."
 msgstr ""
 "Seit dem letzten Proxystart wurden keine Warnungen oder Fehler "
 "protokolliert."
+
