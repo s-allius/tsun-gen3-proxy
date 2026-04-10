@@ -111,7 +111,6 @@ async def delete(file):
 async def delete_older_files(file):
     try:
         file_path = Config.get_log_path() + secure_filename(file)
-        _get_creation_time(file_path)
         created = _get_creation_time(file_path)
         os.remove(file_path)
         with os.scandir(Config.get_log_path()) as it:
