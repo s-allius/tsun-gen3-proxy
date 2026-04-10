@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+- bug fix for file retention from @mime24 [#522](https://github.com/s-allius/tsun-gen3-proxy/issues/522)
 - use python 3.14 in github action
 - Update dependency pytest to v9.0.3
 - Update dependency pytest-cov to v7.1.0
