@@ -104,9 +104,15 @@ configuration:
       description: >-
           List of blocked MQTT GEN3PLUS commands
   logging:
-    name: Log Files
+    name: Scope of logging in log files
     description: >-
-      Test-logging
+      The proxy logs operational events in various log files, which help identify and 
+      resolve configuration or compatibility issues. A rollover is performed at midnight. 
+      This means that the current date is appended to the file names, and new files are 
+      created for the new day as soon as log entries are written.
+
+      These files can take up a lot of storage space. Here, you can configure how long 
+      the files are retained and up to which log level entries are saved.
     fields:
       level:
         name: Logging level
