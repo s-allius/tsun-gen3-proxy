@@ -60,7 +60,7 @@ schema:
   solarman.enabled: bool
   inverters.allow_all: bool
   batteries:
-    - serial: match(^(410).{13}$)
+    - serial: match(^(410|Y00).{13}$)
       monitor_sn: int
       node_id: str
       suggested_area: str
