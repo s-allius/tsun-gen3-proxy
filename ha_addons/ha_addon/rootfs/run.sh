@@ -49,8 +49,11 @@ fi
 
 # get logging config paramters
 LOG_RETENTION=$(bashio::config "logging.retention_days" 2)
-bashio::log.green "run.sh: info: found log retention: $LOG_RETENTION days"
+bashio::log.green "run.sh: info: addon log retention: $LOG_RETENTION days"
 
+# overwrite log_lvl if available
+LOG_LVL=$(bashio::config "logging.level" $LOG_LVL)
+bashio::log.green "run.sh: info: addon log level: $LOG_LVL"
 
 
 # Create folder for log und config files
