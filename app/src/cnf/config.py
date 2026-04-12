@@ -46,11 +46,13 @@ class Config():
     conf_schema = Schema({
         'tsun': {
             'enabled': Use(bool),
+            'listener': Use(bool),
             'host': Use(str),
             'port': And(Use(int), lambda n: 1024 <= n <= 65535)
         },
         'solarman': {
             'enabled': Use(bool),
+            'listener': Use(bool),
             'host': Use(str),
             'port': And(Use(int), lambda n: 1024 <= n <= 65535)
         },
