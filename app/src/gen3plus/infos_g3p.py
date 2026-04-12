@@ -42,6 +42,7 @@ class RegisterMap:
     FMT_4_16BIT_VAL = '!HHHH'
 
     map = {
+        'len': 0xdf,
         # 0x41020007: {'reg': Register.DEVICE_SNR,           'fmt': '<L'},                 # noqa: E501
         0x41020018: {'reg': Register.DATA_UP_INTERVAL,     'fmt': '<B', 'ratio':    60, 'dep': ProxyMode.SERVER},  # noqa: E501
         0x41020019: {'reg': Register.COLLECT_INTERVAL,     'fmt': '<B', 'quotient': 60, 'dep': ProxyMode.SERVER},  # noqa: E501
@@ -63,6 +64,7 @@ class RegisterMap:
         0x410200b7: {'reg': Register.SSID,                 'fmt': '!40s'},               # noqa: E501
     }
     map_02b0 = {
+        'len': 0x1a4,
         0x4201000c: {'reg': Register.SENSOR_LIST,          'fmt': '<H', 'func': Fmt.hex4},   # noqa: E501
         0x4201001c: {'reg': Register.POWER_ON_TIME,        'fmt': '<H', 'ratio':    1, 'dep': ProxyMode.SERVER},  # noqa: E501, or packet number
         0x42010020: {'reg': Register.SERIAL_NUMBER,        'fmt': '!16s'},               # noqa: E501
@@ -140,7 +142,14 @@ class RegisterMap:
         0xffffff02: {'reg': Register.POLLING_INTERVAL},
         # 0x4281001c: {'reg': Register.POWER_ON_TIME,        'fmt': '<H', 'ratio':    1},  # noqa: E501
     }
+    map_0908 = {
+        'len': 0x30,  # fixme, msg is not complete defined
+        0x4201000c: {'reg': Register.SENSOR_LIST,          'fmt': '<H', 'func': Fmt.hex4},   # noqa: E501
+        0x4201001c: {'reg': Register.POWER_ON_TIME,        'fmt': '<H', 'ratio':    1, 'dep': ProxyMode.SERVER},  # noqa: E501, or packet number
+        0x42010020: {'reg': Register.SERIAL_NUMBER,        'fmt': '!16s'},               # noqa: E501
+    }
     map_3026 = {
+        'len': 0x7a,
         0x4201000c: {'reg': Register.SENSOR_LIST,          'fmt': '<H', 'func': Fmt.hex4},   # noqa: E501
         0x4201001c: {'reg': Register.POWER_ON_TIME,        'fmt': '<H', 'ratio':    1, 'dep': ProxyMode.SERVER},  # noqa: E501, or packet number
         0x42010020: {'reg': Register.SERIAL_NUMBER,        'fmt': '!16s'},               # noqa: E501
@@ -199,12 +208,13 @@ class RegisterMap:
 class RegisterSel:
     __sensor_map = {
             0x02b0: RegisterMap.map_02b0,
+            0x0908: RegisterMap.map_0908,
             0x3026: RegisterMap.map_3026,
     }
 
     @classmethod
-    def get(cls, sensor: int):
-        return cls.__sensor_map.get(sensor, RegisterMap.map)
+    def get(cls, sensor: int, default: dict = RegisterMap.map):
+        return cls.__sensor_map.get(sensor, default)
 
 
 class InfosG3P(Infos):
@@ -239,13 +249,8 @@ class InfosG3P(Infos):
                          entity strings
         sug_area:str ==> suggested area string from the config file'''
         # iterate over RegisterMap.map and get the register values
-        sensor = self.get_db_value(Register.SENSOR_LIST)
-        if "3026" == sensor:
-            reg_map = RegisterMap.map_3026
-        elif "02b0" == sensor:
-            reg_map = RegisterMap.map_02b0
-        else:
-            reg_map = {}
+        sensor = int(self.get_db_value(Register.SENSOR_LIST, "0"), 16)
+        reg_map = RegisterSel.get(sensor, {})
         items = reg_map.items()
         if 'calc' in reg_map:
             virt = reg_map['calc'].items()
@@ -253,7 +258,7 @@ class InfosG3P(Infos):
             virt = {}
 
         for idx, row in chain(RegisterMap.map.items(), items, virt):
-            if 'calc' == idx:
+            if 'calc' == idx or 'len' == idx:
                 continue
             info_id = row['reg']
             if self.__hide_topic(row):
@@ -272,7 +277,7 @@ class InfosG3P(Infos):
         buf: buffer of the sequence to parse'''
         reg_map = RegisterSel.get(sensor)
         for idx, row in reg_map.items():
-            if 'calc' == idx:
+            if 'calc' == idx or 'len' == idx:
                 continue
             addr = idx & 0xffff
             ftype = (idx >> 16) & 0xff
@@ -310,9 +315,13 @@ class InfosG3P(Infos):
                 self.tracer.log(level, f'[{node_id}] {source}: {name}'
                                        f' : {result}{unit}')
 
-    def build(self, len, msg_type: int, rcv_ftype: int, sensor: int = 0):
+    def build(self, msg_type: int, rcv_ftype: int, sensor: int = 0):
+        map = RegisterSel.get(sensor)
+        len = map['len']
         buf = bytearray(len)
-        for idx, row in RegisterSel.get(sensor).items():
+        for idx, row in map.items():
+            if 'len' == idx:
+                continue
             addr = idx & 0xffff
             ftype = (idx >> 16) & 0xff
             mtype = (idx >> 24) & 0xff

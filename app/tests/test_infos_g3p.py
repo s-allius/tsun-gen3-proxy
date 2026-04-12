@@ -130,7 +130,7 @@ def test_build_4110(str_test_ip, device_data: bytes):
     for key, update in i.parse (device_data, 0x41, 2):
         pass  # side effect is calling generator i.parse()
 
-    build_msg = i.build(len(device_data), 0x41, 2)
+    build_msg = i.build(0x41, 2)
     for i in range(11, 20):
         build_msg[i] = device_data[i]
     assert device_data == build_msg    
@@ -221,7 +221,7 @@ def test_build_4210(inverter_data: bytes):
     for key, update in i.parse (inverter_data, 0x42, 1, 0x02b0):
         pass  #  side effect is calling generator i.parse()
 
-    build_msg = i.build(len(inverter_data), 0x42, 1, 0x02b0)
+    build_msg = i.build(0x42, 1, 0x02b0)
     for i in range(11, 31):
         build_msg[i] = inverter_data[i]
     assert inverter_data == build_msg    
@@ -428,7 +428,7 @@ def test_exception_and_calc(inverter_data: bytes):
         pass  #  side effect is calling generator i.parse()
     assert math.isclose(12.2222, round (i.get_db_value(Register.INVERTER_TEMP, 0),4), rel_tol=1e-09, abs_tol=1e-09)
     
-    build_msg = i.build(len(inverter_data), 0x42, 1, 0x02b0)
+    build_msg = i.build(0x42, 1, 0x02b0)
     assert build_msg[32:0xde] == inverter_data[32:0xde]
     assert build_msg[0xde:0xe2] == b'\x00\x00\x00\x00'
     assert build_msg[0xe2:-1] == inverter_data[0xe2:-1]
@@ -444,7 +444,7 @@ def test_exception_and_calc(inverter_data: bytes):
         pass  #  side effect is calling generator i.parse()
     assert 54 == i.get_db_value(Register.INVERTER_TEMP, 0)
 
-    build_msg = i.build(len(inverter_data), 0x42, 1, 0x02b0)
+    build_msg = i.build(0x42, 1, 0x02b0)
     assert build_msg[32:0xd8] == inverter_data[32:0xd8]
     assert build_msg[0xd8:0xe2] == b'\x006\x00\x00\x02X\x00\x00\x00\x00'
     assert build_msg[0xe2:-1] == inverter_data[0xe2:-1]
@@ -460,5 +460,5 @@ def test_exception_and_calc(inverter_data: bytes):
         pass  #  side effect is calling generator i.parse()
     assert 14 == i.get_db_value(Register.INVERTER_TEMP, 0)
 
-    build_msg = i.build(len(inverter_data), 0x42, 1, 0x02b0)
+    build_msg = i.build(0x42, 1, 0x02b0)
     assert build_msg[32:-1] == inverter_data[32:-1]
