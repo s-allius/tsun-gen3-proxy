@@ -56,9 +56,6 @@ schema:
       pv5.type: str?
       pv6.manufacturer: str?
       pv6.type: str?
-  tsun.enabled: bool
-  solarman.enabled: bool
-  inverters.allow_all: bool
   batteries:
     - serial: match(^(410|Y00).{13}$)
       monitor_sn: int
@@ -72,6 +69,11 @@ schema:
       pv1.type: str?
       pv2.manufacturer: str?
       pv2.type: str?
+  tsun.listener: bool
+  tsun.enabled: bool
+  solarman.listener: bool
+  solarman.enabled: bool
+  inverters.allow_all: bool
   logging:
     retention_days: int
     level: list(DEBUG|INFO|WARN|ERROR)
@@ -125,7 +127,9 @@ options:
   logging:
     retention_days: 4
     level: INFO
+  tsun.listener: true # set default
   tsun.enabled: true # set default
+  solarman.listener: true # set default
   solarman.enabled: true # set default
   inverters.allow_all: false # set default
   gen3plus.at_acl.tsun.allow: ["AT+Z", "AT+UPURL", "AT+SUPDATE"]
