@@ -43,7 +43,7 @@ msgstr "Cloud-IP:Port"
 msgid "Cloud-IP"
 msgstr "Cloud-IP"
 
-#: src/web/log_files.py:48
+#: src/web/log_files.py:63
 msgid "n/a"
 msgstr "keine Angabe"
 
@@ -132,13 +132,17 @@ msgstr "TSUN Proxy - Log Dateien"
 msgid "Do you really want to delete the log file: <br>%(file)s ?"
 msgstr "Soll die Datei: <br>%(file)s<br>wirklich gelöscht werden?"
 
-#: src/web/templates/page_logging.html.j2:12
+#: src/web/templates/page_logging.html.j2:13
 msgid "Delete File"
 msgstr "Datei löschen"
 
-#: src/web/templates/page_logging.html.j2:13
+#: src/web/templates/page_logging.html.j2:14
 msgid "Abort"
 msgstr "Abbruch"
+
+#: src/web/templates/page_logging.html.j2:17
+msgid "Also delete ALL older log files"
+msgstr "Lösche auch ALLE älteren Log-Dateien"
 
 #: src/web/templates/page_mqtt.html.j2:3
 msgid "TSUN Proxy - MQTT Status"

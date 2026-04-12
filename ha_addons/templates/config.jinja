@@ -60,7 +60,7 @@ schema:
   solarman.enabled: bool
   inverters.allow_all: bool
   batteries:
-    - serial: match(^(410).{13}$)
+    - serial: match(^(410|Y00).{13}$)
       monitor_sn: int
       node_id: str
       suggested_area: str
@@ -72,6 +72,9 @@ schema:
       pv1.type: str?
       pv2.manufacturer: str?
       pv2.type: str?
+  logging:
+    retention_days: int
+    level: list(DEBUG|INFO|WARN|ERROR)
 
   # optionale parameter
 
@@ -119,6 +122,9 @@ options:
       pv1.type: SF-M18/144550
       pv2.manufacturer: Shinefar
       pv2.type: SF-M18/144550
+  logging:
+    retention_days: 4
+    level: INFO
   tsun.enabled: true # set default
   solarman.enabled: true # set default
   inverters.allow_all: false # set default
