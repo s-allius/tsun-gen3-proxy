@@ -316,10 +316,9 @@ class InfosG3P(Infos):
                                        f' : {result}{unit}')
 
     def build(self, msg_type: int, rcv_ftype: int, sensor: int = 0):
-        map = RegisterSel.get(sensor)
-        len = map['len']
-        buf = bytearray(len)
-        for idx, row in map.items():
+        reg_map = RegisterSel.get(sensor)
+        buf = bytearray(reg_map['len'])
+        for idx, row in reg_map.items():
             if 'len' == idx:
                 continue
             addr = idx & 0xffff
