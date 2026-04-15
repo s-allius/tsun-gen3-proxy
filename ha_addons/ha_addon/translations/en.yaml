@@ -31,21 +31,38 @@ configuration:
   tsun.enabled:
     name: Connection to TSUN Cloud - for GEN3 inverter only
     description: >+
-      switch on/off connection to the TSUN cloud.
+      Switch on/off connection to the TSUN cloud.
       This connection is only required if you want send data to the TSUN cloud
       eg. to use the TSUN APPs or receive firmware updates.
       
-      on => normal proxy operation.
-      off => The Inverter become isolated from Internet.
+      On => normal proxy operation.
+      Off => The Inverter become isolated from Internet.
+  tsun.listener:
+    name: Connecting TSUN GEN3 Inverters
+    description: >+
+      Opens/closes port 5005 for unencrypted connections from TSUN GEN3 devices.
+      If you do not have any GEN3 devices, the port can be closed.
+      
+      On => accepts incoming connections.
+      Off => blocks incoming connections.
   solarman.enabled:
     name: Connection to Solarman/TSUN Cloud - for GEN3PLUS inverter only
     description: >+
-      switch on/off connection to the Solarman or TSUN cloud.
+      Switch on/off connection to the Solarman or TSUN cloud.
       This connection is only required if you want send data to the cloud
       eg. to use the Solarman APP, the TSUN Smart APP or receive firmware updates.
       
-      on => normal proxy operation.
-      off => The GEN3PLUS devices become isolated from Internet
+      On => normal proxy operation.
+      Off => The GEN3PLUS devices become isolated from Internet
+  solarman.listener:
+    name: Connecting TSUN GEN3PLUS Devices
+    description: >+
+      Opens/closes port 10000 for unencrypted connections from TSUN GEN3PLUS devices.
+      New firmware versions of TSUN establish encrypted connections via a different port.
+      In this case, you can use client mode and the port can remain closed.
+      
+      On => accepts incoming connections.
+      Off => blocks incoming connections.
   inverters.allow_all:
     name: Allow all connections from all inverters
     description: >-
