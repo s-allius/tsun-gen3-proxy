@@ -74,6 +74,7 @@ schema:
       pv2.type: str?
   logging:
     retention_days: int
+    level: list(DEBUG|INFO|WARN|ERROR)
 
   # optionale parameter
 
@@ -123,6 +124,7 @@ options:
       pv2.type: SF-M18/144550
   logging:
     retention_days: 4
+    level: INFO
   tsun.enabled: true # set default
   solarman.enabled: true # set default
   inverters.allow_all: false # set default

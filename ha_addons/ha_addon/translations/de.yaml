@@ -90,7 +90,7 @@ configuration:
       description: >-
         Liste erlaubter AT-Befehle für TSUN GEN3PLUS
   gen3plus.at_acl.tsun.block:
-      name: TSUN GEN3 ACL block
+      name: TSUN GEN3PLUS ACL block
       description: >-
           Liste blockierter AT-Befehle für TSUN GEN3PLUS
   gen3plus.at_acl.mqtt.allow:
@@ -101,6 +101,30 @@ configuration:
       name: MQTT GEN3PLUS ACL block
       description: >-
           Liste blockierter MQTT-Befehle für GEN3PLUS
+  logging:
+    name: Umfang der Protkollierung in Log-Dateien
+    description: >-
+      Der Proxy protokolliert Betriebsereignisse in verschiedenen Log-Dateien, welche 
+      helfen Konfiguration- oder Kompatibilitätsprobleme zu finden und zu lösen. Um 
+      Mitternacht wird ein Rollover durchgeführt. Sprich den Dateien wird das Tagesdatum 
+      im Namen angehängt und für den neuen Tag werden neue Dateien erzeugt, sobald 
+      Logeinträge geschrieben werden.
+
+      Die Dateien können viel Speicherplatz beanspruchen. Hier kann konfiguriert werden, 
+      wie lange die Dateien vorgehalten werden und bis zu welchem Log-Level Einträge 
+      gespeichert werden.
+    fields:
+      level:
+        name: Logging level
+        description: >-
+          DEBUG: Vollständige Protokollierung  -  
+          INFO(default): Informationen, Warnungen und Fehlermeldungen  -  
+          WARN: Nur Warnungen und Fehlermeldungen  -  
+          ERROR: Nur Fehlermeldungen
+      retention_days:
+        name: Retention Period
+        description: >+
+          Aufbewahrungfrist der Protokolldateien in Tagen
 
 
 network:
