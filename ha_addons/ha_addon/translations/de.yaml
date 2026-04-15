@@ -35,7 +35,7 @@ configuration:
       Diese Verbindung ist erforderlich, wenn Sie Daten an die TSUN Cloud senden möchten,
       z.B. um die TSUN-Apps zu nutzen oder Firmware-Updates zu erhalten.
       
-        Ein => normaler Proxy-Betrieb.
+      Ein => normaler Proxy-Betrieb.
       Aus => Der Wechselrichter wird vom Internet isoliert.
   tsun.listener:
     name: Verbindung von TSUN GEN3-Wechselrichtern
