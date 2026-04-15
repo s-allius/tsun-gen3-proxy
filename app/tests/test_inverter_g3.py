@@ -99,7 +99,7 @@ def patch_healthy():
     with patch.object(AsyncStream, 'healthy') as conn:
         yield conn
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_method_calls(my_loop, patch_healthy):
     spy = patch_healthy
     reader = FakeReader()
@@ -119,7 +119,7 @@ async def test_method_calls(my_loop, patch_healthy):
         cnt += 1
     assert cnt == 0
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_remote_conn(my_loop, config_conn, patch_open_connection):
     _ = config_conn
     _ = patch_open_connection
@@ -137,7 +137,7 @@ async def test_remote_conn(my_loop, config_conn, patch_open_connection):
         cnt += 1
     assert cnt == 0
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_remote_except(my_loop, config_conn, patch_open_connection):
     _ = config_conn
     _ = patch_open_connection
@@ -164,7 +164,7 @@ async def test_remote_except(my_loop, config_conn, patch_open_connection):
         cnt += 1
     assert cnt == 0
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_mqtt_publish(my_loop, config_conn, patch_open_connection):
     _ = config_conn
     _ = patch_open_connection
@@ -191,7 +191,7 @@ async def test_mqtt_publish(my_loop, config_conn, patch_open_connection):
         await inverter.async_publ_mqtt()
         assert Infos.new_stat_data['proxy'] == False
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_mqtt_err(my_loop, config_conn, patch_open_connection, patch_mqtt_err):
     _ = config_conn
     _ = patch_open_connection
@@ -208,7 +208,7 @@ async def test_mqtt_err(my_loop, config_conn, patch_open_connection, patch_mqtt_
         await inverter.async_publ_mqtt()
         assert stream.new_data['inverter'] == True
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_mqtt_except(my_loop, config_conn, patch_open_connection, patch_mqtt_except):
     _ = config_conn
     _ = patch_open_connection

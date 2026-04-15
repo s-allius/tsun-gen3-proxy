@@ -94,7 +94,7 @@ def patch_open_connection():
     with patch.object(asyncio, 'open_connection', new_open) as conn:
         yield conn
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_method_calls(my_loop, config_conn):
     _ = config_conn
     reader = FakeReader()
@@ -105,7 +105,7 @@ async def test_method_calls(my_loop, config_conn):
         assert inverter.local.stream
         assert inverter.local.ifc
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_remote_conn(my_loop, config_conn, patch_open_connection):
     _ = config_conn
     _ = patch_open_connection
@@ -116,7 +116,7 @@ async def test_remote_conn(my_loop, config_conn, patch_open_connection):
         await asyncio.sleep(0)
         assert inverter.remote.stream
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_remote_except(my_loop, config_conn, patch_open_connection):
     _ = config_conn
     _ = patch_open_connection
@@ -138,7 +138,7 @@ async def test_remote_except(my_loop, config_conn, patch_open_connection):
     test = MockType.RD_TEST_0_BYTES
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_mqtt_publish(my_loop, config_conn, patch_open_connection):
     _ = config_conn
     _ = patch_open_connection
@@ -165,7 +165,7 @@ async def test_mqtt_publish(my_loop, config_conn, patch_open_connection):
         await inverter.async_publ_mqtt()
         assert Infos.new_stat_data['proxy'] == False
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_mqtt_err(my_loop, config_conn, patch_open_connection, patch_mqtt_err):
     _ = config_conn
     _ = patch_open_connection
@@ -182,7 +182,7 @@ async def test_mqtt_err(my_loop, config_conn, patch_open_connection, patch_mqtt_
         await inverter.async_publ_mqtt()
         assert stream.new_data['inverter'] == True
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_mqtt_except(my_loop, config_conn, patch_open_connection, patch_mqtt_except):
     _ = config_conn
     _ = patch_open_connection

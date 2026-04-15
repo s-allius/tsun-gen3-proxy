@@ -29,27 +29,23 @@ target "_common" {
     "type =sbom,generator=docker/scout-sbom-indexer:latest"
   ]
   annotations = [
-    "index:io.hass.version=${VERSION}",
     "index:io.hass.type=addon",
-    "index:io.hass.arch=armhf|aarch64|i386|amd64",
-    "index:org.opencontainers.image.title=TSUN-Proxy",
-    "index:org.opencontainers.image.authors=Stefan Allius",
-    "index:org.opencontainers.image.created=${BUILD_DATE}",
-    "index:org.opencontainers.image.version=${VERSION}",
-    "index:org.opencontainers.image.revision=${BRANCH}",
-    "index:org.opencontainers.image.description=${DESCRIPTION}",
+    "index:io.hass.arch=aarch64|amd64",
+    "index,manifest-descriptor:org.opencontainers.image.title=TSUN-Proxy",
+    "index,manifest-descriptor:org.opencontainers.image.authors=Stefan Allius",
+    "index,manifest-descriptor:org.opencontainers.image.created=${BUILD_DATE}",
+    "index,manifest-descriptor:org.opencontainers.image.version=${VERSION}",
+    "index,manifest-descriptor:org.opencontainers.image.description=${DESCRIPTION}",
     "index:org.opencontainers.image.licenses=BSD-3-Clause",
-    "index:org.opencontainers.image.source=https://github.com/s-allius/tsun-gen3-proxy/ha_addons/ha_addon"
+    "index:org.opencontainers.image.source=https://github.com/s-allius/tsun-gen3-proxy/ha_addons/ha_addon",
   ]
   labels = {
-    "io.hass.version" = "${VERSION}"
     "io.hass.type" = "addon"
-    "io.hass.arch" = "armhf|aarch64|i386|amd64"
+    "io.hass.arch" = "aarch64|amd64"
     "org.opencontainers.image.title" = "TSUN-Proxy"
     "org.opencontainers.image.authors" = "Stefan Allius"
     "org.opencontainers.image.created" = "${BUILD_DATE}"
     "org.opencontainers.image.version" = "${VERSION}"
-    "org.opencontainers.image.revision" = "${BRANCH}"
     "org.opencontainers.image.description" = "${DESCRIPTION}"
     "org.opencontainers.image.licenses" = "BSD-3-Clause"
     "org.opencontainers.image.source" = "https://github.com/s-allius/tsun-gen3-proxy/ha_addonsha_addon"

@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+- Update ghcr.io/hassio-addons/base Docker tag to v20.0.4
+- Option to disable the TCP listener if it is not needed #510
+- allow serial numbers starting with 'Y00' for battery systems #530
+- add-on: Configure the LOG level from the HA configuration [#539](https://github.com/s-allius/tsun-gen3-proxy/issues/539)
+- add-on: Add translations for the log configuration
+- add-on: Configure the retention time for log files [#536](https://github.com/s-allius/tsun-gen3-proxy/issues/536)
+- add-on: Erase multiple logfiles in one step [#534](https://github.com/s-allius/tsun-gen3-proxy/issues/534)
+- bug fix for file retention from @mime24 [#522](https://github.com/s-allius/tsun-gen3-proxy/issues/522)
+- use python 3.14 in github action
+- Update dependency pytest to v9.0.3
+- Update dependency pytest-cov to v7.1.0
+- Update dependency python-dotenv to v1.2.2
+- Update ghcr.io/hassio-addons/base Docker tag to v20
+- add-on: bump to py3-pip=25.1.1-r1
+- Update dependency jinja2-cli to v1
+- Update dependency aiomqtt to v2.5.1
+- Update dependency coverage to v7.13.5
+- Update ghcr.io/hassio-addons/base Docker tag to v18.1.4
+- Update dependency pytest-asyncio to v1.1.0
+- save task references, to avoid a task disappearing mid-execution
+- catch socket.gaierror exception and log this with info level
+- Update dependency coverage to v7.9.2
+- add-on: bump base-image to version 18.0.3
+- add-on: remove armhf and armv7 support
 - add-on: add links to config and log-file to the web-UI
 - fix some SonarQube warnings
 - remove unused 32-bit architectures

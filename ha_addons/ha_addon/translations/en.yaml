@@ -31,21 +31,38 @@ configuration:
   tsun.enabled:
     name: Connection to TSUN Cloud - for GEN3 inverter only
     description: >+
-      switch on/off connection to the TSUN cloud.
+      Switch on/off connection to the TSUN cloud.
       This connection is only required if you want send data to the TSUN cloud
       eg. to use the TSUN APPs or receive firmware updates.
       
-      on => normal proxy operation.
-      off => The Inverter become isolated from Internet.
+      On => normal proxy operation.
+      Off => The Inverter become isolated from Internet.
+  tsun.listener:
+    name: Connecting TSUN GEN3 Inverters
+    description: >+
+      Opens/closes port 5005 for unencrypted connections from TSUN GEN3 devices.
+      If you do not have any GEN3 devices, the port can be closed.
+      
+      On => accepts incoming connections.
+      Off => blocks incoming connections.
   solarman.enabled:
     name: Connection to Solarman/TSUN Cloud - for GEN3PLUS inverter only
     description: >+
-      switch on/off connection to the Solarman or TSUN cloud.
+      Switch on/off connection to the Solarman or TSUN cloud.
       This connection is only required if you want send data to the cloud
       eg. to use the Solarman APP, the TSUN Smart APP or receive firmware updates.
       
-      on => normal proxy operation.
-      off => The GEN3PLUS devices become isolated from Internet
+      On => normal proxy operation.
+      Off => The GEN3PLUS devices become isolated from Internet
+  solarman.listener:
+    name: Connecting TSUN GEN3PLUS Devices
+    description: >+
+      Opens/closes port 10000 for unencrypted connections from TSUN GEN3PLUS devices.
+      New firmware versions of TSUN establish encrypted connections via a different port.
+      In this case, you can use client mode and the port can remain closed.
+      
+      On => accepts incoming connections.
+      Off => blocks incoming connections.
   inverters.allow_all:
     name: Allow all connections from all inverters
     description: >-
@@ -92,7 +109,7 @@ configuration:
       description: >-
         List of allowed TSUN GEN3PLUS AT commands
   gen3plus.at_acl.tsun.block:
-      name: TSUN GEN3 ACL block
+      name: TSUN GEN3PLUS ACL block
       description: >-
           List of blocked TSUN GEN3PLUS AT commands
   gen3plus.at_acl.mqtt.allow:
@@ -103,6 +120,28 @@ configuration:
       name: MQTT GEN3PLUS ACL block
       description: >-
           List of blocked MQTT GEN3PLUS commands
+  logging:
+    name: Scope of logging in log files
+    description: >-
+      The proxy logs operational events in various log files, which help identify and 
+      resolve configuration or compatibility issues. A rollover is performed at midnight. 
+      This means that the current date is appended to the file names, and new files are 
+      created for the new day as soon as log entries are written.
+
+      These files can take up a lot of storage space. Here, you can configure how long 
+      the files are retained and up to which log level entries are saved.
+    fields:
+      level:
+        name: Logging level
+        description: >-
+          DEBUG: Complete logging  -  
+          INFO(default): Information, warnings, and error messages  -  
+          WARN: Warnings and error messages only  -  
+          ERROR: Error messages only
+      retention_days:
+        name: Retention Period
+        description: >+
+          Retention period for log files in days
 
 network:
   5005/tcp: listening Port for TSUN GEN3 Devices

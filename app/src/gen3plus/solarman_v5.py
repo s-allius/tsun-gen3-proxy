@@ -327,6 +327,7 @@ class SolarmanV5(SolarmanBase):
         self.sensor_list = 0
         self.mb_regs = [{'addr': 0x3000, 'len': 48},
                         {'addr': 0x2000, 'len': 96}]
+        self.background_tasks = set()
 
     '''
     Our puplic methods
@@ -339,6 +340,7 @@ class SolarmanV5(SolarmanBase):
         self.inverter = None
         self.switch.clear()
         self.log_lvl.clear()
+        self.background_tasks.clear()
         super().close()
 
     def send_start_cmd(self, snr: int, host: str,
@@ -690,8 +692,10 @@ class SolarmanV5(SolarmanBase):
         self.__forward_msg()
 
     def publish_mqtt(self, key, data):  # pragma: no cover
-        asyncio.ensure_future(
+        task = asyncio.ensure_future(
             Proxy.mqtt.publish(key, data))
+        self.background_tasks.add(task)
+        task.add_done_callback(self.background_tasks.discard)
 
     def get_cmd_rsp_log_lvl(self) -> int:
         ftype = self.ifc.rx_peek()[self.header_len]

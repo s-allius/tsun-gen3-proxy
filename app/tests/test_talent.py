@@ -1048,7 +1048,7 @@ def msg_inverter_ms3000_ind(): # Data indication from the controller
     msg +=  b'\x53\x00\x66'                                                      #  | S.f'
     return msg
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_read_message(msg_contact_info):
     Config.act_config = {'tsun':{'enabled': True}}
     m = MemoryStream(msg_contact_info, (0,))
@@ -2406,7 +2406,7 @@ def test_msg_modbus_fragment(config_tsun_inv1, msg_modbus_rsp20):
     assert m.db.stat['proxy']['Modbus_Command'] == 0
     m.close()
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_msg_build_modbus_req(config_tsun_inv1, msg_modbus_cmd):
     _ = config_tsun_inv1
     m = MemoryStream(b'', (0,), True)
@@ -2445,7 +2445,7 @@ def test_modbus_no_polling(config_no_modbus_poll, msg_get_time):
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
     m.close()
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_modbus_polling(config_tsun_inv1, msg_inverter_ind):
     _ = config_tsun_inv1
     assert asyncio.get_running_loop()
@@ -2486,7 +2486,7 @@ async def test_modbus_polling(config_tsun_inv1, msg_inverter_ind):
     assert next(m.mb_timer.exp_count) == 4
     m.close()
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_modbus_scaning(config_tsun_inv1, msg_inverter_ind, msg_modbus_rsp21):
     _ = config_tsun_inv1
     assert asyncio.get_running_loop()

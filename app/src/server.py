@@ -218,6 +218,7 @@ app = Quart(__name__,
             static_folder='web/static')
 app.secret_key = 'JKLdks.dajlKKKdladkflKwolafallsdfl'
 app.jinja_env.globals.update(url_for=url_for)
+app.background_tasks = set()
 server = Server(app, __name__ == "__main__")
 Web(app, server.trans_path, server.rel_urls)
 
@@ -266,11 +267,21 @@ async def startup_app():    # pragma: no cover
     Schedule.start()
     ModbusTcp(loop)
 
-    for inv_class, port in [(InverterG3, 5005), (InverterG3P, 10000)]:
+    for inv_class, config_id, port in [(InverterG3, 'tsun', 5005),
+                                       (InverterG3P, 'solarman', 10000)]:
+        config_arr = Config.get(config_id)
+        if not config_arr['listener']:
+            logging.info(f'{config_id}.listener not enabled in config, '
+                         f'not listening on port: {port} for inverters')
+            continue
         logging.info(f'listen on port: {port} for inverters')
-        loop.create_task(asyncio.start_server(lambda r, w, i=inv_class:
-                                              handle_client(r, w, i),
-                                              '0.0.0.0', port))
+        task = loop.create_task(
+            asyncio.start_server(lambda r, w, i=inv_class:
+                                 handle_client(r, w, i),
+                                 '0.0.0.0', port))
+        app.background_tasks.add(task)
+        task.add_done_callback(app.background_tasks.discard)
+
     ProxyState.set_up(True)
 
 
@@ -294,6 +305,7 @@ async def handle_shutdown():   # pragma: no cover
         await inverter.disc(True)
 
     logging.info('Proxy disconnecting done')
+    app.background_tasks.clear()
 
     await Proxy.class_close(loop)
 

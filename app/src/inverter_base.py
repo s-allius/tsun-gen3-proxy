@@ -4,6 +4,7 @@ import logging
 import traceback
 import json
 import gc
+import socket
 from aiomqtt import MqttCodeError
 from asyncio import StreamReader, StreamWriter
 from ipaddress import ip_address
@@ -38,6 +39,7 @@ class InverterBase(InverterIfc, Proxy):
             self.use_emulation = False
         self.__ha_restarts = -1
         self.remote = StreamPtr(None)
+        self.background_tasks = set()
         ifc = AsyncStreamServer(reader, writer,
                                 self.async_publ_mqtt,
                                 self.create_remote,
@@ -72,6 +74,7 @@ class InverterBase(InverterIfc, Proxy):
         if self.remote.ifc:
             self.remote.ifc.close()
             self.remote.ifc = None
+        self.background_tasks.clear()
 
     async def disc(self, shutdown_started=False) -> None:
         if self.remote.stream:
@@ -136,9 +139,14 @@ class InverterBase(InverterIfc, Proxy):
             logging.info(f'[{self.remote.stream.node_id}:'
                          f'{self.remote.stream.conn_no}] '
                          f'Connected to {addr}')
-            asyncio.create_task(self.remote.ifc.client_loop(addr))
+            task = asyncio.create_task(
+                self.remote.ifc.client_loop(addr))
+            self.background_tasks.add(task)
+            task.add_done_callback(self.background_tasks.discard)
 
-        except (ConnectionRefusedError, TimeoutError) as error:
+        except (ConnectionRefusedError,
+                TimeoutError,
+                socket.gaierror) as error:
             logging.info(f'{error}')
         except Exception:
             Infos.inc_counter('SW_Exception')
