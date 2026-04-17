@@ -207,6 +207,7 @@ msgid "Download File"
 msgstr "Datei Download"
 
 #: src/web/templates/templ_notes_list.html.j2:3
+#: src/web/templates/templ_result_list.html.j2:3
 msgid "Warnings and error messages"
 msgstr "Warnungen und Fehlermeldungen"
 
