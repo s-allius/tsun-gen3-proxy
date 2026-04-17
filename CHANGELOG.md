@@ -8,6 +8,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [unreleased]
 
 - Update python Docker tag to v3.14.4
+- Update ghcr.io/hassio-addons/base Docker tag to v20.0.4
+- Option to disable the TCP listener if it is not needed #510
+- allow serial numbers starting with 'Y00' for battery systems #530
+- add-on: Configure the LOG level from the HA configuration [#539](https://github.com/s-allius/tsun-gen3-proxy/issues/539)
+- add-on: Add translations for the log configuration
+- add-on: Configure the retention time for log files [#536](https://github.com/s-allius/tsun-gen3-proxy/issues/536)
+- add-on: Erase multiple logfiles in one step [#534](https://github.com/s-allius/tsun-gen3-proxy/issues/534)
+- bug fix for file retention from @mime24 [#522](https://github.com/s-allius/tsun-gen3-proxy/issues/522)
 - use python 3.14 in github action
 - Update dependency pytest to v9.0.3
 - Update dependency pytest-cov to v7.1.0

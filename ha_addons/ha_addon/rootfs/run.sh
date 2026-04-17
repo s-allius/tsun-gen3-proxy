@@ -47,7 +47,13 @@ else
     export MQTT_PASSWORD
 fi
 
+# get logging config paramters
+LOG_RETENTION=$(bashio::config "logging.retention_days" 2)
+bashio::log.green "run.sh: info: addon log retention: $LOG_RETENTION days"
 
+# overwrite log_lvl if available
+LOG_LVL=$(bashio::config "logging.level" $LOG_LVL)
+bashio::log.green "run.sh: info: addon log level: $LOG_LVL"
 
 
 # Create folder for log und config files
@@ -59,4 +65,4 @@ export VERSION=$(cat /proxy-version.txt)
 
 bashio::log.blue "run.sh: info: Start Proxyserver..."
 bashio::log.blue "-----------------------------------------------------------"
-python3 server.py --rel_urls --json_config=/data/options.json  --log_path=/homeassistant/tsun-proxy/logs/ --config_path=/homeassistant/tsun-proxy/ --log_backups=2
+python3 server.py --rel_urls --json_config=/data/options.json  --log_path=/homeassistant/tsun-proxy/logs/ --config_path=/homeassistant/tsun-proxy/ --log_backups=$LOG_RETENTION
