@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+- Update python Docker tag to v3.14.4
 - use python 3.14 in github action
 - Update dependency pytest to v9.0.3
 - Update dependency pytest-cov to v7.1.0
