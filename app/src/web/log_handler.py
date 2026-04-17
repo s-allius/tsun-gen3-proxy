@@ -6,9 +6,9 @@ from collections import deque
 from singleton import Singleton
 
 
-class LogHandler(Handler, metaclass=Singleton):
-    def __init__(self, capacity=64):
-        super().__init__(logging.WARNING)
+class BaseHandler(Handler, metaclass=Singleton):
+    def __init__(self, capacity, level=logging.WARNING):
+        super().__init__(level)
         self.capacity = capacity
         self.buffer = deque(maxlen=capacity)
 
@@ -25,3 +25,13 @@ class LogHandler(Handler, metaclass=Singleton):
 
     def clear(self):
         self.buffer.clear()
+
+
+class LogHandler(BaseHandler):
+    def __init__(self, capacity=64):
+        super().__init__(capacity, logging.WARNING)
+
+
+class TestHandler(BaseHandler):
+    def __init__(self, capacity=16):
+        super().__init__(capacity, logging.INFO)
