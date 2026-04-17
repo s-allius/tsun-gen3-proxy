@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+- Update python Docker tag to v3.14.4
 - Update ghcr.io/hassio-addons/base Docker tag to v20.0.4
 - Option to disable the TCP listener if it is not needed #510
 - allow serial numbers starting with 'Y00' for battery systems #530
