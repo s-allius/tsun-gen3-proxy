@@ -73,17 +73,19 @@ async def get_best_guess_host_ip():
 async def test_http_connection(host_ip, port):
 
     # Der Test-Link nutzt die ermittelte LAN-IP
-    test_url = f"http://{host_ip}:{port}/-/health"
+    test_url = f"http://{host_ip}:{port}/-/ready"
 
     async with aiohttp.ClientSession() as session:
         try:
             async with session.get(test_url, timeout=5) as resp:
                 if resp.status == 200:
-                    logger.info(f"HTTP Connection {host_ip}:{port}")
+                    logger.info(f"HTTP Connection to {host_ip}:{port} ==> Ok")
                 else:
                     logger.warning(f"HTTP Connection {host_ip}:{port}"
                                    f" ==> {resp.status}")
                 return
+        except asyncio.CancelledError:
+            raise
         except Exception as e:
             logger.error(f"HTTP Connection {host_ip}:{port} ==> {e}")
 
@@ -100,17 +102,18 @@ async def test_tcp_connection(host_ip, port):
         # Daten empfangen (bis zu 255 Bytes)
         response = await reader.read(255)
         if not response:
-            logger.debug(f"TCP Connection {host_ip}:{port}"
+            logger.debug(f"TCP Connection to {host_ip}:{port}"
                          " ==> closed by server")
         elif response == b'ping':
-            logger.info(f"TCP Connection {host_ip}:{port} ==> Ok")
+            logger.info(f"TCP Connection to {host_ip}:{port} ==> Ok")
         else:
-            logger.warning(f"TCP Connection {host_ip}:{port} ==> {response}")
+            logger.warning(f"TCP Connection to {host_ip}:{port}"
+                           f" ==> {response}")
 
     except asyncio.CancelledError:
         raise
     except Exception as e:
-        logger.error(f"TCP Connection {host_ip}:{port} ==> {e}")
+        logger.error(f"TCP Connection to {host_ip}:{port} ==> {e}")
     finally:
         logger.debug("TCP Connection to {host_ip}:{port} closing...")
         writer.close()
