@@ -83,10 +83,12 @@ class FakeReader():
     RD_TEST_13_BYTES = 3
     RD_TEST_SW_EXCEPT = 4
     RD_TEST_OS_ERROR = 5
+    RD_TEST_BUFFER = 6
 
     def __init__(self):
         self.on_recv =  asyncio.Event()
         self.test  = self.RD_TEST_0_BYTES
+        self.buf = bytes()
 
     async def read(self, max_len: int):
         print(f'fakeReader test: {self.test}')
@@ -97,6 +99,10 @@ class FakeReader():
             print('fakeReader return 13 bytes')
             self.test = self.RD_TEST_0_BYTES
             return b'test-data-req'
+        elif self.test == self.RD_TEST_BUFFER:
+            print('fakeReader return 13 bytes')
+            self.test = self.RD_TEST_0_BYTES
+            return self.buf
         elif self.test == self.RD_TEST_TIMEOUT:
             raise TimeoutError
         elif self.test == self.RD_TEST_SW_EXCEPT:
@@ -114,7 +120,9 @@ class FakeWriter():
     def __init__(self, conn='remote.intern'):
         self.conn = conn
         self.closing = False
+        self.buf = bytes()
     def write(self, buf: bytes):
+        self.buf += buf
         return
     async def drain(self):
         await asyncio.sleep(0)

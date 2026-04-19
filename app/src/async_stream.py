@@ -253,6 +253,9 @@ class AsyncStream(AsyncIfcImpl):
         data = await self._reader.read(4096)
         if data:
             self.proc_start = time.time()
+            filter = getattr(self, "rx_filter", None)
+            if callable(filter):
+                data = filter(data)              # call receive filter
             self.rx_fifo += data
             wait = self.rx_fifo()                # call read in parent class
             if wait and wait > 0:
@@ -343,6 +346,14 @@ class AsyncStreamServer(AsyncStream):
                         f'connection: [{self.remote.ifc.node_id}:'
                         f'{self.remote.ifc.conn_no}]')
             await self.remote.ifc.disc()
+
+    def rx_filter(self, data: bytes) -> bytes:
+        """this filter checks if we received a ping from the network test"""
+        if data[:4] == b'ping':
+            self.tx_fifo += data[:4]  # answer with 'ping'
+            data = data[4:]           # remove the ping keyword
+
+        return data
 
     async def _async_forward(self) -> None:
         """forward handler transmits data over the remote connection"""

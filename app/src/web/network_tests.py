@@ -79,13 +79,42 @@ async def test_http_connection(host_ip, port):
         try:
             async with session.get(test_url, timeout=5) as resp:
                 if resp.status == 200:
-                    logger.info(f"Http Connection {host_ip}:{port}")
+                    logger.info(f"HTTP Connection {host_ip}:{port}")
                 else:
-                    logger.warning(f"Http Connection {host_ip}:{port}"
+                    logger.warning(f"HTTP Connection {host_ip}:{port}"
                                    f" ==> {resp.status}")
                 return
         except Exception as e:
-            logger.error(f"Http Connection {host_ip}:{port} ==> {e}")
+            logger.error(f"HTTP Connection {host_ip}:{port} ==> {e}")
+
+
+async def test_tcp_connection(host_ip, port):
+    # Verbindung asynchron aufbauen
+
+    try:
+        reader, writer = await asyncio.open_connection(host_ip, port)
+        logger.debug("TCP Connection to {host_ip}:{port} established")
+        # Daten senden
+        writer.write(b'ping')
+        await writer.drain()  # Warten, bis der Puffer geleert is
+        # Daten empfangen (bis zu 255 Bytes)
+        response = await reader.read(255)
+        if not response:
+            logger.debug(f"TCP Connection {host_ip}:{port}"
+                         " ==> closed by server")
+        elif response == b'ping':
+            logger.info(f"TCP Connection {host_ip}:{port} ==> Ok")
+        else:
+            logger.warning(f"TCP Connection {host_ip}:{port} ==> {response}")
+
+    except asyncio.CancelledError:
+        pass
+    except Exception as e:
+        logger.error(f"TCP Connection {host_ip}:{port} ==> {e}")
+    finally:
+        logger.debug("TCP Connection to {host_ip}:{port} closing...")
+        writer.close()
+        await writer.wait_closed()
 
 
 async def test_script() -> None:
@@ -97,7 +126,8 @@ async def test_script() -> None:
     host_ip = await get_best_guess_host_ip()
     logger.info(f"host_ip: {host_ip}")
     await test_http_connection(host_ip, 8127)
-    await test_http_connection("192.168.0.7", 5005)
+    await test_tcp_connection(host_ip, 5005)
+    await test_tcp_connection(host_ip, 10000)
 
 
 @web.route('/result-fetch')
