@@ -253,9 +253,9 @@ class AsyncStream(AsyncIfcImpl):
         data = await self._reader.read(4096)
         if data:
             self.proc_start = time.time()
-            filter = getattr(self, "rx_filter", None)
-            if callable(filter):
-                data = filter(data)              # call receive filter
+            rx_filter = getattr(self, "rx_filter", None)
+            if callable(rx_filter):
+                data = rx_filter(data)           # call receive filter
             self.rx_fifo += data
             wait = self.rx_fifo()                # call read in parent class
             if wait and wait > 0:
