@@ -6,6 +6,7 @@ import aiohttp
 import logging
 from quart_babel import format_datetime
 from quart import render_template
+from cnf.config import Config
 from .wrapper import url_for
 
 from . import web
@@ -74,63 +75,105 @@ async def test_http_connection(host_ip, port):
 
     # Der Test-Link nutzt die ermittelte LAN-IP
     test_url = f"http://{host_ip}:{port}/-/ready"
+    test_txt = f"Test Web server on ({host_ip}:{port}) "
 
     async with aiohttp.ClientSession() as session:
         try:
             async with session.get(test_url, timeout=5) as resp:
                 if resp.status == 200:
-                    logger.info(f"HTTP Connection to {host_ip}:{port} ==> Ok")
+                    logger.info(f"{test_txt}==> Ok")
                 else:
-                    logger.warning(f"HTTP Connection {host_ip}:{port}"
-                                   f" ==> {resp.status}")
+                    logger.warning(f"{test_txt}==> {resp.status}")
                 return
         except asyncio.CancelledError:
             raise
         except Exception as e:
-            logger.error(f"HTTP Connection {host_ip}:{port} ==> {e}")
+            logger.error(f"{test_txt}==> {e}")
 
 
 async def test_tcp_connection(host_ip, port):
     # Verbindung asynchron aufbauen
-
+    test_txt = f"Connect Test: Inverter to ({host_ip}:{port}) "
     try:
         reader, writer = await asyncio.open_connection(host_ip, port)
-        logger.debug("TCP Connection to {host_ip}:{port} established")
+        logger.debug(f"{test_txt}established")
         # Daten senden
         writer.write(b'ping')
         await writer.drain()  # Warten, bis der Puffer geleert is
         # Daten empfangen (bis zu 255 Bytes)
         response = await reader.read(255)
         if not response:
-            logger.debug(f"TCP Connection to {host_ip}:{port}"
-                         " ==> closed by server")
+            logger.debug(f"{test_txt}==> closed by server")
         elif response == b'ping':
-            logger.info(f"TCP Connection to {host_ip}:{port} ==> Ok")
+            logger.info(f"{test_txt}==> Ok")
         else:
-            logger.warning(f"TCP Connection to {host_ip}:{port}"
-                           f" ==> {response}")
+            logger.warning(f"{test_txt}==> {response}")
 
     except asyncio.CancelledError:
         raise
     except Exception as e:
-        logger.error(f"TCP Connection to {host_ip}:{port} ==> {e}")
+        logger.error(f"{test_txt}==> {e}")
     finally:
-        logger.debug("TCP Connection to {host_ip}:{port} closing...")
+        logger.debug(f"{test_txt}closing...")
         writer.close()
         await writer.wait_closed()
+
+
+async def resolve(host):
+    loop = asyncio.get_running_loop()
+    # Nutzt einen Threadpool im Hintergrund
+    info = await loop.getaddrinfo(host, None, family=socket.AF_INET)
+    return info[0][4][0]
 
 
 async def test_script() -> None:
     # clear result table in the web UI
     TestHandler().clear()
+    config_tsun = Config.get('tsun')
+    config_solarman = Config.get('solarman')
 
     platform = detect_platform()
     logger.info(f"platform: {platform}")
+
+    # forwarding for port 5005 enabled?
+    #  then check DNS resolution for TSUN cloud
+    if not config_tsun['enabled']:
+        logger.info("TSUN cloud connections are disabled,"
+                    " skip the DNS resolution test")
+    else:
+        host = config_tsun['host']
+        ip = await resolve(host)
+        logger.info(f"DNS test: '{host}' resolved to {ip} ==> Ok")
+
+    # forwarding for port 10000 enabled?
+    #  then check DNS resolution for Solarman cloud
+    if not config_solarman['enabled']:
+        logger.info("TSUN/Solarman cloud connections are disabled,"
+                    " skip the DNS resolution test")
+    else:
+        host = config_solarman['host']
+        ip = await resolve(host)
+        logger.info(f"DNS test: '{host}' resolved to {ip} ==> Ok")
+
+    # check internet access and make a tracert
+
     host_ip = await get_best_guess_host_ip()
     logger.info(f"host_ip: {host_ip}")
     await test_http_connection(host_ip, 8127)
-    await test_tcp_connection(host_ip, 5005)
-    await test_tcp_connection(host_ip, 10000)
+
+    # listening for port 5005 enabled?
+    if not config_tsun['listener']:
+        logger.info("Proxy is not listening on port 5005,"
+                    " skip the inverter connect test")
+    else:
+        await test_tcp_connection(host_ip, 5005)
+
+    # listening for port 10000 enabled?
+    if not config_solarman['listener']:
+        logger.info("Proxy is not listening on port 10000,"
+                    " skip the inverter connect test")
+    else:
+        await test_tcp_connection(host_ip, 10000)
 
 
 @web.route('/result-fetch')
