@@ -108,7 +108,7 @@ async def test_tcp_connection(host_ip, port):
             logger.warning(f"TCP Connection {host_ip}:{port} ==> {response}")
 
     except asyncio.CancelledError:
-        pass
+        raise
     except Exception as e:
         logger.error(f"TCP Connection {host_ip}:{port} ==> {e}")
     finally:
