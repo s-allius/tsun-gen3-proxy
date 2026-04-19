@@ -1,9 +1,10 @@
-from quart_babel import format_datetime
+import asyncio
 import os
 import re
 import socket
 import aiohttp
 import logging
+from quart_babel import format_datetime
 from quart import render_template
 from .wrapper import url_for
 
@@ -36,7 +37,7 @@ def detect_platform():
 async def get_best_guess_host_ip():
     """Versucht die LAN-IP zu finden (HA API -> Hostname -> Socket)."""
     # 1. Versuch: Home Assistant Supervisor API
-    if False:  # SUPERVISOR_TOKEN:
+    if SUPERVISOR_TOKEN:
         url = "http://supervisor/core/api/config"
         headers = {"Authorization": f"Bearer {SUPERVISOR_TOKEN}"}
         async with aiohttp.ClientSession() as session:
@@ -69,6 +70,36 @@ async def get_best_guess_host_ip():
         return "127.0.0.1"
 
 
+async def test_http_connection(host_ip, port):
+
+    # Der Test-Link nutzt die ermittelte LAN-IP
+    test_url = f"http://{host_ip}:{port}/-/health"
+
+    async with aiohttp.ClientSession() as session:
+        try:
+            async with session.get(test_url, timeout=5) as resp:
+                if resp.status == 200:
+                    logger.info(f"Http Connection {host_ip}:{port}")
+                else:
+                    logger.warning(f"Http Connection {host_ip}:{port}"
+                                   f" ==> {resp.status}")
+                return
+        except Exception as e:
+            logger.error(f"Http Connection {host_ip}:{port} ==> {e}")
+
+
+async def test_script() -> None:
+    # clear result table in the web UI
+    TestHandler().clear()
+
+    platform = detect_platform()
+    logger.info(f"platform: {platform}")
+    host_ip = await get_best_guess_host_ip()
+    logger.info(f"host_ip: {host_ip}")
+    await test_http_connection(host_ip, 8127)
+    await test_http_connection("192.168.0.7", 5005)
+
+
 @web.route('/result-fetch')
 async def result_fetch():
     data = {
@@ -83,10 +114,8 @@ async def result_fetch():
 
 @web.route('/network_tests')
 async def network_tests():
-    platform = detect_platform()
-    logger.info(f"platform: {platform}")
-    host_ip = await get_best_guess_host_ip()
-    logger.info(f"host_ip: {host_ip}")
+    loop = asyncio.get_event_loop()
+    loop.create_task(test_script())
 
     return await render_template(
         'page_network_tests.html.j2',
