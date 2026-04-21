@@ -3,6 +3,7 @@ import os
 import re
 import socket
 import aiohttp
+import struct
 import logging
 from quart_babel import format_datetime
 from quart import render_template
@@ -33,6 +34,62 @@ def detect_platform():
     except Exception:
         pass
     return "Bare Metal"
+
+
+async def get_container_ip():
+    """Bestimmt die IP des Containers im Docker-Netzwerk."""
+    try:
+        # Erstellt eine UDP-Verbindung, ohne Pakete zu senden
+        transport, protocol = await \
+            asyncio.get_running_loop().create_datagram_endpoint(
+                asyncio.DatagramProtocol,
+                remote_addr=('8.8.8.8', 80)
+            )
+        container_ip = transport.get_extra_info('sockname')[0]
+        transport.close()
+        return container_ip
+    except Exception:
+        return "Nicht ermittelbar"
+
+
+async def get_gateway_ip():
+    """Liest das Standard-Gateway aus
+    /proc/net/route (Host-IP in der Bridge)."""
+    try:
+        # Da Dateizugriff unter Linux schnell ist,
+        # hier einfach synchron gelesen
+        with open("/proc/net/route", "r") as f:
+            for line in f:
+                parts = line.split()
+                # 00000000 in Spalte 2 bedeutet 'Default Route'
+                if len(parts) > 2 and parts[1] == '00000000':
+                    # Die IP ist hexadezimal und Little-Endian
+                    hex_ip = parts[2]
+                    addr_pack = struct.pack("<L", int(hex_ip, 16))
+                    return socket.inet_ntoa(addr_pack)
+    except Exception:
+        return "Nicht gefunden"
+    return "Kein Gateway"
+
+
+async def get_public_ip():
+    """Ermittelt die öffentliche IP über einen externen Dienst."""
+    try:
+        # Nutzt den Standard-Python-Weg für asynchrone TCP-Verbindungen
+        reader, writer = await asyncio.open_connection('ifconfig.me', 80)
+        query = "GET /ip HTTP/1.1\r\nHost: ifconfig.me\r\n"
+        "User-Agent: curl/7.64.1\r\nConnection: close\r\n\r\n"
+        writer.write(query.encode())
+        await writer.drain()
+
+        response = await reader.read()
+        writer.close()
+        await writer.wait_closed()
+
+        # Extrahiert die IP aus dem HTTP-Body
+        return response.decode().split('\r\n\r\n')[-1].strip()
+    except Exception:
+        return "Timeout/Fehler"
 
 
 async def get_best_guess_host_ip():
@@ -156,9 +213,18 @@ async def test_script() -> None:
         logger.info(f"DNS test: '{host}' resolved to {ip} ==> Ok")
 
     # check internet access and make a tracert
+    container_ip = await get_container_ip()
+    logger.info(f"container_ip: {container_ip}")
 
-    host_ip = await get_best_guess_host_ip()
-    logger.info(f"host_ip: {host_ip}")
+    gw_ip = await get_gateway_ip()
+    logger.info(f"gw_ip: {gw_ip}")
+
+    public_ip = await get_public_ip()
+    logger.info(f"public_ip: {public_ip}")
+
+    host = await get_best_guess_host_ip()
+    host_ip = await resolve(host)
+    logger.info(f"host_ip: {host}, {host_ip}")
     await test_http_connection(host_ip, 8127)
 
     # listening for port 5005 enabled?
