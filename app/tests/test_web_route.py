@@ -89,6 +89,14 @@ async def test_rel_page(client):
     web.build_relative_urls = False
 
 @pytest.mark.asyncio(loop_scope="session")
+async def test_network_tests(client):
+    """Test the notes page route."""
+    response = await client.get('/network_tests')
+    assert response.status_code == 200
+    assert response.mimetype == 'text/html'
+    assert b"<title>TSUN Proxy - Network Tests</title>" in await response.data
+
+@pytest.mark.asyncio(loop_scope="session")
 async def test_notes(client):
     """Test the notes page route."""
     response = await client.get('/notes')
