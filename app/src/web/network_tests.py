@@ -3,7 +3,7 @@ import os
 import socket
 import aiohttp
 import logging
-from quart_babel import format_datetime
+from quart_babel import format_datetime, _
 from quart import render_template
 from cnf.config import Config
 from .wrapper import url_for
@@ -15,7 +15,7 @@ logger = logging.getLogger('test')
 
 
 def detect_platform():
-    """Prüft auf Proxmox/KVM oder echte Hardware."""
+    """Checks for Proxmox/KVM or physical hardware."""
     try:
         if os.path.exists("/sys/class/dmi/id/sys_vendor"):
             with open("/sys/class/dmi/id/sys_vendor", "r") as f:
@@ -34,10 +34,10 @@ def detect_platform():
 
 
 async def get_best_guess_host_ip():
-    """Versucht die LAN-IP zu finden (HA API -> Hostname -> Socket)."""
+    """Try to find the LAN IP (Hostname -> Socket)."""
     loop = asyncio.get_running_loop()
 
-    # 1. Versuch: Standard-Hostname auflösen (funktioniert oft auf Bare Metal)
+    # 1. Try: Resolve the default hostname (this often works on bare metal)
     try:
         fqdn = socket.getfqdn()
         container_ip = await resolve(fqdn)
@@ -47,7 +47,7 @@ async def get_best_guess_host_ip():
     except Exception:
         pass
 
-    # 3. Versuch: Über eine ausgehende Verbindung die eigene LAN-IP raten
+    # 2. Try: Guessing your own LAN IP address via an outgoing connection
     try:
         transport, protocol = await loop.create_datagram_endpoint(
             asyncio.DatagramProtocol,
@@ -64,10 +64,10 @@ async def get_best_guess_host_ip():
 
 
 async def test_http_connection(host_ip, port):
-
-    # Der Test-Link nutzt die ermittelte LAN-IP
+    """Attempts to establish an HTTP connection to
+    the proxy and logs the result to the logger."""
     test_url = f"http://{host_ip}:{port}/-/ready"
-    test_txt = f"Test Web server on ({host_ip}:{port}) "
+    test_txt = f"{_('Test Web server on')} ({host_ip}:{port}) "
 
     async with aiohttp.ClientSession() as session:
         try:
@@ -84,12 +84,13 @@ async def test_http_connection(host_ip, port):
 
 
 async def test_tcp_connection(host_ip, port):
-    # Verbindung asynchron aufbauen
-    test_txt = f"Connect Test: Inverter to ({host_ip}:{port}) "
+    """Attempts to establish a TCP connection to
+    the proxy like a inverter and logs the result to the logger."""
+    test_txt = f"{_('Connection Test: Inverter to')} ({host_ip}:{port}) "
     try:
         reader, writer = await asyncio.open_connection(host_ip, port)
         logger.debug(f"{test_txt}established")
-        # Daten senden
+        # send the magic word 'ping' to the proxy and await the response
         writer.write(b'ping')
         await writer.drain()  # Warten, bis der Puffer geleert is
         # Daten empfangen (bis zu 255 Bytes)
@@ -97,6 +98,8 @@ async def test_tcp_connection(host_ip, port):
         if not response:
             logger.debug(f"{test_txt}==> closed by server")
         elif response == b'ping':
+            # The proxy response is "ping" and indicates
+            # that it comes from the proxy
             logger.info(f"{test_txt}==> Ok")
         else:
             logger.warning(f"{test_txt}==> {response}")
@@ -112,8 +115,8 @@ async def test_tcp_connection(host_ip, port):
 
 
 async def resolve(host):
+    """Resolves a FQDN to an ip address"""
     loop = asyncio.get_running_loop()
-    # Nutzt einen Threadpool im Hintergrund
     info = await loop.getaddrinfo(host, None, family=socket.AF_INET)
     return info[0][4][0]
 
@@ -125,27 +128,29 @@ async def test_script() -> None:
     config_solarman = Config.get('solarman')
 
     platform = detect_platform()
-    logger.info(f"platform: {platform}")
+    logger.info(f"Platform: {platform}")
 
     # forwarding for port 5005 enabled?
     #  then check DNS resolution for TSUN cloud
     if not config_tsun['enabled']:
-        logger.info("TSUN cloud connections are disabled,"
-                    " skip the DNS resolution test")
+        logger.info(_("TSUN cloud connections are disabled,"
+                    " skip the DNS resolution test"))
     else:
         host = config_tsun['host']
         ip = await resolve(host)
-        logger.info(f"DNS test: '{host}' resolved to {ip} ==> Ok")
+        logger.info(f"DNS test: '{host}' {_("resolved to")}"
+                    f" {ip} ==> Ok")
 
     # forwarding for port 10000 enabled?
     #  then check DNS resolution for Solarman cloud
     if not config_solarman['enabled']:
-        logger.info("TSUN/Solarman cloud connections are disabled,"
-                    " skip the DNS resolution test")
+        logger.info(_("TSUN/Solarman cloud connections are disabled,"
+                    " skip the DNS resolution test"))
     else:
         host = config_solarman['host']
         ip = await resolve(host)
-        logger.info(f"DNS test: '{host}' resolved to {ip} ==> Ok")
+        logger.info(f"DNS test: '{host}' {_("resolved to")}"
+                    f" {ip} ==> Ok")
 
     # determine host ip of the proxy
     host_ip = await get_best_guess_host_ip()
@@ -153,15 +158,15 @@ async def test_script() -> None:
 
     # listening for port 5005 enabled?
     if not config_tsun['listener']:
-        logger.info("Proxy is not listening on port 5005,"
-                    " skip the inverter connect test")
+        logger.info(_("Proxy is not listening on port 5005,"
+                    " skip the inverter connect test"))
     else:
         await test_tcp_connection(host_ip, 5005)
 
     # listening for port 10000 enabled?
     if not config_solarman['listener']:
-        logger.info("Proxy is not listening on port 10000,"
-                    " skip the inverter connect test")
+        logger.info(_("Proxy is not listening on port 10000,"
+                    " skip the inverter connect test"))
     else:
         await test_tcp_connection(host_ip, 10000)
 

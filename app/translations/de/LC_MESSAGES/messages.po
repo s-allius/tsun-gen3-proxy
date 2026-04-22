@@ -59,6 +59,42 @@ msgstr ""
 msgid "HA-Area"
 msgstr ""
 
+#: src/web/network_tests.py:70
+msgid "Test Web server on"
+msgstr "Webserver testen auf"
+
+#: src/web/network_tests.py:89
+msgid "Connection Test: Inverter to"
+msgstr "Verbindungstest: Wechselrichter zu"
+
+#: src/web/network_tests.py:136
+msgid "TSUN cloud connections are disabled, skip the DNS resolution test"
+msgstr ""
+"Die TSUN-Cloud-Verbindungen sind deaktiviert; überspringe den DNS-"
+"Auflösungstest"
+
+#: src/web/network_tests.py:141 src/web/network_tests.py:152
+msgid "resolved to"
+msgstr "aufgelöst zu"
+
+#: src/web/network_tests.py:147
+msgid "TSUN/Solarman cloud connections are disabled, skip the DNS resolution test"
+msgstr ""
+"Die Cloud-Verbindungen von TSUN/Solarman sind deaktiviert; überspringe "
+"den DNS-Auflösungstest"
+
+#: src/web/network_tests.py:161
+msgid "Proxy is not listening on port 5005, skip the inverter connect test"
+msgstr ""
+"Der Proxy hört nicht auf Port 5005; den Test zur Verbindung des "
+"Wechselrichters überspringen"
+
+#: src/web/network_tests.py:168
+msgid "Proxy is not listening on port 10000, skip the inverter connect test"
+msgstr ""
+"Der Proxy hört nicht auf Port 10000; den Test zur Verbindung des "
+"Wechselrichters überspringen"
+
 #: src/web/templates/base.html.j2:37
 msgid "Updated:"
 msgstr "Aktualisiert:"
@@ -78,7 +114,7 @@ msgstr "Log Dateien"
 #: src/web/templates/base.html.j2:62
 #: src/web/templates/page_network_tests.html.j2:5
 msgid "Network Tests"
-msgstr ""
+msgstr "Verbindungstests"
 
 #: src/web/templates/base.html.j2:65
 msgid "Add-on Config"
