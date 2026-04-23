@@ -49,7 +49,7 @@ async def get_best_guess_host_ip():
 
     # 2. Try: Guessing your own LAN IP address via an outgoing connection
     try:
-        transport, protocol = await loop.create_datagram_endpoint(
+        transport, _ = await loop.create_datagram_endpoint(
             asyncio.DatagramProtocol,
             remote_addr=('8.8.8.8', 80)
         )
