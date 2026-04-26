@@ -22,6 +22,8 @@ from cnf.config import Config
 from cnf.config_read_toml import ConfigReadToml
 from proxy import Proxy
 
+# Save the original timeout function before patching to avoid recursion
+original_timeout = asyncio.timeout
 
 class FakeServer(Server):
     def __init__(self):
@@ -666,6 +668,7 @@ async def test_result_fetch1(client):
     assert b"DNS test: &#39;logger.talent-monitoring.com&#39" in result
     assert b'Proxy is not listening on port 10000' in result
     assert bytes(f'Connection Test: Inverter to ({test_ip}:5005)', 'UTF8') in result
+    assert b'Test run finished' in result
 
 @pytest.mark.asyncio(loop_scope="session")
 async def test_result_fetch2(client):
@@ -693,7 +696,50 @@ async def test_result_fetch2(client):
     assert b"DNS test: &#39;iot.talent-monitoring.com&#39" in result
     assert b'Proxy is not listening on port 5005' in result
     assert bytes(f'Connection Test: Inverter to ({test_ip}:10000)', 'UTF8') in result
+    assert b'Test run finished' in result
 
+
+@pytest.mark.asyncio(loop_scope="session")
+async def test_result_fetch_abort(client):
+    """
+    Tests if the routine handles a timeout correctly by forcing 
+    the 10s timeout to actually expire after only 0.1s.
+    """
+    Config.act_config = {
+        'tsun':{'enabled': False, 'listener': False, 'host': 'logger.talent-monitoring.com'},
+        'solarman':{'enabled': True, 'listener': True, 'host': 'iot.talent-monitoring.com'}
+    }
+
+    s = FakeServer()
+    s.src_dir = 'app/src/'
+    s.init_logging_system()
+
+
+    # First clear log
+    LogHandler().clear()
+
+    # 1. We define a side_effect function that replaces the 10s with 0.1s
+    def side_effect_short_timeout(delay):
+        # Use the original function here, which is not mocked
+        return original_timeout(0.1)
+    
+    async def slow_script():
+        await asyncio.sleep(1.0)
+    
+    # 2. Patch asyncio.timeout
+    with patch('asyncio.timeout', side_effect=side_effect_short_timeout) as mocked_timeout:
+        
+        # We need a test_script that definitely takes longer than 0.1s
+        # so that the timeout actually hits.
+        with patch('web.network_tests.get_best_guess_host_ip', AsyncMock()) as mock_script:
+            # Simulate the script taking longer than our new 0.1s timeout
+            mock_script.side_effect = slow_script
+
+            response = await client.get('/result-fetch')
+
+            assert response.status_code == 200
+            result = await response.data
+            assert b'Test run timed out after 10s' in result
 
 @pytest.mark.asyncio(loop_scope="session")
 async def test_notes_fetch(client, config_conn):

@@ -123,95 +123,97 @@ async def resolve(host):
 
 
 async def test_script() -> None:
-    # Start timer (returns a float in seconds)
-    start_time = time.perf_counter()
+    # clear result table in the web UI
+    TestHandler().clear()
+    config_tsun = Config.get('tsun')
+    config_solarman = Config.get('solarman')
+    platform = detect_platform()
+    logger.info(f"Platform: {platform}")
+    # forwarding for port 5005 enab led?
+    #  then check DNS resolution for TSUN cloud
+    if not config_tsun['enabled']:
+        logger.info(_("TSUN cloud connections are disabled,"
+                    " skip the DNS resolution test"))
+    else:
+        host = config_tsun['host']
+        ip = await resolve(host)
+        logger.info(f"DNS test: '{host}' {_("resolved to")}"
+                    f" {ip} ==> Ok")
+    # forwarding for port 10000 enabled?
+    #  then check DNS resolution for Solarman cloud
+    if not config_solarman['enabled']:
+        logger.info(_("TSUN/Solarman cloud connections are disabled,"
+                    " skip the DNS resolution test"))
+    else:
+        host = config_solarman['host']
+        ip = await resolve(host)
+        logger.info(f"DNS test: '{host}' {_("resolved to")}"
+                    f" {ip} ==> Ok")
+    # determine host ip of the proxy
+    host_ip = await get_best_guess_host_ip()
+    await test_http_connection(host_ip, 8127)
+    # listening for port 5005 enabled?
+    if not config_tsun['listener']:
+        logger.info(_("Proxy is not listening on port 5005,"
+                    " skip the inverter connect test"))
+    else:
+        await test_tcp_connection(host_ip, 5005)
+    # listening for port 10000 enabled?
+    if not config_solarman['listener']:
+        logger.info(_("Proxy is not listening on port 10000,"
+                    " skip the inverter connect test"))
+    else:
+        await test_tcp_connection(host_ip, 10000)
 
+
+async def get_test_results():
+    """
+    Singleton wrapper to start or join the test task with a 10s timeout.
+    """
+    global _test_task
+
+    # 1. Start a new task if none is running
+    if not _test_task or _test_task.done():
+        logger.info("Starting new test task...")
+        _test_task = asyncio.create_task(test_script())
+
+    # 2. Wait for the task with a timeout
     try:
-        # clear result table in the web UI
-        TestHandler().clear()
-        config_tsun = Config.get('tsun')
-        config_solarman = Config.get('solarman')
-
-        platform = detect_platform()
-        logger.info(f"Platform: {platform}")
-
-        # forwarding for port 5005 enab led?
-        #  then check DNS resolution for TSUN cloud
-        if not config_tsun['enabled']:
-            logger.info(_("TSUN cloud connections are disabled,"
-                        " skip the DNS resolution test"))
-        else:
-            host = config_tsun['host']
-            ip = await resolve(host)
-            logger.info(f"DNS test: '{host}' {_("resolved to")}"
-                        f" {ip} ==> Ok")
-
-        # forwarding for port 10000 enabled?
-        #  then check DNS resolution for Solarman cloud
-        if not config_solarman['enabled']:
-            logger.info(_("TSUN/Solarman cloud connections are disabled,"
-                        " skip the DNS resolution test"))
-        else:
-            host = config_solarman['host']
-            ip = await resolve(host)
-            logger.info(f"DNS test: '{host}' {_("resolved to")}"
-                        f" {ip} ==> Ok")
-
-        # determine host ip of the proxy
-        host_ip = await get_best_guess_host_ip()
-        await test_http_connection(host_ip, 8127)
-
-        # listening for port 5005 enabled?
-        if not config_tsun['listener']:
-            logger.info(_("Proxy is not listening on port 5005,"
-                        " skip the inverter connect test"))
-        else:
-            await test_tcp_connection(host_ip, 5005)
-
-        # listening for port 10000 enabled?
-        if not config_solarman['listener']:
-            logger.info(_("Proxy is not listening on port 10000,"
-                        " skip the inverter connect test"))
-        else:
-            await test_tcp_connection(host_ip, 10000)
-
-        # Calculate duration
-        end_time = time.perf_counter()
-        duration_ms = (end_time - start_time) * 1000
-
-        # Log or print with 10ms resolution (round to 2 decimals if needed)
-        logger.info(f"test_script took: {duration_ms:.0f}ms")
-
-    except asyncio.CancelledError:
-        # If the 10s timeout hits, we can still see how long it ran until then
-        duration_ms = (time.perf_counter() - start_time) * 1000
-        logger.error(f"test_script cancelled after {duration_ms:.0f}ms")
-        raise
+        async with asyncio.timeout(10):
+            await _test_task
+            logger.info("Test run finished")
+            return True
+    except asyncio.TimeoutError:
+        # Task is automatically cancelled by the timeout context manager
+        logger.error("Test run timed out after 10s")
+        return False
 
 
 @web.route('/result-fetch')
 async def result_fetch():
-    global _test_task
+    """
+    Web route to trigger the network test and return the rendered results.
+    """
+    start_time = time.perf_counter()
+
+    # 1. Execute/Join the test (timeout is handled inside)
+    # We don't need to catch the error here as get_test_results handles it
+    await get_test_results()
+
+    # 2. Calculate and log total duration
+    duration_ms = (time.perf_counter() - start_time) * 1000
+    logger.info(f"Request 'result-fetch' handled in {duration_ms:.0f}ms")
+
+    # 3. Prepare response data
+    # We fetch the current buffer (even if a timeout occurred,
+    # it contains the results received so far).
     data = {
         "update-time": format_datetime(format="medium"),
+        "result-list": await render_template(
+            'templ_result_list.html.j2',
+            results=TestHandler().get_buffer()
+        )
     }
-    loop = asyncio.get_event_loop()
-
-    # 1. Check if a task exists and is still active
-    if _test_task and not _test_task.done():
-        logger.info("A test run is already in progress,"
-                    " waiting for results...")
-    else:
-        _test_task = loop.create_task(test_script())
-    try:
-        async with asyncio.timeout(10):
-            await _test_task
-    except TimeoutError:
-        logger.error("Network test opertation timed out")
-
-    data["result-list"] = await render_template(
-        'templ_result_list.html.j2',
-        results=TestHandler().get_buffer())
 
     return data
 
