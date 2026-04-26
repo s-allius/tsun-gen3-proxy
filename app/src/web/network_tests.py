@@ -3,6 +3,7 @@ import os
 import socket
 import aiohttp
 import logging
+import time
 from quart_babel import format_datetime, _
 from quart import render_template
 from cnf.config import Config
@@ -12,6 +13,7 @@ from . import web
 from .log_handler import TestHandler
 
 logger = logging.getLogger('test')
+_test_task = None
 
 
 def detect_platform():
@@ -121,60 +123,92 @@ async def resolve(host):
 
 
 async def test_script() -> None:
-    # clear result table in the web UI
-    TestHandler().clear()
-    config_tsun = Config.get('tsun')
-    config_solarman = Config.get('solarman')
+    # Start timer (returns a float in seconds)
+    start_time = time.perf_counter()
 
-    platform = detect_platform()
-    logger.info(f"Platform: {platform}")
+    try:
+        # clear result table in the web UI
+        TestHandler().clear()
+        config_tsun = Config.get('tsun')
+        config_solarman = Config.get('solarman')
 
-    # forwarding for port 5005 enab led?
-    #  then check DNS resolution for TSUN cloud
-    if not config_tsun['enabled']:
-        logger.info(_("TSUN cloud connections are disabled,"
-                    " skip the DNS resolution test"))
-    else:
-        host = config_tsun['host']
-        ip = await resolve(host)
-        logger.info(f"DNS test: '{host}' {_("resolved to")}"
-                    f" {ip} ==> Ok")
+        platform = detect_platform()
+        logger.info(f"Platform: {platform}")
 
-    # forwarding for port 10000 enabled?
-    #  then check DNS resolution for Solarman cloud
-    if not config_solarman['enabled']:
-        logger.info(_("TSUN/Solarman cloud connections are disabled,"
-                    " skip the DNS resolution test"))
-    else:
-        host = config_solarman['host']
-        ip = await resolve(host)
-        logger.info(f"DNS test: '{host}' {_("resolved to")}"
-                    f" {ip} ==> Ok")
+        # forwarding for port 5005 enab led?
+        #  then check DNS resolution for TSUN cloud
+        if not config_tsun['enabled']:
+            logger.info(_("TSUN cloud connections are disabled,"
+                        " skip the DNS resolution test"))
+        else:
+            host = config_tsun['host']
+            ip = await resolve(host)
+            logger.info(f"DNS test: '{host}' {_("resolved to")}"
+                        f" {ip} ==> Ok")
 
-    # determine host ip of the proxy
-    host_ip = await get_best_guess_host_ip()
-    await test_http_connection(host_ip, 8127)
+        # forwarding for port 10000 enabled?
+        #  then check DNS resolution for Solarman cloud
+        if not config_solarman['enabled']:
+            logger.info(_("TSUN/Solarman cloud connections are disabled,"
+                        " skip the DNS resolution test"))
+        else:
+            host = config_solarman['host']
+            ip = await resolve(host)
+            logger.info(f"DNS test: '{host}' {_("resolved to")}"
+                        f" {ip} ==> Ok")
 
-    # listening for port 5005 enabled?
-    if not config_tsun['listener']:
-        logger.info(_("Proxy is not listening on port 5005,"
-                    " skip the inverter connect test"))
-    else:
-        await test_tcp_connection(host_ip, 5005)
+        # determine host ip of the proxy
+        host_ip = await get_best_guess_host_ip()
+        await test_http_connection(host_ip, 8127)
 
-    # listening for port 10000 enabled?
-    if not config_solarman['listener']:
-        logger.info(_("Proxy is not listening on port 10000,"
-                    " skip the inverter connect test"))
-    else:
-        await test_tcp_connection(host_ip, 10000)
+        # listening for port 5005 enabled?
+        if not config_tsun['listener']:
+            logger.info(_("Proxy is not listening on port 5005,"
+                        " skip the inverter connect test"))
+        else:
+            await test_tcp_connection(host_ip, 5005)
+
+        # listening for port 10000 enabled?
+        if not config_solarman['listener']:
+            logger.info(_("Proxy is not listening on port 10000,"
+                        " skip the inverter connect test"))
+        else:
+            await test_tcp_connection(host_ip, 10000)
+
+        # Calculate duration
+        end_time = time.perf_counter()
+        duration_ms = (end_time - start_time) * 1000
+
+        # Log or print with 10ms resolution (round to 2 decimals if needed)
+        logger.info(f"test_script took: {duration_ms:.0f}ms")
+
+    except asyncio.CancelledError:
+        # If the 10s timeout hits, we can still see how long it ran until then
+        duration_ms = (time.perf_counter() - start_time) * 1000
+        logger.error(f"test_script cancelled after {duration_ms:.0f}ms")
+        raise
 
 
 @web.route('/result-fetch')
 async def result_fetch():
+    global _test_task
     data = {
         "update-time": format_datetime(format="medium"),
     }
+    loop = asyncio.get_event_loop()
+
+    # 1. Check if a task exists and is still active
+    if _test_task and not _test_task.done():
+        logger.info("A test run is already in progress,"
+                    " waiting for results...")
+    else:
+        _test_task = loop.create_task(test_script())
+    try:
+        async with asyncio.timeout(10):
+            await _test_task
+    except TimeoutError:
+        logger.error("Network test opertation timed out")
+
     data["result-list"] = await render_template(
         'templ_result_list.html.j2',
         results=TestHandler().get_buffer())
@@ -184,9 +218,6 @@ async def result_fetch():
 
 @web.route('/network_tests')
 async def network_tests():
-    loop = asyncio.get_event_loop()
-    loop.create_task(test_script())
-
     return await render_template(
         'page_network_tests.html.j2',
         fetch_url=url_for('.result_fetch'))
