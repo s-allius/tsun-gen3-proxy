@@ -103,18 +103,14 @@ async def test_tcp_connection(host_ip, port):
             logger.info(f"{test_txt}==> Ok")
         else:
             logger.warning(f"{test_txt}==> {response}")
-
+        logger.debug(f"{test_txt}closing...")
+        writer.close()
+        await writer.wait_closed()
+        return
     except asyncio.CancelledError:
         raise
     except Exception as e:
         logger.error(f"{test_txt}==> {e}")
-    finally:
-        logger.debug(f"{test_txt}closing...")
-        try:
-            writer.close()
-            await writer.wait_closed()
-        except Exception:
-            pass
 
 
 async def resolve(host):

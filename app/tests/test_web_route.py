@@ -14,6 +14,7 @@ from web import web
 from async_stream import AsyncStreamClient
 from gen3plus.inverter_g3p import InverterG3P
 from web.log_handler import LogHandler
+from web.network_tests import test_tcp_connection as tcp_connection_fnc
 from web.network_tests import test_http_connection as http_connection_fnc
 from web.network_tests import test_script as nettest_script
 from test_inverter_g3p import FakeReader, FakeWriter, config_conn
@@ -287,8 +288,8 @@ async def test_http_connection_fnc_success(network_http_mocks):
 
     # 2. Assertions
     mock_get.assert_called_once_with('http://127.0.0.1:8000/-/ready', timeout=5)
-    mock_get.warning.assert_not_called()
-    mock_get.error.assert_not_called()
+    mock_logger.warning.assert_not_called()
+    mock_logger.error.assert_not_called()
     mock_logger.info.assert_called_once_with('Test Web server on (127.0.0.1:8000) ==> Ok')
 
 
@@ -308,8 +309,8 @@ async def test_http_connection_fnc_error(network_http_mocks):
 
     # 3. Assertions
     mock_get.assert_called_once_with('http://127.0.0.1:8000/-/ready', timeout=5)
-    mock_get.info.assert_not_called()
-    mock_get.error.assert_not_called()
+    mock_logger.info.assert_not_called()
+    mock_logger.error.assert_not_called()
     mock_logger.warning.assert_called_once_with('Test Web server on (127.0.0.1:8000) ==> 403')
 
 @pytest.mark.asyncio
@@ -320,7 +321,7 @@ async def test_http_connection_fnc_execpt(network_http_mocks):
     mock_logger = network_http_mocks["logger"]
     mock_resp = network_http_mocks["resp"]
         
-    # 1. patch response code
+    # 1. simulate connection refused error
     mock_get.side_effect=Exception("Connection Refused")
 
     # 2. call method under test
@@ -328,8 +329,8 @@ async def test_http_connection_fnc_execpt(network_http_mocks):
 
     # 3. Assertions
     mock_get.assert_called_once_with('http://127.0.0.1:8000/-/ready', timeout=5)
-    mock_get.info.assert_not_called()
-    mock_get.warning.assert_not_called()
+    mock_logger.info.assert_not_called()
+    mock_logger.warning.assert_not_called()
     mock_logger.error.assert_called_once_with('Test Web server on (127.0.0.1:8000) ==> Connection Refused')
 
 @pytest.mark.asyncio
@@ -340,12 +341,13 @@ async def test_http_connection_fnc_cancel(network_http_mocks):
     mock_logger = network_http_mocks["logger"]
     mock_resp = network_http_mocks["resp"]
         
-    # 1. patch response code
+    # 1. set side_effect cancel error
     mock_get.side_effect=asyncio.CancelledError
 
     # 2. call method under test
     try:
         await http_connection_fnc("127.0.0.1", 8000)
+        pytest.fail(f"Abort exception missing")
     except asyncio.CancelledError:
         pass
     except Exception as e:
@@ -353,12 +355,157 @@ async def test_http_connection_fnc_cancel(network_http_mocks):
 
     # 3. Assertions
     mock_get.assert_called_once_with('http://127.0.0.1:8000/-/ready', timeout=5)
-    mock_get.info.assert_not_called()
-    mock_get.warning.assert_not_called()
+    mock_logger.info.assert_not_called()
+    mock_logger.warning.assert_not_called()
+    mock_logger.error.assert_not_called()
+
+@pytest.fixture
+def network_tcp_mocks():
+    """Fixture for Logger and aiohttp """
+
+    # 1. Setup mocks for Reader and Writer
+    # We use AsyncMock because these objects are used with 'await'
+    mock_reader = AsyncMock(spec=asyncio.StreamReader)
+    mock_writer = AsyncMock(spec=asyncio.StreamWriter)
+
+    with patch('web.network_tests.logger') as mock_logger, \
+         patch('asyncio.open_connection', 
+               AsyncMock(return_value=(mock_reader, mock_writer))) as mock_open:
+        
+        # Die Mocks und den Handler als Dictionary oder Tuple zurückgeben
+        yield {
+            "logger": mock_logger,
+            "reader": mock_reader,
+            "writer": mock_writer,
+            "open": mock_open
+        }
+
+@pytest.mark.asyncio
+async def test_tcp_connection_success(network_tcp_mocks):
+    """
+    Tests a successful TCP ping-pong flow between inverter and proxy.
+    Uses the 'network_mocks' fixture to capture logs and prevent real IO.
+    """
+    # 1. Get mocks for Reader, Writer and Logger from fixture
+    mock_reader = network_tcp_mocks["reader"]
+    mock_writer = network_tcp_mocks["writer"]
+    mock_logger = network_tcp_mocks["logger"]
+    
+    # Configure the mock reader to return 'ping' (the expected success response)
+    mock_reader.read.return_value = b'ping'
+    
+    # 2. Execute the function under test
+    await tcp_connection_fnc("127.0.0.1", 5005)
+    
+    # 3. Verify the results (Assertions)
+    
+    # Check if the success message was logged
+    # We check for the suffix because the prefix might contain dynamic/translated text
+    ok_logged = any("==> Ok" in call.args[0] for call in mock_logger.info.call_args_list)
+    assert ok_logged, "Expected success log '==> Ok' was not found"
+    # Verify that 'ping' was actually written to the socket
+    mock_writer.write.assert_called_once_with(b'ping')
+    
+    # Ensure drain was called after writing
+    mock_writer.drain.assert_called_once()
+    
+    # Verify that the connection was closed properly in the 'finally' block
+    mock_writer.close.assert_called_once()
+    mock_writer.wait_closed.assert_called_once()
+
+    mock_logger.warning.assert_not_called()
+    mock_logger.error.assert_not_called()
+    mock_logger.info.assert_called_once_with("Connection Test: Inverter to (127.0.0.1:5005) ==> Ok")
+
+@pytest.mark.asyncio
+async def test_tcp_connection_wrong_response(network_tcp_mocks):
+    """
+    Tests the case where the server responds with something other than 'ping'.
+    """
+    # 1. Get mocks for Reader, Writer and Logger from fixture
+    mock_reader = network_tcp_mocks["reader"]
+    mock_logger = network_tcp_mocks["logger"]
+    
+    # Simulate an unexpected response
+    mock_reader.read.return_value = b'unknown_error'
+    
+    # 2. Execute the function under test
+    await tcp_connection_fnc("127.0.0.1", 5005)
+        
+    # Check if a warning was logged with the unexpected data
+    mock_logger.info.assert_not_called()
+    mock_logger.error.assert_not_called()
+    mock_logger.warning.assert_called_once_with("Connection Test: Inverter to (127.0.0.1:5005) ==> b'unknown_error'")
+
+@pytest.mark.asyncio
+async def test_tcp_connection_wrong_closed(network_tcp_mocks):
+    """
+    Tests the case where the server responds with something other than 'ping'.
+    """
+    # 1. Get mocks for Reader, Writer and Logger from fixture
+    mock_reader = network_tcp_mocks["reader"]
+    mock_logger = network_tcp_mocks["logger"]
+    
+    # Simulate an empty response
+    mock_reader.read.return_value = b''
+    
+    # 2. Execute the function under test
+    await tcp_connection_fnc("127.0.0.1", 5005)
+        
+    # Check if a warning was logged with the unexpected data
+    mock_logger.info.assert_not_called()
+    mock_logger.warning.assert_not_called()
+    mock_logger.error.assert_not_called()
+@pytest.mark.asyncio
+async def test_tcp_connection_exception(network_tcp_mocks):
+    """
+    Tests the case where the server responds with something other than 'ping'.
+    """
+    # 1. Get mocks for Reader, Writer and Logger from fixture
+    mock_reader = network_tcp_mocks["reader"]
+    mock_logger = network_tcp_mocks["logger"]
+    mock_open = network_tcp_mocks["open"]
+    
+    # 1. simulate connection refused error
+    mock_open.side_effect=Exception("Connection Refused")
+    
+    # 2. Execute the function under test
+    await tcp_connection_fnc("127.0.0.1", 5005)
+        
+    # Check if a warning was logged with the unexpected data
+    mock_logger.info.assert_not_called()
+    mock_logger.warning.assert_not_called()
+    mock_logger.error.assert_called_once_with("Connection Test: Inverter to (127.0.0.1:5005) ==> Connection Refused")
+
+@pytest.mark.asyncio
+async def test_tcp_connection_cancel(network_tcp_mocks):
+    """
+    Tests the case where the server responds with something other than 'ping'.
+    """
+    # 1. Get mocks for Reader, Writer and Logger from fixture
+    mock_reader = network_tcp_mocks["reader"]
+    mock_logger = network_tcp_mocks["logger"]
+    mock_open = network_tcp_mocks["open"]
+    
+    # 1. set side_effect cancel error
+    mock_open.side_effect=asyncio.CancelledError
+    
+    # 2. Execute the function under test
+    try:
+        await tcp_connection_fnc("127.0.0.1", 5005)
+        pytest.fail(f"Abort exception missing")
+    except asyncio.CancelledError:
+        pass
+    except Exception as e:
+        pytest.fail(f"Unexpected exception: {e}")
+        
+    # Check if a warning was logged with the unexpected data
+    mock_logger.info.assert_not_called()
+    mock_logger.warning.assert_not_called()
     mock_logger.error.assert_not_called()
     
 @pytest.mark.asyncio(loop_scope="session")
-async def test_result_fetch(client, config_conn):
+async def test_result_fetch(client, config_conn, network_tcp_mocks):
     """Test the result-fetch route."""
     _ = config_conn
     Config.init(ConfigReadToml("app/src/cnf/default_config.toml"))
