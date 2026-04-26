@@ -639,35 +639,10 @@ async def test_tcp_connection_cancel(network_tcp_mocks):
     mock_logger.warning.assert_not_called()
     mock_logger.error.assert_not_called()
     
-# @pytest.mark.asyncio(loop_scope="session")
-# async def test_result_fetch0(client, network_tcp_mocks):
-#     """Test the result-fetch route."""
-# 
-#     # 1. Get mocks for Reader, Writer and Logger from fixture
-#     mock_logger = network_tcp_mocks["logger"]
-# 
-#     Config.init(ConfigReadToml("app/src/cnf/default_config.toml"))
-#     Config.act_config['tsun']['enabled'] = False
-#     Config.act_config['tsun']['listener'] = False
-#     Config.act_config['solarman']['enabled'] = True
-#     Config.act_config['solarman']['listener'] = True
-# 
-#     await nettest_script()
-#     skip_logged = any("TSUN cloud connections are disabled" in str(call) 
-#                          for call in mock_logger.info.call_args_list)
-#     assert skip_logged
-#     
-#     not_listen_logged = any("Proxy is not listening on port 5005" in str(call) 
-#                          for call in mock_logger.info.call_args_list)
-#     assert not_listen_logged
-# 
-#     dns_test_logged = any("DNS test: 'iot.talent-monitoring.com' resolved" in str(call) 
-#                          for call in mock_logger.info.call_args_list)
-#     assert dns_test_logged
-# 
 @pytest.mark.asyncio(loop_scope="session")
-async def test_result_fetch1(client):
+async def test_result_fetch1(client, config_conn):
     """Test the result-fetch route."""
+    _ = config_conn
 
     Config.init(ConfigReadToml("app/src/cnf/default_config.toml"))
     Config.act_config['tsun']['enabled'] = True
@@ -692,8 +667,9 @@ async def test_result_fetch1(client):
     assert b'Connection Test: Inverter to (192.168.0.4:5005)' in result
 
 @pytest.mark.asyncio(loop_scope="session")
-async def test_result_fetch2(client):
+async def test_result_fetch2(client, config_conn):
     """Test the result-fetch route."""
+    _ = config_conn
 
     Config.init(ConfigReadToml("app/src/cnf/default_config.toml"))
     Config.act_config['tsun']['enabled'] = False
