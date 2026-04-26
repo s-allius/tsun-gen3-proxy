@@ -648,11 +648,12 @@ async def test_result_fetch1(client):
         'solarman':{'enabled': False, 'listener': False, 'host': 'iot.talent-monitoring.com', 'port': 10000}
     }
 
-    await nettest_script() 
+    s = FakeServer()
+    s.src_dir = 'app/src/'
+    s.init_logging_system()
 
     # First clear log
-    logh = LogHandler()
-    logh.clear()
+    LogHandler().clear()
 
     # then fetch test result list
     response = await client.get('/result-fetch')
