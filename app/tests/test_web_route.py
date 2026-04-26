@@ -1,11 +1,12 @@
 # test_with_pytest.py
 import pytest
+import asyncio
 import logging
 import os, errno
 import datetime
 from os import DirEntry, stat_result
 from quart import current_app
-from mock import patch, call
+from mock import patch, call, MagicMock, AsyncMock
 
 from server import app as my_app
 from server import Server
@@ -13,8 +14,11 @@ from web import web
 from async_stream import AsyncStreamClient
 from gen3plus.inverter_g3p import InverterG3P
 from web.log_handler import LogHandler
+from web.network_tests import test_http_connection as http_connection_fnc
+from web.network_tests import test_script as nettest_script
 from test_inverter_g3p import FakeReader, FakeWriter, config_conn
 from cnf.config import Config
+from cnf.config_read_toml import ConfigReadToml
 from proxy import Proxy
 
 
@@ -250,6 +254,127 @@ async def test_mqtt_fetch(client, create_inverter):
     response = await client.get('/mqtt-fetch')
     assert response.status_code == 200
     assert b'<h5>MQTT devices</h5>' in await response.data
+
+@pytest.fixture
+def network_http_mocks():
+    """Fixture for Logger and aiohttp """
+    with patch('web.network_tests.logger') as mock_logger, \
+         patch('aiohttp.ClientSession.get') as mock_get:
+        
+        mock_resp = MagicMock()
+        mock_resp.status = 200
+        mock_resp.__aenter__ = AsyncMock(return_value=mock_resp)
+        mock_resp.__aexit__ = AsyncMock()
+
+        mock_get.return_value = mock_resp
+
+        # Die Mocks und den Handler als Dictionary oder Tuple zurückgeben
+        yield {
+            "logger": mock_logger,
+            "get": mock_get,
+            "resp": mock_resp
+        }
+        
+@pytest.mark.asyncio
+async def test_http_connection_fnc_success(network_http_mocks):
+    """Test the test_http_connection method - good case."""
+
+    mock_get = network_http_mocks["get"]
+    mock_logger = network_http_mocks["logger"]
+        
+    # 1. call method under test
+    await http_connection_fnc("127.0.0.1", 8000)
+
+    # 2. Assertions
+    mock_get.assert_called_once_with('http://127.0.0.1:8000/-/ready', timeout=5)
+    mock_get.warning.assert_not_called()
+    mock_get.error.assert_not_called()
+    mock_logger.info.assert_called_once_with('Test Web server on (127.0.0.1:8000) ==> Ok')
+
+
+@pytest.mark.asyncio
+async def test_http_connection_fnc_error(network_http_mocks):
+    """Test the test_http_connection method - good case."""
+
+    mock_get = network_http_mocks["get"]
+    mock_logger = network_http_mocks["logger"]
+    mock_resp = network_http_mocks["resp"]
+        
+    # 1. patch response code
+    mock_resp.status = 403
+
+    # 2. call method under test
+    await http_connection_fnc("127.0.0.1", 8000)
+
+    # 3. Assertions
+    mock_get.assert_called_once_with('http://127.0.0.1:8000/-/ready', timeout=5)
+    mock_get.info.assert_not_called()
+    mock_get.error.assert_not_called()
+    mock_logger.warning.assert_called_once_with('Test Web server on (127.0.0.1:8000) ==> 403')
+
+@pytest.mark.asyncio
+async def test_http_connection_fnc_execpt(network_http_mocks):
+    """Test the test_http_connection method - good case."""
+
+    mock_get = network_http_mocks["get"]
+    mock_logger = network_http_mocks["logger"]
+    mock_resp = network_http_mocks["resp"]
+        
+    # 1. patch response code
+    mock_get.side_effect=Exception("Connection Refused")
+
+    # 2. call method under test
+    await http_connection_fnc("127.0.0.1", 8000)
+
+    # 3. Assertions
+    mock_get.assert_called_once_with('http://127.0.0.1:8000/-/ready', timeout=5)
+    mock_get.info.assert_not_called()
+    mock_get.warning.assert_not_called()
+    mock_logger.error.assert_called_once_with('Test Web server on (127.0.0.1:8000) ==> Connection Refused')
+
+@pytest.mark.asyncio
+async def test_http_connection_fnc_cancel(network_http_mocks):
+    """Test the test_http_connection method - good case."""
+
+    mock_get = network_http_mocks["get"]
+    mock_logger = network_http_mocks["logger"]
+    mock_resp = network_http_mocks["resp"]
+        
+    # 1. patch response code
+    mock_get.side_effect=asyncio.CancelledError
+
+    # 2. call method under test
+    try:
+        await http_connection_fnc("127.0.0.1", 8000)
+    except asyncio.CancelledError:
+        pass
+    except Exception as e:
+        pytest.fail(f"Unexpected exception: {e}")
+
+    # 3. Assertions
+    mock_get.assert_called_once_with('http://127.0.0.1:8000/-/ready', timeout=5)
+    mock_get.info.assert_not_called()
+    mock_get.warning.assert_not_called()
+    mock_logger.error.assert_not_called()
+    
+@pytest.mark.asyncio(loop_scope="session")
+async def test_result_fetch(client, config_conn):
+    """Test the result-fetch route."""
+    _ = config_conn
+    Config.init(ConfigReadToml("app/src/cnf/default_config.toml"))
+
+    s = FakeServer()
+    s.src_dir = 'app/src/'
+    s.init_logging_system()
+
+    await nettest_script() 
+
+    # First clear log
+    logh = LogHandler()
+    logh.clear()
+    response = await client.get('/result-fetch')
+    assert response.status_code == 200
+    assert b'result-list' in await response.data
 
 
 @pytest.mark.asyncio(loop_scope="session")

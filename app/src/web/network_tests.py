@@ -110,8 +110,11 @@ async def test_tcp_connection(host_ip, port):
         logger.error(f"{test_txt}==> {e}")
     finally:
         logger.debug(f"{test_txt}closing...")
-        writer.close()
-        await writer.wait_closed()
+        try:
+            writer.close()
+            await writer.wait_closed()
+        except Exception:
+            pass
 
 
 async def resolve(host):
