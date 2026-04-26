@@ -668,21 +668,21 @@ async def test_result_fetch1(client):
     assert bytes(f'Connection Test: Inverter to ({test_ip}:5005)', 'UTF8') in result
 
 @pytest.mark.asyncio(loop_scope="session")
-async def test_result_fetch2(client, config_conn):
+async def test_result_fetch2(client):
     """Test the result-fetch route."""
-    _ = config_conn
+    Config.act_config = {
+        'tsun':{'enabled': False, 'listener': False, 'host': 'logger.talent-monitoring.com'},
+        'solarman':{'enabled': True, 'listener': True, 'host': 'iot.talent-monitoring.com'}
+    }
 
-    Config.init(ConfigReadToml("app/src/cnf/default_config.toml"))
-    Config.act_config['tsun']['enabled'] = False
-    Config.act_config['tsun']['listener'] = False
-    Config.act_config['solarman']['enabled'] = True
-    Config.act_config['solarman']['listener'] = True
+    s = FakeServer()
+    s.src_dir = 'app/src/'
+    s.init_logging_system()
 
-    await nettest_script() 
+    test_ip = await get_best_guess_host_ip()
 
     # First clear log
-    logh = LogHandler()
-    logh.clear()
+    LogHandler().clear()
 
     # then fetch test result list
     response = await client.get('/result-fetch')
@@ -692,7 +692,7 @@ async def test_result_fetch2(client, config_conn):
     assert b'TSUN cloud connections are disabled' in result
     assert b"DNS test: &#39;iot.talent-monitoring.com&#39" in result
     assert b'Proxy is not listening on port 5005' in result
-    assert b'Connection Test: Inverter to (192.168.0.4:10000)' in result
+    assert bytes(f'Connection Test: Inverter to ({test_ip}:10000)', 'UTF8') in result
 
 
 @pytest.mark.asyncio(loop_scope="session")
