@@ -644,13 +644,15 @@ async def test_result_fetch1(client):
     """Test the result-fetch route."""
 
     Config.act_config = {
-        'tsun':{'enabled': True, 'listener': True, 'host': 'logger.talent-monitoring.com', 'port': 5005},
-        'solarman':{'enabled': False, 'listener': False, 'host': 'iot.talent-monitoring.com', 'port': 10000}
+        'tsun':{'enabled': True, 'listener': True, 'host': 'logger.talent-monitoring.com'},
+        'solarman':{'enabled': False, 'listener': False, 'host': 'iot.talent-monitoring.com'}
     }
 
     s = FakeServer()
     s.src_dir = 'app/src/'
     s.init_logging_system()
+
+    test_ip = await get_best_guess_host_ip()
 
     # First clear log
     LogHandler().clear()
@@ -663,7 +665,7 @@ async def test_result_fetch1(client):
     assert b'TSUN/Solarman cloud connections are disabled' in result
     assert b"DNS test: &#39;logger.talent-monitoring.com&#39" in result
     assert b'Proxy is not listening on port 10000' in result
-    assert b'Connection Test: Inverter to (192.168.0.4:5005)' in result
+    assert bytes(f'Connection Test: Inverter to ({test_ip}:5005)', 'UTF8') in result
 
 @pytest.mark.asyncio(loop_scope="session")
 async def test_result_fetch2(client, config_conn):
