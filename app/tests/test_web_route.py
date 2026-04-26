@@ -640,15 +640,13 @@ async def test_tcp_connection_cancel(network_tcp_mocks):
     mock_logger.error.assert_not_called()
     
 @pytest.mark.asyncio(loop_scope="session")
-async def test_result_fetch1(client, config_conn):
+async def test_result_fetch1(client):
     """Test the result-fetch route."""
-    _ = config_conn
 
-    Config.init(ConfigReadToml("app/src/cnf/default_config.toml"))
-    Config.act_config['tsun']['enabled'] = True
-    Config.act_config['tsun']['listener'] = True
-    Config.act_config['solarman']['enabled'] = False
-    Config.act_config['solarman']['listener'] = False
+    Config.act_config = {
+        'tsun':{'enabled': True, 'listener': True, 'host': 'logger.talent-monitoring.com', 'port': 5005},
+        'solarman':{'enabled': False, 'listener': False, 'host': 'iot.talent-monitoring.com', 'port': 10000}
+    }
 
     await nettest_script() 
 
