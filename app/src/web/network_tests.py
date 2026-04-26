@@ -129,7 +129,7 @@ async def test_script() -> None:
     platform = detect_platform()
     logger.info(f"Platform: {platform}")
 
-    # forwarding for port 5005 enabled?
+    # forwarding for port 5005 enab led?
     #  then check DNS resolution for TSUN cloud
     if not config_tsun['enabled']:
         logger.info(_("TSUN cloud connections are disabled,"
