@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+- add network tests to the web UI [#452](https://github.com/s-allius/tsun-gen3-proxy/issues/452)
 - Update ghcr.io/hassio-addons/base Docker tag to v20.1.0
 - Update python Docker tag to v3.14.4
 - Update ghcr.io/hassio-addons/base Docker tag to v20.0.4
