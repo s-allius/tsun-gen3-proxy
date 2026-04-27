@@ -5,7 +5,6 @@ import logging
 import os, errno
 import datetime
 from os import DirEntry, stat_result
-from quart import current_app
 from mock import patch, call, MagicMock, AsyncMock, mock_open
 
 from server import app as my_app
@@ -16,7 +15,7 @@ from gen3plus.inverter_g3p import InverterG3P
 from web.log_handler import LogHandler
 from web.network_tests import test_tcp_connection as tcp_connection_fnc
 from web.network_tests import test_http_connection as http_connection_fnc
-from web.network_tests import test_script as nettest_script, detect_platform, get_best_guess_host_ip
+from web.network_tests import get_test_results, detect_platform, get_best_guess_host_ip
 from test_inverter_g3p import FakeReader, FakeWriter, config_conn
 from cnf.config import Config
 from cnf.config_read_toml import ConfigReadToml
@@ -319,6 +318,17 @@ def test_detect_platform_bare_metal():
     Tests detection as Bare Metal when no virtualization strings are found.
     """
     with patch('os.path.exists', return_value=True), \
+         patch('builtins.open', mock_open(read_data="GenuineIntel")):
+        
+        result = detect_platform()
+        
+        assert result == "Bare Metal"
+
+def test_detect_platform_bare_metal2():
+    """
+    Tests detection as Bare Metal when no virtualization strings are found.
+    """
+    with patch('os.path.exists', return_value=False), \
          patch('builtins.open', mock_open(read_data="GenuineIntel")):
         
         result = detect_platform()
@@ -640,7 +650,72 @@ async def test_tcp_connection_cancel(network_tcp_mocks):
     mock_logger.info.assert_not_called()
     mock_logger.warning.assert_not_called()
     mock_logger.error.assert_not_called()
+
+@pytest.mark.asyncio(loop_scope="session")
+async def test_reentrant_call(network_http_mocks):
+    """Test: Starting a second test run before the first one is complete."""
+
+    Config.act_config = {
+        'tsun':{'enabled': True, 'listener': True, 'host': 'logger.talent-monitoring.com'},
+        'solarman':{'enabled': False, 'listener': False, 'host': 'iot.talent-monitoring.com'}
+    }
+
+    # First clear log
+    LogHandler().clear()
+
+    run1 = get_test_results()
+    run2 = get_test_results()
+    await asyncio.gather(run1,run2)
+
+    mock_logger = network_http_mocks["logger"]
+    log_found = any("Starting new test task" in str(call) 
+                    for call in mock_logger.info.call_args_list)
+    assert log_found
+
+    log_found = any("Join an ongoing test" in str(call) 
+                    for call in mock_logger.info.call_args_list)
+    assert log_found
+
+@pytest.mark.asyncio(loop_scope="session")
+async def test_result_fetch1(client):
+    """Test the result-fetch route."""
+
+    Config.act_config = {
+        'tsun':{'enabled': True, 'listener': True, 'host': 'logger.talent-monitoring.com'},
+        'solarman':{'enabled': False, 'listener': False, 'host': 'iot.talent-monitoring.com'}
+    }
+
+    s = FakeServer()
+    s.src_dir = 'app/src/'
+    s.init_logging_system()
+
+    test_ip = await get_best_guess_host_ip()
+
+    # First clear log
+    LogHandler().clear()
+
+    # then fetch test result list
+    response = await client.get('/result-fetch')
     
+    assert response.status_code == 200
+    result = await response.data
+    assert b'TSUN/Solarman cloud connections are disabled' in result
+    assert b"DNS test: &#39;logger.talent-monitoring.com&#39" in result
+    assert b'Proxy is not listening on port 10000' in result
+    assert bytes(f'Connection Test: Inverter to ({test_ip}:5005)', 'UTF8') in result
+    assert b'Test run finished' in result
+
+    # then fetch test result list
+    response = await client.get('/result-fetch')
+    
+    assert response.status_code == 200
+    result = await response.data
+    assert b'TSUN/Solarman cloud connections are disabled' in result
+    assert b"DNS test: &#39;logger.talent-monitoring.com&#39" in result
+    assert b'Proxy is not listening on port 10000' in result
+    assert bytes(f'Connection Test: Inverter to ({test_ip}:5005)', 'UTF8') in result
+    assert b'Test run finished' in result
+
 @pytest.mark.asyncio(loop_scope="session")
 async def test_result_fetch1(client):
     """Test the result-fetch route."""

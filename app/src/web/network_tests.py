@@ -173,6 +173,8 @@ async def get_test_results() -> bool:
     if not _test_task or _test_task.done():
         logger.info("Starting new test task...")
         _test_task = asyncio.create_task(test_script())
+    else:
+        logger.info("Join an ongoing test...")
 
     # 2. Wait for the task with a timeout
     try:
@@ -182,7 +184,6 @@ async def get_test_results() -> bool:
     except asyncio.TimeoutError:
         # Task is automatically cancelled by the timeout context manager
         return False
-    return False
 
 
 @web.route('/result-fetch')
