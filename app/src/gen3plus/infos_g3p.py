@@ -42,6 +42,7 @@ class RegisterMap:
     FMT_4_16BIT_VAL = '!HHHH'
 
     map = {
+        'len': 0xdf,
         # 0x41020007: {'reg': Register.DEVICE_SNR,           'fmt': '<L'},                 # noqa: E501
         0x41020018: {'reg': Register.DATA_UP_INTERVAL,     'fmt': '<B', 'ratio':    60, 'dep': ProxyMode.SERVER},  # noqa: E501
         0x41020019: {'reg': Register.COLLECT_INTERVAL,     'fmt': '<B', 'quotient': 60, 'dep': ProxyMode.SERVER},  # noqa: E501
@@ -63,6 +64,7 @@ class RegisterMap:
         0x410200b7: {'reg': Register.SSID,                 'fmt': '!40s'},               # noqa: E501
     }
     map_02b0 = {
+        'len': 0x1a4,
         0x4201000c: {'reg': Register.SENSOR_LIST,          'fmt': '<H', 'func': Fmt.hex4},   # noqa: E501
         0x4201001c: {'reg': Register.POWER_ON_TIME,        'fmt': '<H', 'ratio':    1, 'dep': ProxyMode.SERVER},  # noqa: E501, or packet number
         0x42010020: {'reg': Register.SERIAL_NUMBER,        'fmt': '!16s'},               # noqa: E501
@@ -140,20 +142,27 @@ class RegisterMap:
         0xffffff02: {'reg': Register.POLLING_INTERVAL},
         # 0x4281001c: {'reg': Register.POWER_ON_TIME,        'fmt': '<H', 'ratio':    1},  # noqa: E501
     }
-    map_3026 = {
+    map_0908 = {
+        'len': 0x30,  # fixme, msg is not complete defined
         0x4201000c: {'reg': Register.SENSOR_LIST,          'fmt': '<H', 'func': Fmt.hex4},   # noqa: E501
-        0x4201001c: {'reg': Register.POWER_ON_TIME,        'fmt': '<H', 'ratio':    1, 'dep': ProxyMode.SERVER},  # noqa: E501, or packet number
+        0x4201001c: {'reg': Register.POWER_ON_TIME,        'fmt': '<H', 'ratio':    1, 'dep': ProxyMode.SERVER},  # noqa: E501 # or packet number
         0x42010020: {'reg': Register.SERIAL_NUMBER,        'fmt': '!16s'},               # noqa: E501
-        0x42010030: {'reg': Register.BATT_PV1_VOLT,        'fmt': '!H', 'ratio': 0.01},  # noqa: E501, DC Voltage PV1
-        0x42010032: {'reg': Register.BATT_PV1_CUR,         'fmt': '!H', 'ratio': 0.01},  # noqa: E501, DC Current PV1
-        0x42010034: {'reg': Register.BATT_PV2_VOLT,        'fmt': '!H', 'ratio': 0.01},  # noqa: E501, DC Voltage PV2
-        0x42010036: {'reg': Register.BATT_PV2_CUR,         'fmt': '!H', 'ratio': 0.01},  # noqa: E501, DC Current PV2
+    }
+    map_3026 = {
+        'len': 0x7a,
+        0x4201000c: {'reg': Register.SENSOR_LIST,          'fmt': '<H', 'func': Fmt.hex4},   # noqa: E501
+        0x4201001c: {'reg': Register.POWER_ON_TIME,        'fmt': '<H', 'ratio':    1, 'dep': ProxyMode.SERVER},  # noqa: E501 # or packet number
+        0x42010020: {'reg': Register.SERIAL_NUMBER,        'fmt': '!16s'},               # noqa: E501
+        0x42010030: {'reg': Register.BATT_PV1_VOLT,        'fmt': '!H', 'ratio': 0.01},  # noqa: E501 # DC Voltage PV1
+        0x42010032: {'reg': Register.BATT_PV1_CUR,         'fmt': '!H', 'ratio': 0.01},  # noqa: E501 # DC Current PV1
+        0x42010034: {'reg': Register.BATT_PV2_VOLT,        'fmt': '!H', 'ratio': 0.01},  # noqa: E501 # DC Voltage PV2
+        0x42010036: {'reg': Register.BATT_PV2_CUR,         'fmt': '!H', 'ratio': 0.01},  # noqa: E501 # DC Current PV2
         0x42010038: {'reg': Register.BATT_TOTAL_CHARG,     'fmt': '!L', 'ratio': 0.01},  # noqa: E501
-        0x4201003c: {'reg': Register.BATT_PV1_STATUS,      'fmt': '!H'},                 # noqa: E501 MPTT-1 Operating Status: 0(Standby), 1(Work)
-        0x4201003e: {'reg': Register.BATT_PV2_STATUS,      'fmt': '!H'},                 # noqa: E501 MPTT-2 Operating Status: 0(Standby), 1(Work)
+        0x4201003c: {'reg': Register.BATT_PV1_STATUS,      'fmt': '!H'},                 # noqa: E501 # MPTT-1 Operating Status: 0(Standby), 1(Work)
+        0x4201003e: {'reg': Register.BATT_PV2_STATUS,      'fmt': '!H'},                 # noqa: E501 # MPTT-2 Operating Status: 0(Standby), 1(Work)
         0x42010040: {'reg': Register.BATT_VOLT,            'fmt': '!h', 'ratio': 0.01},  # noqa: E501
-        0x42010042: {'reg': Register.BATT_CUR,             'fmt': '!h', 'ratio': 0.01},  # noqa: E501 => Batterie Status: <0(Discharging), 0(Static), 0>(Loading)
-        0x42010044: {'reg': Register.BATT_SOC,             'fmt': '!H', 'ratio': 0.01},  # noqa: E501, state of charge (SOC) in percent
+        0x42010042: {'reg': Register.BATT_CUR,             'fmt': '!h', 'ratio': 0.01},  # noqa: E501 # => Batterie Status: <0(Discharging), 0(Static), 0>(Loading)
+        0x42010044: {'reg': Register.BATT_SOC,             'fmt': '!H', 'ratio': 0.01},  # noqa: E501 # state of charge (SOC) in percent
         0x42010046: {'reg': Register.BATT_CELL1_VOLT,      'fmt': '!H', 'ratio': 0.001},  # noqa: E501
         0x42010048: {'reg': Register.BATT_CELL2_VOLT,      'fmt': '!H', 'ratio': 0.001},  # noqa: E501
         0x4201004a: {'reg': Register.BATT_CELL3_VOLT,      'fmt': '!H', 'ratio': 0.001},  # noqa: E501
@@ -170,23 +179,23 @@ class RegisterMap:
         0x42010060: {'reg': Register.BATT_CELL14_VOLT,     'fmt': '!H', 'ratio': 0.001},  # noqa: E501
         0x42010062: {'reg': Register.BATT_CELL15_VOLT,     'fmt': '!H', 'ratio': 0.001},  # noqa: E501
         0x42010064: {'reg': Register.BATT_CELL16_VOLT,     'fmt': '!H', 'ratio': 0.001},  # noqa: E501H
-        0x42010066: {'reg': Register.BATT_TEMP_1,          'fmt': '!h'},                 # noqa: E501 Cell Temperture 1
-        0x42010068: {'reg': Register.BATT_TEMP_2,          'fmt': '!h'},                 # noqa: E501 Cell Temperture 2
-        0x4201006a: {'reg': Register.BATT_TEMP_3,          'fmt': '!h'},                 # noqa: E501 Cell Temperture 3
-        0x4201006c: {'reg': Register.BATT_OUT_VOLT,        'fmt': '!H', 'ratio': 0.01},  # noqa: E501 Output Voltage
-        0x4201006e: {'reg': Register.BATT_OUT_CUR,         'fmt': '!H', 'ratio': 0.01},  # noqa: E501 Output Current
-        0x42010070: {'reg': Register.BATT_OUT_STATUS,      'fmt': '!H'},                 # noqa: E501 Output Working Status: 0(Standby), 1(Work)
-        0x42010072: {'reg': Register.BATT_TEMP_4,          'fmt': '!h'},                 # noqa: E50, Environment temp
-        0x42010074: {'reg': Register.BATT_ALARM,           'fmt': '!H'},                 # noqa: E501 Warning Alarmcode 1, Bit 0..15
-        0x42010076: {'reg': Register.BATT_HW_VERS,         'fmt': '!h'},                 # noqa: E501 hardware version
-        0x42010078: {'reg': Register.BATT_SW_VERS,         'fmt': '!h'},                 # noqa: E501 software main version
+        0x42010066: {'reg': Register.BATT_TEMP_1,          'fmt': '!h'},                 # noqa: E501 # Cell Temperture 1
+        0x42010068: {'reg': Register.BATT_TEMP_2,          'fmt': '!h'},                 # noqa: E501 # Cell Temperture 2
+        0x4201006a: {'reg': Register.BATT_TEMP_3,          'fmt': '!h'},                 # noqa: E501 # Cell Temperture 3
+        0x4201006c: {'reg': Register.BATT_OUT_VOLT,        'fmt': '!H', 'ratio': 0.01},  # noqa: E501 # Output Voltage
+        0x4201006e: {'reg': Register.BATT_OUT_CUR,         'fmt': '!H', 'ratio': 0.01},  # noqa: E501 # Output Current
+        0x42010070: {'reg': Register.BATT_OUT_STATUS,      'fmt': '!H'},                 # noqa: E501 # Output Working Status: 0(Standby), 1(Work)
+        0x42010072: {'reg': Register.BATT_TEMP_4,          'fmt': '!h'},                 # noqa: E501 # Environment temp
+        0x42010074: {'reg': Register.BATT_ALARM,           'fmt': '!H'},                 # noqa: E501 # Warning Alarmcode 1, Bit 0..15
+        0x42010076: {'reg': Register.BATT_HW_VERS,         'fmt': '!h'},                 # noqa: E501 # hardware version
+        0x42010078: {'reg': Register.BATT_SW_VERS,         'fmt': '!h'},                 # noqa: E501 # software main version
         'calc': {
-            1: {'reg': Register.BATT_PV_PWR,               'func': RegisterFunc.prod_sum,    # noqa: E501 Generated Power
+            1: {'reg': Register.BATT_PV_PWR,               'func': RegisterFunc.prod_sum,    # noqa: E501 # Generated Power
                 'params': [[Register.BATT_PV1_VOLT, Register.BATT_PV1_CUR],
                            [Register.BATT_PV2_VOLT, Register.BATT_PV2_CUR]]},
             2: {'reg': Register.BATT_PWR,                  'func': RegisterFunc.prod_sum,    # noqa: E501
                 'params': [[Register.BATT_VOLT, Register.BATT_CUR]]},
-            3: {'reg': Register.BATT_OUT_PWR,              'func': RegisterFunc.prod_sum,    # noqa: E501 Supply Power => Power Supply State: 0(Idle), 0>(Power Supply)
+            3: {'reg': Register.BATT_OUT_PWR,              'func': RegisterFunc.prod_sum,    # noqa: E501 # Supply Power => Power Supply State: 0(Idle), 0>(Power Supply)
                 'params': [[Register.BATT_OUT_VOLT, Register.BATT_OUT_CUR]]},
             4: {'reg': Register.BATT_PWR_SUPL_STATE,       'func': RegisterFunc.cmp_values,  # noqa: E501
                 'params': {'reg': Register.BATT_OUT_PWR, 'cmp_val': 0, 'res': [0, 0, 1]}},   # noqa: E501
@@ -199,12 +208,13 @@ class RegisterMap:
 class RegisterSel:
     __sensor_map = {
             0x02b0: RegisterMap.map_02b0,
+            0x0908: RegisterMap.map_0908,
             0x3026: RegisterMap.map_3026,
     }
 
     @classmethod
-    def get(cls, sensor: int):
-        return cls.__sensor_map.get(sensor, RegisterMap.map)
+    def get(cls, sensor: int, default: dict = RegisterMap.map):
+        return cls.__sensor_map.get(sensor, default)
 
 
 class InfosG3P(Infos):
@@ -239,13 +249,8 @@ class InfosG3P(Infos):
                          entity strings
         sug_area:str ==> suggested area string from the config file'''
         # iterate over RegisterMap.map and get the register values
-        sensor = self.get_db_value(Register.SENSOR_LIST)
-        if "3026" == sensor:
-            reg_map = RegisterMap.map_3026
-        elif "02b0" == sensor:
-            reg_map = RegisterMap.map_02b0
-        else:
-            reg_map = {}
+        sensor = int(self.get_db_value(Register.SENSOR_LIST, "0"), 16)
+        reg_map = RegisterSel.get(sensor, {})
         items = reg_map.items()
         if 'calc' in reg_map:
             virt = reg_map['calc'].items()
@@ -253,7 +258,7 @@ class InfosG3P(Infos):
             virt = {}
 
         for idx, row in chain(RegisterMap.map.items(), items, virt):
-            if 'calc' == idx:
+            if 'calc' == idx or 'len' == idx:
                 continue
             info_id = row['reg']
             if self.__hide_topic(row):
@@ -272,7 +277,7 @@ class InfosG3P(Infos):
         buf: buffer of the sequence to parse'''
         reg_map = RegisterSel.get(sensor)
         for idx, row in reg_map.items():
-            if 'calc' == idx:
+            if 'calc' == idx or 'len' == idx:
                 continue
             addr = idx & 0xffff
             ftype = (idx >> 16) & 0xff
@@ -310,9 +315,12 @@ class InfosG3P(Infos):
                 self.tracer.log(level, f'[{node_id}] {source}: {name}'
                                        f' : {result}{unit}')
 
-    def build(self, len, msg_type: int, rcv_ftype: int, sensor: int = 0):
-        buf = bytearray(len)
-        for idx, row in RegisterSel.get(sensor).items():
+    def build(self, msg_type: int, rcv_ftype: int, sensor: int = 0):
+        reg_map = RegisterSel.get(sensor)
+        buf = bytearray(reg_map['len'])
+        for idx, row in reg_map.items():
+            if 'len' == idx:
+                continue
             addr = idx & 0xffff
             ftype = (idx >> 16) & 0xff
             mtype = (idx >> 24) & 0xff

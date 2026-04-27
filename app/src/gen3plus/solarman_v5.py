@@ -387,7 +387,7 @@ class SolarmanV5(SolarmanBase):
 
     def establish_emu(self):
         _len = 223
-        build_msg = self.db.build(_len, 0x41, 2)
+        build_msg = self.db.build(0x41, 2)
         struct.pack_into(
             '<BHHHLBL', build_msg, 0, 0xA5, _len-11, 0x4110,
             0, self.snr, 2, self._emu_timestamp())
