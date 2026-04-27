@@ -179,7 +179,8 @@ class RegisterMap:
         0x4201006a: {'reg': Register.BATT_TEMP_3,          'fmt': '!h'},                 # noqa: E501 Cell Temperture 3
         0x4201006c: {'reg': Register.BATT_OUT_VOLT,        'fmt': '!H', 'ratio': 0.01},  # noqa: E501 Output Voltage
         0x4201006e: {'reg': Register.BATT_OUT_CUR,         'fmt': '!H', 'ratio': 0.01},  # noqa: E501 Output Current
-        0x42010070: {'reg': Register.BATT_OUT_STATUS,      'fmt': '!H'},                 # noqa: E501 Output Working Status: 0(Standby), 1(Work)
+        0x42010070: {  # Output Working Status: 0(Standby), 1(Work)
+            'reg': Register.BATT_OUT_STATUS,      'fmt': '!H'},                 # noqa: E501
         0x42010072: {'reg': Register.BATT_TEMP_4,          'fmt': '!h'},                 # noqa: E501 Environment temp
         0x42010074: {  # Warning Alarmcode 1, Bit 0..15
             'reg': Register.BATT_ALARM,           'fmt': '!H'},                 # noqa: E501
