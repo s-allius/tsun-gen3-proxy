@@ -739,7 +739,7 @@ async def test_result_fetch_abort(client):
 
             assert response.status_code == 200
             result = await response.data
-            assert b'Test run timed out after 10s' in result
+            assert b'Test run timed out after ' in result
 
 @pytest.mark.asyncio(loop_scope="session")
 async def test_notes_fetch(client, config_conn):

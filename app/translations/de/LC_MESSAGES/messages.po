@@ -59,41 +59,45 @@ msgstr ""
 msgid "HA-Area"
 msgstr ""
 
-#: src/web/network_tests.py:70
+#: src/web/network_tests.py:72
 msgid "Test Web server on"
 msgstr "Webserver testen auf"
 
-#: src/web/network_tests.py:89
+#: src/web/network_tests.py:91
 msgid "Connection Test: Inverter to"
 msgstr "Verbindungstest: Wechselrichter zu"
 
-#: src/web/network_tests.py:136
-msgid "TSUN cloud connections are disabled, skip the DNS resolution test"
-msgstr ""
-"Die TSUN-Cloud-Verbindungen sind deaktiviert; überspringe den DNS-"
-"Auflösungstest"
+#: src/web/network_tests.py:135
+msgid "TSUN cloud connections are disabled ==> Skip test"
+msgstr "Die TSUN-Cloud-Verbindungen sind deaktiviert ==> Überspringe den Test"
 
-#: src/web/network_tests.py:141 src/web/network_tests.py:152
+#: src/web/network_tests.py:139 src/web/network_tests.py:149
 msgid "resolved to"
 msgstr "aufgelöst zu"
 
-#: src/web/network_tests.py:147
-msgid "TSUN/Solarman cloud connections are disabled, skip the DNS resolution test"
+#: src/web/network_tests.py:144
+msgid "TSUN/Solarman cloud connections are disabled ==> Skip test"
 msgstr ""
-"Die Cloud-Verbindungen von TSUN/Solarman sind deaktiviert; überspringe "
-"den DNS-Auflösungstest"
+"Die Cloud-Verbindungen von TSUN/Solarman sind deaktiviert ==> Überspringe"
+" den Test"
+
+#: src/web/network_tests.py:156
+msgid "Proxy is not listening on port 5005 ==> Skip test"
+msgstr "Der Proxy hört nicht auf Port 5005 => Überspringe den Test"
 
 #: src/web/network_tests.py:161
-msgid "Proxy is not listening on port 5005, skip the inverter connect test"
-msgstr ""
-"Der Proxy hört nicht auf Port 5005; den Test zur Verbindung des "
-"Wechselrichters überspringen"
+msgid "Proxy is not listening on port 10000 ==> Skip test"
+msgstr "Der Proxy hört nicht auf Port 10000 ==> Überspringe den Test"
 
-#: src/web/network_tests.py:168
-msgid "Proxy is not listening on port 10000, skip the inverter connect test"
-msgstr ""
-"Der Proxy hört nicht auf Port 10000; den Test zur Verbindung des "
-"Wechselrichters überspringen"
+#: src/web/network_tests.py:204
+#, python-format
+msgid "Test run finished after %(dur)s ms"
+msgstr "Testlauf beendet nach %(dur)sms"
+
+#: src/web/network_tests.py:208
+#, python-format
+msgid "Test run timed out after %(dur)s ms"
+msgstr "Testlauf nach %(dur)sms abgebrochen"
 
 #: src/web/templates/base.html.j2:37
 msgid "Updated:"
@@ -222,6 +226,20 @@ msgstr "Anzahl der empfangenen Topics"
 msgid "TSUN Proxy - Network Tests"
 msgstr "TSUN Proxy - Verbindungen"
 
+#: src/web/templates/page_network_tests.html.j2:8
+msgid ""
+"To verify the installation and troubleshoot issues, the proxy performs "
+"various connection tests as soon as this page is loaded in the browser. A"
+" new test run is initiated with every page reload, which occurs "
+"automatically every 5 seconds. The results are recorded in the table "
+"below and in the log."
+msgstr ""
+"Zur Prüfung der Installation und Fehlersuche führt der Proxy diverse "
+"Verbindungstest durch, sobald diese Seite im Browser aufgerufen wird. Bei"
+" jedem Reload wird ein neuer Testlauf gestartet, was automatisch alle 5 "
+"Sekunden passiert. Die Ergebnisse werde in der unteren Tabelle und im Log"
+" protokolliert."
+
 #: src/web/templates/page_notes.html.j2:3
 msgid "TSUN Proxy - Important Messages"
 msgstr "TSUN Proxy - Wichtige Hinweise"
@@ -243,7 +261,6 @@ msgid "Download File"
 msgstr "Datei Download"
 
 #: src/web/templates/templ_notes_list.html.j2:3
-#: src/web/templates/templ_result_list.html.j2:3
 msgid "Warnings and error messages"
 msgstr "Warnungen und Fehlermeldungen"
 
@@ -256,4 +273,32 @@ msgid "No warnings or errors have been logged since the last proxy start."
 msgstr ""
 "Seit dem letzten Proxystart wurden keine Warnungen oder Fehler "
 "protokolliert."
+
+#: src/web/templates/templ_result_list.html.j2:3
+msgid "Test results, warnings and errors"
+msgstr "Testergebnisse, Warnungen und Fehlermeldungen"
+
+#~ msgid ""
+#~ "To verify the installation and "
+#~ "troubleshoot issues, the proxy performs "
+#~ "various connection tests as soon as "
+#~ "this page is loaded in the "
+#~ "browser. A new test run is "
+#~ "initiated with every page reload, which"
+#~ " occurs automatically every 5 seconds. "
+#~ "The results are recorded in the "
+#~ "table below and in the log."
+#~ msgstr ""
+#~ "Zur Prüfung der Installation und "
+#~ "Fehlersuche führt der Proxy diverse "
+#~ "Verbindungstest durch, sobald diese Seite "
+#~ "im Browser aufgerufen wird. Bei jedem"
+#~ " Reload wird ein neuer Testlauf "
+#~ "gestartet, was automatisch alle 5 "
+#~ "Sekunden passiert. Die Ergebnisse werde "
+#~ "in der unteren Tabelle und im Log"
+#~ " protokolliert."
+
+#~ msgid "bdfaskfbak"
+#~ msgstr ""
 

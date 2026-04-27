@@ -2,8 +2,11 @@
 
 {% block title %}{{_("TSUN Proxy - Network Tests")}}{% endblock title %}
 {% block menu5_class %}w3-blue{% endblock %}
-{% block headline %}<i class="fa fa-file-export fa-fw"></i>  {{_('Network Tests')}}{% endblock headline %}
+{% block headline %}<i class="fa fa-check fa-fw"></i>  {{_('Network Tests')}}{% endblock headline %}
 {% block content %}
+  <div class="w3-container w3-margin-bottom">
+    <p>{{_("To verify the installation and troubleshoot issues, the proxy performs various connection tests as soon as this page is loaded in the browser. A new test run is initiated with every page reload, which occurs automatically every 5 seconds. The results are recorded in the table below and in the log.")}}</p>
+  </div>
   <div id="result-list"></div>
 {% endblock content%}
 

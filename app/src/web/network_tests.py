@@ -132,8 +132,7 @@ async def test_script() -> None:
     # forwarding for port 5005 enab led?
     #  then check DNS resolution for TSUN cloud
     if not config_tsun['enabled']:
-        logger.info(_("TSUN cloud connections are disabled,"
-                    " skip the DNS resolution test"))
+        logger.info(_("TSUN cloud connections are disabled ==> Skip test"))
     else:
         host = config_tsun['host']
         ip = await resolve(host)
@@ -142,8 +141,8 @@ async def test_script() -> None:
     # forwarding for port 10000 enabled?
     #  then check DNS resolution for Solarman cloud
     if not config_solarman['enabled']:
-        logger.info(_("TSUN/Solarman cloud connections are disabled,"
-                    " skip the DNS resolution test"))
+        logger.info(_("TSUN/Solarman cloud connections are disabled"
+                      " ==> Skip test"))
     else:
         host = config_solarman['host']
         ip = await resolve(host)
@@ -154,19 +153,17 @@ async def test_script() -> None:
     await test_http_connection(host_ip, 8127)
     # listening for port 5005 enabled?
     if not config_tsun['listener']:
-        logger.info(_("Proxy is not listening on port 5005,"
-                    " skip the inverter connect test"))
+        logger.info(_("Proxy is not listening on port 5005 ==> Skip test"))
     else:
         await test_tcp_connection(host_ip, 5005)
     # listening for port 10000 enabled?
     if not config_solarman['listener']:
-        logger.info(_("Proxy is not listening on port 10000,"
-                    " skip the inverter connect test"))
+        logger.info(_("Proxy is not listening on port 10000 ==> Skip test"))
     else:
         await test_tcp_connection(host_ip, 10000)
 
 
-async def get_test_results():
+async def get_test_results() -> bool:
     """
     Singleton wrapper to start or join the test task with a 10s timeout.
     """
@@ -181,12 +178,11 @@ async def get_test_results():
     try:
         async with asyncio.timeout(10):
             await _test_task
-            logger.info("Test run finished")
             return True
     except asyncio.TimeoutError:
         # Task is automatically cancelled by the timeout context manager
-        logger.error("Test run timed out after 10s")
         return False
+    return False
 
 
 @web.route('/result-fetch')
@@ -198,11 +194,19 @@ async def result_fetch():
 
     # 1. Execute/Join the test (timeout is handled inside)
     # We don't need to catch the error here as get_test_results handles it
-    await get_test_results()
+    well_done = await get_test_results()
 
     # 2. Calculate and log total duration
     duration_ms = (time.perf_counter() - start_time) * 1000
-    logger.info(f"Request 'result-fetch' handled in {duration_ms:.0f}ms")
+    duration_val = f"{duration_ms:.0f}"
+    if well_done:
+        logger.info(
+            _('Test run finished after %(dur)s ms',
+              dur=duration_val))
+    else:
+        logger.error(
+            _("Test run timed out after %(dur)s ms",
+              dur=duration_val))
 
     # 3. Prepare response data
     # We fetch the current buffer (even if a timeout occurred,
