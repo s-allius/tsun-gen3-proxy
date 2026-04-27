@@ -142,17 +142,21 @@ class RegisterMap:
     }
     map_3026 = {
         0x4201000c: {'reg': Register.SENSOR_LIST,          'fmt': '<H', 'func': Fmt.hex4},   # noqa: E501
-        0x4201001c: {'reg': Register.POWER_ON_TIME,        'fmt': '<H', 'ratio':    1, 'dep': ProxyMode.SERVER},  # noqa: E501, or packet number
+        0x4201001c: {'reg': Register.POWER_ON_TIME,        'fmt': '<H', 'ratio':    1, 'dep': ProxyMode.SERVER},  # noqa: E501
         0x42010020: {'reg': Register.SERIAL_NUMBER,        'fmt': '!16s'},               # noqa: E501
-        0x42010030: {'reg': Register.BATT_PV1_VOLT,        'fmt': '!H', 'ratio': 0.01},  # noqa: E501, DC Voltage PV1
-        0x42010032: {'reg': Register.BATT_PV1_CUR,         'fmt': '!H', 'ratio': 0.01},  # noqa: E501, DC Current PV1
-        0x42010034: {'reg': Register.BATT_PV2_VOLT,        'fmt': '!H', 'ratio': 0.01},  # noqa: E501, DC Voltage PV2
-        0x42010036: {'reg': Register.BATT_PV2_CUR,         'fmt': '!H', 'ratio': 0.01},  # noqa: E501, DC Current PV2
+        0x42010030: {'reg': Register.BATT_PV1_VOLT,        'fmt': '!H', 'ratio': 0.01},  # noqa: E501
+        0x42010032: {'reg': Register.BATT_PV1_CUR,         'fmt': '!H', 'ratio': 0.01},  # noqa: E501
+        0x42010034: {'reg': Register.BATT_PV2_VOLT,        'fmt': '!H', 'ratio': 0.01},  # noqa: E501
+        0x42010036: {'reg': Register.BATT_PV2_CUR,         'fmt': '!H', 'ratio': 0.01},  # noqa: E501
         0x42010038: {'reg': Register.BATT_TOTAL_CHARG,     'fmt': '!L', 'ratio': 0.01},  # noqa: E501
-        0x4201003c: {'reg': Register.BATT_PV1_STATUS,      'fmt': '!H'},                 # noqa: E501 MPTT-1 Operating Status: 0(Standby), 1(Work)
-        0x4201003e: {'reg': Register.BATT_PV2_STATUS,      'fmt': '!H'},                 # noqa: E501 MPTT-2 Operating Status: 0(Standby), 1(Work)
+        0x4201003c: {  # MPTT-1 Operating Status: 0(Standby), 1(Work)
+            'reg': Register.BATT_PV1_STATUS,      'fmt': '!H'},                 # noqa: E501
+        0x4201003e: {  # MPTT-2 Operating Status: 0(Standby), 1(Work)
+            'reg': Register.BATT_PV2_STATUS,      'fmt': '!H'},                 # noqa: E501
         0x42010040: {'reg': Register.BATT_VOLT,            'fmt': '!h', 'ratio': 0.01},  # noqa: E501
-        0x42010042: {'reg': Register.BATT_CUR,             'fmt': '!h', 'ratio': 0.01},  # noqa: E501 => Batterie Status: <0(Discharging), 0(Static), 0>(Loading)
+        0x42010042: {  # => Batt. Status: <0(Discharging), 0(Static),
+                       # 0>(Loading)
+            'reg': Register.BATT_CUR,             'fmt': '!h', 'ratio': 0.01},  # noqa: E501
         0x42010044: {'reg': Register.BATT_SOC,             'fmt': '!H', 'ratio': 0.01},  # noqa: E501, state of charge (SOC) in percent
         0x42010046: {'reg': Register.BATT_CELL1_VOLT,      'fmt': '!H', 'ratio': 0.001},  # noqa: E501
         0x42010048: {'reg': Register.BATT_CELL2_VOLT,      'fmt': '!H', 'ratio': 0.001},  # noqa: E501
@@ -186,7 +190,9 @@ class RegisterMap:
                            [Register.BATT_PV2_VOLT, Register.BATT_PV2_CUR]]},
             2: {'reg': Register.BATT_PWR,                  'func': RegisterFunc.prod_sum,    # noqa: E501
                 'params': [[Register.BATT_VOLT, Register.BATT_CUR]]},
-            3: {'reg': Register.BATT_OUT_PWR,              'func': RegisterFunc.prod_sum,    # noqa: E501 Supply Power => Power Supply State: 0(Idle), 0>(Power Supply)
+            3: {  # Supply Power => Power Supply State: 0(Idle),
+                  # 0>(Power Supply)
+                'reg': Register.BATT_OUT_PWR,              'func': RegisterFunc.prod_sum,    # noqa: E501
                 'params': [[Register.BATT_OUT_VOLT, Register.BATT_OUT_CUR]]},
             4: {'reg': Register.BATT_PWR_SUPL_STATE,       'func': RegisterFunc.cmp_values,  # noqa: E501
                 'params': {'reg': Register.BATT_OUT_PWR, 'cmp_val': 0, 'res': [0, 0, 1]}},   # noqa: E501
