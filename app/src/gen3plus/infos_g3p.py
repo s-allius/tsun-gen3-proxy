@@ -173,15 +173,16 @@ class RegisterMap:
         0x4201005e: {'reg': Register.BATT_CELL13_VOLT,     'fmt': '!H', 'ratio': 0.001},  # noqa: E501
         0x42010060: {'reg': Register.BATT_CELL14_VOLT,     'fmt': '!H', 'ratio': 0.001},  # noqa: E501
         0x42010062: {'reg': Register.BATT_CELL15_VOLT,     'fmt': '!H', 'ratio': 0.001},  # noqa: E501
-        0x42010064: {'reg': Register.BATT_CELL16_VOLT,     'fmt': '!H', 'ratio': 0.001},  # noqa: E501H
+        0x42010064: {'reg': Register.BATT_CELL16_VOLT,     'fmt': '!H', 'ratio': 0.001},  # noqa: E501
         0x42010066: {'reg': Register.BATT_TEMP_1,          'fmt': '!h'},                 # noqa: E501 Cell Temperture 1
         0x42010068: {'reg': Register.BATT_TEMP_2,          'fmt': '!h'},                 # noqa: E501 Cell Temperture 2
         0x4201006a: {'reg': Register.BATT_TEMP_3,          'fmt': '!h'},                 # noqa: E501 Cell Temperture 3
         0x4201006c: {'reg': Register.BATT_OUT_VOLT,        'fmt': '!H', 'ratio': 0.01},  # noqa: E501 Output Voltage
         0x4201006e: {'reg': Register.BATT_OUT_CUR,         'fmt': '!H', 'ratio': 0.01},  # noqa: E501 Output Current
         0x42010070: {'reg': Register.BATT_OUT_STATUS,      'fmt': '!H'},                 # noqa: E501 Output Working Status: 0(Standby), 1(Work)
-        0x42010072: {'reg': Register.BATT_TEMP_4,          'fmt': '!h'},                 # noqa: E50, Environment temp
-        0x42010074: {'reg': Register.BATT_ALARM,           'fmt': '!H'},                 # noqa: E501 Warning Alarmcode 1, Bit 0..15
+        0x42010072: {'reg': Register.BATT_TEMP_4,          'fmt': '!h'},                 # noqa: E501 Environment temp
+        0x42010074: {  # Warning Alarmcode 1, Bit 0..15
+            'reg': Register.BATT_ALARM,           'fmt': '!H'},                 # noqa: E501
         0x42010076: {'reg': Register.BATT_HW_VERS,         'fmt': '!h'},                 # noqa: E501 hardware version
         0x42010078: {'reg': Register.BATT_SW_VERS,         'fmt': '!h'},                 # noqa: E501 software main version
         'calc': {
