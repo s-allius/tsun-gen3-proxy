@@ -157,7 +157,7 @@ class InverterBase(InverterIfc, Proxy):
     async def async_publ_mqtt(self) -> None:
         '''publish data to MQTT broker'''
         stream = self.local.stream
-        if not stream or not stream.unique_id:
+        if not stream or not stream.unique_id or self.mqtt is None:
             return
         # check if new inverter or collector infos are available or when the
         #  home assistant has changed the status back to online
