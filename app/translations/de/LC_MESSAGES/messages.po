@@ -222,7 +222,6 @@ msgid "Number of topics received"
 msgstr "Anzahl der empfangenen Topics"
 
 #: src/web/templates/page_network_tests.html.j2:3
-#, fuzzy
 msgid "TSUN Proxy - Network Tests"
 msgstr "TSUN Proxy - Verbindungen"
 
@@ -277,28 +276,4 @@ msgstr ""
 #: src/web/templates/templ_result_list.html.j2:3
 msgid "Test results, warnings and errors"
 msgstr "Testergebnisse, Warnungen und Fehlermeldungen"
-
-#~ msgid ""
-#~ "To verify the installation and "
-#~ "troubleshoot issues, the proxy performs "
-#~ "various connection tests as soon as "
-#~ "this page is loaded in the "
-#~ "browser. A new test run is "
-#~ "initiated with every page reload, which"
-#~ " occurs automatically every 5 seconds. "
-#~ "The results are recorded in the "
-#~ "table below and in the log."
-#~ msgstr ""
-#~ "Zur Prüfung der Installation und "
-#~ "Fehlersuche führt der Proxy diverse "
-#~ "Verbindungstest durch, sobald diese Seite "
-#~ "im Browser aufgerufen wird. Bei jedem"
-#~ " Reload wird ein neuer Testlauf "
-#~ "gestartet, was automatisch alle 5 "
-#~ "Sekunden passiert. Die Ergebnisse werde "
-#~ "in der unteren Tabelle und im Log"
-#~ " protokolliert."
-
-#~ msgid "bdfaskfbak"
-#~ msgstr ""
 
