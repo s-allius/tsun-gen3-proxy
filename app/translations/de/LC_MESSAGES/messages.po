@@ -89,12 +89,12 @@ msgstr "Der Proxy hört nicht auf Port 5005 => Überspringe den Test"
 msgid "Proxy is not listening on port 10000 ==> Skip test"
 msgstr "Der Proxy hört nicht auf Port 10000 ==> Überspringe den Test"
 
-#: src/web/network_tests.py:204
+#: src/web/network_tests.py:205
 #, python-format
 msgid "Test run finished after %(dur)s ms"
 msgstr "Testlauf beendet nach %(dur)sms"
 
-#: src/web/network_tests.py:208
+#: src/web/network_tests.py:209
 #, python-format
 msgid "Test run timed out after %(dur)s ms"
 msgstr "Testlauf nach %(dur)sms abgebrochen"
