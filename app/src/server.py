@@ -131,6 +131,7 @@ class Server():
             logging.getLogger('data').setLevel(self.log_level)
             logging.getLogger('tracer').setLevel(self.log_level)
             logging.getLogger('asyncio').setLevel(self.log_level)
+            logging.getLogger('test').setLevel(self.log_level)
             # logging.getLogger('mqtt').setLevel(self.log_level)
 
     def build_config(self):
