@@ -71,9 +71,13 @@ jobs:
       # Build & Push (nutzt dein bestehendes Makefile!)
       # ------------------------------------------------------------
       - name: Build and push add-on image
+        env:
+          PUBLIC_CONTAINER_REGISTRY: ghcr.io/${{ github.actor }}
+          PUBLIC_CR_KEY: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo "Build type: ${{ steps.buildtype.outputs.build_type }}"
           echo "Command:   ${{ steps.buildtype.outputs.make_cmd }}"
+          echo "Registry=${PUBLIC_CONTAINER_REGISTRY}"
           ${{ steps.buildtype.outputs.make_cmd }}
 
       # ------------------------------------------------------------
