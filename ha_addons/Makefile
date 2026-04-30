@@ -1,5 +1,5 @@
 #!make
-include ../.env
+-include ../.env
 
 .PHONY: debug dev build clean rootfs repro rc rel
 
