@@ -36,7 +36,7 @@ rel : STAGE=rel
 
 export BUILD_DATE := ${shell date -Iminutes}
 debug dev : BUILD_ID := ${shell date +'%y%m%d%H%M'}
-VERSION := $(shell cat $(SRC)/.version)
+VERSION ?= $(shell cat $(SRC)/.version)
 export MAJOR  := $(shell echo $(VERSION) | cut -f1 -d.)
 
 PUBLIC_URL := $(shell echo $(PUBLIC_CONTAINER_REGISTRY) | cut -f1 -d/)
