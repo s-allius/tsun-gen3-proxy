@@ -71,6 +71,7 @@ jobs:
       # Build & Push (nutzt dein bestehendes Makefile!)
       # ------------------------------------------------------------
       - name: Build and push add-on image
+        env:
           PUBLIC_CONTAINER_REGISTRY: ghcr.io/${{ github.actor }}/
           NO_LOGIN: 1
         run: |
