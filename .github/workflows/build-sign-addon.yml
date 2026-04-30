@@ -73,11 +73,13 @@ jobs:
       - name: Build and push add-on image
         env:
           PUBLIC_CONTAINER_REGISTRY: ghcr.io/${{ github.actor }}/
+          VERSION: ${{ steps.buildtype.outputs.version }}
           NO_LOGIN: 1
         run: |
           echo "Build type: ${{ steps.buildtype.outputs.build_type }}"
           echo "Command:   ${{ steps.buildtype.outputs.make_cmd }}"
           echo "Registry=${PUBLIC_CONTAINER_REGISTRY}"
+          echo "Version=${VERSION}"
           ${{ steps.buildtype.outputs.make_cmd }}
 
       # ------------------------------------------------------------
