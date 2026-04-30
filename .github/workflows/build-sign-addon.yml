@@ -91,7 +91,7 @@ jobs:
       # ------------------------------------------------------------
       - name: Sign container images
         run: |
-          IMAGE="ghcr.io/s-allius/tsun-gen3-proxy"
+          IMAGE="ghcr.io/s-allius/tsun-gen3-addon"
           VERSION="${{ steps.buildtype.outputs.version }}"
 
           DIGEST=$(docker buildx imagetools inspect ${IMAGE}:${VERSION} \
