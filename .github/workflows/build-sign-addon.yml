@@ -1,0 +1,86 @@
+name: Build & Sign Home Assistant Add-on
+
+on:
+  push:
+    tags:
+      - "v*.*.*"        # Release (z. B. v1.2.3)
+      - "v*.*.*-rc*"    # Release Candidate (z. B. v1.2.3-rc1)
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+  id-token: write   # ✅ notwendig für cosign keyless
+
+env:
+  IMAGE: ghcr.io/s-allius/tsun-gen3-proxy
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # ------------------------------------------------------------
+      # Release vs RC Entscheidung
+      # ------------------------------------------------------------
+      - name: Detect build type
+        id: buildtype
+        run: |
+          if [[ "${GITHUB_REF_NAME}" == *"-rc"* ]]; then
+            echo "make_target=addon-rc" >> $GITHUB_OUTPUT
+            echo "is_rc=1" >> $GITHUB_OUTPUT
+          else
+            echo "make_target=addon-rel" >> $GITHUB_OUTPUT
+            echo "is_rc=0" >> $GITHUB_OUTPUT
+          fi
+
+      # ------------------------------------------------------------
+      # Build & Push (nutzt dein bestehendes Makefile!)
+      # ------------------------------------------------------------
+      - name: Build and push add-on image
+        run: |
+          if [ "${{ steps.buildtype.outputs.is_rc }}" = "1" ]; then
+            make RC=1 addon-rc
+          else
+            make addon-rel
+          fi
+
+      # ------------------------------------------------------------
+      # cosign installieren
+      # ------------------------------------------------------------
+      - name: Install cosign
+        uses: sigstore/cosign-installer@v3
+
+      # ------------------------------------------------------------
+      # Image signieren (Digest-basiert, keyless)
+      # ------------------------------------------------------------
+      - name: Sign container image
+        run: |
+          TAG=${GITHUB_REF_NAME#v}
+
+          DIGEST=$(docker buildx imagetools inspect ${IMAGE}:${TAG} \
+            --format '{{.Manifest.Digest}}')
+
+          echo "Signing ${IMAGE}@${DIGEST}"
+
+          cosign sign \
+            -a repo=https://github.com/s-allius/tsun-gen3-proxy \
+            -a ref=${GITHUB_REF_NAME} \
+            ${IMAGE}@${DIGEST}
+
