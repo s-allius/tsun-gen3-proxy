@@ -72,7 +72,7 @@ jobs:
       # ------------------------------------------------------------
       - name: Build and push add-on image
         env:
-          PUBLIC_CONTAINER_REGISTRY: ghcr.io/${{ github.actor }}
+          PUBLIC_CONTAINER_REGISTRY: ghcr.io/${{ github.actor }}/
           PUBLIC_CR_KEY: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo "Build type: ${{ steps.buildtype.outputs.build_type }}"
