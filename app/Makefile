@@ -1,5 +1,5 @@
 #!make
-include ../.env
+-include ../.env
 
 SHELL = /bin/sh
 IMAGE = tsun-gen3-proxy
