@@ -99,7 +99,7 @@ jobs:
 
           echo "Signing ${IMAGE}@${DIGEST}"
 
-          cosign sign \
+          cosign sign --yes\
             -a repo=https://github.com/s-allius/tsun-gen3-proxy \
             -a ref=${GITHUB_REF_NAME} \
             ${IMAGE}@${DIGEST}
