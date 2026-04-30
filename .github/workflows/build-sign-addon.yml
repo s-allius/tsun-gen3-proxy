@@ -10,7 +10,7 @@ on:
 permissions:
   contents: read
   packages: write
-  id-token: write   # ✅ notwendig für cosign keyless
+  id-token: write   # notwendig für cosign keyless
 
 env:
   IMAGE: ghcr.io/s-allius/tsun-gen3-proxy
@@ -39,10 +39,11 @@ jobs:
       # ------------------------------------------------------------
       # Release vs RC Entscheidung
       # ------------------------------------------------------------
-      - name: Detect build type and RC number
+      - name: Detect version and build mode
         id: buildtype
         run: |
           REF="${GITHUB_REF_NAME}"
+          VERSION="${REF#v}"
 
           if [[ "$REF" =~ -rc([0-9]+)$ ]]; then
             RC_NUM="${BASH_REMATCH[1]}"
@@ -53,10 +54,12 @@ jobs:
             echo "make_cmd=make addon-rel" >> $GITHUB_OUTPUT
             echo "build_type=rel" >> $GITHUB_OUTPUT
           fi
+
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          
       # ------------------------------------------------------------
       # Build & Push (nutzt dein bestehendes Makefile!)
       # ------------------------------------------------------------
-      
       - name: Build and push add-on image
         run: |
           echo "Build type: ${{ steps.buildtype.outputs.build_type }}"
@@ -72,11 +75,12 @@ jobs:
       # ------------------------------------------------------------
       # Image signieren (Digest-basiert, keyless)
       # ------------------------------------------------------------
-      - name: Sign container image
+      - name: Sign container images
         run: |
-          TAG=${GITHUB_REF_NAME#v}
+          IMAGE="ghcr.io/s-allius/tsun-gen3-proxy"
+          VERSION="${{ steps.buildtype.outputs.version }}"
 
-          DIGEST=$(docker buildx imagetools inspect ${IMAGE}:${TAG} \
+          DIGEST=$(docker buildx imagetools inspect ${IMAGE}:${VERSION} \
             --format '{{.Manifest.Digest}}')
 
           echo "Signing ${IMAGE}@${DIGEST}"
