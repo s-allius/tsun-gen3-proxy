@@ -1,89 +1,110 @@
 #include <tunables/global>
 
+# ==========================================================
+#  AppArmor Profile for TSUN-Proxy Home Assistant Add-on.
+#  This profile manages a dual-stage execution:
+#  1. Main Profile: Handles S6-Overlay initialization and Bashio.
+#  2. Child Profile (myprogram): Restricted environment for the Python application.
+# ==========================================================
 profile {{slug}} flags=(attach_disconnected,mediate_deleted) {
 
+  # --- PROCESS CONTROL ---
+  # Allow S6-Overlay to manage services and handle lifecycle signals
   signal (send,receive) set=(kill,term),
+  capability kill,
+  # capability chown, setuid, setgid, dac_override, fowner,
 
-  # S6-Overlay Kernel-Rights
+  # --- BOOT & INIT (S6-Overlay) ---
   /init rix,
-  /dev/null rw,
-  /dev/urandom r,
-  /dev/tty rw,
-
   /bin/** ix,
   /command/** ix,
   /package/** rix,
-  
-  # Netzwerk-Zugriff für Bashio/Curl (Supervisor API Check)
-  network inet stream,
-  network inet dgram,
+  /run.sh rix,
 
-  /etc/** r,
-  /etc/services.d/** ix,
-  /etc/cont-init.d/** ix,
-  /etc/cont-finish.d/** ix,
-  
+  # --- SYSTEM RESOURCES ---
+  /dev/null rw,
+  /dev/urandom r,
+  /dev/tty rw,
+  /dev/console rw,
 
-  # Runtime & Verzeichnisse
-  /run/ w,
-  /run/** rwk,
-  /run/{s6,s6-rc*,service}/** ix,
-
-  # S6-Overlay Binaries
-  /usr/bin/[^p]* ix,   # Erlaubt fast alles, was nicht mit p anfängt (z.B. sed, grep)
-  /usr/bin/p[^y]* ix,  # Erlaubt Programme mit p, aber nicht py...
-  /usr/lib/bashio/** ix,
-  /data/** rw,
-  /tmp/** rwk,
-  
-  # Bibliotheken und der Linker (Essenziell für Bash und S6)
+  # --- LIBRARIES & LINKER ---
+  # 'mr' is essential to prevent Segmentation Faults during library loading
   /lib/** mr,
   /usr/lib/** mr,
-  
-  # Spezifisch für den dynamischen Linker
   /lib/ld-*.so* mr,
   /lib/*/ld-*.so* mr,
   /usr/lib/ld-*.so* mr,
 
-  # Entrypoint script run.sh
-  /run.sh rix,
+  # --- CONFIGURATION & RUNTIME ---
+  # Allow Bashio and S6 to access configs and runtime states
+  /etc/** r,
+  /etc/services.d/** ix,
+  /etc/cont-init.d/** ix,
+  /etc/cont-finish.d/** ix,
+  /usr/lib/bashio/** ix,
+  /data/** rw,
+  /tmp/** rwk,
+  
+  # Network access for Bashio (Supervisor API) and DNS
+  network inet stream,
+  network inet dgram,
+  
+  # --- RUNTIME DIRECTORIES (S6-RC) ---
+  /run/ w,
+  /run/** rwk,
+  /run/{s6,s6-rc*,service}/** ix,
+  
+  # --- EXECUTABLES ---
+  # Restricted /usr/bin access to avoid 'px' modifier conflicts with Python
+  /usr/bin/[^p]* ix,
+  /usr/bin/p[^y]* ix,
+  /usr/bin/env ix,
+
+  # --- TRANSITION TO PYTHON APPLICATION ---
+  # Transition to the child profile 'myprogram' when starting Python
   /proxy-version.txt r,
   /home/proxy/server.py r,
-
-  # Start new profile for service
   /usr/bin/python3* cx -> myprogram,
 
+  # ==========================================================
+  # CHILD PROFILE: The Python Application Environment
+  # ==========================================================
   profile myprogram flags=(attach_disconnected,mediate_deleted) {
-
-    # 1. System & Libs
+    
+    # 1. SYSTEM LIBRARIES & CORE
+    # Broad read access to /usr and /etc prevents start-up crashes (Segfaults)
     /usr/** r,
     /etc/** r,
-
     /usr/lib/** mr,
     /lib/** mr,
     /usr/local/lib/** mr,
+    /usr/bin/python3* ix,
 
-    # 2. App & HA Schnittstellen
+    # 2. APPLICATION DATA & PERSISTENCE
+    # Read-only for source code, Read-Write for data and logs
     /home/proxy/ r,
     /home/proxy/** r,
     /home/translations/** r,
     /homeassistant/tsun-proxy/** rw,
-    /data/** rw,             # Access to options.json and other files within your addon
+    /data/** rw,
 
-    # 3. System-Info & Kernel
+    # 3. KERNEL & HARDWARE ABSTRACTION
+    # Required for platform detection and network monitoring
     /proc/self/** r,
     /proc/cpuinfo r,
-    /sys/** r,               # Network-Test: Needed for Hw and platform detection
-    
-    # 4. Standard Hardware / Logs
+    /sys/** r,
     /dev/urandom r,
     /dev/tty rw,
+    /dev/console rw,
 
-    # 5. Netzwerk (aus der nameservice Abstraction unterstützt)
+    # 4. NETWORKING
+    # Allow the proxy to communicate with Inverters and MQTT Brokers
     network inet stream,
     network inet dgram,
 
-    # Signale vom Hauptprofil empfangen
+    # 5. INTER-PROCESS COMMUNICATION
+    # Receive termination signals from the main profile (S6 supervisor)
     signal (receive) peer=*{{slug}},
+
   }
 }
