@@ -17,12 +17,8 @@ ARG BUILD_FROM="ghcr.io/hassio-addons/base:20.1.0"
 # hadolint ignore=DL3006
 FROM $BUILD_FROM AS base
 
-# Installiere Python, pip und virtuelle Umgebungstools
-RUN apk add --no-cache python3=3.12.13-r0 py3-pip=25.1.1-r1 && \
-    python -m venv /opt/venv && \
-    . /opt/venv/bin/activate
-
-ENV PATH="/opt/venv/bin:$PATH"
+# Installiere Python und pip
+RUN apk add --no-cache python3=3.12.13-r0 py3-pip=25.1.1-r1
 
 
 
