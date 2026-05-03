@@ -1,52 +1,89 @@
 #include <tunables/global>
 
 profile {{slug}} flags=(attach_disconnected,mediate_deleted) {
-  #include <abstractions/base>
 
-  # Capabilities
-  file,
-  signal (send) set=(kill,term,int,hup,cont),
+  signal (send,receive) set=(kill,term),
 
-  # S6-Overlay
-  /init ix,
-  /bin/** ix,
-  /usr/bin/** ix,
-  /run/{s6,s6-rc*,service}/** ix,
-  /package/** ix,
-  /command/** ix,
-  /etc/services.d/** rwix,
-  /etc/cont-init.d/** rwix,
-  /etc/cont-finish.d/** rwix,
-  /run/{,**} rwk,
+  # S6-Overlay Kernel-Rights
+  /init rix,
+  /dev/null rw,
+  /dev/urandom r,
   /dev/tty rw,
 
-  # Bashio
-  /usr/lib/bashio/** ix,
-  /tmp/** rwk,
+  /bin/** ix,
+  /command/** ix,
+  /package/** rix,
+  
+  # Netzwerk-Zugriff für Bashio/Curl (Supervisor API Check)
+  network inet stream,
+  network inet dgram,
 
-  # Access to options.json and other files within your addon
+  /etc/** r,
+  /etc/services.d/** ix,
+  /etc/cont-init.d/** ix,
+  /etc/cont-finish.d/** ix,
+  
+
+  # Runtime & Verzeichnisse
+  /run/ w,
+  /run/** rwk,
+  /run/{s6,s6-rc*,service}/** ix,
+
+  # S6-Overlay Binaries
+  /usr/bin/[^p]* ix,   # Erlaubt fast alles, was nicht mit p anfängt (z.B. sed, grep)
+  /usr/bin/p[^y]* ix,  # Erlaubt Programme mit p, aber nicht py...
+  /usr/lib/bashio/** ix,
   /data/** rw,
+  /tmp/** rwk,
+  
+  # Bibliotheken und der Linker (Essenziell für Bash und S6)
+  /lib/** mr,
+  /usr/lib/** mr,
+  
+  # Spezifisch für den dynamischen Linker
+  /lib/ld-*.so* mr,
+  /lib/*/ld-*.so* mr,
+  /usr/lib/ld-*.so* mr,
+
+  # Entrypoint script run.sh
+  /run.sh rix,
+  /proxy-version.txt r,
+  /home/proxy/server.py r,
 
   # Start new profile for service
-  /usr/bin/myprogram cx -> myprogram,
+  /usr/bin/python3* cx -> myprogram,
 
   profile myprogram flags=(attach_disconnected,mediate_deleted) {
-    #include <abstractions/base>
 
-    # Receive signals from S6-Overlay
-    signal (receive) peer=*_{{slug}},
+    # 1. System & Libs
+    /usr/** r,
+    /etc/** r,
 
-    # Access to options.json and other files within your addon
-    /data/** rw,
+    /usr/lib/** mr,
+    /lib/** mr,
+    /usr/local/lib/** mr,
 
-    # Access to mapped volumes specified in config.json
-    /share/** rw,
+    # 2. App & HA Schnittstellen
+    /home/proxy/ r,
+    /home/proxy/** r,
+    /home/translations/** r,
+    /homeassistant/tsun-proxy/** rw,
+    /data/** rw,             # Access to options.json and other files within your addon
 
-    # Access required for service functionality
-    /usr/bin/myprogram r,
-    /bin/bash rix,
-    /bin/echo ix,
-    /etc/passwd r,
+    # 3. System-Info & Kernel
+    /proc/self/** r,
+    /proc/cpuinfo r,
+    /sys/** r,               # Network-Test: Needed for Hw and platform detection
+    
+    # 4. Standard Hardware / Logs
+    /dev/urandom r,
     /dev/tty rw,
+
+    # 5. Netzwerk (aus der nameservice Abstraction unterstützt)
+    network inet stream,
+    network inet dgram,
+
+    # Signale vom Hauptprofil empfangen
+    signal (receive) peer=*{{slug}},
   }
 }
