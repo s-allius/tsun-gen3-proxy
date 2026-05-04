@@ -20,8 +20,16 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout proxy
         uses: actions/checkout@v6
+        with:
+          path: './tsun-gen3-proxy'
+
+      - name: Checkout home assistant repro
+        uses: actions/checkout@v6
+        with:
+          path: './ha-addons'
+          repository: s-allius/ha-addons
 
       - name: Set up Python
         uses: actions/setup-python@v6
@@ -30,9 +38,10 @@ jobs:
 
       - name: Install dependencies
         run: |
+          ls .
+          cd tsun-gen3-proxy
           python -m pip install --upgrade pip
           pip install -r app/requirements-build.txt
-          ls .
           exit
 
       - name: Set up QEMU
