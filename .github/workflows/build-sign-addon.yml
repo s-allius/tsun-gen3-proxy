@@ -39,10 +39,8 @@ jobs:
       - name: Install dependencies
         run: |
           ls .
-          cd tsun-gen3-proxy
           python -m pip install --upgrade pip
           pip install -r app/requirements-build.txt
-          exit
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -89,6 +87,7 @@ jobs:
           echo "Build type: ${{ steps.buildtype.outputs.build_type }}"
           echo "Command:   ${{ steps.buildtype.outputs.make_cmd }}"
           echo "Registry=${PUBLIC_CONTAINER_REGISTRY}"
+          cd tsun-gen3-proxy
           ${{ steps.buildtype.outputs.make_cmd }}
 
       # ------------------------------------------------------------
@@ -120,3 +119,10 @@ jobs:
               -a ref=${GITHUB_REF_NAME} \
               ${IMAGE}@${DIGEST}
           done
+
+      - name: Zeige geänderte Dateien
+        run: |
+          echo "Status der Dateien:"
+          git status
+          echo "Detaillierte Änderungen:"
+          git diff
