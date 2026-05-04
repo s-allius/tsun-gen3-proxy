@@ -57,11 +57,11 @@ jobs:
 
           if [[ "$REF" =~ -rc([0-9]+)$ ]]; then
             RC_NUM="${BASH_REMATCH[1]}"
-            echo "make_cmd=make VERSION=${VERSION%-*} RC=${RC_NUM} addon-rc" >> $GITHUB_OUTPUT
+            echo "make_cmd=make VERSION=${VERSION%-*} RC=${RC_NUM} addon-rc rc" >> $GITHUB_OUTPUT
             echo "build_type=rc" >> $GITHUB_OUTPUT
             echo "rc_number=${RC_NUM}" >> $GITHUB_OUTPUT
           else
-            echo "make_cmd=make VERSION=${VERSION%-*} addon-rel" >> $GITHUB_OUTPUT
+            echo "make_cmd=make VERSION=${VERSION%-*} addon-rel rel" >> $GITHUB_OUTPUT
             echo "build_type=rel" >> $GITHUB_OUTPUT
           fi
 
@@ -91,15 +91,21 @@ jobs:
       # ------------------------------------------------------------
       - name: Sign container images
         run: |
-          IMAGE="ghcr.io/s-allius/tsun-gen3-addon"
+          IMAGES=(
+            "ghcr.io/s-allius/tsun-gen3-addon"
+            "ghcr.io/s-allius/tsun-gen3-proxy"
+          )
           VERSION="${{ steps.buildtype.outputs.version }}"
 
-          DIGEST=$(docker buildx imagetools inspect ${IMAGE}:${VERSION} \
-            --format '{{.Manifest.Digest}}')
+          for IMAGE in "${IMAGES[@]}"; do
+            echo "Processing image: ${IMAGE}:${VERSION}"
+            DIGEST=$(docker buildx imagetools inspect ${IMAGE}:${VERSION} \
+              --format '{{.Manifest.Digest}}')
 
-          echo "Signing ${IMAGE}@${DIGEST}"
+            echo "Signing ${IMAGE}@${DIGEST}"
 
-          cosign sign --yes\
-            -a repo=https://github.com/s-allius/tsun-gen3-proxy \
-            -a ref=${GITHUB_REF_NAME} \
-            ${IMAGE}@${DIGEST}
+            cosign sign --yes\
+              -a repo=https://github.com/s-allius/tsun-gen3-proxy \
+              -a ref=${GITHUB_REF_NAME} \
+              ${IMAGE}@${DIGEST}
+          done
