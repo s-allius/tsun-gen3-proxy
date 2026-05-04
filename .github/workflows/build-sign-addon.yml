@@ -122,6 +122,8 @@ jobs:
 
       - name: Zeige geänderte Dateien
         run: |
+          ls .
+          cd ha-addons
           echo "Status der Dateien:"
           git status
           echo "Detaillierte Änderungen:"
