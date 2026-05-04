@@ -39,6 +39,7 @@ jobs:
       - name: Install dependencies
         run: |
           ls .
+          cd tsun-gen3-proxy
           python -m pip install --upgrade pip
           pip install -r app/requirements-build.txt
 
@@ -87,6 +88,7 @@ jobs:
           echo "Build type: ${{ steps.buildtype.outputs.build_type }}"
           echo "Command:   ${{ steps.buildtype.outputs.make_cmd }}"
           echo "Registry=${PUBLIC_CONTAINER_REGISTRY}"
+          ls .
           cd tsun-gen3-proxy
           ${{ steps.buildtype.outputs.make_cmd }}
 
