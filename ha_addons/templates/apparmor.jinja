@@ -1,52 +1,110 @@
 #include <tunables/global>
 
+# ==========================================================
+#  AppArmor Profile for TSUN-Proxy Home Assistant Add-on.
+#  This profile manages a dual-stage execution:
+#  1. Main Profile: Handles S6-Overlay initialization and Bashio.
+#  2. Child Profile (myprogram): Restricted environment for the Python application.
+# ==========================================================
 profile {{slug}} flags=(attach_disconnected,mediate_deleted) {
-  #include <abstractions/base>
 
-  # Capabilities
-  file,
-  signal (send) set=(kill,term,int,hup,cont),
+  # --- PROCESS CONTROL ---
+  # Allow S6-Overlay to manage services and handle lifecycle signals
+  signal (send,receive) set=(kill,term),
+  capability kill,
+  # capability chown, setuid, setgid, dac_override, fowner,
 
-  # S6-Overlay
-  /init ix,
+  # --- BOOT & INIT (S6-Overlay) ---
+  /init rix,
   /bin/** ix,
-  /usr/bin/** ix,
-  /run/{s6,s6-rc*,service}/** ix,
-  /package/** ix,
   /command/** ix,
-  /etc/services.d/** rwix,
-  /etc/cont-init.d/** rwix,
-  /etc/cont-finish.d/** rwix,
-  /run/{,**} rwk,
+  /package/** rix,
+  /run.sh rix,
+
+  # --- SYSTEM RESOURCES ---
+  /dev/null rw,
+  /dev/urandom r,
   /dev/tty rw,
+  /dev/console rw,
 
-  # Bashio
+  # --- LIBRARIES & LINKER ---
+  # 'mr' is essential to prevent Segmentation Faults during library loading
+  /lib/** mr,
+  /usr/lib/** mr,
+  /lib/ld-*.so* mr,
+  /lib/*/ld-*.so* mr,
+  /usr/lib/ld-*.so* mr,
+
+  # --- CONFIGURATION & RUNTIME ---
+  # Allow Bashio and S6 to access configs and runtime states
+  /etc/** r,
+  /etc/services.d/** ix,
+  /etc/cont-init.d/** ix,
+  /etc/cont-finish.d/** ix,
   /usr/lib/bashio/** ix,
-  /tmp/** rwk,
-
-  # Access to options.json and other files within your addon
   /data/** rw,
+  /tmp/** rwk,
+  
+  # Network access for Bashio (Supervisor API) and DNS
+  network inet stream,
+  network inet dgram,
+  
+  # --- RUNTIME DIRECTORIES (S6-RC) ---
+  /run/ w,
+  /run/** rwk,
+  /run/{s6,s6-rc*,service}/** ix,
+  
+  # --- EXECUTABLES ---
+  # Restricted /usr/bin access to avoid 'px' modifier conflicts with Python
+  /usr/bin/[^p]* ix,
+  /usr/bin/p[^y]* ix,
+  /usr/bin/env ix,
 
-  # Start new profile for service
-  /usr/bin/myprogram cx -> myprogram,
+  # --- TRANSITION TO PYTHON APPLICATION ---
+  # Transition to the child profile 'myprogram' when starting Python
+  /proxy-version.txt r,
+  /home/proxy/server.py r,
+  /usr/bin/python3* cx -> myprogram,
 
+  # ==========================================================
+  # CHILD PROFILE: The Python Application Environment
+  # ==========================================================
   profile myprogram flags=(attach_disconnected,mediate_deleted) {
-    #include <abstractions/base>
+    
+    # 1. SYSTEM LIBRARIES & CORE
+    # Broad read access to /usr and /etc prevents start-up crashes (Segfaults)
+    /usr/** r,
+    /etc/** r,
+    /usr/lib/** mr,
+    /lib/** mr,
+    /usr/local/lib/** mr,
+    /usr/bin/python3* ix,
 
-    # Receive signals from S6-Overlay
-    signal (receive) peer=*_{{slug}},
-
-    # Access to options.json and other files within your addon
+    # 2. APPLICATION DATA & PERSISTENCE
+    # Read-only for source code, Read-Write for data and logs
+    /home/proxy/ r,
+    /home/proxy/** r,
+    /home/translations/** r,
+    /homeassistant/tsun-proxy/** rw,
     /data/** rw,
 
-    # Access to mapped volumes specified in config.json
-    /share/** rw,
-
-    # Access required for service functionality
-    /usr/bin/myprogram r,
-    /bin/bash rix,
-    /bin/echo ix,
-    /etc/passwd r,
+    # 3. KERNEL & HARDWARE ABSTRACTION
+    # Required for platform detection and network monitoring
+    /proc/self/** r,
+    /proc/cpuinfo r,
+    /sys/** r,
+    /dev/urandom r,
     /dev/tty rw,
+    /dev/console rw,
+
+    # 4. NETWORKING
+    # Allow the proxy to communicate with Inverters and MQTT Brokers
+    network inet stream,
+    network inet dgram,
+
+    # 5. INTER-PROCESS COMMUNICATION
+    # Receive termination signals from the main profile (S6 supervisor)
+    signal (receive) peer=*{{slug}},
+
   }
 }
