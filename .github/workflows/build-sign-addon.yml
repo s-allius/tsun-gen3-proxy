@@ -130,3 +130,14 @@ jobs:
           git status
           echo "Detaillierte Änderungen:"
           git diff
+
+      - name: Erstelle Pull Request
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "Auto-Update von Dateien"
+          title: "Automatisches Update"
+          body: "Dieser PR wurde automatisch durch eine GitHub Action erstellt."
+          branch: "auto-update-branch" # Ein fester oder dynamischer Branch-Name
+          # base: main # Der Ziel-Branch für den PR
+          path: './ha-addons'
