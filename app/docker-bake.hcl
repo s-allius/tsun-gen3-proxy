@@ -83,7 +83,7 @@ target "preview" {
 
 target "rc" {
   inherits = ["_common", "_prod"]
-  tags = ["${IMAGE}:rc-test", "${IMAGE}:${VERSION}"]
+  tags = ["${IMAGE}:rc", "${IMAGE}:${VERSION}"]
 }
 
 target "rel" {
