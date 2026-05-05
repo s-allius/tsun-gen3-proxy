@@ -67,7 +67,7 @@ jobs:
         run: |
           REF="${GITHUB_REF_NAME}"
           VERSION="${REF#v}"
-          BAKE_OPTS="--set *.cache-from=type=gha --set *.cache-to=type=gha,mode=max"
+          BAKE_OPTS="--set *.cache-from=type=gha --set *.cache-to=type=gha,mode=max,scope=tsun-proxy"
 
           if [[ "$REF" =~ -rc([0-9]+)$ ]]; then
             RC_NUM="${BASH_REMATCH[1]}"
@@ -93,7 +93,7 @@ jobs:
           echo "Command:   ${{ steps.buildtype.outputs.make_cmd }}"
           echo "Registry=${PUBLIC_CONTAINER_REGISTRY}"
           cd tsun-gen3-proxy
-          ${{ steps.buildtype.outputs.make_cmd }}
+          ${{ steps.buildtype.outputs.make_cmd }} -j2
 
       # ------------------------------------------------------------
       # cosign installieren
