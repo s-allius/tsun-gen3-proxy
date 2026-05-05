@@ -30,7 +30,7 @@ jobs:
         with:
           path: './ha-addons'
           repository: s-allius/ha-addons
-          token: ${{ secrets.HA_REPRO_PULLREQUESTS }}
+          # token: ${{ secrets.HA_REPRO_PULLREQUESTS }}
 
       - name: Set up Python
         uses: actions/setup-python@v6
@@ -122,15 +122,6 @@ jobs:
               -a ref=${GITHUB_REF_NAME} \
               ${IMAGE}@${DIGEST}
           done
-
-      - name: Zeige geänderte Dateien
-        run: |
-          ls .
-          cd ha-addons
-          echo "Status der Dateien:"
-          git status
-          echo "Detaillierte Änderungen:"
-          git diff
 
       - name: Erstelle Pull Request
         uses: peter-evans/create-pull-request@v7
