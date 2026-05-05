@@ -27,7 +27,7 @@ clean:
 dev debug:
 	@echo version: $(VERSION)  build-date: $(BUILD_DATE)   image: $(PRIVAT_CONTAINER_REGISTRY)$(IMAGE)
 	export VERSION=$(VERSION)-$@ && \
-	export BUILD_ARGS=$(BUILD_ARGS) && \
+	export BUILD_ARGS="$(BUILD_ARGS)" && \
 	export IMAGE=$(PRIVAT_CONTAINER_REGISTRY)$(IMAGE) && \
 	docker buildx bake -f docker-bake.hcl $@
 
@@ -37,7 +37,7 @@ rc:
 	@echo login at $(PUBLIC_URL) as $(PUBLIC_USER)
 	@DO_LOGIN="$(shell echo $(PUBLIC_CR_KEY) | docker login $(PUBLIC_URL) -u $(PUBLIC_USER) --password-stdin)"
 	export VERSION=$(VERSION)-$@$(RC) && \
-	export BUILD_ARGS=$(BUILD_ARGS) && \
+	export BUILD_ARGS="$(BUILD_ARGS)" && \
 	export IMAGE=$(PUBLIC_CONTAINER_REGISTRY)$(IMAGE) && \
 	docker buildx bake -f docker-bake.hcl $@
 
@@ -46,7 +46,7 @@ preview rel:
 	@echo login at $(PUBLIC_URL) as $(PUBLIC_USER)
 	@DO_LOGIN="$(shell echo $(PUBLIC_CR_KEY) | docker login $(PUBLIC_URL) -u $(PUBLIC_USER) --password-stdin)"
 	export VERSION=$(VERSION)-$@ && \
-	export BUILD_ARGS=$(BUILD_ARGS) && \
+	export BUILD_ARGS="$(BUILD_ARGS)" && \
 	export IMAGE=$(PUBLIC_CONTAINER_REGISTRY)$(IMAGE) && \
 	docker buildx bake -f docker-bake.hcl $@
 
