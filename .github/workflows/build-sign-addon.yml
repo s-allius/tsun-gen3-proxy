@@ -67,7 +67,7 @@ jobs:
         run: |
           REF="${GITHUB_REF_NAME}"
           VERSION="${REF#v}"
-          DOCKER_BUILD_ARGS: "--cache-from type=gha --cache-to type=gha,mode=max"
+          DOCKER_BUILD_ARGS="--cache-from type=gha --cache-to type=gha,mode=max"
 
           if [[ "$REF" =~ -rc([0-9]+)$ ]]; then
             RC_NUM="${BASH_REMATCH[1]}"
