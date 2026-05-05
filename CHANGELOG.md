@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+- use github action to build and sign the add-on and proxy image
 - add-on: fix and improve AppAmore profile [#555](https://github.com/s-allius/tsun-gen3-proxy/issues/555)
 - fix exception attribute error [#550](https://github.com/s-allius/tsun-gen3-proxy/issues/550)
 - add network tests to the web UI [#452](https://github.com/s-allius/tsun-gen3-proxy/issues/452)
