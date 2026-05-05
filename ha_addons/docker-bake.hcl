@@ -86,11 +86,11 @@ target "preview" {
 target "rc" {
   inherits = ["_common", "_prod"]
   tags = ["${IMAGE}:rc-test", "${IMAGE}:${VERSION}"]
-  no-cache = true
+  no-cache = false
 }
 
 target "rel" {
   inherits = ["_common", "_prod"]
   tags = ["${IMAGE}:latest", "${IMAGE}:${MAJOR}", "${IMAGE}:${VERSION}"]
-  no-cache = true
+  no-cache = false
 }

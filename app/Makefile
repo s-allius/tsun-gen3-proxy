@@ -15,7 +15,7 @@ BABEL_INPUT= $(foreach dir,$(BABEL_INPUT_JINJA),$(wildcard $(dir)/*.html.j2)) \
 BABEL_TRANSLATIONS=$(APP)/translations
 
 export BUILD_DATE := ${shell date -Iminutes}
-VERSION := $(shell cat $(APP)/.version)
+VERSION ?= $(shell cat $(APP)/.version)
 export MAJOR  := $(shell echo $(VERSION) | cut -f1 -d.)
 
 PUBLIC_URL := $(shell echo $(PUBLIC_CONTAINER_REGISTRY) | cut -f1 -d/)
@@ -27,6 +27,7 @@ clean:
 dev debug:
 	@echo version: $(VERSION)  build-date: $(BUILD_DATE)   image: $(PRIVAT_CONTAINER_REGISTRY)$(IMAGE)
 	export VERSION=$(VERSION)-$@ && \
+	export BUILD_ARGS=$(BUILD_ARGS) && \
 	export IMAGE=$(PRIVAT_CONTAINER_REGISTRY)$(IMAGE) && \
 	docker buildx bake -f docker-bake.hcl $@
 
@@ -36,6 +37,7 @@ rc:
 	@echo login at $(PUBLIC_URL) as $(PUBLIC_USER)
 	@DO_LOGIN="$(shell echo $(PUBLIC_CR_KEY) | docker login $(PUBLIC_URL) -u $(PUBLIC_USER) --password-stdin)"
 	export VERSION=$(VERSION)-$@$(RC) && \
+	export BUILD_ARGS=$(BUILD_ARGS) && \
 	export IMAGE=$(PUBLIC_CONTAINER_REGISTRY)$(IMAGE) && \
 	docker buildx bake -f docker-bake.hcl $@
 
@@ -44,6 +46,7 @@ preview rel:
 	@echo login at $(PUBLIC_URL) as $(PUBLIC_USER)
 	@DO_LOGIN="$(shell echo $(PUBLIC_CR_KEY) | docker login $(PUBLIC_URL) -u $(PUBLIC_USER) --password-stdin)"
 	export VERSION=$(VERSION)-$@ && \
+	export BUILD_ARGS=$(BUILD_ARGS) && \
 	export IMAGE=$(PUBLIC_CONTAINER_REGISTRY)$(IMAGE) && \
 	docker buildx bake -f docker-bake.hcl $@
 
