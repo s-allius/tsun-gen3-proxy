@@ -134,7 +134,7 @@ jobs:
       - name: Erstelle Pull Request
         uses: peter-evans/create-pull-request@v7
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.HA_REPRO_PULLREQUESTS }}
           commit-message: "Auto-Update von Dateien"
           title: "Automatisches Update"
           body: "Dieser PR wurde automatisch durch eine GitHub Action erstellt."
