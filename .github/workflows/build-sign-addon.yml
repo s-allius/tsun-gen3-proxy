@@ -21,13 +21,13 @@ jobs:
 
     steps:
       - name: Checkout proxy
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           path: './tsun-gen3-proxy'
           fetch-depth: 1
 
       - name: Checkout home assistant repro
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           path: './ha-addons'
           repository: s-allius/ha-addons
