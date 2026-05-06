@@ -24,8 +24,8 @@ from modbus_tcp import ModbusTcp
 
 class Server():
     """
-    Main Server class responsible for application initialization, configuration loading,
-    and logging setup.
+    Main Server class responsible for application initialization,
+    configuration loading, and logging setup.
     """
     serv_name = ''
     version = ''
@@ -76,7 +76,8 @@ class Server():
             if var['slug']:
                 var['hassio'] = True
                 slug_len = len(var['slug'])
-                var['addonname'] = f"{var['slug']}_{var['hostname'][slug_len+1:]}"
+                var['addonname'] = f"{var['slug']}_{var['hostname']
+                                                    [slug_len+1:]}"
             return var
 
     def parse_args(self, arg_list: list[str] | None):
@@ -102,7 +103,7 @@ class Server():
                             help='Path for translation files')
         parser.add_argument('-r', '--rel_urls', action="store_true",
                             help='Use relative dashboard URLs')
-        
+
         args = parser.parse_args(arg_list)
 
         self.config_path = args.config_path
@@ -126,7 +127,7 @@ class Server():
 
         logging.info(f'Server "{self.serv_name} - {self.version}" starting...')
         logging.info(f'Current working directory: {os.getcwd()}')
-        
+
         # Log active configuration parameters
         params = {
             "config_path": self.config_path, "json_config": self.json_config,
@@ -137,10 +138,10 @@ class Server():
             logging.info(f"{key:12}: {val}")
 
         logging.info(f"log_backups : {self.log_backups if self.log_backups > 0 else 'unlimited'}")
-        
+
         self.log_level = self.get_log_level()
         logging.info('******')
-        
+
         if self.log_level:
             loggers = ['', 'msg', 'conn', 'data', 'tracer', 'asyncio', 'test']
             for logger_name in loggers:
@@ -161,12 +162,12 @@ class Server():
         ConfigReadEnv()
         ConfigReadJson(self.config_path + "config.json")
         ConfigReadToml(self.config_path + "config.toml")
-        
+
         if self.json_config:
             ConfigReadJson(self.json_config)
         if self.toml_config:
             ConfigReadToml(self.toml_config)
-            
+
         config_err = Config.get_error()
         if config_err:
             logging.error(f'Configuration error: {config_err}')
@@ -235,7 +236,7 @@ class HypercornLogHndl:
         if not cls.must_fix:
             return
         cls.must_fix = False
-        
+
         acc_logger = logging.getLogger(cls.HYPERC_ACC)
         if acc_logger.handlers != cls.access_hndl:
             print(' * Fixing hypercorn.access handlers')
@@ -315,7 +316,7 @@ async def handle_client(reader: StreamReader,
 async def startup_app():    # pragma: no cover
     """
     Lifecycle hook: Executed before the Quart server starts serving requests.
-    
+
     Initializes core components:
     - Saves logger states.
     - Initializes the Proxy and Scheduler.
@@ -336,13 +337,13 @@ async def startup_app():    # pragma: no cover
 
     for inv_class, config_id, port in inverter_configs:
         config_arr = Config.get(config_id)
-        
+
         if not config_arr.get('listener'):
             logging.info(f'{config_id}.listener not enabled, skipping port {port}')
             continue
-            
+
         logging.info(f'Listening on port: {port} for {config_id} inverters')
-        
+
         # Start a TCP server for the specific inverter type
         task = loop.create_task(
             asyncio.start_server(
@@ -366,7 +367,7 @@ async def startup_request():
 async def handle_shutdown():   # pragma: no cover
     """
     Lifecycle hook: Executed during server shutdown (e.g., on SIGTERM).
-    
+
     Performs a graceful shutdown:
     - Updates ProxyState.
     - Gracefully disconnects all active inverter TCP connections.
@@ -394,8 +395,8 @@ if __name__ == "__main__":  # pragma: no cover
         logging.info("Start Quart")
         # Run app on port 8127 - Debug mode enabled if log level is DEBUG
         app.run(
-            host='0.0.0.0', 
-            port=8127, 
+            host='0.0.0.0',
+            port=8127,
             use_reloader=False,
             debug=server.log_level == logging.DEBUG
         )
