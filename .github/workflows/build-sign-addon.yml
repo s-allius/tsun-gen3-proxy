@@ -89,7 +89,7 @@ jobs:
           ${{ steps.buildtype.outputs.make_cmd }} -j2
 
       - name: Install cosign
-        uses: sigstore/cosign-installer@v3
+        uses: sigstore/cosign-installer@v4.1.1
 
       - name: Sign container images
         run: |
