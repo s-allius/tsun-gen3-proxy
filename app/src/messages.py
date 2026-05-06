@@ -98,7 +98,11 @@ class Message(ProtocolIfc):
         self.server_side = server_side
         self.ifc = ifc
         self.node_id = node_id
+        self.new_data = {}
         if server_side:
+            ifc.prot_set_disc_cb(self._inv_disc)
+            self.db.set_db_def_value(Register.AVAIL_STATUS, "on")
+            self.new_data['status'] = True
             self.mb = Modbus(send_modbus_cb, mb_timeout)
             self.mb_timer = Timer(self.mb_timout_cb, self.node_id)
         else:
@@ -110,7 +114,6 @@ class Message(ProtocolIfc):
         self.unique_id = 0
         self.inv_serial = ''
         self.sug_area = ''
-        self.new_data = {}
         self.state = State.init
         self.shutdown_started = False
         self.modbus_elms = 0    # for unit tests
@@ -220,6 +223,11 @@ class Message(ProtocolIfc):
                             f'(reg: 0x{self.mb.last_reg:04x}):',
                             data[hdr_len:], modbus_msg_len)
 
+    def _inv_disc(self):
+        logging.warning(f"Un-Available: [{self.node_id}]")
+        self.db.set_db_def_value(Register.AVAIL_STATUS, "off")
+        self.new_data['status'] = True
+
     '''
     Our puplic methods
     '''
@@ -237,6 +245,7 @@ class Message(ProtocolIfc):
         self.ifc.prot_set_timeout_cb(None)
         self.ifc.prot_set_init_new_client_conn_cb(None)
         self.ifc.prot_set_update_header_cb(None)
+        self.ifc.prot_set_disc_cb(None)
         self.ifc = None
 
         if self.mb:
