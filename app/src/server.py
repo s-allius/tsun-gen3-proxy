@@ -270,3 +270,141 @@ async def ready():
     if ProxyState.is_up():
         return 'Is ready', 200
     return 'Not ready', 503
+
+@app.route('/-/healthy')
+async def healthy():
+    """
+    Detailed health check endpoint.
+    
+    Verifies not only if the proxy is up, but also checks the health status 
+    of every connected inverter instance.
+    
+    Returns:
+        Response: 200 OK if all systems and inverters are healthy, 
+                  503 Service Unavailable otherwise.
+    """
+    if ProxyState.is_up():
+        for inverter in InverterIfc:
+            try:
+                res = inverter.healthy()
+                if not res:
+                    return Response(status=503, response="I have a problem")
+            except Exception as err:
+                logging.info(f'Exception during health check: {err}')
+                # Note: You might want to decide if an exception should also return 503
+
+    return Response(status=200, response="I'm fine")
+
+
+async def handle_client(reader: StreamReader,
+                        writer: StreamWriter,
+                        inv_class):    # pragma: no cover
+    """
+    Handles a new incoming TCP connection from an inverter.
+
+    Args:
+        reader (StreamReader): Asyncio stream reader for incoming data.
+        writer (StreamWriter): Asyncio stream writer for outgoing data.
+        inv_class (class): The specific inverter class (G3/G3P) to instantiate.
+    """
+    with inv_class(reader, writer) as inv:
+        await inv.local.ifc.server_loop()
+
+
+@app.before_serving
+async def startup_app():    # pragma: no cover
+    """
+    Lifecycle hook: Executed before the Quart server starts serving requests.
+    
+    Initializes core components:
+    - Saves logger states.
+    - Initializes the Proxy and Scheduler.
+    - Starts the Modbus TCP handler.
+    - Starts TCP servers (listeners) for different inverter types based on configuration.
+    """
+    HypercornLogHndl.save()
+    loop = asyncio.get_event_loop()
+    Proxy.class_init()
+    Schedule.start()
+    ModbusTcp(loop)
+
+    # Define supported inverter generations and their respective ports
+    inverter_configs = [
+        (InverterG3, 'tsun', 5005),
+        (InverterG3P, 'solarman', 10000)
+    ]
+
+    for inv_class, config_id, port in inverter_configs:
+        config_arr = Config.get(config_id)
+        
+        if not config_arr.get('listener'):
+            logging.info(f'{config_id}.listener not enabled, skipping port {port}')
+            continue
+            
+        logging.info(f'Listening on port: {port} for {config_id} inverters')
+        
+        # Start a TCP server for the specific inverter type
+        task = loop.create_task(
+            asyncio.start_server(
+                lambda r, w, i=inv_class: handle_client(r, w, i),
+                '0.0.0.0', port
+            )
+        )
+        app.background_tasks.add(task)
+        task.add_done_callback(app.background_tasks.discard)
+
+    ProxyState.set_up(True)
+
+
+@app.before_request
+async def startup_request():
+    """Ensures logging handlers are correctly set before each request."""
+    HypercornLogHndl.restore()
+
+
+@app.after_serving
+async def handle_shutdown():   # pragma: no cover
+    """
+    Lifecycle hook: Executed during server shutdown (e.g., on SIGTERM).
+    
+    Performs a graceful shutdown:
+    - Updates ProxyState.
+    - Gracefully disconnects all active inverter TCP connections.
+    - Cleans up background tasks and closes proxy resources.
+    """
+    logging.info('Shutdown due to SIGTERM')
+    loop = asyncio.get_event_loop()
+    ProxyState.set_up(False)
+
+    # Disconnect all open TCP connections gracefully
+    for inverter in InverterIfc:
+        await inverter.disc(True)
+
+    logging.info('Proxy disconnecting done')
+    app.background_tasks.clear()
+
+    await Proxy.class_close(loop)
+
+
+if __name__ == "__main__":  # pragma: no cover
+    """
+    Entry point: Starts the Quart web server.
+    """
+    try:
+        logging.info("Start Quart")
+        # Run app on port 8127 - Debug mode enabled if log level is DEBUG
+        app.run(
+            host='0.0.0.0', 
+            port=8127, 
+            use_reloader=False,
+            debug=server.log_level == logging.DEBUG
+        )
+        logging.info("Quart stopped")
+
+    except KeyboardInterrupt:
+        # Standard exit on Ctrl+C
+        pass
+    except asyncio.exceptions.CancelledError:
+        logging.info("Quart cancelled")
+    finally:
+        logging.info(f'Finally, exit Server "{server.serv_name}"')
