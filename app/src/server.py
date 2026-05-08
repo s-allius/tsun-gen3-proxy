@@ -85,11 +85,13 @@ class Server():
         Parses command line arguments to configure paths and logging.
 
         Args:
-            arg_list (list[str] | None): List of arguments to parse. 
+            arg_list (list[str] | None): List of arguments to parse.
                                          If None, sys.argv is used.
         """
-        parser = argparse.ArgumentParser(description='Proxy Server Configuration')
-        parser.add_argument('-c', '--config_path', type=str, default='./config/',
+        parser = argparse.ArgumentParser(
+            description='Proxy Server Configuration')
+        parser.add_argument('-c', '--config_path', type=str,
+                            default='./config/',
                             help='Path for the configuration files')
         parser.add_argument('-j', '--json_config', type=str,
                             help='Read user config from specific JSON file')
@@ -99,7 +101,8 @@ class Server():
                             help='Path for the logging files')
         parser.add_argument('-b', '--log_backups', type=int, default=0,
                             help='Max number of daily log-file backups')
-        parser.add_argument('-tr', '--trans_path', type=str, default='../translations/',
+        parser.add_argument('-tr', '--trans_path', type=str,
+                            default='../translations/',
                             help='Path for translation files')
         parser.add_argument('-r', '--rel_urls', action="store_true",
                             help='Use relative dashboard URLs')
@@ -137,7 +140,8 @@ class Server():
         for key, val in params.items():
             logging.info(f"{key:12}: {val}")
 
-        logging.info(f"log_backups : {self.log_backups if self.log_backups > 0 else 'unlimited'}")
+        logging.info(f"log_backups : {self.log_backups if self.log_backups > 0
+                                      else 'unlimited'}")
 
         self.log_level = self.get_log_level()
         logging.info('******')
@@ -158,7 +162,7 @@ class Server():
         Config.init(ConfigReadToml(self.src_dir + "cnf/default_config.toml"),
                     log_path=self.log_path,
                     cnf_path=self.config_path)
-        
+
         ConfigReadEnv()
         ConfigReadJson(self.config_path + "config.json")
         ConfigReadToml(self.config_path + "config.toml")
@@ -181,7 +185,8 @@ class Server():
         Maps the LOG_LVL environment variable to logging module constants.
 
         Returns:
-            int | None: The logging level (e.g., logging.DEBUG) or None if not set.
+            int | None: The logging level (e.g., logging.DEBUG)
+                        or None if not set.
         """
         levels = {
             'DEBUG': logging.DEBUG,
@@ -232,7 +237,8 @@ class HypercornLogHndl:
 
     @classmethod
     def restore(cls):
-        """Restores saved handlers to Hypercorn loggers if they were overwritten."""
+        """Restores saved handlers to Hypercorn loggers
+        if they were overwritten."""
         if not cls.must_fix:
             return
         cls.must_fix = False
@@ -272,16 +278,17 @@ async def ready():
         return 'Is ready', 200
     return 'Not ready', 503
 
+
 @app.route('/-/healthy')
 async def healthy():
     """
     Detailed health check endpoint.
-    
-    Verifies not only if the proxy is up, but also checks the health status 
+
+    Verifies not only if the proxy is up, but also checks the health status
     of every connected inverter instance.
-    
+
     Returns:
-        Response: 200 OK if all systems and inverters are healthy, 
+        Response: 200 OK if all systems and inverters are healthy,
                   503 Service Unavailable otherwise.
     """
     if ProxyState.is_up():
@@ -292,7 +299,8 @@ async def healthy():
                     return Response(status=503, response="I have a problem")
             except Exception as err:
                 logging.info(f'Exception during health check: {err}')
-                # Note: You might want to decide if an exception should also return 503
+                # Note: You might want to decide if an exception should
+                #       also return 503
 
     return Response(status=200, response="I'm fine")
 
@@ -321,7 +329,8 @@ async def startup_app():    # pragma: no cover
     - Saves logger states.
     - Initializes the Proxy and Scheduler.
     - Starts the Modbus TCP handler.
-    - Starts TCP servers (listeners) for different inverter types based on configuration.
+    - Starts TCP servers (listeners) for different inverter types
+      based on configuration.
     """
     HypercornLogHndl.save()
     loop = asyncio.get_event_loop()
@@ -339,7 +348,8 @@ async def startup_app():    # pragma: no cover
         config_arr = Config.get(config_id)
 
         if not config_arr.get('listener'):
-            logging.info(f'{config_id}.listener not enabled, skipping port {port}')
+            logging.info(f'{config_id}.listener not enabled, '
+                         f'skipping port {port}')
             continue
 
         logging.info(f'Listening on port: {port} for {config_id} inverters')
