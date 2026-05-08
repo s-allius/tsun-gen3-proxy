@@ -42,6 +42,8 @@ profile {{slug}} flags=(attach_disconnected,mediate_deleted) {
   /etc/cont-init.d/** ix,
   /etc/cont-finish.d/** ix,
   /usr/lib/bashio/** ix,
+  /homeassistant/tsun-proxy/ rw,
+  /homeassistant/tsun-proxy/** rwk,
   /data/** rw,
   /tmp/** rwk,
   

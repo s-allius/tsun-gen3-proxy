@@ -168,8 +168,8 @@ class TestHypercornLogHndl:
         assert h.access_hndl == logging.getLogger('hypercorn.access').handlers
         assert h.error_hndl == logging.getLogger('hypercorn.error').handlers
         output = capsys.readouterr().out.rstrip()
-        assert "* Fix hypercorn.access setting" in output
-        assert "* Fix hypercorn.error setting" in output
+        assert "* Fixing hypercorn.access handlers" in output
+        assert "* Fixing hypercorn.error handlers" in output
 
         h.restore()  # second restore do nothing
         assert h.must_fix == False
@@ -287,4 +287,4 @@ class TestApp:
             assert response.status_code == 200
             result = await response.get_data()
             assert result == b"I'm fine"
-            assert "Exception:" in caplog.text
+            assert "Exception" in caplog.text
