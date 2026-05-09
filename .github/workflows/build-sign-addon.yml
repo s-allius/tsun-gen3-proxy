@@ -20,17 +20,20 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout proxy
-        uses: actions/checkout@v6
-        with:
-          path: './tsun-gen3-proxy'
-          fetch-depth: 1
-
-      - name: Checkout home assistant repro
+      # The ha_addons repo must be checked out before the tsun-gen3-proxy repo. Otherwise,
+      # updated files will not be copied into the ha_addons repo because the destination
+      # file is newer.
+      - name: Checkout home assistant repo
         uses: actions/checkout@v6
         with:
           path: './ha-addons'
           repository: s-allius/ha-addons
+          fetch-depth: 1
+
+      - name: Checkout proxy
+        uses: actions/checkout@v6
+        with:
+          path: './tsun-gen3-proxy'
           fetch-depth: 1
 
       - name: Set up Python
@@ -52,6 +55,9 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
 
+      - name: Install cosign
+        uses: sigstore/cosign-installer@v4.1.1
+
       - name: Login to GHCR
         uses: docker/login-action@v4
         with:
@@ -70,10 +76,8 @@ jobs:
           if [[ "$REF" =~ -rc([0-9]+)$ ]]; then
             RC_NUM="${BASH_REMATCH[1]}"
             echo "make_cmd=make VERSION=${VERSION%-*} BUILD_ARGS='${BAKE_OPTS}' RC=${RC_NUM} addon-rc rc" >> $GITHUB_OUTPUT
-            echo "build_type=rc" >> $GITHUB_OUTPUT
           else
             echo "make_cmd=make VERSION=${VERSION%-*} BUILD_ARGS='${BAKE_OPTS}' addon-rel rel" >> $GITHUB_OUTPUT
-            echo "build_type=rel" >> $GITHUB_OUTPUT
           fi
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
           
@@ -87,9 +91,6 @@ jobs:
           make babel
           # Execute container builds in parallel
           ${{ steps.buildtype.outputs.make_cmd }} -j2
-
-      - name: Install cosign
-        uses: sigstore/cosign-installer@v4.1.1
 
       - name: Sign container images
         run: |
@@ -109,6 +110,13 @@ jobs:
             ) &
           done
           wait
+      - name: Show git status
+        run: |
+          cd ha-addons
+          echo "File status:"
+          git status
+          echo "Detailed diff:"
+          git diff
 
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v8
