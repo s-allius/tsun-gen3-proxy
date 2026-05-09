@@ -20,7 +20,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout home assistant repro
+      # The ha_addons repo must be checked out before the tsun-gen3-proxy repo. Otherwise,
+      # updated files will not be copied into the ha_addons repo because the destination
+      # file is newer.
+      - name: Checkout home assistant repo
         uses: actions/checkout@v6
         with:
           path: './ha-addons'
@@ -42,10 +45,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pwd
-          ls
           cd tsun-gen3-proxy
-          ls
           python -m pip install --upgrade pip
           pip install -r app/requirements-build.txt
 
@@ -85,7 +85,7 @@ jobs:
         run: |
           cd tsun-gen3-proxy
           # Run shared dependency first
-          make clean babel
+          make babel
           # Execute container builds in parallel
           ${{ steps.buildtype.outputs.make_cmd }} -j2
 
@@ -110,13 +110,13 @@ jobs:
             ) &
           done
           wait
-      - name: show git status
+      - name: Show git status
         run: |
           ls .
           cd ha-addons
-          echo "Status der Dateien:"
+          echo "File status:"
           git status
-          echo "Detaillierte Änderungen:"
+          echo "Detailed diff:"
           git diff
 
       - name: Create Pull Request
