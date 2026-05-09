@@ -73,9 +73,11 @@ rel: local_add_on
 clean:
 	rm -r -f $(DST_PROXY)
 	rm -f $(DST)/requirements.txt
+	rm -f $(ADDON_PATH)/apparmor.txt
 	rm -f $(ADDON_PATH)/config.yaml
+	rm -f $(ADDON_PATH)/README.md
 	rm -f $(TEMPL)/.data.json
-	docker logout ghcr.io
+	[ "${NO_LOGIN}" ] || docker logout ghcr.io
 
 #############
 # Build the local add-on with a rootfs and config.yaml
