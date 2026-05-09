@@ -107,6 +107,10 @@ jobs:
             ) &
           done
           wait
+      - name: show git status
+        run: |
+          cd ha_addons
+          git status
 
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v8
