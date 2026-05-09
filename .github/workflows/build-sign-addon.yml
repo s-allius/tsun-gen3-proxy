@@ -109,6 +109,8 @@ jobs:
           wait
       - name: show git status
         run: |
+          ls .
+          cd ha-addons
           echo "Status der Dateien:"
           git status
           echo "Detaillierte Änderungen:"
