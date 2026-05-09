@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+- Add changelog to the ha_addon pull request
+- Update sigstore/cosign-installer action to v4.1.2
 - fix add-on: allow mkdir for logfiles [#571](https://github.com/s-allius/tsun-gen3-proxy/issues/571)
 - Update ghcr.io/hassio-addons/base Docker tag to v20.1.1
 - use github action to build and sign the add-on and proxy image
