@@ -71,19 +71,19 @@ configuration:
   mqtt.host:
     name: MQTT Broker Host
     description: >-
-      Hostname or IP address of the MQTT broker. if not set, the addon will try to connect to the Home Assistant MQTT broker
+      Hostname or IP address of the MQTT broker. if not set, the app will try to connect to the Home Assistant MQTT broker
   mqtt.port:
     name: MQTT Broker Port
     description: >-
-      Port of the MQTT broker. if not set, the addon will try to connect to the Home Assistant MQTT broker
+      Port of the MQTT broker. if not set, the app will try to connect to the Home Assistant MQTT broker
   mqtt.user:
     name: MQTT Broker User
     description: >-
-      User for the MQTT broker. if not set, the addon will try to connect to the Home Assistant MQTT broker
+      User for the MQTT broker. if not set, the app will try to connect to the Home Assistant MQTT broker
   mqtt.passwd:
     name: MQTT Broker Password
     description: >-
-      Password for the MQTT broker. if not set, the addon will try to connect to the Home Assistant MQTT broker
+      Password for the MQTT broker. if not set, the app will try to connect to the Home Assistant MQTT broker
   ha.auto_conf_prefix:
     name: MQTT prefix for subscribing for homeassistant status updates
   ha.discovery_prefix:
@@ -97,12 +97,12 @@ configuration:
   tsun.host:
     name: TSUN Cloud Host
     description: >-
-      Hostname or IP address of the TSUN cloud. if not set, the addon will try to connect to the cloud 
+      Hostname or IP address of the TSUN cloud. if not set, the app will try to connect to the cloud 
       on logger.talent-monitoring.com
   solarman.host:
     name: Solarman Cloud Host
     description: >-
-      Hostname or IP address of the Solarman cloud. if not set, the addon will try to connect to the cloud 
+      Hostname or IP address of the Solarman cloud. if not set, the app will try to connect to the cloud 
       on iot.talent-monitoring.com
   gen3plus.at_acl.tsun.allow:
       name: TSUN GEN3PLUS ACL allow

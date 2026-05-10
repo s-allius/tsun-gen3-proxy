@@ -987,8 +987,8 @@ async def test_del_older_file_err(client, config_conn, patch_os_remove_err):
     assert response.status_code == 404
 
 @pytest.mark.asyncio(loop_scope="session")
-async def test_addon_links(client):
-    """Test links to HA add-on config/log in UI"""
+async def test_ha_app_links(client):
+    """Test links to HA app config/log in UI"""
     with patch.dict(os.environ, {'SLUG': 'c676133d', 'HOSTNAME': 'c676133d-tsun-proxy'}):
         response = await client.get('/')
         assert response.status_code == 200
