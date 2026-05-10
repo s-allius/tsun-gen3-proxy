@@ -1,4 +1,4 @@
-name: Build & Sign Home Assistant Add-on
+name: Build & Sign Home Assistant App
 on:
   push:
     tags:

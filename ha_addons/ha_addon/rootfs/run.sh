@@ -1,7 +1,7 @@
 #!/usr/bin/with-contenv bashio
 
 bashio::log.blue "-----------------------------------------------------------"
-bashio::log.blue "run.sh: info: setup Add-on environment"
+bashio::log.blue "run.sh: info: setup app environment"
 bashio::cache.flush_all
 MQTT_HOST=""
 SLUG=""
@@ -23,16 +23,16 @@ else
 fi
 
 if [ -z "$SLUG" ]; then
-    bashio::log.yellow "run.sh: info: addon slug not found"
+    bashio::log.yellow "run.sh: info: app slug not found"
 else
-    bashio::log.green "run.sh: info: found addon slug: $SLUG"
+    bashio::log.green "run.sh: info: found app slug: $SLUG"
     export SLUG
 
 fi
 if [ -z "$HOSTNAME" ]; then
-    bashio::log.yellow "run.sh: info: addon hostname not found"
+    bashio::log.yellow "run.sh: info: app hostname not found"
 else
-    bashio::log.green "run.sh: info: found addon hostname: $HOSTNAME"
+    bashio::log.green "run.sh: info: found app hostname: $HOSTNAME"
     export HOSTNAME
 fi
 
@@ -49,11 +49,11 @@ fi
 
 # get logging config paramters
 LOG_RETENTION=$(bashio::config "logging.retention_days" 2)
-bashio::log.green "run.sh: info: addon log retention: $LOG_RETENTION days"
+bashio::log.green "run.sh: info: app log retention: $LOG_RETENTION days"
 
 # overwrite log_lvl if available
 LOG_LVL=$(bashio::config "logging.level" $LOG_LVL)
-bashio::log.green "run.sh: info: addon log level: $LOG_LVL"
+bashio::log.green "run.sh: info: app log level: $LOG_LVL"
 
 
 # Create folder for log und config files
