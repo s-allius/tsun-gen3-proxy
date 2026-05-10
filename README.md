@@ -56,7 +56,7 @@ If you use a Pi-hole, you can also store the host entry in the Pi-hole.
 - `Home-Assistant` auto-discovery support
 - `MODBUS` support via MQTT topics
 - `AT-Command` support via MQTT topics (GEN3PLUS only)
-- Faster DataUp interval sends measurement data to the MQTT broker every minute
+- Faster Data-Up interval sends measurement data to the MQTT broker every minute
 - Self-sufficient island operation without internet
 - Security-Features:
   - control access via `AT-commands`
@@ -96,7 +96,7 @@ after that you can run the image:
 docker run  --dns '8.8.8.8' --env 'UID=1000' -p '5005:5005' -p '10000:10000' -v ./config:/home/tsun-proxy/config -v ./log:/home/tsun-proxy/log tsun-proxy
 ```
 
-You will surely see a message that the configuration file was not found. So that we can create this without admin rights, the `uid` must still be adapted. To do this, simply stop the proxy with ctrl-c and use the `id` command to determine your own UserId:
+You will surely see a message that the configuration file was not found. So that we can create this without admin rights, the `uid` must still be adapted. To do this, simply stop the proxy with Ctrl-C and use the `id` command to determine your own User-ID:
 
 ```sh
 % id 
@@ -112,7 +112,7 @@ docker run  --dns '8.8.8.8' --env 'UID=1050' -p '5005:5005' -p '10000:10000' -v 
 ## for Home Assistant App Installation
 
 1. Add the repository URL to the Home Assistant App store
-[![Add repository on my Home Assistant][repository-badge]][repository-url]
+[![Add repository on my Home Assistant][repository-badge]][repository_url]
 2. Reload the App store page
 3. Click the "Install" button to install the App.
 
@@ -132,22 +132,22 @@ For GEN3PLUS devices, this can be done easily via the web interface of the devic
 
   1. [Container Setup](#container-setup)
   2. [Proxy Configuration](#proxy-configuration)
-  3. [Inverter and Batterie Configuration](#inverter-and-batterie-configuration) (only GEN3PLUS)
+  3. [Inverter and Battery Configuration](#inverter-and-battery-configuration) (only GEN3PLUS)
   4. [DNS Settings](#dns-settings) (Mandatory for GEN3)
 
 ## Container Setup
 
-No special configuration is required for the Docker container if it is built and started as described above. It is recommended to start the container with docker-compose. The configuration is then specified in a docker-compose.yaml file. An example of a stack consisting of the proxy, MQTT broker and home assistant can be found [here](https://github.com/s-allius/tsun-gen3-proxy/blob/main/docker-compose.yaml).
+No special configuration is required for the Docker container if it is built and started as described above. It is recommended to start the container with docker-compose. The configuration is then specified in a docker-compose.yaml file. An example of a stack consisting of the proxy, MQTT broker and home assistant can be found here: [Docker Compose Example](https://github.com/s-allius/tsun-gen3-proxy/blob/main/docker-compose.yaml).
 
 On the host, two directories (for log files and for config files) must be mapped. If necessary, the UID of the proxy process can be adjusted, which is also the owner of the log and configuration files.
 
-A description of the configuration parameters can be found [here](https://github.com/s-allius/tsun-gen3-proxy/wiki/configuration-env#docker-compose-environment-variables)
+A description of the configuration parameters can be found here: [Environment Variables](https://github.com/s-allius/tsun-gen3-proxy/wiki/configuration-env#docker-compose-environment-variables)
 
 ## Proxy Configuration
 
 The proxy can be configured via the file 'config.toml'. When the proxy is started, a file 'config.example.toml' is copied into the config directory. This file shows all possible parameters and their default values. Changes in the example file itself are not evaluated. To configure the proxy, the config.example.toml file should be renamed to config.toml. After that the corresponding values can be adjusted. To load the new configuration, the proxy must be restarted.
 
-The configration uses the TOML format, which aims to be easy to read due to obvious semantics.
+The configuration uses the TOML format, which aims to be easy to read due to obvious semantics.
 You find more details here: <https://toml.io/en/v1.0.0>
 
 <details>
@@ -360,11 +360,11 @@ mqtt.block = []
 
 </details>
 
-## Inverter and Batterie Configuration
+## Inverter and Battery Configuration
 
 GEN3PLUS devices (inverter, batteries, ...) offer a web interface that can be used to configure it. This is very practical for sending the data directly to the proxy. On the one hand, the device broadcasts its own SSID on 2.4GHz. This can be recognized because it is broadcast with `AP_<Montoring SN>`. You will find the `Monitor SN` and the password for the WLAN connection on a small sticker enclosed with the device.
 
-If you have already connected the device to the cloud via the TSUN app, you can also address the device directly via WiFi. In the first case, the device uses the fixed IP address `10.10.100.254`, in the second case you have to look up the IP address in your router.
+If you have already connected the device to the cloud via the TSUN app, you can also address the device directly via Wi-Fi. In the first case, the device uses the fixed IP address `10.10.100.254`, in the second case you have to look up the IP address in your router.
 
 The standard web interface of the device can be accessed at `http://<ip-adress>/index_cn.html`. Here you can set up the WLAN connection or change the password. The default user and password is `admin`/`admin`.
 
@@ -380,19 +380,19 @@ If access to the web interface does not work, it can also be redirected via DNS 
 
 ## Client Mode (GEN3PLUS only)
 
-Newer GEN3PLUS inverters, batteries and smart meter support SSL encrypted connections over port 10443 to the TSUN cloud. In this case you can't loop the proxy into this connection, since the certicate verification of the device don't allow this. You can configure the proxy in client-mode to establish an unencrypted connection to the inverter. For this porpuse the device listen on port `8899`.
+Newer GEN3PLUS inverters, batteries and smart meter support SSL encrypted connections over port 10443 to the TSUN cloud. In this case you can't loop the proxy into this connection, since the certificate verification of the device don't allow this. You can configure the proxy in client-mode to establish an unencrypted connection to the inverter. For this purpose the device listen on port `8899`.
 
 There are some requirements to be met:
 
-- the device should have a fixed IP
+- The device should have a fixed IP
 - the proxy must be able to reach the device. You must configure a corresponding route in your router if the device and the proxy are in different IP networks
-- add a 'client_mode' line to your config.toml file, to specify the device's ip address
+- add a 'client_mode' line to your config.toml file, to specify the device's IP address
 
 ## DNS Settings
 
 ### Loop the proxy into the connection
 
-To include the proxy in the connection between the device and the TSUN Cloud, you must adapt the DNS record of *logger.talent-monitoring.com* within the network that your deivce uses. You need a mapping from logger.talent-monitoring.com to the IP address of the host running the Docker engine.
+To include the proxy in the connection between the device and the TSUN Cloud, you must adapt the DNS record of *logger.talent-monitoring.com* within the network that your device uses. You need a mapping from logger.talent-monitoring.com to the IP address of the host running the Docker engine.
 
 The new GEN3 PLUS devices use a different URL. Here, *iot.talent-monitoring.com* must be redirected.
 
@@ -468,4 +468,4 @@ We're very happy to receive contributions to this project! You can get started b
 The changelog lives in [CHANGELOG.md](https://github.com/s-allius/tsun-gen3-proxy/blob/main/CHANGELOG.md). It follows the principles of [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 [repository-badge]: https://img.shields.io/badge/Add%20repository%20to%20my-Home%20Assistant-41BDF5?logo=home-assistant&style=for-the-badge
-[repository-url]: https://my.home-assistant.io/redirect/supervisor_add_addon_repository/?repository_url=https%3A%2F%2Fgithub.com%2Fs-allius%2Fha-addons
+[repository_url]: https://my.home-assistant.io/redirect/supervisor_add_addon_repository/?repository_url=https%3A%2F%2Fgithub.com%2Fs-allius%2Fha-addons
