@@ -71,19 +71,19 @@ configuration:
   mqtt.host:
     name: MQTT Broker Host
     description: >-
-      Hostname oder IP-Adresse des MQTT-Brokers. Wenn nicht gesetzt, versucht das Addon, eine Verbindung zum Home Assistant MQTT-Broker herzustellen.
+      Hostname oder IP-Adresse des MQTT-Brokers. Wenn nicht gesetzt, versucht die App, eine Verbindung zum Home Assistant MQTT-Broker herzustellen.
   mqtt.port:
     name: MQTT Broker Port
     description: >-
-      Port des MQTT-Brokers. Wenn nicht gesetzt, versucht das Addon, eine Verbindung zum Home Assistant MQTT-Broker herzustellen.
+      Port des MQTT-Brokers. Wenn nicht gesetzt, versucht die App, eine Verbindung zum Home Assistant MQTT-Broker herzustellen.
   mqtt.user:
     name: MQTT Broker Benutzer
     description: >-
-      Benutzer für den MQTT-Broker. Wenn nicht gesetzt, versucht das Addon, eine Verbindung zum Home Assistant MQTT-Broker herzustellen.
+      Benutzer für den MQTT-Broker. Wenn nicht gesetzt, versucht die App, eine Verbindung zum Home Assistant MQTT-Broker herzustellen.
   mqtt.passwd:
     name: MQTT Broker Passwort
     description: >-
-      Passwort für den MQTT-Broker. Wenn nicht gesetzt, versucht das Addon, eine Verbindung zum Home Assistant MQTT-Broker herzustellen.
+      Passwort für den MQTT-Broker. Wenn nicht gesetzt, versucht die App, eine Verbindung zum Home Assistant MQTT-Broker herzustellen.
   ha.auto_conf_prefix:
     name: MQTT-Präfix für das Abonnieren von Home Assistant-Statusaktualisierungen
   ha.discovery_prefix:
@@ -97,11 +97,11 @@ configuration:
   tsun.host:
     name: TSUN Cloud Host
     description: >-
-      Hostname oder IP-Adresse der TSUN-Cloud. Wenn nicht gesetzt, versucht das Addon, eine Verbindung zur Cloud logger.talent-monitoring.com herzustellen.
+      Hostname oder IP-Adresse der TSUN-Cloud. Wenn nicht gesetzt, versucht die App, eine Verbindung zur Cloud logger.talent-monitoring.com herzustellen.
   solarman.host:
     name: Solarman Cloud Host
     description: >-
-      Hostname oder IP-Adresse der Solarman-Cloud. Wenn nicht gesetzt, versucht das Addon, eine Verbindung zur Cloud iot.talent-monitoring.com herzustellen.
+      Hostname oder IP-Adresse der Solarman-Cloud. Wenn nicht gesetzt, versucht die App, eine Verbindung zur Cloud iot.talent-monitoring.com herzustellen.
   gen3plus.at_acl.tsun.allow:
       name: TSUN GEN3PLUS ACL allow
       description: >-

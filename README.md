@@ -29,8 +29,8 @@ Through this, the device then establishes a connection to the proxy and the prox
 
 By means of `docker` a simple installation and operation is possible. By using `docker-composer`, a complete stack of proxy, `MQTT-brocker` and `home-assistant` can be started easily.
 
-Alternatively you can run the TSUN-Proxy as a Home Assistant Add-on. The installation of this add-on is pretty straightforward and not different in comparison to installing any other custom Home Assistant add-on.
-Follow the Instructions mentioned in the add-on subdirectory `ha_addons`.
+Alternatively you can run the TSUN-Proxy as a Home Assistant App. The installation of this App is pretty straightforward and not different in comparison to installing any other custom Home Assistant App.
+Follow the Instructions mentioned in the App subdirectory `ha_addons`.
 
 <br>
 ℹ️ This project is not related to the company TSUN. It is a private initiative that aims to connect TSUN inverters and storage systems with an MQTT broker. There is no support and no warranty from TSUN.
@@ -75,9 +75,9 @@ Here are some screenshots of how the inverter is displayed in the Home Assistant
 - A running Docker engine to host the container
 - Ability to loop the proxy into the connection between the device and the TSUN cloud
 
-### Requirements for Home Assistant Add-on Installation
+### Requirements for Home Assistant App Installation
 
-- Running Home Assistant on Home Assistant OS or Supervised. Container and Core installations doesn't support add-ons.
+- Running Home Assistant on Home Assistant OS or Supervised. Container and Core installations doesn't support Apps.
 - Ability to loop the proxy into the connection between the device and the TSUN cloud
 
 # Getting Started
@@ -109,18 +109,18 @@ With this information we can customize the `docker run`` statement:
 docker run  --dns '8.8.8.8' --env 'UID=1050' -p '5005:5005' -p '10000:10000' -v ./config:/home/tsun-proxy/config -v ./log:/home/tsun-proxy/log tsun-proxy
 ```
 
-## for Home Assistant Add-on Installation
+## for Home Assistant App Installation
 
-1. Add the repository URL to the Home Assistant add-on store
+1. Add the repository URL to the Home Assistant App store
 [![Add repository on my Home Assistant][repository-badge]][repository-url]
-2. Reload the add-on store page
-3. Click the "Install" button to install the add-on.
+2. Reload the App store page
+3. Click the "Install" button to install the App.
 
 # Configuration
 
 ```txt
 ❗The following description applies to the Docker installation. When installing the Home
-Assistant add-on, the configuration is carried out via the Home Assistant UI. Some of the
+Assistant App, the configuration is carried out via the Home Assistant UI. Some of the
 options described below are not required for this. Additionally, creating a config.toml
 file is not necessary. However, for a general understanding of the configuration and
 functionality, it is helpful to read the following description.
@@ -396,7 +396,7 @@ To include the proxy in the connection between the device and the TSUN Cloud, yo
 
 The new GEN3 PLUS devices use a different URL. Here, *iot.talent-monitoring.com* must be redirected.
 
-This can be done, for example, by adding a local DNS record to the Pi-hole if you are using it. User of the Home Assistant Add-on should use the AdGuard Add-on for this.
+This can be done, for example, by adding a local DNS record to the Pi-hole if you are using it. User of the Home Assistant App should use the AdGuard App for this.
 
 ### DNS Rebind Protection
 
