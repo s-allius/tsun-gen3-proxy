@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+## [0.15.0] - 2026-05-10
+
+- change the name `Add-On` to `App`
+- fixes the Web-UI links to the App Config and App Logs
 - Add changelog to the ha_addon pull request
 - Update sigstore/cosign-installer action to v4.1.2
 - fix add-on: allow mkdir for logfiles [#571](https://github.com/s-allius/tsun-gen3-proxy/issues/571)
