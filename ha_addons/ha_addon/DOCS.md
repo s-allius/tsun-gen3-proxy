@@ -1,4 +1,4 @@
-# Home Assistant Add-on: TSUN Proxy
+# Home Assistant App: TSUN Proxy
 
 [TSUN Proxy][tsunproxy] enables a reliable connection between TSUN third generation
 inverters and an MQTT broker. With the proxy, you can easily retrieve real-time values
@@ -8,14 +8,14 @@ The optional connection to the TSUN Cloud can be disabled!
 
 ## Pre-requisites
 
-1. This Add-on requires an MQTT broker to work.
-For a typical installation, we recommend the [Mosquitto add-on][Mosquitto] running on your Home Assistant.
+1. This App requires an MQTT broker to work.
+For a typical installation, we recommend the [Mosquitto App][Mosquitto] running on your Home Assistant.
 
 2. You need to loop the proxy into the connection between the inverter and the TSUN Cloud,
 you must adapt the DNS record within the network that your inverter uses. You need a mapping
 from logger.talent-monitoring.com and/or iot.talent-monitoring.com to the IP address of your
 Home Assistant.
-This can be done, for example, by adding a local DNS record to [AdGuard Home Add-on][AdGuard]
+This can be done, for example, by adding a local DNS record to [AdGuard Home App][AdGuard]
 (navigate to `filters` on the AdGuard panel and add an entry under `custom filtering rules`).
 
 ## Installation

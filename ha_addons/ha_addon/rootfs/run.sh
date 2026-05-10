@@ -1,7 +1,7 @@
 #!/usr/bin/with-contenv bashio
 
 bashio::log.blue "-----------------------------------------------------------"
-bashio::log.blue "run.sh: info: setup Add-on environment"
+bashio::log.blue "run.sh: info: setup app environment"
 bashio::cache.flush_all
 MQTT_HOST=""
 SLUG=""

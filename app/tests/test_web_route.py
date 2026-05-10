@@ -993,12 +993,12 @@ async def test_addon_links(client):
         response = await client.get('/')
         assert response.status_code == 200
         assert response.mimetype == 'text/html'
-        assert b'Add-on Config' in await response.data
-        assert b'href="/hassio/addon/c676133d_tsun-proxy/logs' in await response.data
-        assert b'href="/hassio/addon/c676133d_tsun-proxy/config' in await response.data
+        assert b'App Config' in await response.data
+        assert b'href="/config/app/c676133d_tsun-proxy/logs' in await response.data
+        assert b'href="/config/app/c676133d_tsun-proxy/config' in await response.data
 
     # check that links are not available if env vars SLUG and HOSTNAME are not defined (docker version)    
     response = await client.get('/')
     assert response.status_code == 200
     assert response.mimetype == 'text/html'
-    assert b'Add-on Config' not in await response.data
+    assert b'App Config' not in await response.data
