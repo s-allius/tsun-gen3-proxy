@@ -2,22 +2,18 @@
 configuration:
   inverters:
     name: Inverters
-    description: >+
-      For each inverter, the inverter's serial number must be mapped to an MQTT
-      definition. To do this, start the corresponding configuration block with the
-      16-digit serial number so that all subsequent parameters are assigned to this 
-      inverter.
-      Additional inverter-specific parameters (e.g., Polling Mode) can be set within 
-      the configuration block.
-
-      The serial numbers of GEN3 inverters start with 'R17' or 'R47', and those of GEN3PLUS
-      inverters start with 'Y00', 'Y17', or 'Y47'!
-
-      See the example configuration in the documentation tab.
     fields:
       serial:
         name: Serial Number
-        description: Inverter serial numbers start with 'R17', 'R47', 'Y00', 'Y17', or 'Y47'.
+        description: >-
+          For each inverter, the serial number must be mapped to an MQTT definition. 
+          Enter the 16-digit serial number here to start the configuration block. All 
+          subsequent parameters will be assigned to this inverter.
+          
+          Inverter serial numbers for GEN3 start with 'R17' or 'R47', and for GEN3PLUS 
+          with 'Y00', 'Y17', or 'Y47'.
+          
+          See the example configuration in the documentation tab.
       monitor_sn:
         name: Monitoring Serial Number
         description: The monitoring SN is located on an enclosed sticker (GEN3PLUS only).
@@ -58,21 +54,17 @@ configuration:
           this option if you want to use the forwarding feature.  batteries:
   batteries:
     name: Batteries
-    description: >+
-      For each energy storage system, the storage serial number must be mapped to an MQTT
-      definition. To do this, start the corresponding configuration block with the
-      16-digit serial number so that all subsequent parameters are assigned to this 
-      storage device.
-      Additional storage-specific parameters (e.g., Polling Mode) can be set within 
-      the configuration block.
-
-      The serial numbers of GEN3PLUS battery storage systems start with '410'!
-
-      See the example configuration in the documentation tab.
     fields:
       serial:
         name: Serial Number
-        description: Energy storage serial numbers start with '410' or 'Y00'.
+        description: >+
+          For each energy storage system, the storage serial number must be mapped to an MQTT definition. 
+          Enter the 16-digit serial number here to start the configuration block. All 
+          subsequent parameters will be assigned to this storage device.
+          
+          Energy storage serial numbers for GEN3PLUS systems start with '410' or 'Y00'.
+          
+          See the example configuration in the documentation tab.
       monitor_sn:
         name: Monitoring Serial Number
         description: The monitoring SN is located on an enclosed sticker (GEN3PLUS only).

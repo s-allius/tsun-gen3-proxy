@@ -2,22 +2,18 @@
 configuration:
   inverters:
     name: Wechselrichter
-    description: >+
-      Für jeden Wechselrichter muss die Seriennummer des Wechselrichters einer MQTT
-      Definition zugeordnet werden. Dazu wird der entsprechende Konfigurationsblock mit der
-      16-stelligen Seriennummer gestartet, so dass alle nachfolgenden Parameter diesem 
-      Wechselrichter zugeordnet sind.
-      Weitere wechselrichterspezifische Parameter (z.B. Polling Mode) können im 
-      Konfigurationsblock gesetzt werden.
-
-      Die Seriennummer der GEN3 Wechselrichter beginnen mit 'R17' oder 'R47' und die der GEN3PLUS
-      Wechselrichter mit 'Y00', 'Y17' oder 'Y47'!
-
-      Siehe Beispielkonfiguration im Dokumentations-Tab
     fields:
       serial:
         name: Seriennummer
-        description: Wechselrichter Seriennummer beginnen mit 'R17', 'R47', 'Y00', 'Y17' oder 'Y47'.
+        description: >-
+          Für jeden Wechselrichter muss die Seriennummer einer MQTT-Definition zugeordnet werden.
+          Tragen Sie hier die 16-stellige Seriennummer ein, um den Konfigurationsblock zu starten. Alle 
+          nachfolgenden Parameter werden diesem Wechselrichter zugeordnet.
+          
+          Die Seriennummern der GEN3-Wechselrichter beginnen mit 'R17' oder 'R47', die der 
+          GEN3PLUS-Wechselrichter mit 'Y00', 'Y17' oder 'Y47'.
+          
+          Siehe Beispielkonfiguration im Dokumentations-Tab.
       monitor_sn:
         name: Monitoring Seriennummer
         description: Die Monitoring SN befindet sich auf einem beigelegtem Aufkleber (nur GEN3PLUS)
@@ -58,21 +54,17 @@ configuration:
           Option, wenn Sie die Weiterleitung nutzen möchten.
   batteries:
     name: Batterien
-    description: >+
-      Für jeden Energiespeicher muss die Seriennummer des Speichers einer MQTT-Definition
-      zugeordnet werden. Dazu wird der entsprechende Konfigurationsblock mit der
-      16-stelligen Seriennummer gestartet, sodass alle nachfolgenden Parameter diesem 
-      Speicher zugeordnet sind.
-      Weitere speicherspezifische Parameter (z. B. Polling Mode) können im 
-      Konfigurationsblock gesetzt werden.
-
-      Die Seriennummern der GEN3PLUS-Batteriespeicher beginnen mit '410' oder 'Y00'!
-
-      Siehe Beispielkonfiguration im Dokumentations-Tab.
     fields:
       serial:
         name: Seriennummer
-        description: Energiespeicher-Seriennummern beginnen mit '410' oder 'Y00'.
+        description: >-
+          Für jeden Energiespeicher muss die Seriennummer des Speichers einer MQTT-Definition zugeordnet werden.
+          Tragen Sie hier die 16-stellige Seriennummer ein, um den Konfigurationsblock zu starten. Alle 
+          nachfolgenden Parameter werden diesem Speicher zugeordnet.
+          
+          Die Seriennummern der GEN3PLUS-Batteriespeicher beginnen mit '410' oder 'Y00'.
+          
+          Siehe Beispielkonfiguration im Dokumentations-Tab.
       monitor_sn:
         name: Monitoring-Seriennummer
         description: Die Monitoring-SN befindet sich auf einem beigelegten Aufkleber (nur GEN3PLUS).
