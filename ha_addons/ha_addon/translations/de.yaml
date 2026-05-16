@@ -55,6 +55,30 @@ configuration:
           Bei aktivem Client-Modus kann der Proxy die gelesenen Daten an die TSUN/Solarman Cloud 
           weiterleiten. Der Proxy emuliert dabei ein Gerät für die Cloud. Aktivieren Sie diese 
           Option, wenn Sie die Weiterleitung nutzen möchten.
+      pv1.manufacturer:
+        name: PV-1 Modul Hersteller            
+      pv1.type:
+        name: PV-1 Type-Bezeichnung
+      pv2.manufacturer:
+        name: PV-2 Modul Hersteller            
+      pv2.type:
+        name: PV-2 Type-Bezeichnung
+      pv3.manufacturer:
+        name: PV-3 Modul Hersteller            
+      pv3.type:
+        name: PV-3 Type-Bezeichnung
+      pv4.manufacturer:
+        name: PV-4 Modul Hersteller            
+      pv4.type:
+        name: PV-4 Type-Bezeichnung
+      pv5.manufacturer:
+        name: PV-5 Modul Hersteller            
+      pv5.type:
+        name: PV-5 Type-Bezeichnung
+      pv6.manufacturer:
+        name: PV-6 Modul Hersteller            
+      pv6.type:
+        name: PV-6 Type-Bezeichnung
   batteries:
     name: Batterien
     fields:
@@ -109,6 +133,14 @@ configuration:
           Bei aktivem Client-Modus kann der Proxy die gelesenen Daten an die TSUN/Solarman Cloud 
           weiterleiten. Der Proxy emuliert dabei ein Gerät für die Cloud. Aktivieren Sie diese 
           Option, wenn Sie die Weiterleitung nutzen möchten.
+      pv1.manufacturer:
+        name: PV-1 Modul Hersteller            
+      pv1.type:
+        name: PV-1 Type-Bezeichnung
+      pv2.manufacturer:
+        name: PV-2 Modul Hersteller            
+      pv2.type:
+        name: PV-2 Type-Bezeichnung
   tsun.enabled:
     name: Verbindung zur TSUN Cloud - nur für GEN3-Wechselrichter
     description: >+

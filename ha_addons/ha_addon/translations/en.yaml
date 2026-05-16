@@ -55,6 +55,14 @@ configuration:
           When Client Mode is active, the proxy can forward the retrieved data to the 
           TSUN/Solarman Cloud. The proxy then emulates a device for the cloud. Enable 
           this option if you want to use the forwarding feature.  batteries:
+      pv1.manufacturer:
+        name: PV-1 Manufacturer          
+      pv1.type:
+        name: PV-1 Type
+      pv2.manufacturer:
+        name: PV-2 Manufacturer          
+      pv2.type:
+        name: PV-2 Type
   batteries:
     name: Batteries
     fields:
@@ -109,6 +117,14 @@ configuration:
           When Client Mode is active, the proxy can forward the retrieved data to the 
           TSUN/Solarman Cloud. The proxy then emulates a device for the cloud. Enable 
           this option if you want to use the forwarding feature.
+      pv1.manufacturer:
+        name: PV-1 Manufacturer          
+      pv1.type:
+        name: PV-1 Type
+      pv2.manufacturer:
+        name: PV-2 Manufacturer          
+      pv2.type:
+        name: PV-2 Type
 
   tsun.enabled:
     name: Connection to TSUN Cloud - for GEN3 inverter only
