@@ -15,8 +15,11 @@ configuration:
           
           Siehe Beispielkonfiguration im Dokumentations-Tab.
       monitor_sn:
-        name: Monitoring Seriennummer
-        description: Die Monitoring SN befindet sich auf einem beigelegtem Aufkleber (nur GEN3PLUS)
+        name: Monitoring-Seriennummer (GEN3PLUS)
+        description: >-
+          GEN3PLUS-Wechselrichter besitzen eine Monitoring-Seriennummer für die Registrierung 
+          in der Solarman- oder TSUN-Cloud. Sie finden diese Nummer auf dem beiliegenden Aufkleber. 
+          Tragen Sie die Seriennummer hier ein, wenn der Proxy Ihre Daten an die Cloud weiterleiten soll.
       node_id:
         name: Node-ID
         description: >-
@@ -67,7 +70,10 @@ configuration:
           Siehe Beispielkonfiguration im Dokumentations-Tab.
       monitor_sn:
         name: Monitoring-Seriennummer
-        description: Die Monitoring-SN befindet sich auf einem beigelegten Aufkleber (nur GEN3PLUS).
+        description: >-
+          TSUN Energiespeicher besitzen eine Monitoring-Seriennummer für die Registrierung 
+          in der Solarman- oder TSUN-Cloud. Sie finden diese Nummer auf dem beiliegenden Aufkleber. 
+          Tragen Sie die Seriennummer hier ein, wenn der Proxy Ihre Daten an die Cloud weiterleiten soll.
       node_id:
         name: Node-ID
         description: >-
@@ -223,20 +229,18 @@ configuration:
       description: >-
         Liste blockierter MQTT-Befehle für GEN3PLUS
   logging:
-    name: Umfang der Protkollierung in Log-Dateien
+    name: Protokollierung & Speicherplatz (Logs)
     description: >-
-      Der Proxy protokolliert Betriebsereignisse in verschiedenen Log-Dateien, welche 
-      helfen Konfiguration- oder Kompatibilitätsprobleme zu finden und zu lösen. Um 
-      Mitternacht wird ein Rollover durchgeführt. Sprich den Dateien wird das Tagesdatum 
-      im Namen angehängt und für den neuen Tag werden neue Dateien erzeugt, sobald 
-      Logeinträge geschrieben werden.
-
-      Die Dateien können viel Speicherplatz beanspruchen. Hier kann konfiguriert werden, 
-      wie lange die Dateien vorgehalten werden und bis zu welchem Log-Level Einträge 
-      gespeichert werden.
+      Der Proxy speichert Betriebsereignisse in Log-Dateien, um Konfigurations- oder 
+      Kompatibilitätsprobleme zu lösen. Jeden Tag um Mitternacht erfolgt ein automatischer 
+      Wechsel (Rollover): Die alten Dateien erhalten das aktuelle Datum im Namen und neue 
+      Dateien werden erstellt. 
+      
+      Da diese Daten viel Speicherplatz beanspruchen, können Sie hier die maximale 
+      Aufbewahrungsdauer und das gewünschte Log-Level festlegen.
     fields:
       level:
-        name: Logging level
+        name: Log-Level
         description: >-
           DEBUG: Vollständige Protokollierung  -  
           INFO(default): Informationen, Warnungen und Fehlermeldungen  -  

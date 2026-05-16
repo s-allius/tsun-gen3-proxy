@@ -15,8 +15,11 @@ configuration:
           
           See the example configuration in the documentation tab.
       monitor_sn:
-        name: Monitoring Serial Number
-        description: The monitoring SN is located on an enclosed sticker (GEN3PLUS only).
+        name: Monitoring Serial Number (GEN3PLUS)
+        description: >-
+          GEN3PLUS inverters have a monitoring serial number required for registration 
+          with the Solarman or TSUN cloud. You can find this number on the included sticker. 
+          Enter the serial number here if you want the proxy to forward your data to the cloud.
       node_id:
         name: Node ID
         description: >-
@@ -67,7 +70,10 @@ configuration:
           See the example configuration in the documentation tab.
       monitor_sn:
         name: Monitoring Serial Number
-        description: The monitoring SN is located on an enclosed sticker (GEN3PLUS only).
+        description: >-
+          TSUN enerfy storage systems have a monitoring serial number required for registration 
+          with the Solarman or TSUN cloud. You can find this number on the included sticker. 
+          Enter the serial number here if you want the proxy to forward your data to the cloud.
       node_id:
         name: Node ID
         description: >-
@@ -227,18 +233,17 @@ configuration:
       description: >-
           List of blocked MQTT GEN3PLUS commands
   logging:
-    name: Scope of logging in log files
+    name: Logging & Storage
     description: >-
-      The proxy logs operational events in various log files, which help identify and 
-      resolve configuration or compatibility issues. A rollover is performed at midnight. 
-      This means that the current date is appended to the file names, and new files are 
-      created for the new day as soon as log entries are written.
-
-      These files can take up a lot of storage space. Here, you can configure how long 
-      the files are retained and up to which log level entries are saved.
+      The proxy records operational events in log files to help identify and resolve configuration 
+      or compatibility issues. Every day at midnight, an automatic rollover occurs: existing files 
+      are renamed with the current date, and new files are created as entries come in. 
+      
+      Since these files can consume significant disk space, you can configure the retention period 
+      and the maximum log level here.
     fields:
       level:
-        name: Logging level
+        name: Log level
         description: >-
           DEBUG: Complete logging  -  
           INFO(default): Information, warnings, and error messages  -  
