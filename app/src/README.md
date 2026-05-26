@@ -37,7 +37,7 @@ The application loads configuration in the following priority:
 
 - `LOG_LVL`: Set to `DEBUG`, `INFO`, `WARN`, or `ERROR`.
 - `SERVICE_NAME`: The name identifying this instance (default: `proxy`).
-- `SLUG` / `HOSTNAME`: Used for Home Assistant Add-on identification.
+- `SLUG` / `HOSTNAME`: Used for Home Assistant App identification.
 
 ---
 
@@ -76,7 +76,7 @@ We use the **GitLab Flow** strategy.
 - **Feature Development:** Use feature branches, merge via PR to `main`.
 - **Releases:** Creating a tag like `v1.2.0-rc1` or `v1.2.0-rel` triggers a GitHub Action that:
   1. Builds the Docker container.
-  2. Packages the Home Assistant Add-on.
+  2. Packages the Home Assistant App.
   3. Signs the images and creates a PR for the Home Assistant Repository.
 
 ---

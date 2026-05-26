@@ -1,7 +1,7 @@
 #include <tunables/global>
 
 # ==========================================================
-#  AppArmor Profile for TSUN-Proxy Home Assistant Add-on.
+#  App Armor Profile for TSUN-Proxy Home Assistant App.
 #  This profile manages a dual-stage execution:
 #  1. Main Profile: Handles S6-Overlay initialization and Bashio.
 #  2. Child Profile (myprogram): Restricted environment for the Python application.
@@ -42,6 +42,8 @@ profile {{slug}} flags=(attach_disconnected,mediate_deleted) {
   /etc/cont-init.d/** ix,
   /etc/cont-finish.d/** ix,
   /usr/lib/bashio/** ix,
+  /homeassistant/tsun-proxy/ rw,
+  /homeassistant/tsun-proxy/** rwk,
   /data/** rw,
   /tmp/** rwk,
   

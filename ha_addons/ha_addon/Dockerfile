@@ -2,7 +2,7 @@
 ############################################################################
 #
 # TSUN Proxy
-# Homeassistant Add-on
+# Homeassistant App
 # 
 # based on https://github.com/s-allius/tsun-gen3-proxy/tree/main
 #

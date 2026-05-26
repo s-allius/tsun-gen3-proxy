@@ -5,66 +5,102 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [unreleased]
+## [Unreleased]
 
-- Update ghcr.io/hassio-addons/base Docker tag to v20.1.1
-- use github action to build and sign the add-on and proxy image
-- add-on: fix and improve AppAmore profile [#555](https://github.com/s-allius/tsun-gen3-proxy/issues/555)
-- fix exception attribute error [#550](https://github.com/s-allius/tsun-gen3-proxy/issues/550)
+### Changed
+
+- Update dependency coverage to v7.14.0
+- Update dependency python to v3.14.5
+
+## [0.15.0] - 2026-05-10
+
+### Added
+
+- Add changelog to the ha_addon pull request
 - add network tests to the web UI [#452](https://github.com/s-allius/tsun-gen3-proxy/issues/452)
+- Option to disable the TCP listener if it is not needed #510
+- allow serial numbers starting with 'Y00' for battery systems #530
+- HA App: Configure the LOG level from the HA configuration [#539](https://github.com/s-allius/tsun-gen3-proxy/issues/539)
+- HA App: Add translations for the log configuration
+- HA App: Configure the retention time for log files [#536](https://github.com/s-allius/tsun-gen3-proxy/issues/536)
+- HA App: Erase multiple log files in one step [#534](https://github.com/s-allius/tsun-gen3-proxy/issues/534)
+- HA App: add links to config and log-file to the web-UI
+
+### Changed
+
+- change the name `Add-On` to `App`
+- Update sigstore/cosign-installer action to v4.1.2
+- Update ghcr.io/hassio-addons/base Docker tag to v20.1.1
 - Update ghcr.io/hassio-addons/base Docker tag to v20.1.0
 - Update python Docker tag to v3.14.4
 - Update ghcr.io/hassio-addons/base Docker tag to v20.0.4
-- Option to disable the TCP listener if it is not needed #510
-- allow serial numbers starting with 'Y00' for battery systems #530
-- add-on: Configure the LOG level from the HA configuration [#539](https://github.com/s-allius/tsun-gen3-proxy/issues/539)
-- add-on: Add translations for the log configuration
-- add-on: Configure the retention time for log files [#536](https://github.com/s-allius/tsun-gen3-proxy/issues/536)
-- add-on: Erase multiple logfiles in one step [#534](https://github.com/s-allius/tsun-gen3-proxy/issues/534)
-- bug fix for file retention from @mime24 [#522](https://github.com/s-allius/tsun-gen3-proxy/issues/522)
-- use python 3.14 in github action
+- use python 3.14 in GitHub action
 - Update dependency pytest to v9.0.3
 - Update dependency pytest-cov to v7.1.0
 - Update dependency python-dotenv to v1.2.2
 - Update ghcr.io/hassio-addons/base Docker tag to v20
-- add-on: bump to py3-pip=25.1.1-r1
+- HA App: bump to py3-pip=25.1.1-r1
 - Update dependency jinja2-cli to v1
 - Update dependency aiomqtt to v2.5.1
 - Update dependency coverage to v7.13.5
 - Update ghcr.io/hassio-addons/base Docker tag to v18.1.4
 - Update dependency pytest-asyncio to v1.1.0
-- save task references, to avoid a task disappearing mid-execution
-- catch socket.gaierror exception and log this with info level
 - Update dependency coverage to v7.9.2
-- add-on: bump base-image to version 18.0.3
-- add-on: remove armhf and armv7 support
-- add-on: add links to config and log-file to the web-UI
-- fix some SonarQube warnings
-- remove unused 32-bit architectures
-- Babel don't build new po file if only the pot creation-date was changed
+- HA App: bump base-image to version 18.0.3
 - Improve Makefile
 - Update dependency pytest-asyncio to v1
 
+### Removed
+
+- HA App: remove armhf and armv7 support
+- remove unused 32-bit architectures
+
+### Fixed
+
+- fixes the Web-UI links to the App Config and App Logs
+- fix HA App: allow mkdir for log files [#571](https://github.com/s-allius/tsun-gen3-proxy/issues/571)
+- fix exception attribute error [#550](https://github.com/s-allius/tsun-gen3-proxy/issues/550)
+- bug fix for file retention from @mime24 [#522](https://github.com/s-allius/tsun-gen3-proxy/issues/522)
+- save task references, to avoid a task disappearing mid-execution
+- catch socket.gaierror exception and log this with info level
+- fix some SonarQube warnings
+- Babel don't build new po file if only the pot creation-date was changed
+
+### Security
+
+- New GitHub action to build and sign the HA App and proxy image
+- HA App: fix and improve AppAmore profile [#555](https://github.com/s-allius/tsun-gen3-proxy/issues/555)
+
 ## [0.14.1] - 2025-05-31
+
+### Fixed
 
 - handle missing MQTT addon [#438](https://github.com/s-allius/tsun-gen3-proxy/issues/438)
 
 ## [0.14.0] - 2025-05-29
 
-- add-on: bump python to version 3.12.10-r1
-- set no of pv modules for MS800 GEN3PLUS inverters
-- fix the paths to copy the config.example.toml file during proxy start
+### Added
+
 - add MQTT topic `dcu_power` for setting output power on DCUs
-- Update ghcr.io/hassio-addons/base Docker tag to v17.2.5
-- fix a lot of pytest-asyncio problems in the unit tests  
-- Cleanup startup code for Quart and the Proxy
-- Redirect the hypercorn traces to a separate log-file
-- Configure the dashboard trace handler by the logging.ini file
 - Dashboard: add Notes page and table for important messages
 - Dashboard: add Log-File page
 - Dashboard: add Connection page
 - add web UI to add-on
 - allow `Y00` serial numbers for GEN3PLUS devices
+
+### Changed
+
+- add-on: bump python to version 3.12.10-r1
+- set no of pv modules for MS800 GEN3PLUS inverters
+- Update ghcr.io/hassio-addons/base Docker tag to v17.2.5
+- Cleanup startup code for Quart and the Proxy
+- Redirect the hypercorn traces to a separate log-file
+- Configure the dashboard trace handler by the logging.ini file
+
+### Fixed
+
+- fix the paths to copy the config.example.toml file during proxy start
+- fix a lot of pytest-asyncio problems in the unit tests  
 
 ## [0.13.0] - 2025-04-13
 

@@ -1,0 +1,1 @@
+{"rule":"MORFOLOGIK_RULE_EN_US","sentence":"^\\QAdd the repository URL to the Home Assistant app store [Add repository on my Home Assistant]repository-url\nReload the app store page\nClick the \"Install\" button to install the app.\\E$"}
