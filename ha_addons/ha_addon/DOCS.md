@@ -110,6 +110,31 @@ By default, this app requires no `mqtt` config from the user. **This is not an e
 However, you are free to set them if you want to override, however, in
 general usage, that should not be needed and is not recommended for this app.
 
+## Troubleshooting: "Missing option" Configuration Errors
+
+If you switch the Add-on configuration tab to **YAML mode** and manually delete or modify sections, you might encounter an error upon saving or starting the add-on, such as:
+
+> _Saving failed: Missing option 'mqtt' in root in TSUN-Proxy_
+
+or:
+
+> _Saving failed: Missing option 'ha' in root in TSUN-Proxy_
+
+### Why this happens
+
+The Home Assistant Supervisor requires both structural keys (`mqtt:` and `ha:`) to be present on the root level of your configuration, even if they are empty. If you completely erase the `mqtt:` or `ha:` blocks from the YAML text editor, the system will block the save process.
+
+### How to fix it
+
+Do not delete these objects. If you want to use the default internal Home Assistant configuration without manual overrides, simply leave the blocks empty like this:
+
+```yaml
+mqtt: {}
+ha: {}
+```
+
+As long as both blocks are present in your YAML configuration, the system will validate correctly, allow you to save, and the proxy will use the recommended automatic defaults.
+
 ## Changelog & Releases
 
 This repository keeps a change log using [GitHub's releases][releases]

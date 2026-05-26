@@ -2,31 +2,129 @@
 configuration:
   inverters:
     name: Inverters
-    description: >+
-      For each GEN3 inverter, the serial number of the inverter must be mapped to an MQTT
-      definition. To do this, the corresponding configuration block is started with
-      16-digit serial number so that all subsequent parameters are assigned
-      to this inverter. Further inverter-specific parameters (e.g. polling mode) can be set
-      in the configuration block.
-
-      The serial numbers of all GEN3 inverters start with `R17` or `R47` and that of the GEN3PLUS
-      inverters with 'Y00', ‘Y17’ or ‘Y47’!
-      
-      For reference see example configuration in Documentation Tab
-
+    fields:
+      serial:
+        name: Serial Number
+        description: >-
+          For each inverter, the serial number must be mapped to an MQTT definition. 
+          Enter the 16-digit serial number here to start the configuration block. All 
+          subsequent parameters will be assigned to this inverter.
+          
+          Inverter serial numbers for GEN3 start with 'R17' or 'R47', and for GEN3PLUS 
+          with 'Y00', 'Y17', or 'Y47'.
+          
+          See the example configuration in the documentation tab.
+      monitor_sn:
+        name: Monitoring Serial Number (GEN3PLUS)
+        description: >-
+          GEN3PLUS inverters have a monitoring serial number required for registration 
+          with the Solarman or TSUN cloud. You can find this number on the included sticker. 
+          Enter the serial number here if you want the proxy to forward your data to the cloud.
+      node_id:
+        name: Node ID
+        description: >-
+          The Node ID uniquely assigns data to each device and is part of the MQTT 
+          topics. Please ensure that every device (inverters as well as batteries) 
+          has a unique Node ID. Otherwise, measurement data from different devices 
+          will overwrite each other.
+      suggested_area:
+        name: Default Area (Room)
+        description: >-
+          Specify the default area (e.g., "Solar", "Garage", or "Basement") where this 
+          device should be automatically assigned upon initial discovery in Home Assistant.
+      modbus_polling:
+        name: ModBus Polling
+        description: >-
+          By default, the devices transmit their readings every 5 minutes. Enabling the 
+          ModBus polling option allows the proxy to additionally poll the data every 
+          minute, updating it in both the MQTT broker and Home Assistant.
+      client_mode.host:
+        name: Client Mode - Device IP
+        description: >-
+          Some devices support incoming connections to provide data via ModBus TCP 
+          within the LAN. Enabling Client Mode allows the proxy to establish this 
+          connection. For stable operation, the device must be assigned a static 
+          IP address. Enter the static device IP here.
+      client_mode.port:
+        name: Client Mode - Device Port Number
+        description: >-
+          Specify the network port used for the ModBus TCP connection. The default port is 8899.
+      client_mode.forward:
+        name: Client Mode - Forwarding
+        description: >-
+          When Client Mode is active, the proxy can forward the retrieved data to the 
+          TSUN/Solarman Cloud. The proxy then emulates a device for the cloud. Enable 
+          this option if you want to use the forwarding feature.  batteries:
+      pv1.manufacturer:
+        name: PV-1 Manufacturer          
+      pv1.type:
+        name: PV-1 Type
+      pv2.manufacturer:
+        name: PV-2 Manufacturer          
+      pv2.type:
+        name: PV-2 Type
   batteries:
-    name: Energy Storages
-    description: >+
-      For each energy storage device, the serial number of the storage device must be
-      assigned to an MQTT definition. To do this, the corresponding configuration block
-      is started with the 16-digit serial number so that all subsequent parameters are
-      assigned to this energy storage. Further inverter-specific parameters (e.g. polling
-      mode) can be set in the configuration block.
-
-      The serial numbers of all GEN3PLUS energy storages start with ‘410’!
-
-      For reference see example configuration in Documentation Tab
-
+    name: Batteries
+    fields:
+      serial:
+        name: Serial Number
+        description: >+
+          For each energy storage system, the storage serial number must be mapped to an MQTT definition. 
+          Enter the 16-digit serial number here to start the configuration block. All 
+          subsequent parameters will be assigned to this storage device.
+          
+          Energy storage serial numbers for GEN3PLUS systems start with '410' or 'Y00'.
+          
+          See the example configuration in the documentation tab.
+      monitor_sn:
+        name: Monitoring Serial Number
+        description: >-
+          TSUN enerfy storage systems have a monitoring serial number required for registration 
+          with the Solarman or TSUN cloud. You can find this number on the included sticker. 
+          Enter the serial number here if you want the proxy to forward your data to the cloud.
+      node_id:
+        name: Node ID
+        description: >-
+          The Node ID uniquely assigns data to each device and is part of the MQTT 
+          topics. Please ensure that every device (inverters as well as batteries) 
+          has a unique Node ID. Otherwise, measurement data from different devices 
+          will overwrite each other.
+      suggested_area:
+        name: Default Area (Room)
+        description: >-
+          Specify the default area (e.g., "Solar", "Garage", or "Basement") where this 
+          device should be automatically assigned upon initial discovery in Home Assistant.
+      modbus_polling:
+        name: ModBus Polling
+        description: >-
+          By default, the devices transmit their readings every 5 minutes. Enabling the 
+          ModBus polling option allows the proxy to additionally poll the data every 
+          minute, updating it in both the MQTT broker and Home Assistant.
+      client_mode.host:
+        name: Client Mode - Device IP
+        description: >-
+          Some devices support incoming connections to provide data via ModBus TCP 
+          within the LAN. Enabling Client Mode allows the proxy to establish this 
+          connection. For stable operation, the device must be assigned a static 
+          IP address. Enter the static device IP here.
+      client_mode.port:
+        name: Client Mode - Device Port Number
+        description: >-
+          Specify the network port used for the ModBus TCP connection. The default port is 8899.
+      client_mode.forward:
+        name: Client Mode - Forwarding
+        description: >-
+          When Client Mode is active, the proxy can forward the retrieved data to the 
+          TSUN/Solarman Cloud. The proxy then emulates a device for the cloud. Enable 
+          this option if you want to use the forwarding feature.
+      pv1.manufacturer:
+        name: PV-1 Manufacturer          
+      pv1.type:
+        name: PV-1 Type
+      pv2.manufacturer:
+        name: PV-2 Manufacturer          
+      pv2.type:
+        name: PV-2 Type
 
   tsun.enabled:
     name: Connection to TSUN Cloud - for GEN3 inverter only
@@ -68,32 +166,62 @@ configuration:
     description: >-
       The proxy only usually accepts connections from configured inverters.
       Switch on for test purposes and unknown serial numbers.
-  mqtt.host:
-    name: MQTT Broker Host
+
+  mqtt:
+    name: MQTT Broker
     description: >-
-      Hostname or IP address of the MQTT broker. if not set, the app will try to connect to the Home Assistant MQTT broker
-  mqtt.port:
-    name: MQTT Broker Port
+      Home Assistant includes an MQTT Mosquitto integration. If this is used, the 
+      proxy is configured automatically and NO MQTT credentials must be entered here. 
+      We recommend this operating mode for the proxy.
+
+      If an external MQTT broker is to be used, the necessary credentials must 
+      be entered here.
+    fields:
+      host:
+        name: MQTT Broker Host
+        description: >-
+          Hostname or IP address of the MQTT broker.
+      port:
+        name: MQTT Broker Port
+        description: >-
+          Port of the MQTT broker.
+      user:
+        name: MQTT Broker User
+        description: >-
+          Username for the MQTT broker.
+      passwd:
+        name: MQTT Broker Password
+        description: >-
+          Password for the MQTT broker.
+
+  ha:
+    name: Home Assistant MQTT Parameters
     description: >-
-      Port of the MQTT broker. if not set, the app will try to connect to the Home Assistant MQTT broker
-  mqtt.user:
-    name: MQTT Broker User
-    description: >-
-      User for the MQTT broker. if not set, the app will try to connect to the Home Assistant MQTT broker
-  mqtt.passwd:
-    name: MQTT Broker Password
-    description: >-
-      Password for the MQTT broker. if not set, the app will try to connect to the Home Assistant MQTT broker
-  ha.auto_conf_prefix:
-    name: MQTT prefix for subscribing for homeassistant status updates
-  ha.discovery_prefix:
-    name: MQTT prefix for discovery topic
-  ha.entity_prefix:
-    name: MQTT topic prefix for publishing inverter values
-  ha.proxy_node_id:
-    name: MQTT node id, for the proxy_node_id
-  ha.proxy_unique_id:
-    name: MQTT unique id, to identify a proxy instance
+      If you do not run your MQTT broker with the standard Home Assistant configuration, 
+      you can adjust the prefixes here. Please only modify these settings if you know 
+      exactly what they do.
+    fields:
+      auto_conf_prefix:
+        name: Auto-Config Prefix
+        description: >-
+          MQTT prefix for subscribing to Home Assistant status updates.
+      discovery_prefix:
+        name: Discovery Prefix
+        description: >-
+          MQTT prefix for the discovery topic.
+      entity_prefix:
+        name: Entity Prefix
+        description: >-
+          MQTT topic prefix for publishing inverter readings.
+      proxy_node_id:
+        name: Proxy Node ID
+        description: >-
+          MQTT node ID for this proxy instance.
+      proxy_unique_id:
+        name: Proxy Unique ID
+        description: >-
+          Unique MQTT ID used to identify a specific proxy instance.
+
   tsun.host:
     name: TSUN Cloud Host
     description: >-
@@ -121,18 +249,17 @@ configuration:
       description: >-
           List of blocked MQTT GEN3PLUS commands
   logging:
-    name: Scope of logging in log files
+    name: Logging & Storage
     description: >-
-      The proxy logs operational events in various log files, which help identify and 
-      resolve configuration or compatibility issues. A rollover is performed at midnight. 
-      This means that the current date is appended to the file names, and new files are 
-      created for the new day as soon as log entries are written.
-
-      These files can take up a lot of storage space. Here, you can configure how long 
-      the files are retained and up to which log level entries are saved.
+      The proxy records operational events in log files to help identify and resolve configuration 
+      or compatibility issues. Every day at midnight, an automatic rollover occurs: existing files 
+      are renamed with the current date, and new files are created as entries come in. 
+      
+      Since these files can consume significant disk space, you can configure the retention period 
+      and the maximum log level here.
     fields:
       level:
-        name: Logging level
+        name: Log level
         description: >-
           DEBUG: Complete logging  -  
           INFO(default): Information, warnings, and error messages  -  
