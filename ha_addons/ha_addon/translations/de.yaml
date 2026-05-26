@@ -2,32 +2,145 @@
 configuration:
   inverters:
     name: Wechselrichter
-    description: >+
-      Für jeden Wechselrichter muss die Seriennummer des Wechselrichters einer MQTT
-      Definition zugeordnet werden. Dazu wird der entsprechende Konfigurationsblock mit der
-      16-stellige Seriennummer gestartet, so dass alle nachfolgenden Parameter diesem 
-      Wechselrichter zugeordnet sind.
-      Weitere wechselrichterspezifische Parameter (z.B. Polling Mode) können im 
-      Konfigurationsblock gesetzt werden.
-
-      Die Seriennummer der GEN3 Wechselrichter beginnen mit 'R17' oder 'R47' und die der GEN3PLUS
-      Wechselrichter mit 'Y00', 'Y17' oder 'Y47'!
-
-      Siehe Beispielkonfiguration im Dokumentations-Tab
+    fields:
+      serial:
+        name: Seriennummer
+        description: >-
+          Für jeden Wechselrichter muss die Seriennummer einer MQTT-Definition zugeordnet werden.
+          Tragen Sie hier die 16-stellige Seriennummer ein, um den Konfigurationsblock zu starten. Alle 
+          nachfolgenden Parameter werden diesem Wechselrichter zugeordnet.
+          
+          Die Seriennummern der GEN3-Wechselrichter beginnen mit 'R17' oder 'R47', die der 
+          GEN3PLUS-Wechselrichter mit 'Y00', 'Y17' oder 'Y47'.
+          
+          Siehe Beispielkonfiguration im Dokumentations-Tab.
+      monitor_sn:
+        name: Monitoring-Seriennummer (GEN3PLUS)
+        description: >-
+          GEN3PLUS-Wechselrichter besitzen eine Monitoring-Seriennummer für die Registrierung 
+          in der Solarman- oder TSUN-Cloud. Sie finden diese Nummer auf dem beiliegenden Aufkleber. 
+          Tragen Sie die Seriennummer hier ein, wenn der Proxy Ihre Daten an die Cloud weiterleiten soll.
+      node_id:
+        name: Node-ID
+        description: >-
+          Die Node-ID dient der eindeutigen Zuordnung von Messdaten zu einem bestimmten Gerät und ist 
+          fester Bestandteil der MQTT-Topics. Bitte stellen Sie sicher, dass jedes Gerät – sowohl 
+          Wechselrichter als auch Batterien – eine eindeutige Node-ID verwendet. Bei identischen IDs werden 
+          die Daten der Geräte gegenseitig überschrieben.
+      suggested_area:
+        name: Standard-Bereich (Raum)
+        description: >-
+          Geben Sie hier den Standard-Bereich (z. B. „Solar“, „Garage“ oder „Keller“) an, dem dieses 
+          Gerät bei der initialen Erkennung in Home Assistant automatisch zugeordnet werden soll.
+      modbus_polling:
+        name: ModBus Polling
+        description:  >-
+          Die Geräte senden ihre Messwerte standardmäßig alle 5 Minuten. Durch Aktivieren der 
+          ModBus-Polling-Option fragt der Proxy die Messwerte zusätzlich jede Minute ab und aktualisiert 
+          sie direkt im MQTT-Broker sowie in Home Assistant.
+      client_mode.host:
+          name: Client Mode - Geräte IP
+          description: >-
+            Einige Geräte unterstützen eingehende Verbindungen, um Daten per ModBus-TCP im LAN 
+            bereitzustellen. Durch Aktivieren des Client-Modus baut der Proxy diese Verbindung 
+            automatisch auf. Für einen stabilen Betrieb muss dem Gerät eine feste IP-Adresse zugewiesen 
+            sein. Tragen Sie diese feste IP-Adresse hier ein.
+      client_mode.port:
+        name: Client Mode - Geräte Portnummer
+        description: >-
+          Spezifizieren Sie hier den Port für die ModBus-TCP-Verbindung. Der Standardport ist 8899.
+      client_mode.forward:
+        name: Client Mode - Weiterleitung
+        description: >-
+          Bei aktivem Client-Modus kann der Proxy die gelesenen Daten an die TSUN/Solarman Cloud 
+          weiterleiten. Der Proxy emuliert dabei ein Gerät für die Cloud. Aktivieren Sie diese 
+          Option, wenn Sie die Weiterleitung nutzen möchten.
+      pv1.manufacturer:
+        name: PV-1 Modul Hersteller            
+      pv1.type:
+        name: PV-1 Type-Bezeichnung
+      pv2.manufacturer:
+        name: PV-2 Modul Hersteller            
+      pv2.type:
+        name: PV-2 Type-Bezeichnung
+      pv3.manufacturer:
+        name: PV-3 Modul Hersteller            
+      pv3.type:
+        name: PV-3 Type-Bezeichnung
+      pv4.manufacturer:
+        name: PV-4 Modul Hersteller            
+      pv4.type:
+        name: PV-4 Type-Bezeichnung
+      pv5.manufacturer:
+        name: PV-5 Modul Hersteller            
+      pv5.type:
+        name: PV-5 Type-Bezeichnung
+      pv6.manufacturer:
+        name: PV-6 Modul Hersteller            
+      pv6.type:
+        name: PV-6 Type-Bezeichnung
   batteries:
     name: Batterien
-    description: >+
-      Für jeden Energiespeicher muss die Seriennummer des Speichers einer MQTT
-      Definition zugeordnet werden. Dazu wird der entsprechende Konfigurationsblock mit der
-      16-stellige Seriennummer gestartet, so dass alle nachfolgenden Parameter diesem 
-      Speicher zugeordnet sind.
-      Weitere speicherspezifische Parameter (z.B. Polling Mode) können im 
-      Konfigurationsblock gesetzt werden.
-
-      Die Seriennummer der GEN3PLUS Batteriespeicher beginnen mit `410`!
-
-      Siehe Beispielkonfiguration im Dokumentations-Tab
-
+    fields:
+      serial:
+        name: Seriennummer
+        description: >-
+          Für jeden Energiespeicher muss die Seriennummer des Speichers einer MQTT-Definition zugeordnet werden.
+          Tragen Sie hier die 16-stellige Seriennummer ein, um den Konfigurationsblock zu starten. Alle 
+          nachfolgenden Parameter werden diesem Speicher zugeordnet.
+          
+          Die Seriennummern der GEN3PLUS-Batteriespeicher beginnen mit '410' oder 'Y00'.
+          
+          Siehe Beispielkonfiguration im Dokumentations-Tab.
+      monitor_sn:
+        name: Monitoring-Seriennummer
+        description: >-
+          TSUN Energiespeicher besitzen eine Monitoring-Seriennummer für die Registrierung 
+          in der Solarman- oder TSUN-Cloud. Sie finden diese Nummer auf dem beiliegenden Aufkleber. 
+          Tragen Sie die Seriennummer hier ein, wenn der Proxy Ihre Daten an die Cloud weiterleiten soll.
+      node_id:
+        name: Node-ID
+        description: >-
+          Die Node-ID dient der eindeutigen Zuordnung von Messdaten zu einem bestimmten Gerät und ist 
+          fester Bestandteil der MQTT-Topics. Bitte stellen Sie sicher, dass jedes Gerät – sowohl 
+          Wechselrichter als auch Batterien – eine eindeutige Node-ID verwendet. Bei identischen IDs werden 
+          die Daten der Geräte gegenseitig überschrieben.
+      suggested_area:
+        name: Standard-Bereich (Raum)
+        description: >-
+          Geben Sie hier den Standard-Bereich (z. B. „Solar“, „Garage“ oder „Keller“) an, dem dieses 
+          Gerät bei der initialen Erkennung in Home Assistant automatisch zugeordnet werden soll.
+      modbus_polling:
+        name: ModBus Polling
+        description:  >-
+          Die Geräte senden ihre Messwerte standardmäßig alle 5 Minuten. Durch Aktivieren der 
+          ModBus-Polling-Option fragt der Proxy die Messwerte zusätzlich jede Minute ab und aktualisiert 
+          sie direkt im MQTT-Broker sowie in Home Assistant.
+      client_mode.host:
+        name: Client Mode - Geräte-IP
+        description: >-
+          Einige Geräte unterstützen eingehende Verbindungen, um Daten per ModBus-TCP im LAN 
+          bereitzustellen. Durch Aktivieren des Client-Modus baut der Proxy diese Verbindung 
+          automatisch auf. Für einen stabilen Betrieb muss dem Gerät eine feste IP-Adresse zugewiesen 
+          sein. Tragen Sie diese feste IP-Adresse hier ein.
+      client_mode.port:
+        name: Client Mode - Geräte-Portnummer
+        description: >-
+          Spezifizieren Sie hier den Port für die ModBus-TCP-Verbindung. Der Standardport ist 8899.
+      client_mode.forward:
+        name: Client Mode - Weiterleitung
+        description: >-
+          Bei aktivem Client-Modus kann der Proxy die gelesenen Daten an die TSUN/Solarman Cloud 
+          weiterleiten. Der Proxy emuliert dabei ein Gerät für die Cloud. Aktivieren Sie diese 
+          Option, wenn Sie die Weiterleitung nutzen möchten.
+      pv1.manufacturer:
+        name: PV-1 Modul Hersteller            
+      pv1.type:
+        name: PV-1 Type-Bezeichnung
+      pv2.manufacturer:
+        name: PV-2 Modul Hersteller            
+      pv2.type:
+        name: PV-2 Type-Bezeichnung
   tsun.enabled:
     name: Verbindung zur TSUN Cloud - nur für GEN3-Wechselrichter
     description: >+
@@ -68,32 +181,61 @@ configuration:
     description: >-
       Der Proxy akzeptiert normalerweise nur Verbindungen von konfigurierten Wechselrichtern.
       Schalten Sie dies für Testzwecke und unbekannte Seriennummern ein.
-  mqtt.host:
-    name: MQTT Broker Host
+
+  mqtt:
+    name: MQTT-Broker
     description: >-
-      Hostname oder IP-Adresse des MQTT-Brokers. Wenn nicht gesetzt, versucht die App, eine Verbindung zum Home Assistant MQTT-Broker herzustellen.
-  mqtt.port:
-    name: MQTT Broker Port
+      Home Assistant beinhaltet eine MQTT Mosquitto Integration. Wird diese verwendet, 
+      dann wird der Proxy automatisch konfiguriert und hier dürfen KEINE MQTT-Zugangsdaten 
+      hinterlegt werden. Wir empfehlen diese Betriebsart für den Proxy.
+
+      Soll ein externer MQTT-Broker verwendet werden, müssen hier die notwendigen 
+      Zugangsdaten hinterlegt werden.
+    fields:
+      host:
+        name: MQTT-Broker Host
+        description: >-
+          Hostname oder IP-Adresse des MQTT-Brokers.
+      port:
+        name: MQTT-Broker Port
+        description: >-
+          Port des MQTT-Brokers.
+      user:
+        name: MQTT-Broker Benutzer
+        description: >-
+          Benutzername für den MQTT-Broker.
+      passwd:
+        name: MQTT-Broker Passwort
+        description: >-
+          Passwort für den MQTT-Broker.
+
+  ha:
+    name: Home Assistant MQTT-Parameter
     description: >-
-      Port des MQTT-Brokers. Wenn nicht gesetzt, versucht die App, eine Verbindung zum Home Assistant MQTT-Broker herzustellen.
-  mqtt.user:
-    name: MQTT Broker Benutzer
-    description: >-
-      Benutzer für den MQTT-Broker. Wenn nicht gesetzt, versucht die App, eine Verbindung zum Home Assistant MQTT-Broker herzustellen.
-  mqtt.passwd:
-    name: MQTT Broker Passwort
-    description: >-
-      Passwort für den MQTT-Broker. Wenn nicht gesetzt, versucht die App, eine Verbindung zum Home Assistant MQTT-Broker herzustellen.
-  ha.auto_conf_prefix:
-    name: MQTT-Präfix für das Abonnieren von Home Assistant-Statusaktualisierungen
-  ha.discovery_prefix:
-    name: MQTT-Präfix für das discovery topic
-  ha.entity_prefix:
-    name: MQTT-Themenpräfix für die Veröffentlichung von Wechselrichterwerten
-  ha.proxy_node_id:
-    name: MQTT-Knoten-ID für die proxy_node_id
-  ha.proxy_unique_id:
-    name: MQTT-eindeutige ID zur Identifizierung einer Proxy-Instanz
+      Falls Sie Ihren MQTT-Broker nicht mit der Standardkonfiguration von Home Assistant 
+      betreiben, können Sie die Präfixe hier anpassen. Bitte ändern Sie diese Werte nur, 
+      wenn Sie die Auswirkungen genau kennen.
+    fields:
+      auto_conf_prefix:
+        name: Auto-Config-Präfix
+        description: >-
+          MQTT-Präfix für das Abonnieren von Home Assistant-Statusaktualisierungen.
+      discovery_prefix:
+        name: Discovery-Präfix
+        description: >-
+          MQTT-Präfix für das Discovery-Topic.
+      entity_prefix:
+        name: Entity-Präfix
+        description: >-
+          MQTT-Topic-Präfix für die Veröffentlichung von Wechselrichterwerten.
+      proxy_node_id:
+        name: Proxy Node-ID
+        description: >-
+          MQTT-Knoten-ID (Node-ID) für diesen Proxy.
+      proxy_unique_id:
+        name: Proxy Unique-ID
+        description: >-
+          Eindeutige MQTT-ID zur Identifizierung einer spezifischen Proxy-Instanz.
   tsun.host:
     name: TSUN Cloud Host
     description: >-
@@ -109,7 +251,7 @@ configuration:
   gen3plus.at_acl.tsun.block:
       name: TSUN GEN3PLUS ACL block
       description: >-
-          Liste blockierter AT-Befehle für TSUN GEN3PLUS
+        Liste blockierter AT-Befehle für TSUN GEN3PLUS
   gen3plus.at_acl.mqtt.allow:
       name: MQTT GEN3PLUS ACL allow
       description: >-
@@ -117,22 +259,20 @@ configuration:
   gen3plus.at_acl.mqtt.block:
       name: MQTT GEN3PLUS ACL block
       description: >-
-          Liste blockierter MQTT-Befehle für GEN3PLUS
+        Liste blockierter MQTT-Befehle für GEN3PLUS
   logging:
-    name: Umfang der Protkollierung in Log-Dateien
+    name: Protokollierung & Speicherplatz (Logs)
     description: >-
-      Der Proxy protokolliert Betriebsereignisse in verschiedenen Log-Dateien, welche 
-      helfen Konfiguration- oder Kompatibilitätsprobleme zu finden und zu lösen. Um 
-      Mitternacht wird ein Rollover durchgeführt. Sprich den Dateien wird das Tagesdatum 
-      im Namen angehängt und für den neuen Tag werden neue Dateien erzeugt, sobald 
-      Logeinträge geschrieben werden.
-
-      Die Dateien können viel Speicherplatz beanspruchen. Hier kann konfiguriert werden, 
-      wie lange die Dateien vorgehalten werden und bis zu welchem Log-Level Einträge 
-      gespeichert werden.
+      Der Proxy speichert Betriebsereignisse in Log-Dateien, um Konfigurations- oder 
+      Kompatibilitätsprobleme zu lösen. Jeden Tag um Mitternacht erfolgt ein automatischer 
+      Wechsel (Rollover): Die alten Dateien erhalten das aktuelle Datum im Namen und neue 
+      Dateien werden erstellt. 
+      
+      Da diese Daten viel Speicherplatz beanspruchen, können Sie hier die maximale 
+      Aufbewahrungsdauer und das gewünschte Log-Level festlegen.
     fields:
       level:
-        name: Logging level
+        name: Log-Level
         description: >-
           DEBUG: Vollständige Protokollierung  -  
           INFO(default): Informationen, Warnungen und Fehlermeldungen  -  
