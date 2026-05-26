@@ -256,11 +256,11 @@ class SolarmanV5(SolarmanBase):
 
     def __init__(self, inverter, addr, ifc: "AsyncIfc",
                  server_side: bool, client_mode: bool):
+        self.db = InfosG3P(client_mode)
         super().__init__(addr, ifc, server_side, self.send_modbus_cb,
                          mb_timeout=8)
 
         self.inverter = inverter
-        self.db = InfosG3P(client_mode)
         self.no_forwarding = False
         '''not allowed to connect to TSUN cloud by connection type'''
         self.establish_inv_emu = False
