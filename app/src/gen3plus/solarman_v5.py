@@ -409,7 +409,7 @@ class SolarmanV5(SolarmanBase):
         if 0 == self.sensor_list:
             if '410' == snr:
                 self.sensor_list = 0x3026
-            if 'Y00' == snr:
+            elif 'Y00' == snr:
                 self.sensor_list = 0x1097
             else:
                 self.sensor_list = 0x02b0
