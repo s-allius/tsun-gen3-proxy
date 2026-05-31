@@ -31,6 +31,8 @@ class Register(Enum):
     GRID_VOLT_CAL_COEF = 29
     OUTPUT_COEFFICIENT = 30
     PROD_COMPL_TYPE = 31
+    DSP_VERSION = 32
+    PROT_VERSION = 33
     INVERTER_CNT = 50
     UNKNOWN_SNR = 51
     UNKNOWN_MSG = 52
@@ -327,6 +329,7 @@ class Infos:
     SOLAR_POWER_VAR = 'mdi:solar-power-variant'
     SOLAR_POWER = 'mdi:solar-power'
     WIFI = 'mdi:wifi'
+    INFOMATION = 'mdi:information-variant'
     ALARM_LIGHT = 'mdi:alarm-light'
     UPDATE = 'mdi:update'
     DAILY_GEN = 'Daily Generation'
@@ -613,6 +616,8 @@ class Infos:
         Register.PV6_MODEL:        {'name': ['inverter', 'PV6_Model'],             'level': logging.DEBUG, 'unit': ''},  # noqa: E501
         Register.BOOT_STATUS:      {'name': ['inverter', 'BOOT_STATUS'],           'level': logging.DEBUG, 'unit': ''},  # noqa: E501
         Register.DSP_STATUS:       {'name': ['inverter', 'DSP_STATUS'],            'level': logging.DEBUG, 'unit': ''},  # noqa: E501
+        Register.DSP_VERSION:      {'name': ['inverter', 'DSP_Version'],           'level': logging.INFO,  'unit': '',     'ha': {'dev': 'inverter', 'dev_cla': None, 'stat_cla': None, 'id': 'dsp_version_',           'fmt': '| string', 'name': 'DSP Version',      'icon': INFOMATION, 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.PROT_VERSION:     {'name': ['inverter', 'PROT_Version'],          'level': logging.INFO,  'unit': '',     'ha': {'dev': 'inverter', 'dev_cla': None, 'stat_cla': None, 'id': 'prot_version_',          'fmt': '| string', 'name': 'Protocol Version', 'icon': INFOMATION, 'ent_cat': 'diagnostic'}},  # noqa: E501
         # proxy:
         Register.INVERTER_CNT:       {'name': ['proxy', 'Inverter_Cnt'],       'singleton': True,   'ha': {'dev': 'proxy', 'comp': 'sensor', 'dev_cla': None, 'stat_cla': None, 'id': 'inv_count_',     'fmt': FMT_INT, 'name': 'Active Inverter Connections',    'icon': COUNTER}},  # noqa: E501
         Register.CLOUD_CONN_CNT:     {'name': ['proxy', 'Cloud_Conn_Cnt'],     'singleton': True,   'ha': {'dev': 'proxy', 'comp': 'sensor', 'dev_cla': None, 'stat_cla': None, 'id': 'cloud_conn_count_', 'fmt': FMT_INT, 'name': 'Active Cloud Connections',    'icon': COUNTER}},  # noqa: E501

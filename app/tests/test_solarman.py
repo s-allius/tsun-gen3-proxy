@@ -800,6 +800,22 @@ def dcu_modbus_rsp():  # 0x1510
     return msg
 
 @pytest.fixture
+def inv_1097_modbus_rsp():  # 0x1510
+    msg  = b'\xa5\x73\x00\x10\x15\xa8\xac'  +get_sn()  +b'\x02\x01'
+    msg += total()  
+    msg += hb()
+    msg += b'\x5b\x18\x11\x6a\x01\x03\x60\x09\x88\x00\x8c'
+    msg += b'\x0d\x5c\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x13\x85'
+    msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0b\xb8\x00\x00'
+    msg += b'\x00\x45\x00\x00\x04\xeb\x00\x00\x03\xaf\x00\x3d\x00\x51\x00\x00'
+    msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+    msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+    msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x02\x31'
+    msg += correct_checksum(msg)
+    msg += b'\x15'
+    return msg
+
+@pytest.fixture
 def dcu_dev_ind_msg(): # 0x4110
     msg  = b'\xa5\x3a\x01\x10\x41\x91\x01' +get_dcu_sn()  +b'\x02\xc6\xde\x2d\x32'
     msg += b'\x27\x00\x00\x00\x00\x00\x00\x00\x05\x3c\x78\x01\x5c\x01\x4c\x53'
@@ -2673,3 +2689,52 @@ async def test_proxy_dcu_cmd(my_loop, config_tsun_dcu1, patch_open_connection, d
         assert Proxy.mqtt.key == ''
         assert Proxy.mqtt.data == ""
 
+@pytest.mark.asyncio(loop_scope="session")
+async def test_msg_modbus_inv_1097(my_loop, config_tsun_inv1, inv_1097_modbus_rsp):
+    '''Modbus response with a valid Modbus request must be forwarded'''
+    _ = config_tsun_inv1  # setup config structure
+    m = MemoryStream(inv_1097_modbus_rsp)
+
+    m.mb.rsp_handler = m._SolarmanV5__forward_msg
+    m.mb.last_addr = 1
+    m.mb.last_fcode = 3
+    m.mb.last_len = 0x30
+    m.mb.last_reg = 0x1200
+    m.mb.req_pend = True
+    m.mb.err = 0
+    m.new_data['input'] = False
+
+    m.read()         # read complete msg, and dispatch msg
+    assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
+    assert m.mb.err == 0
+    assert m.msg_count == 1
+    assert m.ifc.fwd_fifo.get()==inv_1097_modbus_rsp
+    assert m.ifc.tx_fifo.get()==b''
+    assert m.db.get_db_value(Register.GRID_VOLTAGE) == 244.0
+    assert m.db.get_db_value(Register.GRID_CURRENT) == 1.40
+    assert m.db.get_db_value(Register.OUTPUT_POWER) == 342.0
+    assert m.db.get_db_value(Register.TEST_VAL_3) == 0
+    assert m.db.get_db_value(Register.GRID_FREQUENCY) == 49.97
+    assert m.db.get_db_value(Register.RATED_POWER) == 3000
+    assert m.db.get_db_value(Register.TEST_VAL_6) == 0
+    assert m.db.get_db_value(Register.DAILY_GENERATION) == 0.69
+    assert m.db.get_db_value(Register.TOTAL_GENERATION) == 12.59
+    assert m.db.get_db_value(Register.TEST_VAL_10) == 0
+    assert m.db.get_db_value(Register.TEST_VAL_11) == 943
+    assert m.db.get_db_value(Register.TEST_VAL_12) == 61
+    assert m.db.get_db_value(Register.INVERTER_TEMP) == 41
+    assert m.new_data['input'] == True
+    m.new_data['input'] = False
+
+    m.mb.req_pend = True
+    m.append_msg(inv_1097_modbus_rsp)
+    m.read()         # read complete msg, and dispatch msg
+    assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
+    assert m.mb.err == 0
+    assert m.msg_count == 2
+    assert m.ifc.fwd_fifo.get()==inv_1097_modbus_rsp
+    assert m.ifc.tx_fifo.get()==b''
+    assert m.db.get_db_value(Register.GRID_VOLTAGE) == 244.0
+    assert m.new_data['input'] == False
+
+    m.close()

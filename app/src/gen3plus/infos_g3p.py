@@ -140,6 +140,11 @@ class RegisterMap:
         0xffffff02: {'reg': Register.POLLING_INTERVAL},
         # 0x4281001c: {'reg': Register.POWER_ON_TIME,        'fmt': '<H', 'ratio':    1},  # noqa: E501
     }
+    map_1097 = {
+        0x4201000c: {'reg': Register.SENSOR_LIST,          'fmt': '<H', 'func': Fmt.hex4},   # noqa: E501
+        0x4201001c: {'reg': Register.POWER_ON_TIME,        'fmt': '<H', 'ratio':    1, 'dep': ProxyMode.SERVER},  # noqa: E501
+        0x42010020: {'reg': Register.SERIAL_NUMBER,        'fmt': '!16s'},               # noqa: E501
+    }
     map_3026 = {
         0x4201000c: {'reg': Register.SENSOR_LIST,          'fmt': '<H', 'func': Fmt.hex4},   # noqa: E501
         0x4201001c: {'reg': Register.POWER_ON_TIME,        'fmt': '<H', 'ratio':    1, 'dep': ProxyMode.SERVER},  # noqa: E501
@@ -207,6 +212,7 @@ class RegisterMap:
 class RegisterSel:
     __sensor_map = {
             0x02b0: RegisterMap.map_02b0,
+            0x1097: RegisterMap.map_1097,
             0x3026: RegisterMap.map_3026,
     }
 
@@ -250,6 +256,8 @@ class InfosG3P(Infos):
         sensor = self.get_db_value(Register.SENSOR_LIST)
         if "3026" == sensor:
             reg_map = RegisterMap.map_3026
+        elif "1097" == sensor:
+            reg_map = RegisterMap.map_1097
         elif "02b0" == sensor:
             reg_map = RegisterMap.map_02b0
         else:

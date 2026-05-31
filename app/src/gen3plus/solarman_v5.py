@@ -406,9 +406,22 @@ class SolarmanV5(SolarmanBase):
         if 0 == self.sensor_list:
             if '410' == snr:
                 self.sensor_list = 0x3026
-                self.mb_regs = [{'addr': 0x0000, 'len': 45}]
             else:
                 self.sensor_list = 0x02b0
+
+        match self.sensor_list:
+            case 0x3026:
+                self.mb_regs = [{'addr': 0x0000, 'len': 45}]
+            case 0x1097:
+                self.mb_regs = [
+                                # {'addr': 0x1000, 'len': 0x10},
+                                # {'addr': 0x1100, 'len': 0x10},
+                                {'addr': 0x1300, 'len': 0x40},
+                                {'addr': 0x1200, 'len': 0x30},
+                                # {'addr': 0x1400, 'len': 0x50},
+                                # {'addr': 0x1a00, 'len': 0xa0},
+                                ]
+
         self.db.set_db_def_value(Register.SENSOR_LIST,
                                  f"{self.sensor_list:04x}")
         logging.debug(f"Use sensor-list: {self.sensor_list:#04x}"
@@ -563,7 +576,10 @@ class SolarmanV5(SolarmanBase):
         max_pow = db.get_db_value(Register.MAX_DESIGNED_POWER, 0)
         rated = db.get_db_value(Register.RATED_POWER, 0)
         model = None
-        if max_pow == 2000:
+        if rated == 3000:
+            db.set_db_def_value(Register.NO_INPUTS, 6)
+            model = f'TSOL-MX{rated}D'
+        elif max_pow == 2000:
             db.set_db_def_value(Register.NO_INPUTS, 4)
             if rated == 800 or rated == 600:
                 model = f'TSOL-MS{max_pow}({rated})'
