@@ -325,8 +325,8 @@ class SolarmanV5(SolarmanBase):
             self.at_acl = g3p_cnf['at_acl']
 
         self.sensor_list = 0
-        self.mb_regs = [{'addr': 0x3000, 'len': 48},
-                        {'addr': 0x2000, 'len': 96}]
+        self.mb_regs = [{'addr': 0x3000, 'len': 48}]
+        self.mb_slow_regs = [{'addr': 0x2000, 'len': 96}]
         self.background_tasks = set()
 
     '''
@@ -371,9 +371,9 @@ class SolarmanV5(SolarmanBase):
                                   self.mb_start_reg, self.mb_bytes,
                                   logging.INFO)
         else:
-            self._send_modbus_cmd(Modbus.INV_ADDR, Modbus.READ_REGS,
-                                  self.mb_regs[0]['addr'],
-                                  self.mb_regs[0]['len'], logging.DEBUG)
+            for reg in self.mb_regs:
+                self._send_modbus_cmd(Modbus.INV_ADDR, Modbus.READ_REGS,
+                                      reg['addr'], reg['len'], logging.DEBUG)
 
         self.mb_timer.start(self.mb_timeout)
 
@@ -417,15 +417,19 @@ class SolarmanV5(SolarmanBase):
         match self.sensor_list:
             case 0x3026:
                 self.mb_regs = [{'addr': 0x0000, 'len': 45}]
+                self.mb_slow_regs = []
             case 0x1097:
                 self.mb_regs = [
-                                # {'addr': 0x1000, 'len': 0x10},
-                                # {'addr': 0x1100, 'len': 0x10},
-                                {'addr': 0x1300, 'len': 0x40},
-                                {'addr': 0x1200, 'len': 0x30},
-                                # {'addr': 0x1400, 'len': 0x50},
-                                # {'addr': 0x1a00, 'len': 0xa0},
-                                ]
+                    {'addr': 0x1200, 'len': 3},     # grid values
+                    {'addr': 0x1300, 'len': 0x40},
+                    ]
+                self.mb_slow_regs = [
+                    {'addr': 0x1000, 'len': 0x10},
+                    {'addr': 0x1100, 'len': 0x0f},  # len is 0x10
+                    {'addr': 0x1203, 'len': 45},
+                    {'addr': 0x1400, 'len': 0x50},
+                    # block 'addr': 0x1a00, 'len': 0xa0 seams to be empty
+                    ]
 
         self.db.set_db_def_value(Register.SENSOR_LIST,
                                  f"{self.sensor_list:04x}")
@@ -512,15 +516,16 @@ class SolarmanV5(SolarmanBase):
         if self.mb_scan:
             self._send_modbus_scan()
         else:
-            self._send_modbus_cmd(Modbus.INV_ADDR, Modbus.READ_REGS,
-                                  self.mb_regs[0]['addr'],
-                                  self.mb_regs[0]['len'], logging.INFO)
-
-            if 1 == (exp_cnt % 30) and len(self.mb_regs) > 1:
-                # logging.info("Regular Modbus Status request")
+            for reg in self.mb_regs:
                 self._send_modbus_cmd(Modbus.INV_ADDR, Modbus.READ_REGS,
-                                      self.mb_regs[1]['addr'],
-                                      self.mb_regs[1]['len'], logging.INFO)
+                                      reg['addr'], reg['len'], logging.INFO)
+
+            if 1 == (exp_cnt % 30):
+                # logging.info("Regular Modbus Status request")
+                for reg in self.mb_slow_regs:
+                    self._send_modbus_cmd(Modbus.INV_ADDR, Modbus.READ_REGS,
+                                          reg['addr'], reg['len'],
+                                          logging.INFO)
 
     def at_cmd_forbidden(self, cmd: str, connection: str) -> bool:
         return not cmd.startswith(tuple(self.at_acl[connection]['allow'])) or \
