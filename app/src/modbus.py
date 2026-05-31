@@ -91,9 +91,9 @@ class Modbus():
         0x1211: {'reg': Register.TEST_VAL_6,           'fmt': '!H'},                 # noqa: E501
         0x1212: {'reg': Register.DAILY_GENERATION,     'fmt': '!H', 'ratio': 0.01},  # noqa: E501
         0x1213: {'reg': Register.TOTAL_GENERATION,     'fmt': '!L', 'ratio': 0.01},  # noqa: E501
-        0x1215: {'reg': Register.TEST_VAL_10,           'fmt': '!H'},                 # noqa: E501
-        0x1216: {'reg': Register.TEST_VAL_11,           'fmt': '!H'},                 # noqa: E501
-        0x1217: {'reg': Register.TEST_VAL_12,           'fmt': '!H'},                 # noqa: E501
+        0x1215: {'reg': Register.TEST_VAL_10,          'fmt': '!H'},                 # noqa: E501
+        0x1216: {'reg': Register.INSULATION_IMP_RX,    'fmt': '!H', 'ratio': 0.01},  # noqa: E501
+        0x1217: {'reg': Register.INSULATION_IMP_RY,    'fmt': '!H', 'ratio': 0.01},  # noqa: E501
         0x1218: {'reg': Register.INVERTER_TEMP,        'fmt': '!H', 'offset': -40},  # noqa: E501
 
         0x121a: {'reg': Register.TEST_VAL_27,           'fmt': '!H'},                 # noqa: E501

@@ -53,6 +53,8 @@ class Register(Enum):
     INVERTER_STATUS = 86
     DETECT_STATUS_1 = 87
     DETECT_STATUS_2 = 88
+    INSULATION_IMP_RX = 89
+    INSULATION_IMP_RY = 90
     PV1_VOLTAGE = 100
     PV1_CURRENT = 101
     PV1_POWER = 102
@@ -617,6 +619,9 @@ class Infos:
         Register.PV6_MODEL:        {'name': ['inverter', 'PV6_Model'],             'level': logging.DEBUG, 'unit': ''},  # noqa: E501
         Register.BOOT_STATUS:      {'name': ['inverter', 'BOOT_STATUS'],           'level': logging.DEBUG, 'unit': ''},  # noqa: E501
         Register.DSP_STATUS:       {'name': ['inverter', 'DSP_STATUS'],            'level': logging.DEBUG, 'unit': ''},  # noqa: E501
+
+        Register.INSULATION_IMP_RX: {'name': ['inverter', 'INSULATION_IMP_RX'],    'level': logging.DEBUG, 'unit': 'MΩ'},  # noqa: E501
+        Register.INSULATION_IMP_RY: {'name': ['inverter', 'INSULATION_IMP_RY'],    'level': logging.DEBUG, 'unit': 'MΩ'},  # noqa: E501
         Register.DSP_VERSION:      {'name': ['inverter', 'DSP_Version'],           'level': logging.INFO,  'unit': '',     'ha': {'dev': 'inverter', 'dev_cla': None, 'stat_cla': None, 'id': 'dsp_version_',           'fmt': FMT_STR, 'name': 'DSP Version',      'icon': INFOMATION, 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.PROT_VERSION:     {'name': ['inverter', 'PROT_Version'],          'level': logging.INFO,  'unit': '',     'ha': {'dev': 'inverter', 'dev_cla': None, 'stat_cla': None, 'id': 'prot_version_',          'fmt': FMT_STR, 'name': 'Protocol Version', 'icon': INFOMATION, 'ent_cat': 'diagnostic'}},  # noqa: E501
         # proxy:

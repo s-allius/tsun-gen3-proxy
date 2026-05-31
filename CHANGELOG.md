@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- added INSULATION_IMP_RX and RY values for MX3000D inverters
 - added autodetection for MX3000D inverters (SNR: 'Y00')
 
 ### Changed
