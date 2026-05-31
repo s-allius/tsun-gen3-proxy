@@ -401,11 +401,16 @@ class SolarmanV5(SolarmanBase):
         if '410' == snr:
             self.db.set_db_def_value(Register.EQUIPMENT_MODEL,
                                      'TSOL-DC1000')
+        elif 'Y00' == snr:
+            self.db.set_db_def_value(Register.EQUIPMENT_MODEL,
+                                     'TSOL-MXxx00')
 
         self.sensor_list = inv['sensor_list']
         if 0 == self.sensor_list:
             if '410' == snr:
                 self.sensor_list = 0x3026
+            if 'Y00' == snr:
+                self.sensor_list = 0x1097
             else:
                 self.sensor_list = 0x02b0
 
