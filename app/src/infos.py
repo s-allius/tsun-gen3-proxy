@@ -336,6 +336,7 @@ class Infos:
     TOTAL_GEN = 'Total Generation'
     TOTAL_CHARG = 'Total Charging Energy'
     FMT_INT = '| int'
+    FMT_STR = '| string'
     FMT_FLOAT = '| float'
     FMT_STRING_SEC = '| string + " s"'
     stat = {}
@@ -616,8 +617,8 @@ class Infos:
         Register.PV6_MODEL:        {'name': ['inverter', 'PV6_Model'],             'level': logging.DEBUG, 'unit': ''},  # noqa: E501
         Register.BOOT_STATUS:      {'name': ['inverter', 'BOOT_STATUS'],           'level': logging.DEBUG, 'unit': ''},  # noqa: E501
         Register.DSP_STATUS:       {'name': ['inverter', 'DSP_STATUS'],            'level': logging.DEBUG, 'unit': ''},  # noqa: E501
-        Register.DSP_VERSION:      {'name': ['inverter', 'DSP_Version'],           'level': logging.INFO,  'unit': '',     'ha': {'dev': 'inverter', 'dev_cla': None, 'stat_cla': None, 'id': 'dsp_version_',           'fmt': '| string', 'name': 'DSP Version',      'icon': INFOMATION, 'ent_cat': 'diagnostic'}},  # noqa: E501
-        Register.PROT_VERSION:     {'name': ['inverter', 'PROT_Version'],          'level': logging.INFO,  'unit': '',     'ha': {'dev': 'inverter', 'dev_cla': None, 'stat_cla': None, 'id': 'prot_version_',          'fmt': '| string', 'name': 'Protocol Version', 'icon': INFOMATION, 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.DSP_VERSION:      {'name': ['inverter', 'DSP_Version'],           'level': logging.INFO,  'unit': '',     'ha': {'dev': 'inverter', 'dev_cla': None, 'stat_cla': None, 'id': 'dsp_version_',           'fmt': FMT_STR, 'name': 'DSP Version',      'icon': INFOMATION, 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.PROT_VERSION:     {'name': ['inverter', 'PROT_Version'],          'level': logging.INFO,  'unit': '',     'ha': {'dev': 'inverter', 'dev_cla': None, 'stat_cla': None, 'id': 'prot_version_',          'fmt': FMT_STR, 'name': 'Protocol Version', 'icon': INFOMATION, 'ent_cat': 'diagnostic'}},  # noqa: E501
         # proxy:
         Register.INVERTER_CNT:       {'name': ['proxy', 'Inverter_Cnt'],       'singleton': True,   'ha': {'dev': 'proxy', 'comp': 'sensor', 'dev_cla': None, 'stat_cla': None, 'id': 'inv_count_',     'fmt': FMT_INT, 'name': 'Active Inverter Connections',    'icon': COUNTER}},  # noqa: E501
         Register.CLOUD_CONN_CNT:     {'name': ['proxy', 'Cloud_Conn_Cnt'],     'singleton': True,   'ha': {'dev': 'proxy', 'comp': 'sensor', 'dev_cla': None, 'stat_cla': None, 'id': 'cloud_conn_count_', 'fmt': FMT_INT, 'name': 'Active Cloud Connections',    'icon': COUNTER}},  # noqa: E501
@@ -699,7 +700,7 @@ class Infos:
         Register.COMMUNICATION_TYPE: {'name': ['controller', 'Communication_Type'], 'level': logging.INFO, 'unit': '',     'ha': {'dev': 'controller', 'dev_cla': None,       'stat_cla': None,          'id': 'comm_type_',           'name': 'Communication Type', 'val_tpl': __comm_type_val_tpl, 'comp': 'sensor', 'icon': WIFI}},  # noqa: E501
         Register.DATA_UP_INTERVAL:   {'name': ['controller', 'Data_Up_Interval'],   'level': logging.INFO, 'unit': 's',    'ha': {'dev': 'controller', 'dev_cla': None,       'stat_cla': None,          'id': 'data_up_intval_', 'fmt': FMT_STRING_SEC, 'name': 'Data Up Interval', 'icon': UPDATE, 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.HEARTBEAT_INTERVAL: {'name': ['controller', 'Heartbeat_Interval'], 'level': logging.INFO, 'unit': 's',    'ha': {'dev': 'controller', 'dev_cla': None,       'stat_cla': None,          'id': 'heartbeat_intval_',    'fmt': FMT_STRING_SEC, 'name': 'Heartbeat Interval', 'icon': UPDATE, 'ent_cat': 'diagnostic'}},  # noqa: E501
-        Register.IP_ADDRESS:         {'name': ['controller', 'IP_Address'],         'level': logging.INFO, 'unit': '',     'ha': {'dev': 'controller', 'dev_cla': None,       'stat_cla': None,          'id': 'ip_address_',           'fmt': '| string',        'name': 'IP Address', 'icon': WIFI, 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.IP_ADDRESS:         {'name': ['controller', 'IP_Address'],         'level': logging.INFO, 'unit': '',     'ha': {'dev': 'controller', 'dev_cla': None,       'stat_cla': None,          'id': 'ip_address_',           'fmt': FMT_STR,        'name': 'IP Address', 'icon': WIFI, 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.POLLING_INTERVAL:   {'name': ['controller', 'Polling_Interval'],   'level': logging.INFO, 'unit': 's',    'ha': {'dev': 'controller', 'dev_cla': None,       'stat_cla': None,          'id': 'polling_intval_', 'fmt': FMT_STRING_SEC, 'name': 'Polling Interval', 'icon': UPDATE, 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.SENSOR_LIST:        {'name': ['controller', 'Sensor_List'],        'level': logging.INFO,  'unit': ''},  # noqa: E501
         Register.SSID:               {'name': ['controller', 'WiFi_SSID'],          'level': logging.DEBUG, 'unit': ''},  # noqa: E501
