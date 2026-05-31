@@ -789,7 +789,7 @@ class SolarmanV5(SolarmanBase):
         valid = data[1]
         modbus_msg_len = self.data_len - 14
         # logger.debug(f'modbus_len:{modbus_msg_len} accepted:{valid}')
-        if valid == 1 and modbus_msg_len > 4:
+        if valid == 1 and modbus_msg_len >= 2:
             # logger.info(f'first byte modbus:{data[14]}')
             inv_update = self.__parse_modbus_rsp(data, modbus_msg_len)
             if inv_update:
