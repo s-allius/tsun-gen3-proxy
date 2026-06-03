@@ -31,8 +31,7 @@ class Register(Enum):
     GRID_VOLT_CAL_COEF = 29
     OUTPUT_COEFFICIENT = 30
     PROD_COMPL_TYPE = 31
-    DSP_VERSION = 32
-    PROT_VERSION = 33
+    PROT_VERSION = 32
     INVERTER_CNT = 50
     UNKNOWN_SNR = 51
     UNKNOWN_MSG = 52
@@ -620,10 +619,9 @@ class Infos:
         Register.BOOT_STATUS:      {'name': ['inverter', 'BOOT_STATUS'],           'level': logging.DEBUG, 'unit': ''},  # noqa: E501
         Register.DSP_STATUS:       {'name': ['inverter', 'DSP_STATUS'],            'level': logging.DEBUG, 'unit': ''},  # noqa: E501
 
-        Register.INSULATION_IMP_RX: {'name': ['inverter', 'INSULATION_IMP_RX'],    'level': logging.DEBUG, 'unit': 'MΩ'},  # noqa: E501
-        Register.INSULATION_IMP_RY: {'name': ['inverter', 'INSULATION_IMP_RY'],    'level': logging.DEBUG, 'unit': 'MΩ'},  # noqa: E501
-        Register.DSP_VERSION:      {'name': ['inverter', 'DSP_Version'],           'level': logging.INFO,  'unit': '',     'ha': {'dev': 'inverter', 'dev_cla': None, 'stat_cla': None, 'id': 'dsp_version_',           'fmt': FMT_STR, 'name': 'DSP Version',      'icon': INFOMATION, 'ent_cat': 'diagnostic'}},  # noqa: E501
-        Register.PROT_VERSION:     {'name': ['inverter', 'PROT_Version'],          'level': logging.INFO,  'unit': '',     'ha': {'dev': 'inverter', 'dev_cla': None, 'stat_cla': None, 'id': 'prot_version_',          'fmt': FMT_STR, 'name': 'Protocol Version', 'icon': INFOMATION, 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.INSULATION_IMP_RX: {'name': ['inverter', 'INSULATION_IMP_RX'],    'level': logging.DEBUG, 'unit': 'MΩ',   'ha': {'dev': 'inverter', 'dev_cla': None, 'stat_cla': 'measurement', 'id': 'imp_rx_',  'fmt': FMT_FLOAT, 'name': 'Insulation Impendance RX', 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.INSULATION_IMP_RY: {'name': ['inverter', 'INSULATION_IMP_RY'],    'level': logging.DEBUG, 'unit': 'MΩ',   'ha': {'dev': 'inverter', 'dev_cla': None, 'stat_cla': 'measurement', 'id': 'imp_ry_',  'fmt': FMT_FLOAT, 'name': 'Insulation Impendance RY', 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.PROT_VERSION:      {'name': ['inverter', 'PROT_Version'],         'level': logging.INFO,  'unit': '',     'ha': {'dev': 'inverter', 'dev_cla': None, 'stat_cla': None, 'id': 'prot_version_',          'fmt': FMT_STR, 'name': 'Protocol Version', 'icon': INFOMATION, 'ent_cat': 'diagnostic'}},  # noqa: E501
         # proxy:
         Register.INVERTER_CNT:       {'name': ['proxy', 'Inverter_Cnt'],       'singleton': True,   'ha': {'dev': 'proxy', 'comp': 'sensor', 'dev_cla': None, 'stat_cla': None, 'id': 'inv_count_',     'fmt': FMT_INT, 'name': 'Active Inverter Connections',    'icon': COUNTER}},  # noqa: E501
         Register.CLOUD_CONN_CNT:     {'name': ['proxy', 'Cloud_Conn_Cnt'],     'singleton': True,   'ha': {'dev': 'proxy', 'comp': 'sensor', 'dev_cla': None, 'stat_cla': None, 'id': 'cloud_conn_count_', 'fmt': FMT_INT, 'name': 'Active Cloud Connections',    'icon': COUNTER}},  # noqa: E501

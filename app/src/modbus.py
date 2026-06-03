@@ -79,7 +79,7 @@ class Modbus():
         # sensor_list: 0x1097
         0x1000: {'reg': Register.SERIAL_NUMBER,        'fmt': '!16s'},               # noqa: E501
         0x100a: {'reg': Register.PROT_VERSION,         'fmt': '!H', 'func': Fmt.version},  # noqa: E501
-        0x100c: {'reg': Register.DSP_VERSION,          'fmt': '!H', 'func': Fmt.version},  # noqa: E501
+        0x100c: {'reg': Register.VERSION,              'fmt': '!H', 'func': Fmt.version},  # noqa: E501
 
         0x1200: {'reg': Register.GRID_VOLTAGE,         'fmt': '!H', 'ratio': 0.1},   # noqa: E501
         0x1201: {'reg': Register.GRID_CURRENT,         'fmt': '!H', 'ratio': 0.01},  # noqa: E501
