@@ -582,35 +582,50 @@ class SolarmanV5(SolarmanBase):
         self.forward(self.ifc.rx_peek(), self.header_len+self.data_len+2)
 
     def __build_model_name(self):
+        """Determines and sets the inverter model name based on its
+        specifications.
+
+        This method reads the maximum designed power, rated power, and serial
+        number prefix from the database and instance variables. It then
+        configures the default number of inputs, constructs the specific model
+        string (MS/MX series), logs the result, and saves the final model name
+        back to the database.
+
+        Returns:
+            str: The constructed model name (e.g., 'TSOL-MX3000D(800)').
+        """
         db = self.db
         max_pow = db.get_db_value(Register.MAX_DESIGNED_POWER, 0)
         rated = db.get_db_value(Register.RATED_POWER, 0)
-        snr = self.inv_serial[:3]
-        model = None
-        if max_pow == 3000:
-            db.set_db_def_value(Register.NO_INPUTS, 6)
-            if rated == 800:
-                model = f'TSOL-MX{max_pow}D({rated})'
-            else:
-                model = f'TSOL-MX{max_pow}D'
-        elif max_pow == 2000:
-            db.set_db_def_value(Register.NO_INPUTS, 4)
-            if rated == 800 or rated == 600:
-                model = f'TSOL-MS{max_pow}({rated})'
-            else:
-                model = f'TSOL-MS{max_pow}'
-        elif max_pow == 1800 or max_pow == 1600:
-            db.set_db_def_value(Register.NO_INPUTS, 4)
-            model = f'TSOL-MS{max_pow}'
-        elif max_pow <= 1000:
-            if 'Y00' == snr:
-                model = f'TSOL-MX{max_pow}'
-            else:
-                model = f'TSOL-MS{max_pow}'
+        snr_prefix = self.inv_serial[:3]
 
-        if model:
-            logger.info(f'Model: {model}')
-            self.db.set_db_def_value(Register.EQUIPMENT_MODEL, model)
+        # 1. Set default number of inputs based on max power
+        input_mapping = {3000: 6, 2000: 4, 1800: 4, 1600: 4}
+        if max_pow in input_mapping:
+            db.set_db_def_value(Register.NO_INPUTS, input_mapping[max_pow])
+
+        # 2. Determine the model series (MX or MS)
+        if max_pow == 3000 or (max_pow <= 1000 and snr_prefix == 'Y00'):
+            series = 'MX'
+        else:
+            series = 'MS'
+
+        # 3. Determine the suffix for rated power
+        has_rated_suffix = (
+            (max_pow == 3000 and rated == 800) or
+            (max_pow == 2000 and rated in (600, 800))
+        )
+        suffix = f'({rated})' if has_rated_suffix else ''
+
+        # 4. Add model-specific modifier ('D' for 3000 series)
+        extra = 'D' if max_pow == 3000 else ''
+
+        # 5. Assemble the final model name string
+        model = f'TSOL-{series}{max_pow}{extra}{suffix}'
+
+        # 6. Log the result and save it to the database
+        logger.info(f'Model: {model}')
+        db.set_db_def_value(Register.EQUIPMENT_MODEL, model)
 
     def __process_data(self, ftype, ts, sensor=0):
         inv_update = False
