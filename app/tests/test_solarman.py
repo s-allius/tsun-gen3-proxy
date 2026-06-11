@@ -1638,7 +1638,7 @@ async def test_build_modell_900(my_loop, config_tsun_allow_all, inverter_ind_msg
     assert 900 == m.db.get_db_value(Register.MAX_DESIGNED_POWER, 0)
     assert 900 == m.db.get_db_value(Register.RATED_POWER, 0)
     assert 2 == m.db.get_db_value(Register.NO_INPUTS, 0)
-    assert 'TSOL-MSxx00' == m.db.get_db_value(Register.EQUIPMENT_MODEL, 0)
+    assert 'TSOL-MS900' == m.db.get_db_value(Register.EQUIPMENT_MODEL, 0)
     m.close()
 
 @pytest.mark.asyncio(loop_scope="session")

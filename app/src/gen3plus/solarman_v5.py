@@ -585,6 +585,7 @@ class SolarmanV5(SolarmanBase):
         db = self.db
         max_pow = db.get_db_value(Register.MAX_DESIGNED_POWER, 0)
         rated = db.get_db_value(Register.RATED_POWER, 0)
+        snr = self.inv_serial[:3]
         model = None
         if max_pow == 3000:
             db.set_db_def_value(Register.NO_INPUTS, 6)
@@ -601,8 +602,11 @@ class SolarmanV5(SolarmanBase):
         elif max_pow == 1800 or max_pow == 1600:
             db.set_db_def_value(Register.NO_INPUTS, 4)
             model = f'TSOL-MS{max_pow}'
-        elif max_pow <= 800:
-            model = f'TSOL-MS{max_pow}'
+        elif max_pow <= 1000:
+            if 'Y00' == snr:
+                model = f'TSOL-MX{max_pow}'
+            else:
+                model = f'TSOL-MS{max_pow}'
 
         if model:
             logger.info(f'Model: {model}')
