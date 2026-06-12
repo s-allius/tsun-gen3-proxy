@@ -982,6 +982,20 @@ def config_tsun_dcu1():
     Proxy.class_init()
     Proxy.mqtt = Mqtt()
 
+@pytest.fixture
+def config_tsun_titan():
+    Config.act_config = {
+        'ha':{
+            'auto_conf_prefix': 'homeassistant',
+            'discovery_prefix': 'homeassistant', 
+            'entity_prefix': 'tsun',
+            'proxy_node_id': 'test_1',
+            'proxy_unique_id': ''
+        },
+        'solarman':{'enabled': True, 'host': 'test_cloud.local', 'port': 1234},'inverters':{'Y000000000000001':{'monitor_sn': 2070233888, 'node_id':'inv1/', 'modbus_polling': True, 'suggested_area':'roof', 'sensor_list': 0}}}
+    Proxy.class_init()
+    Proxy.mqtt = Mqtt()
+
 @pytest.mark.asyncio(loop_scope="session")
 async def test_read_message(device_ind_msg):
     Config.act_config = {'solarman':{'enabled': True}}
@@ -1309,8 +1323,8 @@ async def test_read_two_messages4(my_loop, config_tsun_dcu1, dcu_dev_ind_msg, dc
     m.close()
 
 @pytest.mark.asyncio(loop_scope="session")
-async def test_read_two_messages5(my_loop, config_tsun_dcu1, inv_1097_dev_ind_msg, dcu_dev_rsp_msg, inv_1097_data_ind_msg, dcu_data_rsp_msg):
-    _ = config_tsun_dcu1
+async def test_read_two_messages5(my_loop, config_tsun_titan, inv_1097_dev_ind_msg, dcu_dev_rsp_msg, inv_1097_data_ind_msg, dcu_data_rsp_msg):
+    _ = config_tsun_titan
     m = MemoryStream(inv_1097_dev_ind_msg, (0,))
     m.append_msg(inv_1097_data_ind_msg)
     assert 0 == m.sensor_list
@@ -1329,8 +1343,8 @@ async def test_read_two_messages5(my_loop, config_tsun_dcu1, inv_1097_dev_ind_ms
     assert m.msg_recvd[1]['seq']=='02:93'
     assert m.msg_recvd[1]['data_len']==111
     assert '1097' == m.db.get_db_value(Register.SENSOR_LIST, None)
-    #fixme: the sensor list should be updated to 0x1097, but since the device message is not handled, the sensor list is not updated and remains 0. This is a bug in the code, but for now we will just assert that the sensor list is 0.
-    # assert 0x1097 == m.sensor_list
+    assert 0x1097 == m.sensor_list
+    # fixme: inv_1097_dev_ind_msg is not well defined, since we don't know the proper coding.
     # assert m.ifc.fwd_fifo.get()==inv_1097_dev_ind_msg+inv_1097_data_ind_msg
     # assert m.ifc.tx_fifo.get()==dcu_dev_rsp_msg+dcu_data_rsp_msg
 

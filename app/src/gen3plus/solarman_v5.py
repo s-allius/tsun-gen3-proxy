@@ -407,12 +407,13 @@ class SolarmanV5(SolarmanBase):
 
         self.sensor_list = inv['sensor_list']
         if 0 == self.sensor_list:
-            if '410' == snr:
-                self.sensor_list = 0x3026
-            elif 'Y00' == snr:
-                self.sensor_list = 0x1097
-            else:
-                self.sensor_list = 0x02b0
+            match snr:
+                case '410':
+                    self.sensor_list = 0x3026
+                case 'Y00':
+                    self.sensor_list = 0x1097
+                case _:
+                    self.sensor_list = 0x02b0
 
         match self.sensor_list:
             case 0x3026:
