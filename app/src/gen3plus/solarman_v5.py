@@ -42,6 +42,32 @@ class Sequence():
         return f'{self.rcv_idx:02x}:{self.snd_idx:02x}'
 
 
+class SensorListDetection():
+    def __init__(self):
+        self.idx = -1
+        self.detection_running = False
+        self.scan_reg = [{'list': 0x02b0, 'addr': 0x3000, 'len': 48},
+                         {'list': 0x1097, 'addr': 0x1000, 'len': 16},
+                         {'list': 0x3026, 'addr': 0x0000, 'len': 45}]
+
+    def next(self) -> dict:
+        self.detection_running = True
+        self.idx = (self.idx + 1) % len(self.scan_reg)
+        reg = self.scan_reg[self.idx]
+        logging.info(f"Testing sensor-list: {reg['list']:#04x}"
+                     f" by reading modbus registers at {reg['addr']:#04x} ")
+        logger.info(f"Testing sensor-list: {reg['list']:#04x}"
+                    f" by reading modbus registers at {reg['addr']:#04x} ")
+
+        return reg['list'], [{'addr': reg['addr'], 'len': reg['len']}]
+
+    def found(self) -> None:
+        self.detection_running = False
+
+    def is_running(self) -> bool:
+        return self.detection_running
+
+
 class SolarmanBase(Message):
     def __init__(self, addr, ifc: "AsyncIfc", server_side: bool,
                  _send_modbus_cb, mb_timeout: int):
@@ -325,6 +351,7 @@ class SolarmanV5(SolarmanBase):
             self.at_acl = g3p_cnf['at_acl']
 
         self.sensor_list = 0
+        self.sensor_list_detection = SensorListDetection()
         self.mb_regs = [{'addr': 0x3000, 'len': 48}]
         self.mb_slow_regs = [{'addr': 0x2000, 'len': 96}]
         self.background_tasks = set()
@@ -338,6 +365,7 @@ class SolarmanV5(SolarmanBase):
         # so we have to erase self.switch, otherwise this instance can't be
         # deallocated by the garbage collector ==> we get a memory leak
         self.inverter = None
+        self.sensor_list_detection = None
         self.switch.clear()
         self.log_lvl.clear()
         self.background_tasks.clear()
@@ -350,6 +378,11 @@ class SolarmanV5(SolarmanBase):
         self.establish_inv_emu = forward
         self.snr = snr
         self._set_serial_no(snr)
+        if self.sensor_list == 0:
+            self.mb_slow_regs = []
+            self.sensor_list, self.mb_regs = \
+                self.sensor_list_detection.next()
+
         self.mb_timeout = start_timeout
         self.db.set_db_def_value(Register.IP_ADDRESS, host)
         self.db.set_db_def_value(Register.POLLING_INTERVAL,
@@ -363,6 +396,7 @@ class SolarmanV5(SolarmanBase):
         self.db.set_db_def_value(Register.SENSOR_LIST,
                                  Fmt.hex4((self.sensor_list, )))
         self.new_data['controller'] = True
+        self.new_data['inverter'] = True
 
         self.state = State.up
 
@@ -405,15 +439,8 @@ class SolarmanV5(SolarmanBase):
             self.db.set_db_def_value(Register.EQUIPMENT_MODEL,
                                      'TSOL-MXxx00')
 
-        self.sensor_list = inv['sensor_list']
         if 0 == self.sensor_list:
-            match snr:
-                case '410':
-                    self.sensor_list = 0x3026
-                case 'Y00':
-                    self.sensor_list = 0x1097
-                case _:
-                    self.sensor_list = 0x02b0
+            self.sensor_list = inv['sensor_list']
 
         match self.sensor_list:
             case 0x3026:
@@ -431,11 +458,18 @@ class SolarmanV5(SolarmanBase):
                     {'addr': 0x1400, 'len': 0x50},
                     # block 'addr': 0x1a00, 'len': 0xa0 seams to be empty
                     ]
+            case 0x02b0:
+                self.mb_regs = [{'addr': 0x3000, 'len': 48}]
+                self.mb_slow_regs = [{'addr': 0x2000, 'len': 96}]
+            case 0x0000:
+                return
 
         self.db.set_db_def_value(Register.SENSOR_LIST,
                                  f"{self.sensor_list:04x}")
-        logging.debug(f"Use sensor-list: {self.sensor_list:#04x}"
-                      f" for '{serial_no}'")
+        logging.info(f"Use sensor-list: {self.sensor_list:#04x}"
+                     f" for '{serial_no}'")
+        logger.info(f"Use sensor-list: {self.sensor_list:#04x}"
+                    f" for '{serial_no}'")
 
     def _set_serial_no(self, snr: int):
         '''check the serial number and configure the inverter connection'''
@@ -598,6 +632,10 @@ class SolarmanV5(SolarmanBase):
         db = self.db
         max_pow = db.get_db_value(Register.MAX_DESIGNED_POWER, 0)
         rated = db.get_db_value(Register.RATED_POWER, 0)
+        if max_pow == 0:
+            logger.warning('Max designed power is zero, '
+                           'cannot determine model name!')
+            return
         snr_prefix = self.inv_serial[:3]
 
         # 1. Set default number of inputs based on max power
@@ -825,6 +863,18 @@ class SolarmanV5(SolarmanBase):
 
             if self.establish_inv_emu and not self.ifc.remote.stream:
                 self.establish_emu()
+
+            if self.sensor_list_detection.is_running():
+                print(f'modbus rsp received, check sensor list detection:'
+                      f' err:{self.mb.err} retry_cnt:{self.mb.retry_cnt}')
+                if self.mb.err:
+                    if self.mb.retry_cnt >= self.mb.max_retries:
+                        self.sensor_list, self.mb_regs = \
+                          self.sensor_list_detection.next()
+                else:
+                    self.sensor_list_detection.found()
+                    self.unique_id = None
+                    self._set_serial_no(self.snr)
 
     def msg_hbeat_ind(self):
         data = self.ifc.rx_peek()[self.header_len:]

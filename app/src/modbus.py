@@ -326,7 +326,7 @@ class Modbus():
         fcode = buf[1]
         data_available = self.last_addr == self.INV_ADDR and \
             (fcode == 3 or fcode == 4)
-
+        self.err = 0
         if self.__resp_error_check(buf, data_available):
             return
 

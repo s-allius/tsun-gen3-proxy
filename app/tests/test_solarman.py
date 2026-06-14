@@ -6,6 +6,7 @@ import logging
 import random
 from asyncio import StreamReader, StreamWriter
 from math import isclose
+from mock import patch
 
 from async_stream import AsyncIfcImpl, StreamPtr
 from gen3plus.solarman_v5 import SolarmanV5, SolarmanBase
@@ -172,6 +173,14 @@ def correct_checksum(buf):
 def incorrect_checksum(buf):
     checksum = (sum(buf[1:])+1) & 0xff
     return checksum.to_bytes(length=1)
+
+@pytest.fixture
+def logger_mock():
+    """Fixture for Logger"""
+    with patch('gen3plus.solarman_v5.logger') as mock_logger:
+        
+        # Die Mocks und den Handler als Dictionary oder Tuple zurückgeben
+        yield mock_logger
 
 @pytest.fixture(scope="session")
 def str_test_ip():
@@ -723,6 +732,29 @@ def msg_modbus_rsp_mb_4():  # 0x1510, MODBUS Type:4
     return msg
 
 @pytest.fixture
+def msg_modbus_rsp_mb_1097_ok():  # 0x1510, MODBUS Type:4
+    msg  = b'\xa5\x33\x00\x10\x15\x03\x03' +get_sn()  +b'\x02\x01'
+    msg += total()  
+    msg += hb()
+    msg += b'\x0a\xe2\xfa\x33'
+    msg += b'\x01\x03\x20Y170000000000'
+    msg += b'002\x00\x02\x00\x06\x10\x01\x00\x00\x32\x50\x00\x00\x00'
+    msg += b'\x00\x00\x00\x12\xe5'
+    msg += correct_checksum(msg)
+    msg += b'\x15'
+    return msg
+
+@pytest.fixture
+def msg_modbus_rsp_mb_Err5():  # 0x1510, MODBUS ErrType:5
+    msg  = b'\xa5\x10\x00\x10\x15\x03\x03' +get_sn()  +b'\x02\x01'
+    msg += total()  
+    msg += hb()
+    msg += b'\x0a\xe2\xfa\x33\x05\x00'
+    msg += correct_checksum(msg)
+    msg += b'\x15'
+    return msg
+
+@pytest.fixture
 def msg_modbus_interim_rsp():  # 0x0510
     msg  = b'\xa5\x3b\x00\x10\x15\x03\x03' +get_sn()  +b'\x02\x01'
     msg += total()  
@@ -956,17 +988,21 @@ def config_tsun_inv1():
             'proxy_node_id': 'test_1',
             'proxy_unique_id': ''
         },
-        'solarman':{'enabled': True, 'host': 'test_cloud.local', 'port': 1234},'inverters':{'Y170000000000001':{'monitor_sn': 2070233889, 'node_id':'inv1/', 'modbus_polling': True, 'suggested_area':'roof', 'sensor_list': 0}}}
+        'solarman':{'enabled': True, 'host': 'test_cloud.local', 'port': 1234},'inverters':{'Y170000000000001':{'monitor_sn': 2070233889, 'node_id':'inv1/', 'modbus_polling': True, 'suggested_area':'roof', 'sensor_list': 0x2b0}}}
     Proxy.class_init()
     Proxy.mqtt = Mqtt()
 
 @pytest.fixture
 def config_tsun_scan():
-    Config.act_config = {'solarman':{'enabled': True},'inverters':{'Y170000000000001':{'monitor_sn': 2070233889, 'node_id':'inv1/', 'modbus_polling': True, 'modbus_scanning': {'start': 0xffc0, 'step': 0x40, 'bytes':20}, 'suggested_area':'roof', 'sensor_list': 0}}}
+    Config.act_config = {'solarman':{'enabled': True},'inverters':{'Y170000000000001':{'monitor_sn': 2070233889, 'node_id':'inv1/', 'modbus_polling': True, 'modbus_scanning': {'start': 0xffc0, 'step': 0x40, 'bytes':20}, 'suggested_area':'roof', 'sensor_list': 0x2b0}}}
 
 @pytest.fixture
 def config_tsun_scan_dcu():
-    Config.act_config = {'solarman':{'enabled': True},'inverters':{'4100000000000001':{'monitor_sn': 2070233888, 'node_id':'inv1/', 'modbus_polling': True, 'modbus_scanning': {'start': 0x0000, 'step': 0x100, 'bytes':0x2d}, 'client_mode': {'host': '192.168.1.1.'}, 'suggested_area':'roof', 'sensor_list': 0}}}
+    Config.act_config = {'solarman':{'enabled': True},'inverters':{'4100000000000001':{'monitor_sn': 2070233888, 'node_id':'inv1/', 'modbus_polling': True, 'modbus_scanning': {'start': 0x0000, 'step': 0x100, 'bytes':0x2d}, 'client_mode': {'host': '192.168.1.1.'}, 'suggested_area':'roof', 'sensor_list': 0x3026}}}
+
+@pytest.fixture
+def config_tsun_detect():
+    Config.act_config = {'solarman':{'enabled': True},'inverters':{'Y170000000000002':{'monitor_sn': 2070233889, 'node_id':'inv1/', 'modbus_polling': True, 'suggested_area':'roof', 'sensor_list': 0}}}
 
 @pytest.fixture
 def config_tsun_dcu1():
@@ -992,7 +1028,7 @@ def config_tsun_titan():
             'proxy_node_id': 'test_1',
             'proxy_unique_id': ''
         },
-        'solarman':{'enabled': True, 'host': 'test_cloud.local', 'port': 1234},'inverters':{'Y000000000000001':{'monitor_sn': 2070233888, 'node_id':'inv1/', 'modbus_polling': True, 'suggested_area':'roof', 'sensor_list': 0}}}
+        'solarman':{'enabled': True, 'host': 'test_cloud.local', 'port': 1234},'inverters':{'Y000000000000001':{'monitor_sn': 2070233888, 'node_id':'inv1/', 'modbus_polling': True, 'suggested_area':'roof', 'sensor_list': 0x1097}}}
     Proxy.class_init()
     Proxy.mqtt = Mqtt()
 
@@ -2433,6 +2469,66 @@ async def test_start_client_mode(my_loop, config_tsun_inv1, str_test_ip):
     assert m.sent_pdu==bytearray(b'\xa5\x17\x00\x10E\x03\x00!Ce{\x02\xb0\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x030\x00\x000J\xde\xf3\x15')
     assert m.ifc.tx_fifo.get()==b''
     assert next(m.mb_timer.exp_count) == 3
+    m.close()
+
+@pytest.mark.asyncio(loop_scope="session")
+async def test_start_client_mode_detection(my_loop, config_tsun_detect, msg_modbus_rsp_mb_Err5, msg_modbus_rsp_mb_1097_ok,str_test_ip, logger_mock):
+    _ = config_tsun_detect
+    mock_logger = logger_mock
+    assert asyncio.get_running_loop()
+    m = MemoryStream(b'')
+    m.mb.max_retries = 0          # test pdus without retranmsission
+
+    assert m.state == State.init
+    assert m.no_forwarding == False
+    assert m.mb_timer.tim == None
+    assert asyncio.get_running_loop() == m.mb_timer.loop
+    m.send_start_cmd(get_sn_int(), str_test_ip, False, m.mb_first_timeout)
+    assert m.sensor_list_detection.detection_running == True
+    assert m.sensor_list == 0x2b0
+    assert m.sent_pdu==bytearray(b'\xa5\x17\x00\x10E\x01\x00!Ce{\x02\xb0\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x030\x00\x000J\xde\xf1\x15')
+    assert m.db.get_db_value(Register.IP_ADDRESS) == str_test_ip
+    assert isclose(m.db.get_db_value(Register.POLLING_INTERVAL), 0.5)
+    assert m.db.get_db_value(Register.HEARTBEAT_INTERVAL) == 120
+
+    assert m.state == State.up
+    assert m.no_forwarding == True
+
+    assert "'Testing sensor-list: 0x2b0 by reading modbus registers at 0x3000" in str(mock_logger.info.mock_calls)
+    mock_logger.reset_mock()
+    m.append_msg(msg_modbus_rsp_mb_Err5)
+    m.read()         # read complete msg, and dispatch msg
+    assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
+    assert m.msg_count == 1
+    assert m.msg_recvd[0]['control']==0x1510
+    assert str(m.msg_recvd[0]['seq'])=='03:03'
+    assert m.msg_recvd[0]['data_len']==0x10
+    assert m.ifc.tx_fifo.get()==b''
+    assert m.mb.err == 1
+    assert isclose(m.mb_timeout, 0.5)
+    assert next(m.mb_timer.exp_count) == 0
+    
+    await asyncio.sleep(0.5)
+    assert m.sent_pdu==bytearray(b'\xa5\x17\x00\x10E\x04\x03!Ce{\x02\x97\x10\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x03\x10\x00\x00\x10@\xc6\x8a\x15')
+    assert m.ifc.tx_fifo.get()==b''
+    assert next(m.mb_timer.exp_count) == 2
+
+    assert "'Testing sensor-list: 0x1097 by reading modbus registers at 0x1000" in str(mock_logger.info.mock_calls)
+    mock_logger.reset_mock()
+    m.append_msg(msg_modbus_rsp_mb_1097_ok)
+    m.read()         # read complete msg, and dispatch msg
+    assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
+    assert m.msg_count == 2
+    assert m.msg_recvd[1]['control']==0x1510
+    assert str(m.msg_recvd[1]['seq'])=='03:03'
+    assert m.msg_recvd[1]['data_len']==51
+    assert m.mb.err == 0
+    assert m.sensor_list_detection.detection_running == False
+    assert m.sensor_list == 0x1097
+
+    mock_logger.error.assert_not_called()
+    assert "Use sensor-list: 0x1097 for 'Y170000000000002'" in str(mock_logger.info.mock_calls)
+
     m.close()
 
 @pytest.mark.asyncio(loop_scope="session")
