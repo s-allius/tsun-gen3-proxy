@@ -644,7 +644,7 @@ class SolarmanV5(SolarmanBase):
             db.set_db_def_value(Register.NO_INPUTS, input_mapping[max_pow])
 
         # 2. Determine the model series (MX or MS)
-        if max_pow == 3000 or (max_pow <= 1000 and snr_prefix == 'Y00'):
+        if snr_prefix == 'Y00':
             series = 'MX'
         else:
             series = 'MS'
