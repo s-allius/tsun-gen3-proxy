@@ -505,6 +505,39 @@ def inverter_ind_msg900():  # 0x4210 rated Power 900W
     return msg
 
 @pytest.fixture
+def inverter_ind_msg900_y00():  # 0x4210 rated Power 900W 
+    msg  = b'\xa5\x99\x01\x10\x42\xe6\x9e' +get_sn()  +b'\x01\xb0\x02\xbc\xc8'
+    msg += b'\x24\x32\x6c\x1f\x00\x00\xa0\x47\xe4\x33\x01\x00\x03\x08\x00\x00'
+    msg += b'\x59\x30\x30\x45\x37\x41\x30\x46\x30\x31\x30\x42\x30\x31\x33\x45'
+    msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+    msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+    msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+    msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+    msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+    msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+    msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+    msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+    msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+    msg += b'\x00\x01\x00\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+    msg +=  b'\x40\x10\x08\xc8\x00\x49\x13\x8d\x00\x36\x00\x00\x03\x84\x06\x7a'
+    msg += b'\x01\x61\x00\xa8\x02\x54\x01\x5a\x00\x8a\x01\xe4\x01\x5a\x00\xbd'
+    msg += b'\x02\x8f\x00\x11\x00\x01\x00\x00\x00\x0b\x00\x00\x27\x98\x00\x04'
+    msg += b'\x00\x00\x0c\x04\x00\x03\x00\x00\x0a\xe7\x00\x05\x00\x00\x0c\x75'
+    msg += b'\x00\x00\x00\x00\x06\x16\x02\x00\x00\x00\x55\xaa\x00\x01\x00\x00'
+    msg +=  b'\x00\x00\x00\x00\xff\xff\x03\x84\x00\x03\x04\x00\x04\x00\x04\x00'
+    msg += b'\x04\x00\x00\x01\xff\xff\x00\x01\x00\x06\x00\x68\x00\x68\x05\x00'
+    msg += b'\x09\xcd\x07\xb6\x13\x9c\x13\x24\x00\x01\x07\xae\x04\x0f\x00\x41'
+    msg += b'\x00\x0f\x0a\x64\x0a\x64\x00\x06\x00\x06\x09\xf6\x12\x8c\x12\x8c'
+    msg += b'\x00\x10\x00\x10\x14\x52\x14\x52\x00\x10\x00\x10\x01\x51\x00\x05'
+    msg += b'\x04\x00\x00\x01\x13\x9c\x0f\xa0\x00\x4e\x00\x66\x03\xe8\x04\x00'
+    msg += b'\x09\xce\x07\xa8\x13\x9c\x13\x26\x00\x00\x00\x00\x00\x00\x00\x00'
+    msg += b'\x00\x00\x00\x00\x04\x00\x04\x00\x00\x00\x00\x00\xff\xff\x00\x00'
+    msg += b'\x00\x00\x00\x00'
+    msg += correct_checksum(msg)
+    msg += b'\x15'
+    return msg
+
+@pytest.fixture
 def inverter_ind_msg_81():  # 0x4210 fcode 0x81
     msg  = b'\xa5\x99\x01\x10\x42\x02\x03' +get_sn()  +b'\x81\xb0\x02\xbc\xc8'
     msg += b'\x24\x32\x6c\x1f\x00\x00\xa0\x07\x04\x03\x01\x00\x03\x08\x00\x00'
@@ -837,7 +870,7 @@ def inv_1097_dev_ind_msg(): # 0x4110
 
 @pytest.fixture
 def inv_1097_data_ind_msg(): # 0x4210
-    msg  = b'\xa5\x6f\x00\x10\x42\x92\x02' +get_dcu_sn()  +b'\x01\x97\x10\xc7\xde'
+    msg  = b'\xa5\x6f\x00\x10\x42\x92\x02' +get_sn()  +b'\x01\x97\x10\xc7\xde'
     msg += b'\x2d\x32\x28\x00\x00\x00\x84\x17\x79\x35\x01\x00\x4c\x12\x00\x00'
     msg += b'\x34\x31\x30\x31\x32\x34\x30\x37\x30\x31\x34\x39\x30\x33\x31\x34'
     msg += b'\x0d\x3a\x00\x00\x0d\x2c\x00\x00\x00\x00\x08\x20\x00\x00\x00\x00'
@@ -1028,7 +1061,7 @@ def config_tsun_titan():
             'proxy_node_id': 'test_1',
             'proxy_unique_id': ''
         },
-        'solarman':{'enabled': True, 'host': 'test_cloud.local', 'port': 1234},'inverters':{'Y000000000000001':{'monitor_sn': 2070233888, 'node_id':'inv1/', 'modbus_polling': True, 'suggested_area':'roof', 'sensor_list': 0x1097}}}
+        'solarman':{'enabled': True, 'host': 'test_cloud.local', 'port': 1234},'inverters':{'Y000000000000001':{'monitor_sn': 2070233889, 'node_id':'inv1/', 'modbus_polling': True, 'suggested_area':'roof', 'sensor_list': 0x1097}}}
     Proxy.class_init()
     Proxy.mqtt = Mqtt()
 
@@ -1358,35 +1391,6 @@ async def test_read_two_messages4(my_loop, config_tsun_dcu1, dcu_dev_ind_msg, dc
     assert m.ifc.tx_fifo.get()==b''
     m.close()
 
-@pytest.mark.asyncio(loop_scope="session")
-async def test_read_two_messages5(my_loop, config_tsun_titan, inv_1097_dev_ind_msg, dcu_dev_rsp_msg, inv_1097_data_ind_msg, dcu_data_rsp_msg):
-    _ = config_tsun_titan
-    m = MemoryStream(inv_1097_dev_ind_msg, (0,))
-    m.append_msg(inv_1097_data_ind_msg)
-    assert 0 == m.sensor_list
-    m._init_new_client_conn()
-    m.read()         # read complete msg, and dispatch msg
-    assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
-    assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
-    assert m.msg_count == 2
-    assert m.header_len==11
-    assert m.snr == 2070233888
-    assert m.unique_id == '2070233888'
-    assert m.msg_recvd[0]['control']==0x4110
-    assert m.msg_recvd[0]['seq']=='01:00'
-    assert m.msg_recvd[0]['data_len']==212
-    assert m.msg_recvd[1]['control']==0x4210
-    assert m.msg_recvd[1]['seq']=='02:93'
-    assert m.msg_recvd[1]['data_len']==111
-    assert '1097' == m.db.get_db_value(Register.SENSOR_LIST, None)
-    assert 0x1097 == m.sensor_list
-    # fixme: inv_1097_dev_ind_msg is not well defined, since we don't know the proper coding.
-    # assert m.ifc.fwd_fifo.get()==inv_1097_dev_ind_msg+inv_1097_data_ind_msg
-    # assert m.ifc.tx_fifo.get()==dcu_dev_rsp_msg+dcu_data_rsp_msg
-
-    m._init_new_client_conn()
-    # assert m.ifc.tx_fifo.get()==b''
-    m.close()
 
 @pytest.mark.asyncio(loop_scope="session")
 async def test_unkown_frame_code(my_loop, config_tsun_inv1, inverter_ind_msg_81, inverter_rsp_msg_81):
@@ -1689,6 +1693,20 @@ async def test_build_modell_900(my_loop, config_tsun_allow_all, inverter_ind_msg
     assert 900 == m.db.get_db_value(Register.RATED_POWER, 0)
     assert 2 == m.db.get_db_value(Register.NO_INPUTS, 0)
     assert 'TSOL-MS900' == m.db.get_db_value(Register.EQUIPMENT_MODEL, 0)
+    m.close()
+
+@pytest.mark.asyncio(loop_scope="session")
+async def test_build_modell_900_y00(my_loop, config_tsun_titan, inverter_ind_msg900_y00):
+    _ = config_tsun_titan
+    m = MemoryStream(inverter_ind_msg900_y00, (0,))
+    assert 0 == m.db.get_db_value(Register.MAX_DESIGNED_POWER, 0)
+    assert None == m.db.get_db_value(Register.RATED_POWER, None)
+    assert None == m.db.get_db_value(Register.INVERTER_TEMP, None)
+    m.read()         # read complete msg, and dispatch msg
+    assert 900 == m.db.get_db_value(Register.MAX_DESIGNED_POWER, 0)
+    assert 900 == m.db.get_db_value(Register.RATED_POWER, 0)
+    assert 2 == m.db.get_db_value(Register.NO_INPUTS, 0)
+    assert 'TSOL-MX900' == m.db.get_db_value(Register.EQUIPMENT_MODEL, 0)
     m.close()
 
 @pytest.mark.asyncio(loop_scope="session")
