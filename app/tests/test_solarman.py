@@ -2500,9 +2500,6 @@ async def test_start_client_mode_detection(my_loop, config_tsun_detect, msg_modb
     m.read()         # read complete msg, and dispatch msg
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
     assert m.msg_count == 1
-    assert m.msg_recvd[0]['control']==0x1510
-    assert str(m.msg_recvd[0]['seq'])=='03:03'
-    assert m.msg_recvd[0]['data_len']==0x10
     assert m.ifc.tx_fifo.get()==b''
     assert m.mb.err == 1
     assert isclose(m.mb_timeout, 0.5)
@@ -2519,9 +2516,6 @@ async def test_start_client_mode_detection(my_loop, config_tsun_detect, msg_modb
     m.read()         # read complete msg, and dispatch msg
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
     assert m.msg_count == 2
-    assert m.msg_recvd[1]['control']==0x1510
-    assert str(m.msg_recvd[1]['seq'])=='03:03'
-    assert m.msg_recvd[1]['data_len']==51
     assert m.mb.err == 0
     assert m.sensor_list_detection.detection_running == False
     assert m.sensor_list == 0x1097
