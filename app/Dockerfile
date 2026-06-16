@@ -18,7 +18,7 @@ FROM base AS builder
 
 # copy the dependencies file to the root dir and install requirements
 COPY ./requirements.txt /root/
-RUN apk add --no-cache build-base=0.5-r3 && \
+RUN apk add --no-cache build-base=0.5-r4 && \
     python -m pip install --no-cache-dir pip==24.3.1 wheel==0.45.1 && \
     python -OO -m pip wheel --no-cache-dir --wheel-dir=/root/wheels -r /root/requirements.txt
 
