@@ -2379,6 +2379,9 @@ async def test_modbus_scaning_inv_rsp(config_tsun_scan, heartbeat_ind_msg, heart
     assert asyncio.get_running_loop()
 
     m = MemoryStream(heartbeat_ind_msg, (0x15,0x56,0))
+    m.mb.timeout = 0.1            # timeout in MODBUS class must be shorter than test sleep time
+    m.mb_first_timeout = 0.1            # timeout in MODBUS class must be shorter than test sleep time
+    m.mb_timeout = 0.1
     m.append_msg(msg_modbus_rsp_mb_4)
     assert m.mb_scan == False
     assert asyncio.get_running_loop() == m.mb_timer.loop
@@ -2405,10 +2408,10 @@ async def test_modbus_scaning_inv_rsp(config_tsun_scan, heartbeat_ind_msg, heart
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
 
     m.ifc.tx_clear() # clear send buffer for next test
-    assert isclose(m.mb_timeout, 0.5)
+    assert isclose(m.mb_timeout, 0.1)
     assert next(m.mb_timer.exp_count) == 0
     
-    await asyncio.sleep(0.5)
+    await asyncio.sleep(0.1)
     assert m.sent_pdu==b'\xa5\x17\x00\x10E\x12\x84!Ce{\x02\xb0\x02\x00\x00\x00\x00\x00\x00' \
                        b'\x00\x00\x00\x00\x00\x00\x01\x03\xff\xc0\x00\x14\x75\xed\x33\x15'
     assert m.ifc.tx_fifo.get()==b''
@@ -2649,6 +2652,9 @@ async def test_start_client_mode_scan(config_tsun_scan_dcu, str_test_ip, dcu_mod
     _ = config_tsun_scan_dcu
     assert asyncio.get_running_loop()
     m = MemoryStream(dcu_modbus_rsp, (131,0,))
+    m.mb.timeout = 0.1            # timeout in MODBUS class must be shorter than test sleep time
+    m.mb_first_timeout = 0.1            # timeout in MODBUS class must be shorter than test sleep time
+    m.mb_timeout = 0.1
     m.append_msg(dcu_modbus_rsp)
     assert m.state == State.init
     assert m.no_forwarding == False
@@ -2663,14 +2669,14 @@ async def test_start_client_mode_scan(config_tsun_scan_dcu, str_test_ip, dcu_mod
     assert m.mb_scan == True
     m.mb_step = 0
     assert m.db.get_db_value(Register.IP_ADDRESS) == str_test_ip
-    assert isclose(m.db.get_db_value(Register.POLLING_INTERVAL), 0.5)
+    assert isclose(m.db.get_db_value(Register.POLLING_INTERVAL), 0.1)
     assert m.db.get_db_value(Register.HEARTBEAT_INTERVAL) == 120
 
     assert m.state == State.up
     assert m.no_forwarding == True
 
     assert m.ifc.tx_fifo.get()==b''
-    assert isclose(m.mb_timeout, 0.5)
+    assert isclose(m.mb_timeout, 0.1)
 
     assert m.ifc.tx_fifo.get()==b''
 
@@ -2692,7 +2698,7 @@ async def test_start_client_mode_scan(config_tsun_scan_dcu, str_test_ip, dcu_mod
     assert m.new_data['batterie'] == True
     m.new_data['batterie'] = False
 
-    await asyncio.sleep(0.5)
+    await asyncio.sleep(0.1)
     assert m.sent_pdu==bytearray(b'\xa5\x17\x00\x10E\x04\x03 Ce{\x02&0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x03\x00\x00\x00-\x85\xd7\x9b\x15')
     assert m.ifc.tx_fifo.get()==b''
 
