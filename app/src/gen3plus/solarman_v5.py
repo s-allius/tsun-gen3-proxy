@@ -551,6 +551,12 @@ class SolarmanV5(SolarmanBase):
         if self.mb_scan:
             self._send_modbus_scan()
         else:
+            if self.sensor_list_detection.is_running():
+                (
+                    self.sensor_list,
+                    self.mb_regs,
+                ) = self.sensor_list_detection.next()
+
             for reg in self.mb_regs:
                 self._send_modbus_cmd(Modbus.INV_ADDR, Modbus.READ_REGS,
                                       reg['addr'], reg['len'], logging.INFO)
@@ -901,10 +907,6 @@ class SolarmanV5(SolarmanBase):
                     # different sensor configuration if the current one is
                     # not working, improving the chances of successful
                     # detection in subsequent attempts.
-                    (
-                        self.sensor_list,
-                        self.mb_regs,
-                    ) = self.sensor_list_detection.next()
                     self.mb_timout_cb(0)
 
     def msg_hbeat_ind(self):

@@ -1357,7 +1357,6 @@ async def test_read_two_messages4(my_loop, config_tsun_dcu1, dcu_dev_ind_msg, dc
     assert m.ifc.tx_fifo.get()==b''
     m.close()
 
-
 @pytest.mark.asyncio(loop_scope="session")
 async def test_unkown_frame_code(my_loop, config_tsun_inv1, inverter_ind_msg_81, inverter_rsp_msg_81):
     _ = config_tsun_inv1
@@ -2457,12 +2456,17 @@ async def test_start_client_mode(my_loop, config_tsun_inv1, str_test_ip):
 
 @pytest.mark.asyncio(loop_scope="session")
 async def test_start_client_mode_detection(my_loop, config_tsun_detect, msg_modbus_rsp_mb_Err5, msg_modbus_rsp_mb_1097_ok,str_test_ip, logger_mock):
+    '''Test sensor-list detection by sending Modbus responses with different sensor-lists, 
+    and check if correct sensor-list is detected and used for polling.
+    
+    MODBUS retransmitting on a missing valid response is disabled in the MODBUS class.'''
     _ = config_tsun_detect
     mock_logger = logger_mock
     assert asyncio.get_running_loop()
     m = MemoryStream(b'')
     m.mb.max_retries = 0          # test pdus without retranmsission
-
+    m.mb.timeout = 0.1            # timeout in MODBUS class must be shorter than test sleep time
+    m.mb_first_timeout = 5        # set longer timeout to disable the solarman timer, since we want to test the mb_timer timeout handling here
     assert m.state == State.init
     assert m.no_forwarding == False
     assert m.mb_timer.tim == None
@@ -2472,7 +2476,6 @@ async def test_start_client_mode_detection(my_loop, config_tsun_detect, msg_modb
     assert m.sensor_list == 0x2b0
     assert m.sent_pdu==bytearray(b'\xa5\x17\x00\x10E\x01\x00!Ce{\x02\xb0\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x030\x00\x000J\xde\xf1\x15')
     assert m.db.get_db_value(Register.IP_ADDRESS) == str_test_ip
-    assert isclose(m.db.get_db_value(Register.POLLING_INTERVAL), 0.5)
     assert m.db.get_db_value(Register.HEARTBEAT_INTERVAL) == 120
 
     assert m.state == State.up
@@ -2486,13 +2489,12 @@ async def test_start_client_mode_detection(my_loop, config_tsun_detect, msg_modb
     assert m.msg_count == 1
     assert m.ifc.tx_fifo.get()==b''
     assert m.mb.err == 1
-    assert isclose(m.mb_timeout, 0.5)
     assert next(m.mb_timer.exp_count) == 0
     
-    await asyncio.sleep(0.5)
+    await asyncio.sleep(0.15)
     assert m.sent_pdu==bytearray(b'\xa5\x17\x00\x10E\x04\x03!Ce{\x02\x97\x10\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x03\x10\x00\x00\x10@\xc6\x8a\x15')
     assert m.ifc.tx_fifo.get()==b''
-    assert next(m.mb_timer.exp_count) == 2
+    assert next(m.mb_timer.exp_count) == 1
 
     assert "'Testing sensor-list: 0x1097 by reading modbus registers at 0x1000" in str(mock_logger.info.mock_calls)
     mock_logger.reset_mock()
@@ -2500,6 +2502,130 @@ async def test_start_client_mode_detection(my_loop, config_tsun_detect, msg_modb
     m.read()         # read complete msg, and dispatch msg
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
     assert m.msg_count == 2
+    assert m.mb.err == 0
+    assert m.sensor_list_detection.detection_running == False
+    assert m.sensor_list == 0x1097
+
+    mock_logger.error.assert_not_called()
+    assert "Use sensor-list: 0x1097 for 'Y170000000000002'" in str(mock_logger.info.mock_calls)
+
+    m.close()
+
+@pytest.mark.asyncio(loop_scope="session")
+async def test_start_client_mode_detect_retrans(my_loop, config_tsun_detect, msg_modbus_rsp_mb_Err5, msg_modbus_rsp_mb_1097_ok,str_test_ip, logger_mock):
+    '''Test sensor-list detection by sending Modbus responses with different sensor-lists, 
+    and check if correct sensor-list is detected and used for polling.
+    
+    MODBUS retransmitting on a missing valid response is enabled in the MODBUS class.'''
+    _ = config_tsun_detect
+    mock_logger = logger_mock
+    assert asyncio.get_running_loop()
+    m = MemoryStream(b'')
+    m.mb.max_retries = 1          # test pdus with retranmsission
+    m.mb.timeout = 0.1            # timeout in MODBUS class must be shorter than test sleep time
+
+    assert m.state == State.init
+    assert m.no_forwarding == False
+    assert m.mb_timer.tim == None
+    assert asyncio.get_running_loop() == m.mb_timer.loop
+    m.send_start_cmd(get_sn_int(), str_test_ip, False, m.mb_first_timeout)
+    assert m.sensor_list_detection.detection_running == True
+    assert m.sensor_list == 0x2b0
+    assert m.sent_pdu==bytearray(b'\xa5\x17\x00\x10E\x01\x00!Ce{\x02\xb0\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x030\x00\x000J\xde\xf1\x15')
+    assert m.db.get_db_value(Register.IP_ADDRESS) == str_test_ip
+    assert m.db.get_db_value(Register.HEARTBEAT_INTERVAL) == 120
+
+    assert m.state == State.up
+    assert m.no_forwarding == True
+
+    assert "'Testing sensor-list: 0x2b0 by reading modbus registers at 0x3000" in str(mock_logger.info.mock_calls)
+    mock_logger.reset_mock()
+    m.append_msg(msg_modbus_rsp_mb_Err5)
+    m.read()         # read complete msg, and dispatch msg
+    assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
+    assert m.msg_count == 1
+    assert m.mb.err == 1
+    assert next(m.mb_timer.exp_count) == 0
+    
+    await asyncio.sleep(0.15)
+    assert m.sent_pdu==bytearray(b'\xa5\x17\x00\x10E\x04\x03!Ce{\x02\xb0\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x030\x00\x000J\xde\xf7\x15')
+    assert m.mb.err == 1
+    assert next(m.mb_timer.exp_count) == 1
+
+    assert "'Testing sensor-list: 0x2b0 by reading modbus registers at 0x3000" not in str(mock_logger.info.mock_calls)
+    mock_logger.reset_mock()
+    m.append_msg(msg_modbus_rsp_mb_Err5)
+    m.read()         # read complete msg, and dispatch msg
+    assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
+    assert m.msg_count == 2
+    assert m.mb.err == 1
+    assert next(m.mb_timer.exp_count) == 2
+
+    await asyncio.sleep(0.15)
+    assert m.sent_pdu==bytearray(b'\xa5\x17\x00\x10E\x05\x03!Ce{\x02\x97\x10\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x03\x10\x00\x00\x10@\xc6\x8b\x15')
+    assert next(m.mb_timer.exp_count) == 3
+
+    assert "'Testing sensor-list: 0x1097 by reading modbus registers at 0x1000" in str(mock_logger.info.mock_calls)
+    mock_logger.reset_mock()
+    m.append_msg(msg_modbus_rsp_mb_1097_ok)
+    m.read()         # read complete msg, and dispatch msg
+    assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
+    assert m.msg_count == 3
+    assert m.mb.err == 0
+    assert m.sensor_list_detection.detection_running == False
+    assert m.sensor_list == 0x1097
+
+    mock_logger.error.assert_not_called()
+    assert "Use sensor-list: 0x1097 for 'Y170000000000002'" in str(mock_logger.info.mock_calls)
+
+    m.close()
+
+@pytest.mark.asyncio(loop_scope="session")
+async def test_start_client_mode_detect_timeout(my_loop, config_tsun_detect, msg_modbus_rsp_mb_Err5, msg_modbus_rsp_mb_1097_ok,str_test_ip, logger_mock):
+    '''Test sensor-list detection by sending Modbus responses with different sensor-lists, 
+    and check if correct sensor-list is detected and used for polling.
+    
+    MODBUS retransmitting on a missing valid response is enabled in the MODBUS class.'''
+    _ = config_tsun_detect
+    mock_logger = logger_mock
+    assert asyncio.get_running_loop()
+    m = MemoryStream(b'')
+    m.mb.max_retries = 1          # test pdus with retranmsission
+    m.mb.timeout = 0.1            # timeout in MODBUS class must be shorter than test sleep time
+    m.mb_first_timeout = 0.2        # set longer timeout to disable the solarman timer, since we want to test the mb_timer timeout handling here
+
+    assert m.state == State.init
+    assert m.no_forwarding == False
+    assert m.mb_timer.tim == None
+    assert asyncio.get_running_loop() == m.mb_timer.loop
+    m.send_start_cmd(get_sn_int(), str_test_ip, False, m.mb_first_timeout)
+    assert m.sensor_list_detection.detection_running == True
+    assert m.sensor_list == 0x2b0
+    assert m.sent_pdu==bytearray(b'\xa5\x17\x00\x10E\x01\x00!Ce{\x02\xb0\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x030\x00\x000J\xde\xf1\x15')
+    assert m.db.get_db_value(Register.IP_ADDRESS) == str_test_ip
+    assert m.db.get_db_value(Register.HEARTBEAT_INTERVAL) == 120
+
+    assert m.state == State.up
+    assert m.no_forwarding == True
+
+    assert "'Testing sensor-list: 0x2b0 by reading modbus registers at 0x3000" in str(mock_logger.info.mock_calls)
+    mock_logger.reset_mock()
+    assert next(m.mb_timer.exp_count) == 0
+    
+    await asyncio.sleep(0.1)
+    assert m.sent_pdu==bytearray(b'\xa5\x17\x00\x10E\x02\x00!Ce{\x02\xb0\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x030\x00\x000J\xde\xf2\x15')
+    assert next(m.mb_timer.exp_count) == 1
+
+    await asyncio.sleep(0.1)
+    assert m.sent_pdu==bytearray(b'\xa5\x17\x00\x10E\x03\x00!Ce{\x02\x97\x10\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x03\x10\x00\x00\x10@\xc6\x86\x15')
+    assert next(m.mb_timer.exp_count) == 3
+
+    assert "'Testing sensor-list: 0x1097 by reading modbus registers at 0x1000" in str(mock_logger.info.mock_calls)
+    mock_logger.reset_mock()
+    m.append_msg(msg_modbus_rsp_mb_1097_ok)
+    m.read()         # read complete msg, and dispatch msg
+    assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
+    assert m.msg_count == 1
     assert m.mb.err == 0
     assert m.sensor_list_detection.detection_running == False
     assert m.sensor_list == 0x1097
