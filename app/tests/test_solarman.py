@@ -2259,6 +2259,9 @@ async def test_modbus_polling(my_loop, config_tsun_inv1, heartbeat_ind_msg, hear
     _ = config_tsun_inv1
     assert asyncio.get_running_loop()
     m = MemoryStream(heartbeat_ind_msg, (0,))
+    m.mb.timeout = 0.1            # timeout in MODBUS class must be shorter than test sleep time
+    m.mb_first_timeout = 0.1            # timeout in MODBUS class must be shorter than test sleep time
+    m.mb_timeout = 0.1
     assert asyncio.get_running_loop() == m.mb_timer.loop
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
     assert m.mb_timer.tim == None
@@ -2276,19 +2279,19 @@ async def test_modbus_polling(my_loop, config_tsun_inv1, heartbeat_ind_msg, hear
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
 
     assert m.state == State.up
-    assert isclose(m.mb_timeout, 0.5)
+    assert isclose(m.mb_timeout, 0.1)
     assert next(m.mb_timer.exp_count) == 0
     
-    await asyncio.sleep(0.5)
+    await asyncio.sleep(0.1)
     assert m.sent_pdu==bytearray(b'\xa5\x17\x00\x10E\x12\x84!Ce{\x02\xb0\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x03\x30\x00\x000J\xde\x86\x15')
     assert m.ifc.tx_fifo.get()==b''
     
-    await asyncio.sleep(0.5)
+    await asyncio.sleep(0.1)
     assert m.sent_pdu==bytearray(b'\xa5\x17\x00\x10E\x13\x84!Ce{\x02\xb0\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x03\x30\x00\x000J\xde\x87\x15')
     assert m.ifc.tx_fifo.get()==b''
     m.state = State.closed
     m.sent_pdu = bytearray()
-    await asyncio.sleep(0.5)
+    await asyncio.sleep(0.1)
     assert m.sent_pdu==bytearray(b'')
     assert m.ifc.tx_fifo.get()==b''
     assert next(m.mb_timer.exp_count) == 4
@@ -2300,6 +2303,9 @@ async def test_modbus_scaning(config_tsun_scan, heartbeat_ind_msg, heartbeat_rsp
     assert asyncio.get_running_loop()
 
     m = MemoryStream(heartbeat_ind_msg, (0x15,0x56,0))
+    m.mb.timeout = 0.1            # timeout in MODBUS class must be shorter than test sleep time
+    m.mb_first_timeout = 0.1            # timeout in MODBUS class must be shorter than test sleep time
+    m.mb_timeout = 0.1
     m.append_msg(msg_modbus_rsp)
     m.append_msg(msg_modbus_rsp_inv_id2)
     assert m.mb_scan == False
@@ -2327,10 +2333,10 @@ async def test_modbus_scaning(config_tsun_scan, heartbeat_ind_msg, heartbeat_rsp
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
 
     m.ifc.tx_clear() # clear send buffer for next test
-    assert isclose(m.mb_timeout, 0.5)
+    assert isclose(m.mb_timeout, 0.1)
     assert next(m.mb_timer.exp_count) == 0
     
-    await asyncio.sleep(0.5)
+    await asyncio.sleep(0.1)
     assert m.sent_pdu==b'\xa5\x17\x00\x10E\x12\x84!Ce{\x02\xb0\x02\x00\x00\x00\x00\x00\x00' \
                        b'\x00\x00\x00\x00\x00\x00\x01\x03\xff\xc0\x00\x14\x75\xed\x33\x15'
     assert m.ifc.tx_fifo.get()==b''
@@ -2347,7 +2353,7 @@ async def test_modbus_scaning(config_tsun_scan, heartbeat_ind_msg, heartbeat_rsp
     assert m.mb.last_len == 20
     assert m.mb.err == 0
 
-    await asyncio.sleep(0.5)
+    await asyncio.sleep(0.1)
     assert m.sent_pdu==b'\xa5\x17\x00\x10E\x04\x03!Ce{\x02\xb0\x02\x00\x00\x00\x00\x00\x00' \
                        b'\x00\x00\x00\x00\x00\x00\x02\x03\x00\x00\x00\x14\x45\xf6\xbf\x15'
     assert m.ifc.tx_fifo.get()==b''
@@ -2427,6 +2433,9 @@ async def test_start_client_mode(my_loop, config_tsun_inv1, str_test_ip):
     _ = config_tsun_inv1
     assert asyncio.get_running_loop()
     m = MemoryStream(b'')
+    m.mb.timeout = 0.1            # timeout in MODBUS class must be shorter than test sleep time
+    m.mb_first_timeout = 0.1            # timeout in MODBUS class must be shorter than test sleep time
+    m.mb_timeout = 0.1
     assert m.state == State.init
     assert m.no_forwarding == False
     assert m.mb_timer.tim == None
@@ -2434,21 +2443,21 @@ async def test_start_client_mode(my_loop, config_tsun_inv1, str_test_ip):
     m.send_start_cmd(get_sn_int(), str_test_ip, False, m.mb_first_timeout)
     assert m.sent_pdu==bytearray(b'\xa5\x17\x00\x10E\x01\x00!Ce{\x02\xb0\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x030\x00\x000J\xde\xf1\x15')
     assert m.db.get_db_value(Register.IP_ADDRESS) == str_test_ip
-    assert isclose(m.db.get_db_value(Register.POLLING_INTERVAL), 0.5)
+    assert isclose(m.db.get_db_value(Register.POLLING_INTERVAL), 0.1)
     assert m.db.get_db_value(Register.HEARTBEAT_INTERVAL) == 120
 
     assert m.state == State.up
     assert m.no_forwarding == True
 
     assert m.ifc.tx_fifo.get()==b''
-    assert isclose(m.mb_timeout, 0.5)
+    assert isclose(m.mb_timeout, 0.1)
     assert next(m.mb_timer.exp_count) == 0
     
-    await asyncio.sleep(0.5)
+    await asyncio.sleep(0.1)
     assert m.sent_pdu==bytearray(b'\xa5\x17\x00\x10E\x02\x00!Ce{\x02\xb0\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x030\x00\x000J\xde\xf2\x15')
     assert m.ifc.tx_fifo.get()==b''
     
-    await asyncio.sleep(0.5)
+    await asyncio.sleep(0.1)
     assert m.sent_pdu==bytearray(b'\xa5\x17\x00\x10E\x03\x00!Ce{\x02\xb0\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x030\x00\x000J\xde\xf3\x15')
     assert m.ifc.tx_fifo.get()==b''
     assert next(m.mb_timer.exp_count) == 3

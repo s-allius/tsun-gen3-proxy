@@ -461,7 +461,7 @@ class SolarmanV5(SolarmanBase):
             case 0x02b0:
                 self.mb_regs = [{'addr': 0x3000, 'len': 48}]
                 self.mb_slow_regs = [{'addr': 0x2000, 'len': 96}]
-            case 0x0000:
+            case _:
                 return
 
         self.db.set_db_def_value(Register.SENSOR_LIST,
