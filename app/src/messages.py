@@ -212,13 +212,21 @@ class Message(ProtocolIfc):
                               logging.INFO)
 
     def _dump_modbus_scan(self, data, hdr_len, modbus_msg_len):
+        expected_len = 5 + self.mb.last_len * 2
         if (data[hdr_len] == self.mb_inv_no and
-                data[hdr_len+1] == Modbus.READ_REGS):
+                data[hdr_len+1] == Modbus.READ_REGS and
+                modbus_msg_len == expected_len):
             logging.info(f'[{self.node_id}] Valid MODBUS data '
                          f'(reg: 0x{self.mb.last_reg:04x}):')
             hex_dump_memory(logging.INFO, 'Valid MODBUS data '
                             f'(reg: 0x{self.mb.last_reg:04x}):',
                             data[hdr_len:], modbus_msg_len)
+        else:
+            logging.info(f'[{self.node_id}] INvalid MODBUS data '
+                         f'(reg: 0x{self.mb.last_reg:04x}'
+                         f' Code: 0x{data[hdr_len]:02x}'
+                         f'{data[hdr_len+1]:02x}'
+                         f' len:{modbus_msg_len} exp_len:{expected_len}):')
 
     '''
     Our puplic methods
