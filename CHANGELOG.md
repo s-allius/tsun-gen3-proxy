@@ -16,7 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Update dependency aiohttp to v3.14.1
+- Update python Docker tag to v3.14.6
+- Update dependency aiohttp to v3.14.1 [SECURITY]
 - speed up unit tests
 - improve MODBUS scan with a length check of the responses
 - Update dependency coverage to v7.14.0
