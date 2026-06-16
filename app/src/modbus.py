@@ -96,16 +96,6 @@ class Modbus():
         0x1217: {'reg': Register.INSULATION_IMP_RY,    'fmt': '!H', 'ratio': 0.01},  # noqa: E501
         0x1218: {'reg': Register.INVERTER_TEMP,        'fmt': '!H', 'offset': -40},  # noqa: E501
 
-        0x121a: {'reg': Register.TEST_VAL_27,           'fmt': '!H'},                 # noqa: E501
-        0x121b: {'reg': Register.TEST_VAL_28,           'fmt': '!H'},                 # noqa: E501
-        0x121c: {'reg': Register.TEST_VAL_29,           'fmt': '!H'},                 # noqa: E501
-        0x121d: {'reg': Register.TEST_VAL_30,           'fmt': '!H'},                 # noqa: E501
-        0x121e: {'reg': Register.TEST_VAL_31,           'fmt': '!H'},                 # noqa: E501
-        0x121f: {'reg': Register.TEST_VAL_32,           'fmt': '!H'},                 # noqa: E501
-
-        0x1300: {'reg': Register.TEST_VAL_14,           'fmt': '!H'},                 # noqa: E501
-        0x1301: {'reg': Register.TEST_VAL_15,           'fmt': '!H'},                 # noqa: E501
-
         0x1302: {'reg': Register.PV1_VOLTAGE,           'fmt': '!H', 'ratio': 0.1},   # noqa: E501
         0x1303: {'reg': Register.PV1_CURRENT,           'fmt': '!H', 'ratio': 0.01},  # noqa: E501
         0x1304: {'reg': Register.PV1_POWER,             'fmt': '!H', 'ratio': 0.1},   # noqa: E501
@@ -141,27 +131,6 @@ class Modbus():
         0x1327: {'reg': Register.PV6_POWER,             'fmt': '!H', 'ratio': 0.1},   # noqa: E501
         0x1328: {'reg': Register.PV6_DAILY_GENERATION,  'fmt': '!L', 'ratio': 0.01},  # noqa: E501
         0x132a: {'reg': Register.PV6_TOTAL_GENERATION,  'fmt': '!L', 'ratio': 0.01},  # noqa: E501
-
-        0x132c: {'reg': Register.TEST_VAL_0,            'fmt': '!H'},                 # noqa: E501
-        0x132d: {'reg': Register.TEST_VAL_1,            'fmt': '!H'},                 # noqa: E501
-        0x132f: {'reg': Register.TEST_VAL_2,            'fmt': '!H'},                 # noqa: E501
-
-        0x1330: {'reg': Register.TEST_VAL_4,            'fmt': '!H'},                 # noqa: E501
-        0x1331: {'reg': Register.TEST_VAL_5,            'fmt': '!H'},                 # noqa: E501
-        0x1332: {'reg': Register.TEST_VAL_7,            'fmt': '!H'},                 # noqa: E501
-        0x1333: {'reg': Register.TEST_VAL_8,            'fmt': '!H'},                 # noqa: E501
-        0x1334: {'reg': Register.TEST_VAL_9,            'fmt': '!H'},                 # noqa: E501
-        0x1335: {'reg': Register.TEST_VAL_16,           'fmt': '!H'},                 # noqa: E501
-        0x1336: {'reg': Register.TEST_VAL_17,           'fmt': '!H'},                 # noqa: E501
-        0x1337: {'reg': Register.TEST_VAL_18,           'fmt': '!H'},                 # noqa: E501
-        0x1338: {'reg': Register.TEST_VAL_19,           'fmt': '!H'},                 # noqa: E501
-        0x1339: {'reg': Register.TEST_VAL_20,           'fmt': '!H'},                 # noqa: E501
-        0x133a: {'reg': Register.TEST_VAL_21,           'fmt': '!H'},                 # noqa: E501
-        0x133b: {'reg': Register.TEST_VAL_22,           'fmt': '!H'},                 # noqa: E501
-        0x133c: {'reg': Register.TEST_VAL_23,           'fmt': '!H'},                 # noqa: E501
-        0x133d: {'reg': Register.TEST_VAL_24,           'fmt': '!H'},                 # noqa: E501
-        0x133e: {'reg': Register.TEST_VAL_25,           'fmt': '!H'},                 # noqa: E501
-        0x133f: {'reg': Register.TEST_VAL_26,           'fmt': '!H'},                 # noqa: E501
 
         0x1437: {'reg': Register.MAX_DESIGNED_POWER,   'fmt': '!H', 'ratio':  1},    # noqa: E501
 
@@ -389,6 +358,8 @@ class Modbus():
                         info_db.tracer.log(level,
                                            f'[{self.node_id}] MODBUS: {name}'
                                            f' : {result}{unit}')
+                        logging.log(level, f'[{self.node_id}] MODBUS: {name} :'
+                                           f' {result}{unit}')
 
     '''
     MODBUS response timer
@@ -451,7 +422,12 @@ class Modbus():
     '''
     def __check_crc(self, msg: bytes) -> bool:
         '''Check CRC-16 and returns True if valid'''
-        return 0 == self.__calc_crc(msg)
+        valid = 0 == self.__calc_crc(msg)
+        if not valid:
+            crc = self.__calc_crc(msg[:-2])
+            logging.info(f'CRC error: {msg[-1]:02x}{msg[-2]:02x} != {crc:04x}'
+                         f' for msg: {msg.hex()}')
+        return valid
 
     def __calc_crc(self, buffer: bytes) -> int:
         '''Build CRC-16 for buffer and returns it'''
