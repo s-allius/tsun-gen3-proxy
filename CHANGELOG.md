@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Update dependency tzlocal to v5.4.3
 - Update dependency pytest to v9.1.0
 - Update dependency coverage to v7.14.1
 - Update python Docker tag to v3.14.6
