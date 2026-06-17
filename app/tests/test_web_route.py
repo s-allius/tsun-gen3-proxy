@@ -30,11 +30,11 @@ class FakeServer(Server):
 
 
 pytest_plugins = ('pytest_asyncio',)
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="module")
 def app():
     yield my_app
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="module")
 def client(app):
     app.secret_key = 'super secret key'
     app.testing = True
@@ -67,7 +67,7 @@ def create_inverter_client(config_conn):
 
     return inv
 
-@pytest.mark.asyncio(loop_scope="session")
+@pytest.mark.asyncio(loop_scope="module")
 async def test_home(client):
     """Test the home route."""
     response = await client.get('/')
@@ -75,7 +75,7 @@ async def test_home(client):
     assert response.mimetype == 'text/html'
     assert b"<title>TSUN Proxy - Connections</title>" in await response.data
 
-@pytest.mark.asyncio(loop_scope="session")
+@pytest.mark.asyncio(loop_scope="module")
 async def test_page(client):
     """Test the mqtt page route."""
     response = await client.get('/mqtt')
@@ -84,7 +84,7 @@ async def test_page(client):
     assert b"<title>TSUN Proxy - MQTT Status</title>" in await response.data
     assert b'fetch("/mqtt-fetch")' in await response.data
 
-@pytest.mark.asyncio(loop_scope="session")
+@pytest.mark.asyncio(loop_scope="module")
 async def test_rel_page(client):
     """Test the mqtt route with relative paths."""
     web.build_relative_urls = True
@@ -94,7 +94,7 @@ async def test_rel_page(client):
     assert b'fetch("./mqtt-fetch")' in await response.data
     web.build_relative_urls = False
 
-@pytest.mark.asyncio(loop_scope="session")
+@pytest.mark.asyncio(loop_scope="module")
 async def test_network_tests(client):
     """Test the notes page route."""
     response = await client.get('/network_tests')
@@ -102,7 +102,7 @@ async def test_network_tests(client):
     assert response.mimetype == 'text/html'
     assert b"<title>TSUN Proxy - Network Tests</title>" in await response.data
 
-@pytest.mark.asyncio(loop_scope="session")
+@pytest.mark.asyncio(loop_scope="module")
 async def test_notes(client):
     """Test the notes page route."""
     response = await client.get('/notes')
@@ -110,7 +110,7 @@ async def test_notes(client):
     assert response.mimetype == 'text/html'
     assert b"<title>TSUN Proxy - Important Messages</title>" in await response.data
 
-@pytest.mark.asyncio(loop_scope="session")
+@pytest.mark.asyncio(loop_scope="module")
 async def test_logging(client):
     """Test the logging page route."""
     response = await client.get('/logging')
@@ -118,42 +118,42 @@ async def test_logging(client):
     assert response.mimetype == 'text/html'
     assert b"<title>TSUN Proxy - Log Files</title>" in await response.data
 
-@pytest.mark.asyncio(loop_scope="session")
+@pytest.mark.asyncio(loop_scope="module")
 async def test_favicon96(client):
     """Test the favicon-96x96.png route."""
     response = await client.get('/favicon-96x96.png')
     assert response.status_code == 200
     assert response.mimetype == 'image/png'
 
-@pytest.mark.asyncio(loop_scope="session")
+@pytest.mark.asyncio(loop_scope="module")
 async def test_favicon(client):
     """Test the favicon.ico route."""
     response = await client.get('/favicon.ico')
     assert response.status_code == 200
     assert response.mimetype == 'image/x-icon'
 
-@pytest.mark.asyncio(loop_scope="session")
+@pytest.mark.asyncio(loop_scope="module")
 async def test_favicon_svg(client):
     """Test the favicon.svg route."""
     response = await client.get('/favicon.svg')
     assert response.status_code == 200
     assert response.mimetype == 'image/svg+xml'
 
-@pytest.mark.asyncio(loop_scope="session")
+@pytest.mark.asyncio(loop_scope="module")
 async def test_apple_touch_icon(client):
     """Test the apple-touch-icon.png route."""
     response = await client.get('/apple-touch-icon.png')
     assert response.status_code == 200
     assert response.mimetype == 'image/png'
 
-@pytest.mark.asyncio(loop_scope="session")
+@pytest.mark.asyncio(loop_scope="module")
 async def test_manifest(client):
     """Test the site.webmanifest route."""
     response = await client.get('/site.webmanifest')
     assert response.status_code == 200
     assert response.mimetype == 'application/manifest+json'
 
-@pytest.mark.asyncio(loop_scope="session")
+@pytest.mark.asyncio(loop_scope="module")
 async def test_data_fetch(client, create_inverter):
     """Test the data-fetch route."""
     _ = create_inverter
@@ -164,7 +164,7 @@ async def test_data_fetch(client, create_inverter):
     assert response.status_code == 200
     assert b'<h5>Connections</h5>' in await response.data
 
-@pytest.mark.asyncio(loop_scope="session")
+@pytest.mark.asyncio(loop_scope="module")
 async def test_data_fetch1(client, create_inverter_server):
     """Test the data-fetch route with server connection."""
     _ = create_inverter_server
@@ -175,7 +175,7 @@ async def test_data_fetch1(client, create_inverter_server):
     assert response.status_code == 200
     assert b'<h5>Connections</h5>' in await response.data
 
-@pytest.mark.asyncio(loop_scope="session")
+@pytest.mark.asyncio(loop_scope="module")
 async def test_data_fetch2(client, create_inverter_client):
     """Test the data-fetch route with client connection."""
     _ = create_inverter_client
@@ -186,7 +186,7 @@ async def test_data_fetch2(client, create_inverter_client):
     assert response.status_code == 200
     assert b'<h5>Connections</h5>' in await response.data
 
-@pytest.mark.asyncio(loop_scope="session")
+@pytest.mark.asyncio(loop_scope="module")
 async def test_language_en(client):
     """Test the language/en route and cookie."""
     response = await client.get('/language/en', headers={'referer': '/index'})
@@ -204,7 +204,7 @@ async def test_language_en(client):
     assert b'<html lang="en"' in await response.data
     assert b'<title>TSUN Proxy - Connections</title>' in await response.data
 
-@pytest.mark.asyncio(loop_scope="session")
+@pytest.mark.asyncio(loop_scope="module")
 async def test_language_de(client):
     """Test the language/de route."""
 
@@ -233,7 +233,7 @@ async def test_language_de(client):
     assert b'<html lang=en>' in await response.data
     assert b'<title>Redirecting...</title>' in await response.data
 
-@pytest.mark.asyncio(loop_scope="session")
+@pytest.mark.asyncio(loop_scope="module")
 async def test_language_unknown(client):
     """Test the language/unknown route."""
     response = await client.get('/language/unknown')
@@ -247,7 +247,7 @@ async def test_language_unknown(client):
     assert b'<title>TSUN Proxy - Connections</title>' in await response.data
 
 
-@pytest.mark.asyncio(loop_scope="session")
+@pytest.mark.asyncio(loop_scope="module")
 async def test_mqtt_fetch(client, create_inverter):
     """Test the mqtt-fetch route."""
     _ = create_inverter
@@ -651,7 +651,7 @@ async def test_tcp_connection_cancel(network_tcp_mocks):
     mock_logger.warning.assert_not_called()
     mock_logger.error.assert_not_called()
 
-@pytest.mark.asyncio(loop_scope="session")
+@pytest.mark.asyncio(loop_scope="module")
 async def test_reentrant_call(network_http_mocks):
     """Test: Starting a second test run before the first one is complete."""
 
@@ -676,7 +676,7 @@ async def test_reentrant_call(network_http_mocks):
                     for call in mock_logger.info.call_args_list)
     assert log_found
 
-@pytest.mark.asyncio(loop_scope="session")
+@pytest.mark.asyncio(loop_scope="module")
 async def test_result_fetch1(client):
     """Test the result-fetch route."""
 
@@ -716,7 +716,7 @@ async def test_result_fetch1(client):
     assert bytes(f'Connection Test: Inverter to ({test_ip}:5005)', 'UTF8') in result
     assert b'Test run finished' in result
 
-@pytest.mark.asyncio(loop_scope="session")
+@pytest.mark.asyncio(loop_scope="module")
 async def test_result_fetch1(client):
     """Test the result-fetch route."""
 
@@ -745,7 +745,7 @@ async def test_result_fetch1(client):
     assert bytes(f'Connection Test: Inverter to ({test_ip}:5005)', 'UTF8') in result
     assert b'Test run finished' in result
 
-@pytest.mark.asyncio(loop_scope="session")
+@pytest.mark.asyncio(loop_scope="module")
 async def test_result_fetch2(client):
     """Test the result-fetch route."""
     Config.act_config = {
@@ -774,7 +774,7 @@ async def test_result_fetch2(client):
     assert b'Test run finished' in result
 
 
-@pytest.mark.asyncio(loop_scope="session")
+@pytest.mark.asyncio(loop_scope="module")
 async def test_result_fetch_abort(client):
     """
     Tests if the routine handles a timeout correctly by forcing 
@@ -816,7 +816,7 @@ async def test_result_fetch_abort(client):
             result = await response.data
             assert b'Test run timed out after ' in result
 
-@pytest.mark.asyncio(loop_scope="session")
+@pytest.mark.asyncio(loop_scope="module")
 async def test_notes_fetch(client, config_conn):
     """Test the notes-fetch route."""
     _ = config_conn
@@ -856,7 +856,7 @@ async def test_notes_fetch(client, config_conn):
     assert b'config_err' in await response.data
 
 
-@pytest.mark.asyncio(loop_scope="session")
+@pytest.mark.asyncio(loop_scope="module")
 async def test_file_fetch(client, config_conn, monkeypatch):
     """Test the data-fetch route."""
     _ = config_conn
@@ -885,7 +885,7 @@ async def test_file_fetch(client, config_conn, monkeypatch):
     assert response.status_code == 200
     assert b'<h4>test.txt</h4>' in await response.data
 
-@pytest.mark.asyncio(loop_scope="session")
+@pytest.mark.asyncio(loop_scope="module")
 async def test_send_file(client, config_conn):
     """Test the send-file route."""
     _ = config_conn
@@ -895,7 +895,7 @@ async def test_send_file(client, config_conn):
     assert b'2025-04-30 00:01:23' in await response.data
 
 
-@pytest.mark.asyncio(loop_scope="session")
+@pytest.mark.asyncio(loop_scope="module")
 async def test_missing_send_file(client, config_conn):
     """Test the send-file route (file not found)."""
     _ = config_conn
@@ -904,7 +904,7 @@ async def test_missing_send_file(client, config_conn):
     assert response.status_code == 404
 
 
-@pytest.mark.asyncio(loop_scope="session")
+@pytest.mark.asyncio(loop_scope="module")
 async def test_invalid_send_file(client, config_conn):
     """Test the send-file route (invalid filename)."""
     _ = config_conn
@@ -934,7 +934,7 @@ def patch_os_stat_none():
     with patch.object(os, 'stat', new_stat) as wrapped_os:
         yield wrapped_os
 
-@pytest.mark.asyncio(loop_scope="session")
+@pytest.mark.asyncio(loop_scope="module")
 async def test_del_file_ok(client, config_conn, patch_os_remove_ok):
     """Test the del-file route with no error."""
     _ = config_conn
@@ -944,7 +944,7 @@ async def test_del_file_ok(client, config_conn, patch_os_remove_ok):
     assert response.status_code == 204
     spy.assert_called_once()
 
-@pytest.mark.asyncio(loop_scope="session")
+@pytest.mark.asyncio(loop_scope="module")
 async def test_del_file_err(client, config_conn, patch_os_remove_err):
     """Test the send-file route with OSError."""
     _ = config_conn
@@ -953,7 +953,7 @@ async def test_del_file_err(client, config_conn, patch_os_remove_err):
     response = await client.delete ('/del-file/test.txt')
     assert response.status_code == 404
 
-@pytest.mark.asyncio(loop_scope="session")
+@pytest.mark.asyncio(loop_scope="module")
 async def test_del_older_file_ok1(client, config_conn, patch_os_stat_none, patch_os_remove_ok):
     """Test the del-older-files route with no error."""
     _ = config_conn
@@ -965,7 +965,7 @@ async def test_del_older_file_ok1(client, config_conn, patch_os_stat_none, patch
     assert spy.call_count == 1
     spy.assert_has_calls([call("app/tests/log/test-2025-04-20.txt")], any_order=True)
 
-@pytest.mark.asyncio(loop_scope="session")
+@pytest.mark.asyncio(loop_scope="module")
 async def test_del_older_file_ok2(client, config_conn, patch_os_stat_none, patch_os_remove_ok):
     """Test the del-older-files route with no error."""
     _ = config_conn
@@ -977,7 +977,7 @@ async def test_del_older_file_ok2(client, config_conn, patch_os_stat_none, patch
     assert spy.call_count == 2
     spy.assert_has_calls([call("app/tests/log/test-2025-04-20.txt"), call("app/tests/log/test.txt")], any_order=True)
 
-@pytest.mark.asyncio(loop_scope="session")
+@pytest.mark.asyncio(loop_scope="module")
 async def test_del_older_file_err(client, config_conn, patch_os_remove_err):
     """Test the send-file route with OSError."""
     _ = config_conn
@@ -986,7 +986,7 @@ async def test_del_older_file_err(client, config_conn, patch_os_remove_err):
     response = await client.delete ('/del-older-files/test.txt')
     assert response.status_code == 404
 
-@pytest.mark.asyncio(loop_scope="session")
+@pytest.mark.asyncio(loop_scope="module")
 async def test_ha_app_links(client):
     """Test links to HA app config/log in UI"""
     with patch.dict(os.environ, {'SLUG': 'c676133d', 'HOSTNAME': 'c676133d-tsun-proxy'}):

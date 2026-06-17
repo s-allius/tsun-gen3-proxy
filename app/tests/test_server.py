@@ -188,7 +188,7 @@ class TestHypercornLogHndl:
 class TestApp:
     EXCEPTION_LOG_MSG = "Exception"
 
-    @pytest.mark.asyncio(loop_scope="session")
+    @pytest.mark.asyncio(loop_scope="module")
     async def test_ready(self):
         """Test the ready route."""
 
@@ -206,7 +206,7 @@ class TestApp:
         result = await response.get_data()
         assert result == b"Is ready"
 
-    @pytest.mark.asyncio(loop_scope="session")
+    @pytest.mark.asyncio(loop_scope="module")
     async def test_healthy(self):
         """Test the healthy route."""
         reader = FakeReader()
@@ -227,7 +227,7 @@ class TestApp:
             result = await response.get_data()
             assert result == b"I'm fine"
 
-    @pytest.mark.asyncio(loop_scope="session")
+    @pytest.mark.asyncio(loop_scope="module")
     async def test_unhealthy(self, monkeypatch, caplog):
         """Test the healthy route."""
         def result_false(self):

@@ -12,7 +12,7 @@ from test_inverter_base import config_conn, patch_open_connection
 pytest_plugins = ('pytest_asyncio',)
 
 
-@pytest.mark.asyncio(loop_scope="session")
+@pytest.mark.asyncio(loop_scope="module")
 async def test_ping():
     assert asyncio.get_running_loop()
     reader = FakeReader()
