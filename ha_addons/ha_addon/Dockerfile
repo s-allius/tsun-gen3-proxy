@@ -13,12 +13,12 @@
 # 1 Build Base Image #
 ######################
 
-ARG BUILD_FROM="ghcr.io/hassio-addons/base:20.1.1"
+ARG BUILD_FROM="ghcr.io/hassio-addons/base:21.0.0"
 # hadolint ignore=DL3006
 FROM $BUILD_FROM AS base
 
 # Installiere Python und pip
-RUN apk add --no-cache python3=3.12.13-r0 py3-pip=25.1.1-r1
+RUN apk add --no-cache python3=3.14.5-r0 py3-pip=26.1.2-r0
 
 
 
@@ -29,7 +29,7 @@ FROM base AS builder
 
 COPY rootfs/requirements.txt /root/
 
-RUN apk add --no-cache build-base=0.5-r3 && \
+RUN apk add --no-cache build-base=0.5-r4 && \
     python -m pip install --no-cache-dir wheel==0.45.1 && \
     python -OO -m pip wheel --no-cache-dir --wheel-dir=/root/wheels -r /root/requirements.txt
 

@@ -1,9 +1,9 @@
     flake8==7.3.0
-    pytest==9.0.3
+    pytest==9.1.0
     pytest-asyncio==1.4.0
     pytest-cov==7.1.0
     python-dotenv==1.2.2
     mock==5.2.0
-    coverage==7.14.0
+    coverage==7.14.1
     jinja2-cli==1.0.1
-    tzlocal==5.4
+    tzlocal==5.4.3
