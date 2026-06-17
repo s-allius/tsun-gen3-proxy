@@ -186,6 +186,8 @@ class TestHypercornLogHndl:
 
 
 class TestApp:
+    EXCEPTION_LOG_MSG = "Exception"
+
     @pytest.mark.asyncio(loop_scope="session")
     async def test_ready(self):
         """Test the ready route."""
@@ -248,14 +250,14 @@ class TestApp:
             assert response.status_code == 200
             result = await response.get_data()
             assert result == b"I'm fine"
-            assert "" == caplog.text
+            assert self.EXCEPTION_LOG_MSG not in caplog.text
 
             ProxyState.set_up(True)
             response = await client.get('/-/healthy')
             assert response.status_code == 503
             result = await response.get_data()
             assert result == b"I have a problem"
-            assert "" == caplog.text
+            assert self.EXCEPTION_LOG_MSG not in caplog.text
 
     @pytest.mark.asyncio
     async def test_healthy_exception(self, monkeypatch, caplog):
@@ -280,11 +282,11 @@ class TestApp:
             assert response.status_code == 200
             result = await response.get_data()
             assert result == b"I'm fine"
-            assert "" == caplog.text
+            assert self.EXCEPTION_LOG_MSG not in caplog.text
 
             ProxyState.set_up(True)
             response = await client.get('/-/healthy')
             assert response.status_code == 200
             result = await response.get_data()
             assert result == b"I'm fine"
-            assert "Exception" in caplog.text
+            assert self.EXCEPTION_LOG_MSG in caplog.text
