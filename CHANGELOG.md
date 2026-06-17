@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Update dependency pytest-asyncio to v1.4.0
 - Update ghcr.io/hassio-addons/base Docker tag to v21
 - Update dependency tzlocal to v5.4.3
 - Update dependency pytest to v9.1.0
