@@ -181,8 +181,8 @@ and initialise the Config with the default configuration '''
 
             shutil.copy2("cnf/default_config.toml",
                          cnf_path + "config.example.toml")
-        except Exception as e:
-            logging.error(e)
+        except Exception:
+            logging.exception("Exception occurred")
 
         # read example config file as default configuration
         try:
@@ -191,8 +191,8 @@ and initialise the Config with the default configuration '''
             logging.info(f'Read from {def_reader.descr()} => ok')
         except Exception as error:
             cls.err = f'Config.read: {error}'
-            logging.error(
-                f"Can't read from {def_reader.descr()} => error\n  {error}")
+            logging.exception(
+                f"Can't read from {def_reader.descr()} => Exception")
 
         cls.act_config = cls.def_config.copy()
 
@@ -230,8 +230,8 @@ here. The default config reader is handled in the Config.init method'''
             res = 'n/a'
         except Exception as error:
             cls.err = f'error: {error}'
-            logging.error(
-                f"Can't read from {reader.descr()} => error\n  {error}")
+            logging.exception(
+                f"Can't read from {reader.descr()} => error")
             return cls.err
 
         logging.info(f'Read from {reader.descr()} => {res}')
