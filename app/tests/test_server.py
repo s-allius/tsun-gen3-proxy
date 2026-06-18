@@ -104,6 +104,14 @@ class TestServerClass:
             assert s.log_path == '/homeassistant/my_logs/'
             assert s.log_backups == 3
 
+    def test_parse_path_invalid(self, capsys):
+        s = self.FakeServer()
+        with pytest.raises(SystemExit) as exc_info: 
+            s.parse_args(['--log_path', '/root/my_logs/'])
+        assert exc_info.value.code == 1
+        captured = capsys.readouterr()
+        assert "Access denied (path:/root/my_logs)" in captured.err
+
     def test_parse_args_invalid(self):
         s = self.FakeServer()
         with pytest.raises(SystemExit) as exc_info: 
@@ -142,7 +150,7 @@ class TestServerClass:
             assert logging.getLogger('hypercorn.access').level == logging.INFO
             assert logging.getLogger('hypercorn.error').level == logging.INFO
 
-    def test_build_config_error(self, caplog):
+    def test_build_config_error1(self, caplog):
         s = self.FakeServer()
         s.src_dir = 'app/src/'
         s.toml_config = 'app/tests/cnf/invalid_config.toml'
@@ -152,6 +160,15 @@ class TestServerClass:
         assert "Can't read from app/tests/cnf/invalid_config.toml" in caplog.text
         assert "Key 'port' error:" in caplog.text
 
+    def test_build_config_error2(self, caplog):
+        s = self.FakeServer()
+        s.src_dir = 'app/src/'
+        s.json_config = 'app/tests/cnf/invalid_config.json'
+
+        with caplog.at_level(logging.ERROR):
+            s.build_config()
+        assert "Can't read from app/tests/cnf/invalid_config.json" in caplog.text
+        assert "Expecting ':' delimiter" in caplog.text
 
 class TestHypercornLogHndl:
     class FakeServer(Server):

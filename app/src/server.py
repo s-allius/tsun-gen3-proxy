@@ -91,35 +91,27 @@ class Server():
         :return: True if the path is inside an allowed directory,
                  False otherwise.
         """
-        try:
-            # 1. Convert string input to a Path object
-            target_path = Path(file_path)
+        # 1. Convert string input to a Path object
+        target_path = Path(file_path)
+        # 2. Resolve to an absolute path (removes relative parts
+        # like ../ or ./)
+        # If the input path is relative, it is automatically resolved
+        # against the CWD.
+        resolved_path = target_path.resolve()
+        # 3. Define and resolve the allowed base directories
+        allowed_roots = [
+            Path.cwd().resolve(),
+            Path("/homeassistant").resolve(),
+            Path("/data").resolve()
+        ]
+        # 4. Verify if the resolved path is inside any of the allowed
+        # root directories
+        for root in allowed_roots:
+            # A path is valid if it matches the root exactly or has the
+            # root in its parent tree
+            if resolved_path == root or root in resolved_path.parents:
+                return str(resolved_path) + os.sep
 
-            # 2. Resolve to an absolute path (removes relative parts
-            # like ../ or ./)
-            # If the input path is relative, it is automatically resolved
-            # against the CWD.
-            resolved_path = target_path.resolve()
-
-            # 3. Define and resolve the allowed base directories
-            allowed_roots = [
-                Path.cwd().resolve(),
-                Path("/homeassistant").resolve(),
-                Path("/data").resolve()
-            ]
-
-            # 4. Verify if the resolved path is inside any of the allowed
-            # root directories
-            for root in allowed_roots:
-                # A path is valid if it matches the root exactly or has the
-                # root in its parent tree
-                if resolved_path == root or root in resolved_path.parents:
-                    return str(resolved_path) + os.sep
-
-        except Exception:
-            # Catch exceptions in case the path string contains
-            # invalid characters
-            pass
         print(f"Access denied (path:{str(resolved_path)})", file=sys.stderr)
         exit(1)
 
