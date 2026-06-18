@@ -14,6 +14,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - added INSULATION_IMP_RX and RY values for MX3000D inverters
 - added autodetection for MX3000D inverters (SNR: 'Y00')
 
+### Fixed
+
+- Agentic workflows should not be vulnerable to path injection attacks
+
 ### Changed
 
 - Update dependency pytest-asyncio to v1.4.0

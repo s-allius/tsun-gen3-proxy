@@ -55,39 +55,62 @@ class TestServerClass:
         assert s.log_backups == 0
 
     def test_parse_args_empty(self):
-        s = self.FakeServer()
-        s.parse_args([])
-        assert s.config_path == './config/'
-        assert s.json_config == None
-        assert s.toml_config == None
-        assert s.trans_path == '../translations/'
-        assert s.rel_urls == False
-        assert s.log_path == './log/'
-        assert s.log_backups == 0
+        with patch('os.getcwd', return_value='/my_base'):
+            s = self.FakeServer()
+            s.parse_args([])
+            assert s.config_path == '/my_base/config/'
+            assert s.json_config == None
+            assert s.toml_config == None
+            assert s.trans_path == '../translations/'
+            assert s.rel_urls == False
+            assert s.log_path == '/my_base/log/'
+            assert s.log_backups == 0
 
     def test_parse_args_short(self):
-        s = self.FakeServer()
-        s.parse_args(['-r', '-c', '/tmp/my-config', '-j', 'cnf.jsn', '-t', 'cnf.tml', '-tr', '/my/trans/', '-l', '/my_logs/', '-b', '3'])
-        assert s.config_path == '/tmp/my-config'
-        assert s.json_config == 'cnf.jsn'
-        assert s.toml_config == 'cnf.tml'
-        assert s.trans_path == '/my/trans/'
-        assert s.rel_urls == True
-        assert s.log_path == '/my_logs/'
-        assert s.log_backups == 3
+        with patch('os.getcwd', return_value='/my_base'):
+            s = self.FakeServer()
+            s.parse_args(['-r', '-c', '/my_base/my-config', '-j', 'cnf.jsn', '-t', 'cnf.tml', '-tr', '/my/trans/', '-l', './my_logs/', '-b', '3'])
+            assert s.config_path == '/my_base/my-config/'
+            assert s.json_config == 'cnf.jsn'
+            assert s.toml_config == 'cnf.tml'
+            assert s.trans_path == '/my/trans/'
+            assert s.rel_urls == True
+            assert s.log_path == '/my_base/my_logs/'
+            assert s.log_backups == 3
+
+    def test_parse_args_short2(self):
+        with patch('os.getcwd', return_value='/my_base'):
+            s = self.FakeServer()
+            s.parse_args(['-r', '-c', '/data/my-config', '-j', 'cnf.jsn', '-t', 'cnf.tml', '-tr', '/my/trans/', '-l', '/data/my_logs/', '-b', '3'])
+            assert s.config_path == '/data/my-config/'
+            assert s.json_config == 'cnf.jsn'
+            assert s.toml_config == 'cnf.tml'
+            assert s.trans_path == '/my/trans/'
+            assert s.rel_urls == True
+            assert s.log_path == '/data/my_logs/'
+            assert s.log_backups == 3
 
     def test_parse_args_long(self):
+        with patch('os.getcwd', return_value='/my_base'):
+            s = self.FakeServer()
+            s.parse_args(['--rel_urls', '--config_path', '/homeassistant/my-config', '--json_config', 'cnf.jsn',
+                          '--toml_config', 'cnf.tml', '--trans_path', '/my/trans/', '--log_path', '/homeassistant/my_logs/',
+                          '--log_backups', '3'])
+            assert s.config_path == '/homeassistant/my-config/'
+            assert s.json_config == 'cnf.jsn'
+            assert s.toml_config == 'cnf.tml'
+            assert s.trans_path == '/my/trans/'
+            assert s.rel_urls == True
+            assert s.log_path == '/homeassistant/my_logs/'
+            assert s.log_backups == 3
+
+    def test_parse_path_invalid(self, capsys):
         s = self.FakeServer()
-        s.parse_args(['--rel_urls', '--config_path', '/tmp/my-config', '--json_config', 'cnf.jsn',
-                      '--toml_config', 'cnf.tml', '--trans_path', '/my/trans/', '--log_path', '/my_logs/',
-                      '--log_backups', '3'])
-        assert s.config_path == '/tmp/my-config'
-        assert s.json_config == 'cnf.jsn'
-        assert s.toml_config == 'cnf.tml'
-        assert s.trans_path == '/my/trans/'
-        assert s.rel_urls == True
-        assert s.log_path == '/my_logs/'
-        assert s.log_backups == 3
+        with pytest.raises(SystemExit) as exc_info: 
+            s.parse_args(['--log_path', '/root/my_logs/'])
+        assert exc_info.value.code == 1
+        captured = capsys.readouterr()
+        assert "Access denied (path:/root/my_logs)" in captured.err
 
     def test_parse_args_invalid(self):
         s = self.FakeServer()
@@ -127,7 +150,7 @@ class TestServerClass:
             assert logging.getLogger('hypercorn.access').level == logging.INFO
             assert logging.getLogger('hypercorn.error').level == logging.INFO
 
-    def test_build_config_error(self, caplog):
+    def test_build_config_error1(self, caplog):
         s = self.FakeServer()
         s.src_dir = 'app/src/'
         s.toml_config = 'app/tests/cnf/invalid_config.toml'
@@ -137,6 +160,15 @@ class TestServerClass:
         assert "Can't read from app/tests/cnf/invalid_config.toml" in caplog.text
         assert "Key 'port' error:" in caplog.text
 
+    def test_build_config_error2(self, caplog):
+        s = self.FakeServer()
+        s.src_dir = 'app/src/'
+        s.json_config = 'app/tests/cnf/invalid_config.json'
+
+        with caplog.at_level(logging.ERROR):
+            s.build_config()
+        assert "Can't read from app/tests/cnf/invalid_config.json" in caplog.text
+        assert "Expecting ':' delimiter" in caplog.text
 
 class TestHypercornLogHndl:
     class FakeServer(Server):
