@@ -177,13 +177,11 @@ class InverterBase(InverterIfc, Proxy):
             for key in Infos.new_stat_data:
                 await Proxy._async_publ_mqtt_proxy_stat(key)
 
-        except MqttCodeError as error:
-            logging.error(f'Mqtt except: {error}')
+        except MqttCodeError:
+            logging.exception('Mqtt exception')
         except Exception:
             Infos.inc_counter('SW_Exception')
-            logging.error(
-                f"Inverter: Exception:\n"
-                f"{traceback.format_exc()}")
+            logging.exception("Exception occurred")
 
     async def __async_publ_mqtt_packet(self, stream, key):
         db = stream.db.db
