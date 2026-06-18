@@ -4,7 +4,9 @@ from logging import config  # noqa F401
 import asyncio
 from asyncio import StreamReader, StreamWriter
 import os
+import sys
 import argparse
+from pathlib import Path
 from quart import Quart, Response
 
 from cnf.config import Config
@@ -76,9 +78,50 @@ class Server():
             if var['slug']:
                 var['hassio'] = True
                 slug_len = len(var['slug'])
-                var['addonname'] = f"{var['slug']}_{var['hostname']
-                                                    [slug_len+1:]}"
+                var['addonname'] = \
+                    f"{var['slug']}_{var['hostname'][slug_len+1:]}"
             return var
+
+    def is_path_allowed(self, file_path: str) -> str:
+        """
+        Checks if a given file path is located within the current working
+        directory (CWD), under /homeassistant, or under /data.
+
+        :param file_path: The file path to check (can be absolute or relative).
+        :return: True if the path is inside an allowed directory,
+                 False otherwise.
+        """
+        try:
+            # 1. Convert string input to a Path object
+            target_path = Path(file_path)
+
+            # 2. Resolve to an absolute path (removes relative parts
+            # like ../ or ./)
+            # If the input path is relative, it is automatically resolved
+            # against the CWD.
+            resolved_path = target_path.resolve()
+
+            # 3. Define and resolve the allowed base directories
+            allowed_roots = [
+                Path.cwd().resolve(),
+                Path("/homeassistant").resolve(),
+                Path("/data").resolve()
+            ]
+
+            # 4. Verify if the resolved path is inside any of the allowed
+            # root directories
+            for root in allowed_roots:
+                # A path is valid if it matches the root exactly or has the
+                # root in its parent tree
+                if resolved_path == root or root in resolved_path.parents:
+                    return str(resolved_path) + os.sep
+
+        except Exception:
+            # Catch exceptions in case the path string contains
+            # invalid characters
+            pass
+        print(f"Access denied (path:{str(resolved_path)})", file=sys.stderr)
+        exit(1)
 
     def parse_args(self, arg_list: list[str] | None):
         """
@@ -114,7 +157,7 @@ class Server():
         self.toml_config = args.toml_config
         self.trans_path = args.trans_path
         self.rel_urls = args.rel_urls
-        self.log_path = args.log_path
+        self.log_path = self.is_path_allowed(args.log_path)
         self.log_backups = args.log_backups
 
     def init_logging_system(self):
@@ -140,8 +183,9 @@ class Server():
         for key, val in params.items():
             logging.info(f"{key:12}: {val}")
 
-        logging.info(f"log_backups : {self.log_backups if self.log_backups > 0
-                                      else 'unlimited'}")
+        logging.info(
+            "log_backups : "
+            f"{self.log_backups if self.log_backups > 0 else 'unlimited'}")
 
         self.log_level = self.get_log_level()
         logging.info('******')
