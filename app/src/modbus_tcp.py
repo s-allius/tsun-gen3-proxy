@@ -1,5 +1,4 @@
 import logging
-import traceback
 import asyncio
 from itertools import chain
 
@@ -89,8 +88,7 @@ class ModbusTcp():
                     logging.info(f'os-error: {error}')
 
             except Exception:
-                logging.error(
-                    f"ModbusTcpCreate: Exception for {(host, port)}:\n"
-                    f"{traceback.format_exc()}")
+                logging.exception(
+                    f"ModbusTcpCreate: Exception for {(host, port)}")
 
             await asyncio.sleep(self.tim_restart)
