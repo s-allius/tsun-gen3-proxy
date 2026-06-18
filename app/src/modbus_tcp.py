@@ -89,6 +89,6 @@ class ModbusTcp():
 
             except Exception:
                 logging.exception(
-                    "ModbusTcpCreate: Exception for {(host, port)}")
+                    f"ModbusTcpCreate: Exception for {(host, port)}")
 
             await asyncio.sleep(self.tim_restart)
