@@ -23,14 +23,14 @@ jobs:
       # updated files will not be copied into the ha_addons repo because the destination
       # file is newer.
       - name: Checkout home assistant repo
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           path: './ha-addons'
           repository: s-allius/ha-addons
           fetch-depth: 1
 
       - name: Checkout proxy
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           path: './tsun-gen3-proxy'
           fetch-depth: 1
