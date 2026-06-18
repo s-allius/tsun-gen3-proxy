@@ -144,7 +144,7 @@ class Server():
 
         args = parser.parse_args(arg_list)
 
-        self.config_path = args.config_path
+        self.config_path = self.is_path_allowed(args.config_path)
         self.json_config = args.json_config
         self.toml_config = args.toml_config
         self.trans_path = args.trans_path

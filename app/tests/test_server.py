@@ -58,7 +58,7 @@ class TestServerClass:
         with patch('os.getcwd', return_value='/my_base'):
             s = self.FakeServer()
             s.parse_args([])
-            assert s.config_path == './config/'
+            assert s.config_path == '/my_base/config/'
             assert s.json_config == None
             assert s.toml_config == None
             assert s.trans_path == '../translations/'
@@ -69,8 +69,8 @@ class TestServerClass:
     def test_parse_args_short(self):
         with patch('os.getcwd', return_value='/my_base'):
             s = self.FakeServer()
-            s.parse_args(['-r', '-c', '/tmp/my-config', '-j', 'cnf.jsn', '-t', 'cnf.tml', '-tr', '/my/trans/', '-l', './my_logs/', '-b', '3'])
-            assert s.config_path == '/tmp/my-config'
+            s.parse_args(['-r', '-c', '/my_base/my-config', '-j', 'cnf.jsn', '-t', 'cnf.tml', '-tr', '/my/trans/', '-l', './my_logs/', '-b', '3'])
+            assert s.config_path == '/my_base/my-config/'
             assert s.json_config == 'cnf.jsn'
             assert s.toml_config == 'cnf.tml'
             assert s.trans_path == '/my/trans/'
@@ -81,8 +81,8 @@ class TestServerClass:
     def test_parse_args_short2(self):
         with patch('os.getcwd', return_value='/my_base'):
             s = self.FakeServer()
-            s.parse_args(['-r', '-c', '/tmp/my-config', '-j', 'cnf.jsn', '-t', 'cnf.tml', '-tr', '/my/trans/', '-l', '/data/my_logs/', '-b', '3'])
-            assert s.config_path == '/tmp/my-config'
+            s.parse_args(['-r', '-c', '/data/my-config', '-j', 'cnf.jsn', '-t', 'cnf.tml', '-tr', '/my/trans/', '-l', '/data/my_logs/', '-b', '3'])
+            assert s.config_path == '/data/my-config/'
             assert s.json_config == 'cnf.jsn'
             assert s.toml_config == 'cnf.tml'
             assert s.trans_path == '/my/trans/'
@@ -93,10 +93,10 @@ class TestServerClass:
     def test_parse_args_long(self):
         with patch('os.getcwd', return_value='/my_base'):
             s = self.FakeServer()
-            s.parse_args(['--rel_urls', '--config_path', '/tmp/my-config', '--json_config', 'cnf.jsn',
+            s.parse_args(['--rel_urls', '--config_path', '/homeassistant/my-config', '--json_config', 'cnf.jsn',
                           '--toml_config', 'cnf.tml', '--trans_path', '/my/trans/', '--log_path', '/homeassistant/my_logs/',
                           '--log_backups', '3'])
-            assert s.config_path == '/tmp/my-config'
+            assert s.config_path == '/homeassistant/my-config/'
             assert s.json_config == 'cnf.jsn'
             assert s.toml_config == 'cnf.tml'
             assert s.trans_path == '/my/trans/'
