@@ -186,9 +186,9 @@ class AsyncStream(AsyncIfcImpl):
                 return self
 
             except OSError as error:
-                logger.exception(f'[{self.node_id}:{self.conn_no}] '
-                                 f'{error} for l{self.l_addr} | '
-                                 f'r{self.r_addr}')
+                logger.error(f'[{self.node_id}:{self.conn_no}] '
+                             f'{error} for l{self.l_addr} | '
+                             f'r{self.r_addr}')
                 await self.disc()
                 return self
 
@@ -278,10 +278,9 @@ class AsyncStream(AsyncIfcImpl):
         except OSError as error:
             if self.remote.stream:
                 rmt = self.remote
-                logger.exception(
-                    f'[{rmt.stream.node_id}:{rmt.stream.conn_no}] '
-                    f'Fwd: {error} for '
-                    f'l{rmt.ifc.l_addr} | r{rmt.ifc.r_addr}')
+                logger.error(f'[{rmt.stream.node_id}:{rmt.stream.conn_no}] '
+                             f'Fwd: {error} for '
+                             f'l{rmt.ifc.l_addr} | r{rmt.ifc.r_addr}')
                 await rmt.ifc.disc()
                 if rmt.ifc.close_cb:
                     rmt.ifc.close_cb()
