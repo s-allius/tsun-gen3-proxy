@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Update dependency pytest to v9.1.1
 - Update actions/checkout action to v7
 - Update dependency pytest-asyncio to v1.4.0
 - Update ghcr.io/hassio-addons/base Docker tag to v21
