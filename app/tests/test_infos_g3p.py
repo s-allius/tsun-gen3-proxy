@@ -409,6 +409,39 @@ def test_build_ha_conf5():
 
     assert tests==4
 
+def test_build_ha_conf6():
+    i = InfosG3P(client_mode=True)
+    i.static_init()                # initialize counter
+    i.set_db_def_value(Register.SENSOR_LIST, "1097")
+
+    tests = 0
+    for d_json, comp, node_id, id in i.ha_confs(ha_prfx="tsun/", node_id="garagendach/", snr='123'):
+
+        if id == 'out_power_123':
+            assert comp == 'sensor'
+            assert  d_json == json.dumps({"name": "Supply Power", "stat_t": "tsun/garagendach/batterie", "dev_cla": "power", "stat_cla": "measurement", "uniq_id": "out_power_123", "val_tpl": "{{ (value_json['out']['Power'] | int)}}", "unit_of_meas": "W", "dev": {"name": "Batterie", "sa": "Batterie", "via_device": "controller_123", "mdl": "TSOL-MSxx00", "mf": "TSUN", "ids": ["batterie_123"]}, "o": {"name": "proxy", "sw": "unknown"}})
+            tests +=1
+        elif id == 'daily_gen_123':
+            assert False
+        elif id == 'volt_pv1_123':
+            assert comp == 'sensor'
+            assert  d_json == json.dumps({"name": "Voltage", "stat_t": "tsun/garagendach/batterie", "dev_cla": "voltage", "stat_cla": "measurement", "uniq_id": "volt_pv1_123", "val_tpl": "{{ (value_json['pv1']['Voltage'] | float)}}", "unit_of_meas": "V", "ic": "mdi:gauge", "ent_cat": "diagnostic", "dev": {"name": "Module PV1", "sa": "Module PV1", "via_device": "batterie_123", "ids": ["bat_inp_pv1_123"]}, "o": {"name": "proxy", "sw": "unknown"}})
+            tests +=1
+        elif id == 'volt_pv2_123':
+            assert comp == 'sensor'
+            assert  d_json == json.dumps({"name": "Voltage", "stat_t": "tsun/garagendach/batterie", "dev_cla": "voltage", "stat_cla": "measurement", "uniq_id": "volt_pv2_123", "val_tpl": "{{ (value_json['pv2']['Voltage'] | float)}}", "unit_of_meas": "V", "ic": "mdi:gauge", "ent_cat": "diagnostic", "dev": {"name": "Module PV2", "sa": "Module PV2", "via_device": "batterie_123", "ids": ["bat_inp_pv2_123"]}, "o": {"name": "proxy", "sw": "unknown"}})
+            tests +=1
+        elif id == 'signal_123':
+            assert comp == 'sensor'
+            assert  d_json == json.dumps({})
+            tests +=1
+        elif id == 'inv_count_456':
+            assert False
+        else:
+            print('id: ' + id)
+
+    assert tests==1
+
 def test_exception_and_calc(inverter_data: bytes):
 
     # patch table to convert temperature from °F to °C

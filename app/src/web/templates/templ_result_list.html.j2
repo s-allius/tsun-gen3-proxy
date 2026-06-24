@@ -1,0 +1,14 @@
+{% if results|length > 0 %}
+<div class="w3-container w3-margin-bottom">
+  <h5>{{_("Test results, warnings and errors")}}</h5>
+  <ul class="w3-ul w3-card-4">
+  {% for result in results %}
+    <li class="w3-leftbar w3-rightbar {% if result.level is le(20) %}w3-pale-green w3-border-green{% elif result.level is le(30) %}w3-pale-yellow w3-border-amber{% else %}w3-pale-red w3-border-red{% endif %}">
+      <span class="w3-col" style="width:150px">{{result.ctime|datetimeformat(format='short')}}</span>
+      <span class="w3-col w3-hide-small" style="width:100px">{{result.lname|e}}</span>
+      <span class="w3-rest">{{result.msg|e}}</span>
+    </li>
+  {% endfor %}
+  </ul>
+</div>
+{% endif %}

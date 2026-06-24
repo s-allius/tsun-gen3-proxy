@@ -42,6 +42,32 @@ class Sequence():
         return f'{self.rcv_idx:02x}:{self.snd_idx:02x}'
 
 
+class SensorListDetection():
+    def __init__(self):
+        self.idx = -1
+        self.detection_running = False
+        self.scan_reg = [{'list': 0x02b0, 'addr': 0x3000, 'len': 48},
+                         {'list': 0x1097, 'addr': 0x1000, 'len': 16},
+                         {'list': 0x3026, 'addr': 0x0000, 'len': 45}]
+
+    def next(self) -> tuple[int, list[dict[str, int]]]:
+        self.detection_running = True
+        self.idx = (self.idx + 1) % len(self.scan_reg)
+        reg = self.scan_reg[self.idx]
+        logging.info(f"Testing sensor-list: {reg['list']:#04x}"
+                     f" by reading modbus registers at {reg['addr']:#04x} ")
+        logger.info(f"Testing sensor-list: {reg['list']:#04x}"
+                    f" by reading modbus registers at {reg['addr']:#04x} ")
+
+        return reg['list'], [{'addr': reg['addr'], 'len': reg['len']}]
+
+    def found(self) -> None:
+        self.detection_running = False
+
+    def is_running(self) -> bool:
+        return self.detection_running
+
+
 class SolarmanBase(Message):
     def __init__(self, addr, ifc: "AsyncIfc", server_side: bool,
                  _send_modbus_cb, mb_timeout: int):
@@ -325,8 +351,9 @@ class SolarmanV5(SolarmanBase):
             self.at_acl = g3p_cnf['at_acl']
 
         self.sensor_list = 0
-        self.mb_regs = [{'addr': 0x3000, 'len': 48},
-                        {'addr': 0x2000, 'len': 96}]
+        self.sensor_list_detection = SensorListDetection()
+        self.mb_regs = [{'addr': 0x3000, 'len': 48}]
+        self.mb_slow_regs = [{'addr': 0x2000, 'len': 96}]
         self.background_tasks = set()
 
     '''
@@ -338,6 +365,7 @@ class SolarmanV5(SolarmanBase):
         # so we have to erase self.switch, otherwise this instance can't be
         # deallocated by the garbage collector ==> we get a memory leak
         self.inverter = None
+        self.sensor_list_detection = None
         self.switch.clear()
         self.log_lvl.clear()
         self.background_tasks.clear()
@@ -350,6 +378,11 @@ class SolarmanV5(SolarmanBase):
         self.establish_inv_emu = forward
         self.snr = snr
         self._set_serial_no(snr)
+        if self.sensor_list == 0:
+            self.mb_slow_regs = []
+            self.sensor_list, self.mb_regs = \
+                self.sensor_list_detection.next()
+
         self.mb_timeout = start_timeout
         self.db.set_db_def_value(Register.IP_ADDRESS, host)
         self.db.set_db_def_value(Register.POLLING_INTERVAL,
@@ -363,6 +396,7 @@ class SolarmanV5(SolarmanBase):
         self.db.set_db_def_value(Register.SENSOR_LIST,
                                  Fmt.hex4((self.sensor_list, )))
         self.new_data['controller'] = True
+        self.new_data['inverter'] = True
 
         self.state = State.up
 
@@ -371,9 +405,9 @@ class SolarmanV5(SolarmanBase):
                                   self.mb_start_reg, self.mb_bytes,
                                   logging.INFO)
         else:
-            self._send_modbus_cmd(Modbus.INV_ADDR, Modbus.READ_REGS,
-                                  self.mb_regs[0]['addr'],
-                                  self.mb_regs[0]['len'], logging.DEBUG)
+            for reg in self.mb_regs:
+                self._send_modbus_cmd(Modbus.INV_ADDR, Modbus.READ_REGS,
+                                      reg['addr'], reg['len'], logging.DEBUG)
 
         self.mb_timer.start(self.mb_timeout)
 
@@ -401,18 +435,41 @@ class SolarmanV5(SolarmanBase):
         if '410' == snr:
             self.db.set_db_def_value(Register.EQUIPMENT_MODEL,
                                      'TSOL-DC1000')
+        elif 'Y00' == snr:
+            self.db.set_db_def_value(Register.EQUIPMENT_MODEL,
+                                     'TSOL-MXxx00')
 
-        self.sensor_list = inv['sensor_list']
         if 0 == self.sensor_list:
-            if '410' == snr:
-                self.sensor_list = 0x3026
+            self.sensor_list = inv['sensor_list']
+
+        match self.sensor_list:
+            case 0x3026:
                 self.mb_regs = [{'addr': 0x0000, 'len': 45}]
-            else:
-                self.sensor_list = 0x02b0
+                self.mb_slow_regs = []
+            case 0x1097:
+                self.mb_regs = [
+                    {'addr': 0x1200, 'len': 3},     # grid values
+                    {'addr': 0x1300, 'len': 0x40},
+                    ]
+                self.mb_slow_regs = [
+                    {'addr': 0x1000, 'len': 0x10},
+                    {'addr': 0x1100, 'len': 0x0f},  # len is 0x10
+                    {'addr': 0x1203, 'len': 45},
+                    {'addr': 0x1400, 'len': 0x50},
+                    # block 'addr': 0x1a00, 'len': 0xa0 seams to be empty
+                    ]
+            case 0x02b0:
+                self.mb_regs = [{'addr': 0x3000, 'len': 48}]
+                self.mb_slow_regs = [{'addr': 0x2000, 'len': 96}]
+            case _:
+                return
+
         self.db.set_db_def_value(Register.SENSOR_LIST,
                                  f"{self.sensor_list:04x}")
-        logging.debug(f"Use sensor-list: {self.sensor_list:#04x}"
-                      f" for '{serial_no}'")
+        logging.info(f"Use sensor-list: {self.sensor_list:#04x}"
+                     f" for '{serial_no}'")
+        logger.info(f"Use sensor-list: {self.sensor_list:#04x}"
+                    f" for '{serial_no}'")
 
     def _set_serial_no(self, snr: int):
         '''check the serial number and configure the inverter connection'''
@@ -494,15 +551,22 @@ class SolarmanV5(SolarmanBase):
         if self.mb_scan:
             self._send_modbus_scan()
         else:
-            self._send_modbus_cmd(Modbus.INV_ADDR, Modbus.READ_REGS,
-                                  self.mb_regs[0]['addr'],
-                                  self.mb_regs[0]['len'], logging.INFO)
+            if self.sensor_list_detection.is_running():
+                (
+                    self.sensor_list,
+                    self.mb_regs,
+                ) = self.sensor_list_detection.next()
 
-            if 1 == (exp_cnt % 30) and len(self.mb_regs) > 1:
-                # logging.info("Regular Modbus Status request")
+            for reg in self.mb_regs:
                 self._send_modbus_cmd(Modbus.INV_ADDR, Modbus.READ_REGS,
-                                      self.mb_regs[1]['addr'],
-                                      self.mb_regs[1]['len'], logging.INFO)
+                                      reg['addr'], reg['len'], logging.INFO)
+
+            if 1 == (exp_cnt % 30):
+                # logging.info("Regular Modbus Status request")
+                for reg in self.mb_slow_regs:
+                    self._send_modbus_cmd(Modbus.INV_ADDR, Modbus.READ_REGS,
+                                          reg['addr'], reg['len'],
+                                          logging.INFO)
 
     def at_cmd_forbidden(self, cmd: str, connection: str) -> bool:
         return not cmd.startswith(tuple(self.at_acl[connection]['allow'])) or \
@@ -559,25 +623,54 @@ class SolarmanV5(SolarmanBase):
         self.forward(self.ifc.rx_peek(), self.header_len+self.data_len+2)
 
     def __build_model_name(self):
+        """Determines and sets the inverter model name based on its
+        specifications.
+
+        This method reads the maximum designed power, rated power, and serial
+        number prefix from the database and instance variables. It then
+        configures the default number of inputs, constructs the specific model
+        string (MS/MX series), logs the result, and saves the final model name
+        back to the database.
+
+        Returns:
+            str: The constructed model name (e.g., 'TSOL-MX3000D(800)').
+        """
         db = self.db
         max_pow = db.get_db_value(Register.MAX_DESIGNED_POWER, 0)
         rated = db.get_db_value(Register.RATED_POWER, 0)
-        model = None
-        if max_pow == 2000:
-            db.set_db_def_value(Register.NO_INPUTS, 4)
-            if rated == 800 or rated == 600:
-                model = f'TSOL-MS{max_pow}({rated})'
-            else:
-                model = f'TSOL-MS{max_pow}'
-        elif max_pow == 1800 or max_pow == 1600:
-            db.set_db_def_value(Register.NO_INPUTS, 4)
-            model = f'TSOL-MS{max_pow}'
-        elif max_pow <= 800:
-            model = f'TSOL-MS{max_pow}'
+        if max_pow == 0:
+            logger.warning('Max designed power is zero, '
+                           'cannot determine model name!')
+            return
+        snr_prefix = self.inv_serial[:3]
 
-        if model:
-            logger.info(f'Model: {model}')
-            self.db.set_db_def_value(Register.EQUIPMENT_MODEL, model)
+        # 1. Set default number of inputs based on max power
+        input_mapping = {3000: 6, 2000: 4, 1800: 4, 1600: 4}
+        if max_pow in input_mapping:
+            db.set_db_def_value(Register.NO_INPUTS, input_mapping[max_pow])
+
+        # 2. Determine the model series (MX or MS)
+        if snr_prefix == 'Y00':
+            series = 'MX'
+        else:
+            series = 'MS'
+
+        # 3. Determine the suffix for rated power
+        has_rated_suffix = (
+            (max_pow == 3000 and rated == 800) or
+            (max_pow == 2000 and rated in (600, 800))
+        )
+        suffix = f'({rated})' if has_rated_suffix else ''
+
+        # 4. Add model-specific modifier ('D' for 3000 series)
+        extra = 'D' if max_pow == 3000 else ''
+
+        # 5. Assemble the final model name string
+        model = f'TSOL-{series}{max_pow}{extra}{suffix}'
+
+        # 6. Log the result and save it to the database
+        logger.info(f'Model: {model}')
+        db.set_db_def_value(Register.EQUIPMENT_MODEL, model)
 
     def __process_data(self, ftype, ts, sensor=0):
         inv_update = False
@@ -764,18 +857,57 @@ class SolarmanV5(SolarmanBase):
         return inv_update
 
     def __modbus_command_rsp(self, data):
-        '''precess MODBUS RTU response'''
-        valid = data[1]
+        """Processes the MODBUS RTU response and updates the system state.
+
+        This private method validates the incoming MODBUS data frame, triggers
+        the response parsing, manages inverter emulation, and handles the
+        sensor list detection state machine based on communication success.
+
+        Args:
+            data (list[int] or bytes): The raw data packet received from the
+              device.
+                - data[1]: Validation flag (1 for valid).
+                - data[14:]: Start of the actual MODBUS message.
+        """
+        # Validate data integrity and calculate message length
+        is_valid = data[1] == 1
         modbus_msg_len = self.data_len - 14
-        # logger.debug(f'modbus_len:{modbus_msg_len} accepted:{valid}')
-        if valid == 1 and modbus_msg_len > 4:
-            # logger.info(f'first byte modbus:{data[14]}')
+
+        # Process valid MODBUS messages
+        if is_valid and modbus_msg_len >= 2:
             inv_update = self.__parse_modbus_rsp(data, modbus_msg_len)
+
             if inv_update:
                 self.__build_model_name()
 
+            # Handle inverter emulation setup
             if self.establish_inv_emu and not self.ifc.remote.stream:
                 self.establish_emu()
+
+            # Manage sensor detection state machine
+            if self.sensor_list_detection.is_running():
+                if self.mb.err == 0:
+                    # Handle successful sensor detection
+                    self.sensor_list_detection.found()
+                    # clear unique_id to allow re-evaluation of
+                    # the serial number
+                    self.unique_id = None
+                    self._set_serial_no(self.snr)
+                    # Restart the Modbus timeout to trigger the next polling
+                    # cycle immediately. This is necessary to quickly verify
+                    # the new sensor list configuration after a successful
+                    # detection. The value '1' insures that also the slow
+                    # registers are polled immediately after a successful
+                    # detection.
+                    self.mb_timout_cb(1)
+                elif self.mb.retry_cnt >= self.mb.max_retries:
+                    # On MQTT errors, and if all retries are done, set
+                    # sensor_list and mb_regs to the next values for the next
+                    # detection test. This allows the system to attempt a
+                    # different sensor configuration if the current one is
+                    # not working, improving the chances of successful
+                    # detection in subsequent attempts.
+                    self.mb_timout_cb(0)
 
     def msg_hbeat_ind(self):
         data = self.ifc.rx_peek()[self.header_len:]

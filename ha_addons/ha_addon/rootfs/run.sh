@@ -1,7 +1,7 @@
 #!/usr/bin/with-contenv bashio
 
 bashio::log.blue "-----------------------------------------------------------"
-bashio::log.blue "run.sh: info: setup Add-on environment"
+bashio::log.blue "run.sh: info: setup app environment"
 bashio::cache.flush_all
 MQTT_HOST=""
 SLUG=""
@@ -16,23 +16,23 @@ if bashio::supervisor.ping; then
     else
         bashio::log.yellow "run.sh: info: Home Assistant MQTT service not available!"
     fi
-    SLUG=$(bashio::addon.repository)
-    HOSTNAME=$(bashio::addon.hostname)
+    SLUG=$(bashio::app.repository)
+    HOSTNAME=$(bashio::app.hostname)
 else
     bashio::log.red "run.sh: error: Home Assistant Supervisor API not available!"
 fi
 
 if [ -z "$SLUG" ]; then
-    bashio::log.yellow "run.sh: info: addon slug not found"
+    bashio::log.yellow "run.sh: info: app slug not found"
 else
-    bashio::log.green "run.sh: info: found addon slug: $SLUG"
+    bashio::log.green "run.sh: info: found app slug: $SLUG"
     export SLUG
 
 fi
 if [ -z "$HOSTNAME" ]; then
-    bashio::log.yellow "run.sh: info: addon hostname not found"
+    bashio::log.yellow "run.sh: info: app hostname not found"
 else
-    bashio::log.green "run.sh: info: found addon hostname: $HOSTNAME"
+    bashio::log.green "run.sh: info: found app hostname: $HOSTNAME"
     export HOSTNAME
 fi
 
@@ -49,11 +49,11 @@ fi
 
 # get logging config paramters
 LOG_RETENTION=$(bashio::config "logging.retention_days" 2)
-bashio::log.green "run.sh: info: addon log retention: $LOG_RETENTION days"
+bashio::log.green "run.sh: info: app log retention: $LOG_RETENTION days"
 
 # overwrite log_lvl if available
 LOG_LVL=$(bashio::config "logging.level" $LOG_LVL)
-bashio::log.green "run.sh: info: addon log level: $LOG_LVL"
+bashio::log.green "run.sh: info: app log level: $LOG_LVL"
 
 
 # Create folder for log und config files
@@ -62,7 +62,8 @@ mkdir -p /homeassistant/tsun-proxy/logs
 cd /home/proxy || exit
 
 export VERSION=$(cat /proxy-version.txt)
+export SERVICE_NAME='TSUN-Proxy'
 
 bashio::log.blue "run.sh: info: Start Proxyserver..."
 bashio::log.blue "-----------------------------------------------------------"
-python3 server.py --rel_urls --json_config=/data/options.json  --log_path=/homeassistant/tsun-proxy/logs/ --config_path=/homeassistant/tsun-proxy/ --log_backups=$LOG_RETENTION
+/usr/bin/python3 /home/proxy/server.py --rel_urls --json_config=/data/options.json  --log_path=/homeassistant/tsun-proxy/logs/ --config_path=/homeassistant/tsun-proxy/ --log_backups=$LOG_RETENTION

@@ -37,6 +37,7 @@ class Modbus():
 
     __crc_tab = []
     mb_reg_mapping = {
+        # sensor_list: 0x3026
         0x0000: {'reg': Register.SERIAL_NUMBER,        'fmt': '!16s'},               # noqa: E501
         0x0008: {'reg': Register.BATT_PV1_VOLT,        'fmt': '!H', 'ratio': 0.01},  # noqa: E501, PV1 voltage
         0x0009: {'reg': Register.BATT_PV1_CUR,         'fmt': '!H', 'ratio': 0.01},  # noqa: E501, PV1 current
@@ -75,6 +76,65 @@ class Modbus():
         0x002b: {'reg': Register.BATT_HW_VERS,         'fmt': '!h'},                 # noqa: E501
         0x002c: {'reg': Register.BATT_SW_VERS,         'fmt': '!h'},                 # noqa: E501
 
+        # sensor_list: 0x1097
+        0x1000: {'reg': Register.SERIAL_NUMBER,        'fmt': '!16s'},               # noqa: E501
+        0x100a: {'reg': Register.PROT_VERSION,         'fmt': '!H', 'func': Fmt.version},  # noqa: E501
+        0x100c: {'reg': Register.VERSION,              'fmt': '!H', 'func': Fmt.version},  # noqa: E501
+
+        0x1200: {'reg': Register.GRID_VOLTAGE,         'fmt': '!H', 'ratio': 0.1},   # noqa: E501
+        0x1201: {'reg': Register.GRID_CURRENT,         'fmt': '!H', 'ratio': 0.01},  # noqa: E501
+        0x1202: {'reg': Register.OUTPUT_POWER,         'fmt': '!H', 'ratio': 0.1},   # noqa: E501
+        0x1203: {'reg': Register.TEST_VAL_3,           'fmt': '!H'},                 # noqa: E501
+        0x1209: {'reg': Register.GRID_FREQUENCY,       'fmt': '!H', 'ratio': 0.01},  # noqa: E501
+
+        0x1210: {'reg': Register.RATED_POWER,          'fmt': '!H'},                 # noqa: E501
+        0x1211: {'reg': Register.TEST_VAL_6,           'fmt': '!H'},                 # noqa: E501
+        0x1212: {'reg': Register.DAILY_GENERATION,     'fmt': '!H', 'ratio': 0.01},  # noqa: E501
+        0x1213: {'reg': Register.TOTAL_GENERATION,     'fmt': '!L', 'ratio': 0.01},  # noqa: E501
+        0x1215: {'reg': Register.TEST_VAL_10,          'fmt': '!H'},                 # noqa: E501
+        0x1216: {'reg': Register.INSULATION_IMP_RX,    'fmt': '!H', 'ratio': 0.01},  # noqa: E501
+        0x1217: {'reg': Register.INSULATION_IMP_RY,    'fmt': '!H', 'ratio': 0.01},  # noqa: E501
+        0x1218: {'reg': Register.INVERTER_TEMP,        'fmt': '!H', 'offset': -40},  # noqa: E501
+
+        0x1302: {'reg': Register.PV1_VOLTAGE,           'fmt': '!H', 'ratio': 0.1},   # noqa: E501
+        0x1303: {'reg': Register.PV1_CURRENT,           'fmt': '!H', 'ratio': 0.01},  # noqa: E501
+        0x1304: {'reg': Register.PV1_POWER,             'fmt': '!H', 'ratio': 0.1},   # noqa: E501
+        0x1305: {'reg': Register.PV1_DAILY_GENERATION,  'fmt': '!L', 'ratio': 0.01},  # noqa: E501
+        0x1307: {'reg': Register.PV1_TOTAL_GENERATION,  'fmt': '!L', 'ratio': 0.01},  # noqa: E501
+
+        0x1309: {'reg': Register.PV2_VOLTAGE,           'fmt': '!H', 'ratio': 0.1},   # noqa: E501
+        0x130a: {'reg': Register.PV2_CURRENT,           'fmt': '!H', 'ratio': 0.01},  # noqa: E501
+        0x130b: {'reg': Register.PV2_POWER,             'fmt': '!H', 'ratio': 0.1},   # noqa: E501
+        0x130c: {'reg': Register.PV2_DAILY_GENERATION,  'fmt': '!L', 'ratio': 0.01},  # noqa: E501
+        0x130e: {'reg': Register.PV2_TOTAL_GENERATION,  'fmt': '!L', 'ratio': 0.01},  # noqa: E501
+
+        0x1310: {'reg': Register.PV3_VOLTAGE,           'fmt': '!H', 'ratio': 0.1},   # noqa: E501
+        0x1311: {'reg': Register.PV3_CURRENT,           'fmt': '!H', 'ratio': 0.01},  # noqa: E501
+        0x1312: {'reg': Register.PV3_POWER,             'fmt': '!H', 'ratio': 0.1},   # noqa: E501
+        0x1313: {'reg': Register.PV3_DAILY_GENERATION,  'fmt': '!L', 'ratio': 0.01},  # noqa: E501
+        0x1315: {'reg': Register.PV3_TOTAL_GENERATION,  'fmt': '!L', 'ratio': 0.01},  # noqa: E501
+
+        0x1317: {'reg': Register.PV4_VOLTAGE,           'fmt': '!H', 'ratio': 0.1},   # noqa: E501
+        0x1318: {'reg': Register.PV4_CURRENT,           'fmt': '!H', 'ratio': 0.01},  # noqa: E501
+        0x1319: {'reg': Register.PV4_POWER,             'fmt': '!H', 'ratio': 0.1},   # noqa: E501
+        0x131a: {'reg': Register.PV4_DAILY_GENERATION,  'fmt': '!L', 'ratio': 0.01},  # noqa: E501
+        0x131c: {'reg': Register.PV4_TOTAL_GENERATION,  'fmt': '!L', 'ratio': 0.01},  # noqa: E501
+
+        0x131e: {'reg': Register.PV5_VOLTAGE,           'fmt': '!H', 'ratio': 0.1},   # noqa: E501
+        0x131f: {'reg': Register.PV5_CURRENT,           'fmt': '!H', 'ratio': 0.01},  # noqa: E501
+        0x1320: {'reg': Register.PV5_POWER,             'fmt': '!H', 'ratio': 0.1},   # noqa: E501
+        0x1321: {'reg': Register.PV5_DAILY_GENERATION,  'fmt': '!L', 'ratio': 0.01},  # noqa: E501
+        0x1323: {'reg': Register.PV5_TOTAL_GENERATION,  'fmt': '!L', 'ratio': 0.01},  # noqa: E501
+
+        0x1325: {'reg': Register.PV6_VOLTAGE,           'fmt': '!H', 'ratio': 0.1},   # noqa: E501
+        0x1326: {'reg': Register.PV6_CURRENT,           'fmt': '!H', 'ratio': 0.01},  # noqa: E501
+        0x1327: {'reg': Register.PV6_POWER,             'fmt': '!H', 'ratio': 0.1},   # noqa: E501
+        0x1328: {'reg': Register.PV6_DAILY_GENERATION,  'fmt': '!L', 'ratio': 0.01},  # noqa: E501
+        0x132a: {'reg': Register.PV6_TOTAL_GENERATION,  'fmt': '!L', 'ratio': 0.01},  # noqa: E501
+
+        0x1437: {'reg': Register.MAX_DESIGNED_POWER,   'fmt': '!H', 'ratio':  1},    # noqa: E501
+
+        # sensor_list: 0x020b
         0x2000: {'reg': Register.BOOT_STATUS,          'fmt': '!H'},                 # noqa: E501
         0x2001: {'reg': Register.DSP_STATUS,           'fmt': '!H'},                 # noqa: E501
         0x2003: {'reg': Register.WORK_MODE,            'fmt': '!H'},
@@ -86,6 +146,7 @@ class Modbus():
         0x2010: {'reg': Register.PROD_COMPL_TYPE,      'fmt': '!H'},
         0x202c: {'reg': Register.OUTPUT_COEFFICIENT,   'fmt': '!H', 'ratio':  100/1024},  # noqa: E501
 
+        # sensor_list: 0x020b
         0x3000: {'reg': Register.INVERTER_STATUS,      'fmt': '!H'},                 # noqa: E501
         0x3001: {'reg': Register.DETECT_STATUS_1,      'fmt': '!H'},                 # noqa: E501
         0x3002: {'reg': Register.DETECT_STATUS_2,      'fmt': '!H'},                 # noqa: E501
@@ -234,7 +295,7 @@ class Modbus():
         fcode = buf[1]
         data_available = self.last_addr == self.INV_ADDR and \
             (fcode == 3 or fcode == 4)
-
+        self.err = 0
         if self.__resp_error_check(buf, data_available):
             return
 
@@ -297,6 +358,8 @@ class Modbus():
                         info_db.tracer.log(level,
                                            f'[{self.node_id}] MODBUS: {name}'
                                            f' : {result}{unit}')
+                        logging.log(level, f'[{self.node_id}] MODBUS: {name} :'
+                                           f' {result}{unit}')
 
     '''
     MODBUS response timer
@@ -359,7 +422,12 @@ class Modbus():
     '''
     def __check_crc(self, msg: bytes) -> bool:
         '''Check CRC-16 and returns True if valid'''
-        return 0 == self.__calc_crc(msg)
+        valid = 0 == self.__calc_crc(msg)
+        if not valid:
+            crc = self.__calc_crc(msg[:-2])
+            logging.info(f'CRC error: {msg[-1]:02x}{msg[-2]:02x} != {crc:04x}'
+                         f' for msg: {msg.hex()}')
+        return valid
 
     def __calc_crc(self, buffer: bytes) -> int:
         '''Build CRC-16 for buffer and returns it'''

@@ -113,7 +113,7 @@ def patch_unhealthy_remote():
     with patch.object(AsyncStreamClient, 'healthy', new_healthy) as conn:
         yield conn
 
-@pytest.mark.asyncio(loop_scope="session")
+@pytest.mark.asyncio(loop_scope="module")
 async def test_inverter_iter(my_loop):
     _ = my_loop
     InverterBase._registry.clear()
@@ -132,7 +132,8 @@ async def test_inverter_iter(my_loop):
     for inv in InverterBase:
         assert False
 
-def test_method_calls(patch_healthy):
+@pytest.mark.asyncio(loop_scope="module")
+async def test_method_calls(patch_healthy):
     spy = patch_healthy
     InverterBase._registry.clear()
     reader = FakeReader()
@@ -163,7 +164,8 @@ def test_method_calls(patch_healthy):
         cnt += 1
     assert cnt == 0
 
-def test_unhealthy(patch_unhealthy):
+@pytest.mark.asyncio(loop_scope="module")
+async def test_unhealthy(patch_unhealthy):
     _ = patch_unhealthy
     InverterBase._registry.clear()
     reader = FakeReader()
@@ -217,7 +219,7 @@ def test_unhealthy_remote(patch_unhealthy_remote):
         cnt += 1
     assert cnt == 0
 
-@pytest.mark.asyncio(loop_scope="session")
+@pytest.mark.asyncio(loop_scope="module")
 async def test_remote_conn(my_loop, config_conn, patch_open_connection):
     _ = my_loop
     _ = config_conn
@@ -244,7 +246,7 @@ async def test_remote_conn(my_loop, config_conn, patch_open_connection):
         cnt += 1
     assert cnt == 0
 
-@pytest.mark.asyncio(loop_scope="session")
+@pytest.mark.asyncio(loop_scope="module")
 async def test_remote_conn_to_private(my_loop, config_conn, patch_open_connection):
     '''check DNS resolving of the TSUN FQDN to a local address'''
     _ = my_loop
@@ -283,7 +285,7 @@ async def test_remote_conn_to_private(my_loop, config_conn, patch_open_connectio
     assert cnt == 0
 
 
-@pytest.mark.asyncio(loop_scope="session")
+@pytest.mark.asyncio(loop_scope="module")
 async def test_remote_conn_to_loopback(my_loop, config_conn, patch_open_connection):
     '''check DNS resolving of the TSUN FQDN to the loopback address'''
     _ = my_loop
@@ -321,7 +323,7 @@ async def test_remote_conn_to_loopback(my_loop, config_conn, patch_open_connecti
         cnt += 1
     assert cnt == 0
 
-@pytest.mark.asyncio(loop_scope="session")
+@pytest.mark.asyncio(loop_scope="module")
 async def test_remote_conn_to_none(my_loop, config_conn, patch_open_connection):
     '''check if get_extra_info() return None in case of an error'''
     _ = my_loop
@@ -359,7 +361,7 @@ async def test_remote_conn_to_none(my_loop, config_conn, patch_open_connection):
         cnt += 1
     assert cnt == 0
 
-@pytest.mark.asyncio(loop_scope="session")
+@pytest.mark.asyncio(loop_scope="module")
 async def test_unhealthy_remote(my_loop, config_conn, patch_open_connection, patch_unhealthy_remote):
     _ = my_loop
     _ = config_conn
@@ -397,7 +399,7 @@ async def test_unhealthy_remote(my_loop, config_conn, patch_open_connection, pat
         cnt += 1
     assert cnt == 0
 
-@pytest.mark.asyncio(loop_scope="session")
+@pytest.mark.asyncio(loop_scope="module")
 async def test_remote_disc(my_loop, config_conn, patch_open_connection):
     _ = my_loop
     _ = config_conn

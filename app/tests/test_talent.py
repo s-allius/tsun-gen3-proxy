@@ -1048,7 +1048,7 @@ def msg_inverter_ms3000_ind(): # Data indication from the controller
     msg +=  b'\x53\x00\x66'                                                      #  | S.f'
     return msg
 
-@pytest.mark.asyncio(loop_scope="session")
+@pytest.mark.asyncio(loop_scope="module")
 async def test_read_message(msg_contact_info):
     Config.act_config = {'tsun':{'enabled': True}}
     m = MemoryStream(msg_contact_info, (0,))
@@ -2406,7 +2406,7 @@ def test_msg_modbus_fragment(config_tsun_inv1, msg_modbus_rsp20):
     assert m.db.stat['proxy']['Modbus_Command'] == 0
     m.close()
 
-@pytest.mark.asyncio(loop_scope="session")
+@pytest.mark.asyncio(loop_scope="module")
 async def test_msg_build_modbus_req(config_tsun_inv1, msg_modbus_cmd):
     _ = config_tsun_inv1
     m = MemoryStream(b'', (0,), True)
@@ -2445,12 +2445,15 @@ def test_modbus_no_polling(config_no_modbus_poll, msg_get_time):
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
     m.close()
 
-@pytest.mark.asyncio(loop_scope="session")
+@pytest.mark.asyncio(loop_scope="module")
 async def test_modbus_polling(config_tsun_inv1, msg_inverter_ind):
     _ = config_tsun_inv1
     assert asyncio.get_running_loop()
 
     m = MemoryStream(msg_inverter_ind, (0,))
+    m.mb.timeout = 0.1            # timeout in MODBUS class must be shorter than test sleep time
+    m.mb_first_timeout = 0.1            # timeout in MODBUS class must be shorter than test sleep time
+    m.mb_timeout = 0.1
     assert asyncio.get_running_loop() == m.mb_timer.loop
     m.db.stat['proxy']['Unknown_Ctrl'] = 0
     assert m.mb_timer.tim == None
@@ -2469,29 +2472,32 @@ async def test_modbus_polling(config_tsun_inv1, msg_inverter_ind):
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
 
     m.ifc.tx_clear() # clear send buffer for next test
-    assert isclose(m.mb_timeout, 0.5)
+    assert isclose(m.mb_timeout, 0.1)
     assert next(m.mb_timer.exp_count) == 0
     
-    await asyncio.sleep(0.5)
+    await asyncio.sleep(0.1)
     assert m.sent_pdu==b'\x00\x00\x00 \x10R170000000000001pw\x00\x01\xa3(\x08\x01\x030\x00\x000J\xde'
     assert m.ifc.tx_fifo.get()==b''
     
-    await asyncio.sleep(0.5)
+    await asyncio.sleep(0.1)
     assert m.sent_pdu==b'\x00\x00\x00 \x10R170000000000001pw\x00\x01\xa3(\x08\x01\x030\x00\x000J\xde'
     assert m.ifc.tx_fifo.get()==b''
     
-    await asyncio.sleep(0.5)
+    await asyncio.sleep(0.1)
     assert m.sent_pdu==b'\x00\x00\x00 \x10R170000000000001pw\x00\x01\xa3(\x08\x01\x03\x20\x00\x00`N"'
     assert m.ifc.tx_fifo.get()==b''
     assert next(m.mb_timer.exp_count) == 4
     m.close()
 
-@pytest.mark.asyncio(loop_scope="session")
+@pytest.mark.asyncio(loop_scope="module")
 async def test_modbus_scaning(config_tsun_inv1, msg_inverter_ind, msg_modbus_rsp21):
     _ = config_tsun_inv1
     assert asyncio.get_running_loop()
 
     m = MemoryStream(msg_inverter_ind, (0x8f,0))
+    m.mb.timeout = 0.1            # timeout in MODBUS class must be shorter than test sleep time
+    m.mb_first_timeout = 0.1            # timeout in MODBUS class must be shorter than test sleep time
+    m.mb_timeout = 0.1
     m.append_msg(msg_modbus_rsp21)
     m.mb_scan = True
     m.mb_start_reg = 0x4560
@@ -2513,10 +2519,10 @@ async def test_modbus_scaning(config_tsun_inv1, msg_inverter_ind, msg_modbus_rsp
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
 
     m.ifc.tx_clear() # clear send buffer for next test
-    assert isclose(m.mb_timeout, 0.5)
+    assert isclose(m.mb_timeout, 0.1)
     assert next(m.mb_timer.exp_count) == 0
     
-    await asyncio.sleep(0.5)
+    await asyncio.sleep(0.1)
     assert m.sent_pdu==b'\x00\x00\x00 \x10R170000000000001pw\x00\x01\xa3(\x08\x01\x03\x45\x60\x00\x14\x50\xd7'
     assert m.ifc.tx_fifo.get()==b''
 

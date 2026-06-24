@@ -1,6 +1,5 @@
 import asyncio
 import logging
-import traceback
 import time
 from asyncio import StreamReader, StreamWriter
 from typing import Self
@@ -201,9 +200,8 @@ class AsyncStream(AsyncIfcImpl):
 
             except Exception:
                 Infos.inc_counter('SW_Exception')
-                logger.error(
-                    f"Exception for {self.r_addr}:\n"
-                    f"{traceback.format_exc()}")
+                logger.exception(
+                    f"Exception for {self.r_addr}")
             await asyncio.sleep(0)  # be cooperative to other task
 
     def __calc_proc_time(self):
@@ -253,6 +251,9 @@ class AsyncStream(AsyncIfcImpl):
         data = await self._reader.read(4096)
         if data:
             self.proc_start = time.time()
+            rx_filter = getattr(self, "rx_filter", None)
+            if callable(rx_filter):
+                data = rx_filter(data)           # call receive filter
             self.rx_fifo += data
             wait = self.rx_fifo()                # call read in parent class
             if wait and wait > 0:
@@ -295,9 +296,8 @@ class AsyncStream(AsyncIfcImpl):
 
         except Exception:
             Infos.inc_counter('SW_Exception')
-            logger.error(
-                f"Fwd Exception for {self.r_addr}:\n"
-                f"{traceback.format_exc()}")
+            logger.exception(
+                f"Fwd Exception for {self.r_addr}:")
 
     async def publish_outstanding_mqtt(self):
         '''Publish all outstanding MQTT topics'''
@@ -343,6 +343,14 @@ class AsyncStreamServer(AsyncStream):
                         f'connection: [{self.remote.ifc.node_id}:'
                         f'{self.remote.ifc.conn_no}]')
             await self.remote.ifc.disc()
+
+    def rx_filter(self, data: bytes) -> bytes:
+        """this filter checks if we received a ping from the network test"""
+        if data[:4] == b'ping':
+            self.tx_fifo += data[:4]  # answer with 'ping'
+            data = data[4:]           # remove the ping keyword
+
+        return data
 
     async def _async_forward(self) -> None:
         """forward handler transmits data over the remote connection"""
