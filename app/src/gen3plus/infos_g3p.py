@@ -138,7 +138,9 @@ class RegisterMap:
         0x42010190: {'reg': None,                          'fmt': FMT_4_16BIT_VAL, 'const': (0x0, 0x0, 1024, 1024)},  # noqa: E501
         0x42010198: {'reg': None,                          'fmt': FMT_4_16BIT_VAL, 'const': (0, 0, 0xffff, 0)},  # noqa: E501
         0x420101a0: {'reg': None,                          'fmt': FMT_2_16BIT_VAL, 'const': (0x0, 0x0)},  # noqa: E501
-
+        # 0x420101a6: 0x2047
+        # 0x420101a8: 0x2048
+        # 0x420101ac: 0x204a
         0xffffff02: {'reg': Register.POLLING_INTERVAL},
         # 0x4281001c: {'reg': Register.POWER_ON_TIME,        'fmt': '<H', 'ratio':    1},  # noqa: E501
     }
