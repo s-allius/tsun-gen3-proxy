@@ -322,7 +322,7 @@ class InfosG3P(Infos):
         reg_map = RegisterSel.get(sensor)
         buf = bytearray(reg_map['len'])
         for idx, row in reg_map.items():
-            if 'len' == idx:
+            if 'calc' == idx or 'len' == idx:
                 continue
             addr = idx & 0xffff
             ftype = (idx >> 16) & 0xff
