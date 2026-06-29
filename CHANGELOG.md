@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- MX3000D: add inverter status and alarms
 - sensor_list detection for client mode
 - push MQTT inverter values on starting the client mode
 - added INSULATION_IMP_RX and RY values for MX3000D inverters
