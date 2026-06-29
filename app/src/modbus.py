@@ -85,7 +85,7 @@ class Modbus():
 
         # 0x1100: val 0001 or 0002
         0x1100: {'reg': Register.INVERTER_STATUS,      'fmt': '!H'},                 # noqa: E501
-        0x1104: {},  # val ff01
+        # 0x1104: {},  # val ff01
         # 0x1105. val 0000 or 0008 (temp alaram)
         0x1105: {'reg': Register.EVENT_ALARM,          'fmt': '!H'},                 # noqa: E501
         0x1106: {'reg': Register.EVENT_FAULT,          'fmt': '!H'},                 # noqa: E501
