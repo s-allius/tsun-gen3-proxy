@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- MX3000D: add inverter status and alarms
 - sensor_list detection for client mode
 - push MQTT inverter values on starting the client mode
 - added INSULATION_IMP_RX and RY values for MX3000D inverters
@@ -22,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Update dependency tzlocal to v5.4.4
+- Update dependency coverage to v7.14.3
 - Update dependency coverage to v7.14.2
 - Update dependency pytest to v9.1.1
 - Update actions/checkout action to v7

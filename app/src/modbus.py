@@ -78,8 +78,19 @@ class Modbus():
 
         # sensor_list: 0x1097
         0x1000: {'reg': Register.SERIAL_NUMBER,        'fmt': '!16s'},               # noqa: E501
+        # 0x1008: {},  # val 0002
+        # 0x1009: {},  # val 0006
         0x100a: {'reg': Register.PROT_VERSION,         'fmt': '!H', 'func': Fmt.version},  # noqa: E501
         0x100c: {'reg': Register.VERSION,              'fmt': '!H', 'func': Fmt.version},  # noqa: E501
+
+        # 0x1100: val 0001 or 0002
+        0x1100: {'reg': Register.INVERTER_STATUS,      'fmt': '!H'},                 # noqa: E501
+        # 0x1104: {},  # val ff01
+        # 0x1105. val 0000 or 0008 (temp alaram)
+        0x1105: {'reg': Register.EVENT_ALARM,          'fmt': '!H'},                 # noqa: E501
+        0x1106: {'reg': Register.EVENT_FAULT,          'fmt': '!H'},                 # noqa: E501
+        0x1107: {'reg': Register.EVENT_BF1,            'fmt': '!H'},                 # noqa: E501
+        0x1108: {'reg': Register.EVENT_BF2,            'fmt': '!H'},                 # noqa: E501
 
         0x1200: {'reg': Register.GRID_VOLTAGE,         'fmt': '!H', 'ratio': 0.1},   # noqa: E501
         0x1201: {'reg': Register.GRID_CURRENT,         'fmt': '!H', 'ratio': 0.01},  # noqa: E501
@@ -132,6 +143,7 @@ class Modbus():
         0x1328: {'reg': Register.PV6_DAILY_GENERATION,  'fmt': '!L', 'ratio': 0.01},  # noqa: E501
         0x132a: {'reg': Register.PV6_TOTAL_GENERATION,  'fmt': '!L', 'ratio': 0.01},  # noqa: E501
 
+        0x1400: {'reg': Register.PROD_COMPL_TYPE,      'fmt': '!H'},
         0x1437: {'reg': Register.MAX_DESIGNED_POWER,   'fmt': '!H', 'ratio':  1},    # noqa: E501
 
         # sensor_list: 0x020b
@@ -145,7 +157,9 @@ class Modbus():
         0x200a: {'reg': Register.GRID_VOLT_CAL_COEF,   'fmt': '!H'},
         0x2010: {'reg': Register.PROD_COMPL_TYPE,      'fmt': '!H'},
         0x202c: {'reg': Register.OUTPUT_COEFFICIENT,   'fmt': '!H', 'ratio':  100/1024},  # noqa: E501
-
+        # 0x204a: Zero Export Power Offset Value val(-32768 .. 32767)
+        # 0x2047: Total Rated Power of Solar Plant (0..0xffff)
+        # 0x2048: Zero Export Status.  # val: 0(off), 1(on),
         # sensor_list: 0x020b
         0x3000: {'reg': Register.INVERTER_STATUS,      'fmt': '!H'},                 # noqa: E501
         0x3001: {'reg': Register.DETECT_STATUS_1,      'fmt': '!H'},                 # noqa: E501
