@@ -448,13 +448,12 @@ class SolarmanV5(SolarmanBase):
                 self.mb_slow_regs = []
             case 0x1097:
                 self.mb_regs = [
-                    {'addr': 0x1200, 'len': 3},     # grid values
-                    {'addr': 0x1300, 'len': 0x40},
+                    {'addr': 0x1100, 'len': 0x10},  # alarm & faults
+                    {'addr': 0x1200, 'len': 0x30},  # grid and temp. values
+                    {'addr': 0x1300, 'len': 0x40},  # inverter measurements
                     ]
                 self.mb_slow_regs = [
                     {'addr': 0x1000, 'len': 0x10},
-                    {'addr': 0x1100, 'len': 0x0f},  # len is 0x10
-                    {'addr': 0x1203, 'len': 45},
                     {'addr': 0x1400, 'len': 0x50},
                     # block 'addr': 0x1a00, 'len': 0xa0 seams to be empty
                     ]

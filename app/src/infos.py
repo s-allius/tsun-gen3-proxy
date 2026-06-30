@@ -383,6 +383,7 @@ class Infos:
 
     __comm_type_val_tpl = "{%set com_types = ['n/a','Wi-Fi', 'G4', 'G5', 'GPRS'] %}{{com_types[value_json['Communication_Type']|int(0)]|default(value_json['Communication_Type'])}}"    # noqa: E501
     __work_mode_val_tpl = "{%set mode = ['Normal-Mode', 'Aging-Mode', 'ATE-Mode', 'Shielding GFDI', 'DTU-Mode'] %}{{mode[value_json['Work_Mode']|int(0)]|default(value_json['Work_Mode'])}}"    # noqa: E501
+    __country_val_tpl = "{%set country = ['Testing', 'Brazil', 'German', 'Netherland', 'Irland', 'Italy', 'Poland', 'Belgium', 'France', 'Austria', 'Spain', 'VDE 0126', 'Australia', 'Thailand MEA', 'Thailand PEA', 'South Afrika', 'UK'] %}{{country[value_json['Country']|int(0)]|default(value_json['Country'])}}"    # noqa: E501
     __status_type_val_tpl = "{%set inv_status = ['Off-line', 'On-grid', 'Off-grid'] %}{{inv_status[value_json['Inverter_Status']|int(0)]|default(value_json['Inverter_Status'])}}"    # noqa: E501
     __mppt1_status_type_val_tpl = "{%set mppt_status = ['Standby', 'On', 'Off'] %}{{mppt_status[value_json['pv1']['MPPT-Status']|int(0)]|default(value_json['pv1']['MPPT-Status'])}}"    # noqa: E501
     __mppt2_status_type_val_tpl = "{%set mppt_status = ['Standby', 'On', 'Off'] %}{{mppt_status[value_json['pv2']['MPPT-Status']|int(0)]|default(value_json['pv2']['MPPT-Status'])}}"    # noqa: E501
@@ -622,6 +623,7 @@ class Infos:
         Register.INSULATION_IMP_RX: {'name': ['inverter', 'INSULATION_IMP_RX'],    'level': logging.DEBUG, 'unit': 'MΩ',   'ha': {'dev': 'inverter', 'dev_cla': None, 'stat_cla': 'measurement', 'id': 'imp_rx_',  'fmt': FMT_FLOAT, 'name': 'Insulation Impendance RX', 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.INSULATION_IMP_RY: {'name': ['inverter', 'INSULATION_IMP_RY'],    'level': logging.DEBUG, 'unit': 'MΩ',   'ha': {'dev': 'inverter', 'dev_cla': None, 'stat_cla': 'measurement', 'id': 'imp_ry_',  'fmt': FMT_FLOAT, 'name': 'Insulation Impendance RY', 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.PROT_VERSION:      {'name': ['inverter', 'PROT_Version'],         'level': logging.INFO,  'unit': '',     'ha': {'dev': 'inverter', 'dev_cla': None, 'stat_cla': None, 'id': 'prot_version_',          'fmt': FMT_STR, 'name': 'Protocol Version', 'icon': INFOMATION, 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.PROD_COMPL_TYPE:   {'name': ['inverter', 'Country'],              'level': logging.INFO,  'unit': '',     'ha': {'dev': 'inverter', 'comp': 'sensor', 'dev_cla': None, 'stat_cla': None, 'id': 'country_', 'name': 'Country', 'val_tpl': __country_val_tpl,  'icon': 'mdi:earth', 'ent_cat': 'diagnostic'}},  # noqa: E501
         # proxy:
         Register.INVERTER_CNT:       {'name': ['proxy', 'Inverter_Cnt'],       'singleton': True,   'ha': {'dev': 'proxy', 'comp': 'sensor', 'dev_cla': None, 'stat_cla': None, 'id': 'inv_count_',     'fmt': FMT_INT, 'name': 'Active Inverter Connections',    'icon': COUNTER}},  # noqa: E501
         Register.CLOUD_CONN_CNT:     {'name': ['proxy', 'Cloud_Conn_Cnt'],     'singleton': True,   'ha': {'dev': 'proxy', 'comp': 'sensor', 'dev_cla': None, 'stat_cla': None, 'id': 'cloud_conn_count_', 'fmt': FMT_INT, 'name': 'Active Cloud Connections',    'icon': COUNTER}},  # noqa: E501
@@ -711,7 +713,6 @@ class Infos:
         Register.OUTPUT_SHUTDOWN:    {'name': ['other', 'Output_Shutdown'],         'level': logging.DEBUG, 'unit': ''},  # noqa: E501
         Register.RATED_LEVEL:        {'name': ['other', 'Rated_Level'],             'level': logging.DEBUG, 'unit': ''},  # noqa: E501
         Register.GRID_VOLT_CAL_COEF: {'name': ['other', 'Grid_Volt_Cal_Coef'],      'level': logging.DEBUG, 'unit': ''},  # noqa: E501
-        Register.PROD_COMPL_TYPE:    {'name': ['other', 'Prod_Compliance_Type'],    'level': logging.INFO,  'unit': ''},  # noqa: E501
         Register.INV_UNKNOWN_1:      {'name': ['inv_unknown', 'Unknown_1'],         'level': logging.DEBUG, 'unit': ''},  # noqa: E501
 
         # Batterie DC-1000: Electricity Genration
