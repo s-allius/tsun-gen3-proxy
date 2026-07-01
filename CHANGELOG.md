@@ -22,6 +22,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Update dependency tzlocal to v5.4.4
+- Update dependency coverage to v7.14.3
 - Update dependency coverage to v7.14.2
 - Update dependency pytest to v9.1.1
 - Update actions/checkout action to v7
