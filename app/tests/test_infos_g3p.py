@@ -343,7 +343,7 @@ def test_build_ha_conf3():
 
         elif id == 'power_pv5_123':
             assert comp == 'sensor'
-            assert  d_json == json.dumps({"name": "Power", "stat_t": "tsun/garagendach/input", "dev_cla": "power", "stat_cla": "measurement", "uniq_id": "power_pv4_123", "val_tpl": "{{ (value_json['pv4']['Power'] | float)}}", "unit_of_meas": "W", "dev": {"name": "Module PV4", "sa": "Module PV4", "via_device": "inverter_123", "ids": ["input_pv4_123"]}, "o": {"name": "proxy", "sw": "unknown"}})
+            assert  d_json == json.dumps({"name": "Power", "stat_t": "tsun/garagendach/input", "dev_cla": "power", "stat_cla": "measurement", "uniq_id": "power_pv5_123", "val_tpl": "{{ (value_json['pv5']['Power'] | float)}}", "unit_of_meas": "W", "dev": {"name": "Module PV5", "sa": "Module PV5", "via_device": "inverter_123", "ids": ["input_pv5_123"]}, "o": {"name": "proxy", "sw": "unknown"}})
             tests +=1
 
         elif id == 'signal_123':
