@@ -109,7 +109,7 @@ def test_default_db():
     i = InfosG3P(client_mode=False)
     
     assert json.dumps(i.db) == json.dumps({
-        "inverter": {"Manufacturer": "TSUN", "Equipment_Model": "TSOL-MSxx00", "No_Inputs": 2}, 
+        "inverter": {"Manufacturer": "TSUN", "Equipment_Model": "TSOL-MSxx00"}, 
         "collector": {"Chip_Type": "IGEN TECH"},
         })
 
@@ -230,6 +230,7 @@ def test_build_ha_conf1():
     i = InfosG3P(client_mode=False)
     i.static_init()                # initialize counter
     i.set_db_def_value(Register.SENSOR_LIST, "02b0")
+    i.set_db_def_value(Register.NO_INPUTS, 2)
 
     tests = 0
     for d_json, comp, node_id, id in i.ha_confs(ha_prfx="tsun/", node_id="garagendach/", snr='123'):
@@ -305,6 +306,7 @@ def test_build_ha_conf3():
     i = InfosG3P(client_mode=True)
     i.static_init()                # initialize counter
     i.set_db_def_value(Register.SENSOR_LIST, "02b0")
+    i.set_db_def_value(Register.NO_INPUTS, 4)
 
     tests = 0
     for d_json, comp, node_id, id in i.ha_confs(ha_prfx="tsun/", node_id="garagendach/", snr='123'):
@@ -339,6 +341,11 @@ def test_build_ha_conf3():
             assert  d_json == json.dumps({"name": "Power", "stat_t": "tsun/garagendach/input", "dev_cla": "power", "stat_cla": "measurement", "uniq_id": "power_pv4_123", "val_tpl": "{{ (value_json['pv4']['Power'] | float)}}", "unit_of_meas": "W", "dev": {"name": "Module PV4", "sa": "Module PV4", "via_device": "inverter_123", "ids": ["input_pv4_123"]}, "o": {"name": "proxy", "sw": "unknown"}})
             tests +=1
 
+        elif id == 'power_pv5_123':
+            assert comp == 'sensor'
+            assert  d_json == json.dumps({"name": "Power", "stat_t": "tsun/garagendach/input", "dev_cla": "power", "stat_cla": "measurement", "uniq_id": "power_pv4_123", "val_tpl": "{{ (value_json['pv4']['Power'] | float)}}", "unit_of_meas": "W", "dev": {"name": "Module PV4", "sa": "Module PV4", "via_device": "inverter_123", "ids": ["input_pv4_123"]}, "o": {"name": "proxy", "sw": "unknown"}})
+            tests +=1
+
         elif id == 'signal_123':
             assert comp == 'sensor'
             assert  d_json == json.dumps({})
@@ -346,7 +353,7 @@ def test_build_ha_conf3():
         elif id == 'inv_count_456':
             assert False
 
-    assert tests==5
+    assert tests==7
 
 def test_build_ha_conf4():
     i = InfosG3P(client_mode=True)
