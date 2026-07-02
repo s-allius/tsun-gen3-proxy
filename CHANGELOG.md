@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Update dependency coverage to v7.15.0
 - Update dependency tzlocal to v5.4.4
 - Update dependency coverage to v7.14.3
 - Update dependency coverage to v7.14.2
