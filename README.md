@@ -49,8 +49,10 @@ If you use a Pi-hole, you can also store the host entry in the Pi-hole.
 
 ## Features
 
+- Supports TSUN GEN3 PLUS inverters: TSOL-MX450, MX-800 and MX1000
+- Supports TSUN GEN3 PLUS inverters: TSOL-MX3000 (from version 0.16)
 - Supports TSUN GEN3 PLUS inverters: TSOL-MS2000, MS1800 and MS1600
-- Supports TSUN GEN3 PLUS batteries: TSOL-DC1000 (from version 0.13)
+- Supports TSUN GEN3 PLUS batteries: TSOL-DC1000
 - Supports TSUN GEN3 inverters: TSOL-MS3000, MS800, MS700, MS600, MS400, MS350 and MS300
 - `MQTT` support
 - `Home-Assistant` auto-discovery support
@@ -424,14 +426,19 @@ In the following table you will find an overview of which inverter model has bee
 A combination with a red question mark should work, but I have not checked it in detail.
 
 <table align="center">
-  <tr><th align="center">Micro Inverter Model</th><th align="center">Fw. 1.00.06</th><th align="center">Fw. 1.00.17</th><th align="center">Fw. 1.00.20</th><th align="center">Fw. 4.0.10</th><th align="center">Fw. 4.0.20</th></tr>
-  <tr><td>GEN3 micro inverters (single MPPT):<br>MS300, MS350, MS400<br>MS400-D</td><td align="center">✔️</td><td align="center">✔️</td><td align="center">✔️</td><td align="center">➖</td><td align="center">➖</td></tr>
-  <tr><td>GEN3 micro inverters (dual MPPT):<br>MS600, MS700, MS800<br>MS600-D, MS800-D</td><td align="center">✔️</td><td align="center">✔️</td><td align="center">✔️</td><td align="center">➖</td><td align="center">➖</td></tr>
-  <tr><td>GEN3 micro inverters (quad MPPT):<br>MS3000</td><td align="center">✔️</td><td align="center">✔️</td><td align="center">✔️</td><td align="center">➖</td><td align="center">➖</td></tr>
-  <tr><td>GEN3 PLUS micro inverters:<br>MS1600, MS1800, MS2000<br>MS2000-D, MS800</td><td align="center">➖</td><td align="center">➖</td><td align="center">➖</td><td align="center">✔️</td><td align="center">✔️</td></tr>
-  <tr><td>GEN3 PLUS storage systems:<br>DC1000</td><td align="center">➖</td><td align="center">➖</td><td align="center">➖</td><td align="center">✔️</td><td align="center">✔️</td></tr>
+  <tr><th align="center">Micro Inverter Model</th><th align="center">SNR Prfx</th><th align="center">Fw. 1.00.17</th><th align="center">Fw. 1.00.20</th><th align="center">Fw. 4.0.10</th><th align="center">Fw. 4.0.20</th></tr>
+  <tr><td>GEN3 PLUS micro inverters:<br>MX3000, MX1000, MX450</td><td align="center">Y00</td><td align="center">➖</td><td align="center">➖</td><td align="center">✔️</td><td align="center">✔️</td></tr>
+  <tr><td>GEN3 PLUS micro inverters:<br>MS1600, MS1800, MS2000<br>MS2000-D, MS800</td><td align="center">Y17, Y47</td><td align="center">➖</td><td align="center">➖</td><td align="center">✔️</td><td align="center">✔️</td></tr>
+  <tr><td>GEN3 PLUS storage systems:<br>DC1000</td><td align="center">410, Y00</td><td align="center">➖</td><td align="center">➖</td><td align="center">✔️</td><td align="center">✔️</td></tr>
   <tr><td>GEN3 PLUS smart meter:<br>TSOL-MG3-MS, DDZY422-D2</td><td align="center">➖</td><td align="center">➖</td><td align="center">➖</td><td align="center">❓</td><td align="center">❓</td></tr>
 </<tr><td>TITAN micro inverters:<br>TSOL-MP3000, MP2250</td><td align="center">❓</td><td align="center">❓</td><td align="center">❓</td><td align="center">❓</td><td align="center">❓</td></tr>
+</table>
+
+<table align="center">
+  <tr><th align="center">Micro Inverter Model</th><th align="center">SNR Prfx</th><th align="center">Fw. 1.00.06</th><th align="center">Fw. 1.00.17</th><th align="center">Fw. 1.00.20</th></tr>
+  <tr><td>GEN3 micro inverters (single MPPT):<br>MS300, MS350, MS400<br>MS400-D</td><td align="center">R17</td><td align="center">✔️</td><td align="center">✔️</td><td align="center">✔️</td></tr>
+  <tr><td>GEN3 micro inverters (dual MPPT):<br>MS600, MS700, MS800<br>MS600-D, MS800-D</td><td align="center">R17, R47</td><td align="center">✔️</td><td align="center">✔️</td><td align="center">✔️</td></tr>
+  <tr><td>GEN3 micro inverters (quad MPPT):<br>MS3000</td><td align="center">R17</td><td align="center">✔️</td><td align="center">✔️</td><td align="center">✔️</td></tr>
 </table>
 
 ```txt
