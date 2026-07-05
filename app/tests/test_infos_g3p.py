@@ -105,6 +105,13 @@ def batterie_data2():  # 0x4210 ftype: 0x01
     msg += b'\x0c\x89\x0c\x89\x0c\x88\x00\x0f\x00\x0f\x00\x0f\x00\x0e'
     return msg
 
+@pytest.fixture
+def inverter_1097_data():  # 0x4210 ftype: 0x01
+    msg  = b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x97\x10\xc7\xde'
+    msg += b'\x2d\x32\x28\x00\x00\x00\x84\x17\x79\x35\x01\x00\x4c\x12\x00\x00'
+    msg += b'\x34\x31\x30\x31\x32\x34\x30\x37\x30\x31\x34\x39\x30\x33\x31\x34'
+    return msg
+
 def test_default_db():
     i = InfosG3P(client_mode=False)
     
@@ -209,8 +216,7 @@ def test_parse_4210_3026_incomplete(batterie_data2: bytes):
                       "pv2": {"Voltage": 33.72, "Current": 0.0, "MPPT-Status": 0}, 
                       "batt": {"Total_Charging": 20.8, "Voltage": 51.34, "Current": 7.66, "SOC": 10.0, "Power": 393.2644, 'Batt_State': 2},
                       "cell": {"Volt1": 3.21, "Volt2": 3.21, "Volt3": 3.21, "Volt4": 3.21, "Volt5": 3.21, "Volt6": 3.21, "Volt7": 3.21, "Volt8": 3.21, "Volt9": 3.21, "Volt10": 3.21, "Volt11": 3.21, "Volt12": 3.21, "Volt13": 3.21, "Volt14": 3.21, "Volt15": 3.21, "Volt16": 3.21, "Temp_1": 15, "Temp_2": 15,  "Temp_3": 15}, 
-                      "out": {"Voltage": 0.14, "Current": None, "Out_Status": None, "Power": None, "Suppl_State": None},
-                      "Controller_Temp": None, "Batterie_Alarm": None, "Hardware_Version": None, "Software_Version": None, 
+                      "out": {"Voltage": 0.14, "Power": None, "Suppl_State": None},
                       "PV_Power": 37.9232},
          })
 
@@ -225,6 +231,22 @@ def test_build_4210(inverter_data: bytes):
     for i in range(11, 31):
         build_msg[i] = inverter_data[i]
     assert inverter_data == build_msg    
+
+def test_build_4210_1097(inverter_1097_data: bytes):
+    i = InfosG3P(client_mode=False)
+    i.db.clear()
+    
+    for key, update in i.parse (inverter_1097_data, 0x42, 1, 0x1097):
+        pass  #  side effect is calling generator i.parse()
+
+    # set additional value which is not defined al part of 4210 message in the
+    # RegisterMap for 0x1097, this will throw an exception which is catched and logged in the build() method
+    i.set_db_def_value(Register.PV1_POWER, 6)
+
+    build_msg = i.build(0x42, 1, 0x1097)
+    for i in range(11, 31):
+        build_msg[i] = inverter_1097_data[i]
+    assert inverter_1097_data == build_msg    
 
 def test_build_ha_conf1():
     i = InfosG3P(client_mode=False)
@@ -420,23 +442,40 @@ def test_build_ha_conf6():
     i = InfosG3P(client_mode=True)
     i.static_init()                # initialize counter
     i.set_db_def_value(Register.SENSOR_LIST, "1097")
+    i.set_db_def_value(Register.NO_INPUTS, 6)
 
     tests = 0
     for d_json, comp, node_id, id in i.ha_confs(ha_prfx="tsun/", node_id="garagendach/", snr='123'):
 
         if id == 'out_power_123':
             assert comp == 'sensor'
-            assert  d_json == json.dumps({"name": "Supply Power", "stat_t": "tsun/garagendach/batterie", "dev_cla": "power", "stat_cla": "measurement", "uniq_id": "out_power_123", "val_tpl": "{{ (value_json['out']['Power'] | int)}}", "unit_of_meas": "W", "dev": {"name": "Batterie", "sa": "Batterie", "via_device": "controller_123", "mdl": "TSOL-MSxx00", "mf": "TSUN", "ids": ["batterie_123"]}, "o": {"name": "proxy", "sw": "unknown"}})
+            assert  d_json == json.dumps({"name": "Supply Power", "stat_t": "tsun/garagendach/input", "dev_cla": "power", "stat_cla": "measurement", "uniq_id": "out_power_123", "val_tpl": "{{ (value_json['out']['Power'] | int)}}", "unit_of_meas": "W", "dev": {"name": "Batterie", "sa": "Batterie", "via_device": "controller_123", "mdl": "TSOL-MSxx00", "mf": "TSUN", "ids": ["inverter_123"]}, "o": {"name": "proxy", "sw": "unknown"}})
             tests +=1
         elif id == 'daily_gen_123':
             assert False
-        elif id == 'volt_pv1_123':
+        elif id == 'power_pv1_123':
             assert comp == 'sensor'
-            assert  d_json == json.dumps({"name": "Voltage", "stat_t": "tsun/garagendach/batterie", "dev_cla": "voltage", "stat_cla": "measurement", "uniq_id": "volt_pv1_123", "val_tpl": "{{ (value_json['pv1']['Voltage'] | float)}}", "unit_of_meas": "V", "ic": "mdi:gauge", "ent_cat": "diagnostic", "dev": {"name": "Module PV1", "sa": "Module PV1", "via_device": "batterie_123", "ids": ["bat_inp_pv1_123"]}, "o": {"name": "proxy", "sw": "unknown"}})
+            assert  d_json == json.dumps({"name": "Power", "stat_t": "tsun/garagendach/input", "dev_cla": "power", "stat_cla": "measurement", "uniq_id": "power_pv1_123", "val_tpl": "{{ (value_json['pv1']['Power'] | float)}}", "unit_of_meas": "W", "dev": {"name": "Module PV1", "sa": "Module PV1", "via_device": "inverter_123", "ids": ["input_pv1_123"]}, "o": {"name": "proxy", "sw": "unknown"}})
             tests +=1
-        elif id == 'volt_pv2_123':
+
+        elif id == 'power_pv2_123':
             assert comp == 'sensor'
-            assert  d_json == json.dumps({"name": "Voltage", "stat_t": "tsun/garagendach/batterie", "dev_cla": "voltage", "stat_cla": "measurement", "uniq_id": "volt_pv2_123", "val_tpl": "{{ (value_json['pv2']['Voltage'] | float)}}", "unit_of_meas": "V", "ic": "mdi:gauge", "ent_cat": "diagnostic", "dev": {"name": "Module PV2", "sa": "Module PV2", "via_device": "batterie_123", "ids": ["bat_inp_pv2_123"]}, "o": {"name": "proxy", "sw": "unknown"}})
+            assert  d_json == json.dumps({"name": "Power", "stat_t": "tsun/garagendach/input", "dev_cla": "power", "stat_cla": "measurement", "uniq_id": "power_pv2_123", "val_tpl": "{{ (value_json['pv2']['Power'] | float)}}", "unit_of_meas": "W", "dev": {"name": "Module PV2", "sa": "Module PV2", "via_device": "inverter_123", "ids": ["input_pv2_123"]}, "o": {"name": "proxy", "sw": "unknown"}})
+            tests +=1
+
+        elif id == 'power_pv3_123':
+            assert comp == 'sensor'
+            assert  d_json == json.dumps({"name": "Power", "stat_t": "tsun/garagendach/input", "dev_cla": "power", "stat_cla": "measurement", "uniq_id": "power_pv3_123", "val_tpl": "{{ (value_json['pv3']['Power'] | float)}}", "unit_of_meas": "W", "dev": {"name": "Module PV3", "sa": "Module PV3", "via_device": "inverter_123", "ids": ["input_pv3_123"]}, "o": {"name": "proxy", "sw": "unknown"}})
+            tests +=1
+
+        elif id == 'power_pv4_123':
+            assert comp == 'sensor'
+            assert  d_json == json.dumps({"name": "Power", "stat_t": "tsun/garagendach/input", "dev_cla": "power", "stat_cla": "measurement", "uniq_id": "power_pv4_123", "val_tpl": "{{ (value_json['pv4']['Power'] | float)}}", "unit_of_meas": "W", "dev": {"name": "Module PV4", "sa": "Module PV4", "via_device": "inverter_123", "ids": ["input_pv4_123"]}, "o": {"name": "proxy", "sw": "unknown"}})
+            tests +=1
+
+        elif id == 'power_pv6_123':
+            assert comp == 'sensor'
+            assert  d_json == json.dumps({"name": "Power", "stat_t": "tsun/garagendach/input", "dev_cla": "power", "stat_cla": "measurement", "uniq_id": "power_pv6_123", "val_tpl": "{{ (value_json['pv6']['Power'] | float)}}", "unit_of_meas": "W", "dev": {"name": "Module PV6", "sa": "Module PV6", "via_device": "inverter_123", "ids": ["input_pv6_123"]}, "o": {"name": "proxy", "sw": "unknown"}})
             tests +=1
         elif id == 'signal_123':
             assert comp == 'sensor'
@@ -447,7 +486,7 @@ def test_build_ha_conf6():
         else:
             print('id: ' + id)
 
-    assert tests==1
+    assert tests==6
 
 def test_exception_and_calc(inverter_data: bytes):
 
