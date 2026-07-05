@@ -433,6 +433,7 @@ class SolarmanV5(SolarmanBase):
         super()._set_config_parms(inv, serial_no)
         snr = serial_no[:3]
         if '410' == snr:
+            self.db.set_db_def_value(Register.NO_INPUTS, 2)
             self.db.set_db_def_value(Register.EQUIPMENT_MODEL,
                                      'TSOL-DC1000')
         elif 'Y00' == snr:
@@ -638,15 +639,23 @@ class SolarmanV5(SolarmanBase):
         max_pow = db.get_db_value(Register.MAX_DESIGNED_POWER, 0)
         rated = db.get_db_value(Register.RATED_POWER, 0)
         if max_pow == 0:
-            logger.warning('Max designed power is zero, '
-                           'cannot determine model name!')
+            logging.debug('Max designed power is zero, '
+                          'cannot determine model name!')
             return
         snr_prefix = self.inv_serial[:3]
 
         # 1. Set default number of inputs based on max power
-        input_mapping = {3000: 6, 2000: 4, 1800: 4, 1600: 4}
+        input_mapping = {3300: 6, 3000: 6, 2700: 6, 2500: 6, 2400: 6,
+                         2250: 4, 2000: 4, 1800: 4, 1600: 4,
+                         500: 1, 450: 1, 400: 1, 350: 1, 300: 1}
         if max_pow in input_mapping:
+            logging.info('Setting number of inputs to '
+                         f'{input_mapping[max_pow]} ')
             db.set_db_def_value(Register.NO_INPUTS, input_mapping[max_pow])
+        else:
+            logging.warning(f'Unexpected max designed power: {max_pow}, '
+                            'defaulting number of inputs to 2.')
+            db.set_db_def_value(Register.NO_INPUTS, 2)
 
         # 2. Determine the model series (MX or MS)
         if snr_prefix == 'Y00':
@@ -668,7 +677,7 @@ class SolarmanV5(SolarmanBase):
         model = f'TSOL-{series}{max_pow}{extra}{suffix}'
 
         # 6. Log the result and save it to the database
-        logger.info(f'Model: {model}')
+        logging.info(f"Setting model to: '{model}'")
         db.set_db_def_value(Register.EQUIPMENT_MODEL, model)
 
     def __process_data(self, ftype, ts, sensor=0):
@@ -683,6 +692,9 @@ class SolarmanV5(SolarmanBase):
                 self.new_data[key] = True
 
         if inv_update:
+            logging.debug("SolarmannV5:__process_data calls"
+                          " __build_model_name")
+
             self.__build_model_name()
     '''
     Message handler methods
@@ -877,6 +889,8 @@ class SolarmanV5(SolarmanBase):
             inv_update = self.__parse_modbus_rsp(data, modbus_msg_len)
 
             if inv_update:
+                logging.debug("SolarmannV5:__modbus_command_rsp calls"
+                              " __build_model_name")
                 self.__build_model_name()
 
             # Handle inverter emulation setup
