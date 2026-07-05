@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- MX3000D: the proxy only register 2 PV modules at Home Assistant
+- MX450: the proxy register more than 1 PV module at Home Assistant
 - HA App: replace deprecated bashio repository
 - Agentic workflows should not be vulnerable to path injection attacks
 

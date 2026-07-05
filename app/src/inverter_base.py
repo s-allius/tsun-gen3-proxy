@@ -168,6 +168,7 @@ class InverterBase(InverterIfc, Proxy):
                     or ('collector' in stream.new_data and
                         stream.new_data['collector'])
                     or self.mqtt.ha_restarts != self.__ha_restarts):
+                logging.info("Registering proxy entities with Home Assistant")
                 await self._register_proxy_stat_home_assistant()
                 await self.__register_home_assistant(stream)
                 self.__ha_restarts = self.mqtt.ha_restarts
