@@ -1675,6 +1675,20 @@ async def test_build_modell_900_y00(my_loop, config_tsun_titan, inverter_ind_msg
     m.close()
 
 @pytest.mark.asyncio(loop_scope="module")
+async def test_build_modell_1000_410(my_loop, config_tsun_dcu1, dcu_data_ind_msg):
+    _ = config_tsun_dcu1
+    m = MemoryStream(dcu_data_ind_msg, (0,))
+    assert 0 == m.db.get_db_value(Register.MAX_DESIGNED_POWER, 0)
+    assert None == m.db.get_db_value(Register.RATED_POWER, None)
+    assert None == m.db.get_db_value(Register.INVERTER_TEMP, None)
+    m.read()         # read complete msg, and dispatch msg
+    assert 0 == m.db.get_db_value(Register.MAX_DESIGNED_POWER, 0)
+    assert 0 == m.db.get_db_value(Register.RATED_POWER, 0)
+    assert 2 == m.db.get_db_value(Register.NO_INPUTS, 0)
+    assert 'TSOL-DC1000' == m.db.get_db_value(Register.EQUIPMENT_MODEL, 0)
+    m.close()
+
+@pytest.mark.asyncio(loop_scope="module")
 async def test_build_logger_modell(my_loop, config_tsun_allow_all, device_ind_msg):
     _ = config_tsun_allow_all
     m = MemoryStream(device_ind_msg, (0,))
@@ -2971,7 +2985,7 @@ async def test_proxy_dcu_cmd(my_loop, config_tsun_dcu1, patch_open_connection, d
         assert l.db.stat['proxy']['AT_Command'] == 0
         assert l.db.stat['proxy']['AT_Command_Blocked'] == 0
         assert l.db.stat['proxy']['Modbus_Command'] == 0
-        assert 2 == l.db.get_db_value(Register.NO_INPUTS, 0)
+        assert 0 == l.db.get_db_value(Register.NO_INPUTS, 0)
 
         l.append_msg(dcu_command_rsp_msg)
         l.read() # read at resp
