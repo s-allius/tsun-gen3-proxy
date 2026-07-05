@@ -1,5 +1,6 @@
 
-from typing import Generator
+import logging
+from collections.abc import Generator
 from itertools import chain
 
 from infos import Infos, Register, ProxyMode, Fmt
@@ -150,6 +151,42 @@ class RegisterMap:
         0x4201000c: {'reg': Register.SENSOR_LIST,          'fmt': '<H', 'func': Fmt.hex4},   # noqa: E501
         0x4201001c: {'reg': Register.POWER_ON_TIME,        'fmt': '<H', 'ratio':    1, 'dep': ProxyMode.SERVER},  # noqa: E501
         0x42010020: {'reg': Register.SERIAL_NUMBER,        'fmt': '!16s'},               # noqa: E501
+
+        # fixme, the following registers are needed for registering the
+        # entities with home assistant, the offset is behind the length
+        # of the message, so they are not part of the message, but they
+        # are needed for the entities to be created
+        0x420100e0: {'reg': Register.PV1_VOLTAGE,          'fmt': '!H', 'ratio':  0.1},  # noqa: E501
+        0x420100e2: {'reg': Register.PV1_CURRENT,          'fmt': '!H', 'ratio': 0.01},  # noqa: E501
+        0x420100e4: {'reg': Register.PV1_POWER,            'fmt': '!H', 'ratio':  0.1},  # noqa: E501
+        0x420100e6: {'reg': Register.PV2_VOLTAGE,          'fmt': '!H', 'ratio':  0.1},  # noqa: E501
+        0x420100e8: {'reg': Register.PV2_CURRENT,          'fmt': '!H', 'ratio': 0.01},  # noqa: E501
+        0x420100ea: {'reg': Register.PV2_POWER,            'fmt': '!H', 'ratio':  0.1},  # noqa: E501
+        0x420100ec: {'reg': Register.PV3_VOLTAGE,          'fmt': '!H', 'ratio':  0.1},  # noqa: E501
+        0x420100ee: {'reg': Register.PV3_CURRENT,          'fmt': '!H', 'ratio': 0.01},  # noqa: E501
+        0x420100f0: {'reg': Register.PV3_POWER,            'fmt': '!H', 'ratio':  0.1},  # noqa: E501
+        0x420100f2: {'reg': Register.PV4_VOLTAGE,          'fmt': '!H', 'ratio':  0.1},  # noqa: E501
+        0x420100f4: {'reg': Register.PV4_CURRENT,          'fmt': '!H', 'ratio': 0.01},  # noqa: E501
+        0x420100f6: {'reg': Register.PV4_POWER,            'fmt': '!H', 'ratio':  0.1},  # noqa: E501
+        0x420100f8: {'reg': Register.PV5_VOLTAGE,          'fmt': '!H', 'ratio':  0.1},  # noqa: E501
+        0x420100fa: {'reg': Register.PV5_CURRENT,          'fmt': '!H', 'ratio': 0.01},  # noqa: E501
+        0x420100fe: {'reg': Register.PV5_POWER,            'fmt': '!H', 'ratio':  0.1},  # noqa: E501
+        0x42010100: {'reg': Register.PV6_VOLTAGE,          'fmt': '!H', 'ratio':  0.1},  # noqa: E501
+        0x42010102: {'reg': Register.PV6_CURRENT,          'fmt': '!H', 'ratio': 0.01},  # noqa: E501
+        0x42010104: {'reg': Register.PV6_POWER,            'fmt': '!H', 'ratio':  0.1},  # noqa: E501
+
+        0x42010106: {'reg': Register.PV1_DAILY_GENERATION, 'fmt': '!H', 'ratio': 0.01},  # noqa: E501
+        0x42010108: {'reg': Register.PV1_TOTAL_GENERATION, 'fmt': '!L', 'ratio': 0.01},  # noqa: E501
+        0x4201010c: {'reg': Register.PV2_DAILY_GENERATION, 'fmt': '!H', 'ratio': 0.01},  # noqa: E501
+        0x4201010e: {'reg': Register.PV2_TOTAL_GENERATION, 'fmt': '!L', 'ratio': 0.01},  # noqa: E501
+        0x42010112: {'reg': Register.PV3_DAILY_GENERATION, 'fmt': '!H', 'ratio': 0.01},  # noqa: E501
+        0x42010114: {'reg': Register.PV3_TOTAL_GENERATION, 'fmt': '!L', 'ratio': 0.01},  # noqa: E501
+        0x42010118: {'reg': Register.PV4_DAILY_GENERATION, 'fmt': '!H', 'ratio': 0.01},  # noqa: E501
+        0x4201011a: {'reg': Register.PV4_TOTAL_GENERATION, 'fmt': '!L', 'ratio': 0.01},  # noqa: E501
+        0x4201011e: {'reg': Register.PV5_DAILY_GENERATION, 'fmt': '!H', 'ratio': 0.01},  # noqa: E501
+        0x42010120: {'reg': Register.PV5_TOTAL_GENERATION, 'fmt': '!L', 'ratio': 0.01},  # noqa: E501
+        0x42010124: {'reg': Register.PV6_DAILY_GENERATION, 'fmt': '!H', 'ratio': 0.01},  # noqa: E501
+        0x42010126: {'reg': Register.PV6_TOTAL_GENERATION, 'fmt': '!L', 'ratio': 0.01},  # noqa: E501
     }
     map_3026 = {
         'len': 0x7a,
@@ -290,6 +327,8 @@ class InfosG3P(Infos):
                 continue
             info_id = row['reg']
             result = Fmt.get_value(buf, addr, row)
+            if result is None:
+                continue
             yield from self.__update_val(node_id, "GEN3PLUS", info_id, result)
         yield from self.calc(sensor, node_id)
 
@@ -320,22 +359,26 @@ class InfosG3P(Infos):
     def build(self, msg_type: int, rcv_ftype: int, sensor: int = 0):
         reg_map = RegisterSel.get(sensor)
         buf = bytearray(reg_map['len'])
-        for idx, row in reg_map.items():
-            if 'calc' == idx or 'len' == idx:
-                continue
-            addr = idx & 0xffff
-            ftype = (idx >> 16) & 0xff
-            mtype = (idx >> 24) & 0xff
-            if ftype != rcv_ftype or mtype != msg_type:
-                continue
-            if not isinstance(row, dict):
-                continue
-            if 'const' in row:
-                val = row['const']
-            else:
-                info_id = row['reg']
-                val = self.get_db_value(info_id)
-            if not val:
-                continue
-            Fmt.set_value(buf, addr, row, val)
+        try:
+            for idx, row in reg_map.items():
+                if 'calc' == idx or 'len' == idx:
+                    continue
+                addr = idx & 0xffff
+                ftype = (idx >> 16) & 0xff
+                mtype = (idx >> 24) & 0xff
+                if ftype != rcv_ftype or mtype != msg_type:
+                    continue
+                if not isinstance(row, dict):
+                    continue
+                if 'const' in row:
+                    val = row['const']
+                else:
+                    info_id = row['reg']
+                    val = self.get_db_value(info_id)
+                if not val:
+                    continue
+                Fmt.set_value(buf, addr, row, val)
+
+        except Exception as e:
+            self.tracer.log(logging.ERROR, f'[{sensor}] build: {e}')
         return buf
