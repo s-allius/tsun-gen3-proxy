@@ -136,7 +136,7 @@ async def test_script() -> None:
     else:
         host = config_tsun['host']
         ip = await resolve(host)
-        logger.info(f"DNS test: '{host}' {_("resolved to")}"
+        logger.info(f"DNS test: '{host}' {_('resolved to')}"
                     f" {ip} ==> Ok")
     # forwarding for port 10000 enabled?
     #  then check DNS resolution for Solarman cloud
@@ -146,7 +146,7 @@ async def test_script() -> None:
     else:
         host = config_solarman['host']
         ip = await resolve(host)
-        logger.info(f"DNS test: '{host}' {_("resolved to")}"
+        logger.info(f"DNS test: '{host}' {_('resolved to')}"
                     f" {ip} ==> Ok")
     # determine host ip of the proxy
     host_ip = await get_best_guess_host_ip()
