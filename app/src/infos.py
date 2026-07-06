@@ -273,7 +273,7 @@ class Fmt:
 
     @staticmethod
     def set_value(buf: bytearray, idx: int, row: dict, val):
-        '''Get a value from buf and interpret as in row defined'''
+        '''Build and set a value in buf as in row defined'''
         fmt = row['fmt']
         if 'offset' in row:
             val = val - row['offset']
