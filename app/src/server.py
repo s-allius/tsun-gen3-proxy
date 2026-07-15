@@ -188,13 +188,6 @@ class Server():
             for logger_name in loggers:
                 logging.getLogger(logger_name).setLevel(self.log_level)
 
-        if self.trace_level:
-            loggers = ['msg', 'tracer']
-            for logger_name in loggers:
-                logging.getLogger(logger_name).setLevel(self.trace_level)
-        else:
-            self.trace_level = self.log_level
-
     def build_config(self):
         """
         Loads configuration from multiple sources in priority order:
@@ -249,7 +242,6 @@ class Server():
         logging.info(f"TRACE_LVL environment: {trace_lvl_str}")
 
         return logging.getLevelNamesMapping().get(trace_lvl_str)
-
 
 class ProxyState:
     """
