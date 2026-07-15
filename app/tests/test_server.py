@@ -44,6 +44,33 @@ class TestServerClass:
             log_lvl = s.get_log_level()
             assert log_lvl == None
 
+    def test_get_trace_level(self):
+        s = self.FakeServer()
+
+        with patch.dict(os.environ, {}):
+            trace_lvl = s.get_trace_level()
+            assert trace_lvl == None
+
+        with patch.dict(os.environ, {'TRACE_LVL': 'DEBUG'}):
+            trace_lvl = s.get_trace_level()
+            assert trace_lvl == logging.DEBUG
+
+        with patch.dict(os.environ, {'TRACE_LVL': 'INFO'}):
+            trace_lvl = s.get_trace_level()
+            assert trace_lvl == logging.INFO
+
+        with patch.dict(os.environ, {'TRACE_LVL': 'WARN'}):
+            trace_lvl = s.get_trace_level()
+            assert trace_lvl == logging.WARNING
+
+        with patch.dict(os.environ, {'TRACE_LVL': 'ERROR'}):
+            trace_lvl = s.get_trace_level()
+            assert trace_lvl == logging.ERROR
+
+        with patch.dict(os.environ, {'TRACE_LVL': 'UNKNOWN'}):
+            trace_lvl = s.get_trace_level()
+            assert trace_lvl == None
+
     def test_default_args(self):
         s = self.FakeServer()
         assert s.config_path == './config/'
@@ -140,12 +167,29 @@ class TestServerClass:
             s.init_logging_system()
             assert s.log_backups == 3
             assert s.log_level == logging.WARNING
+            assert s.trace_level == logging.WARNING
             assert logging.handlers.log_backups == 3
             assert logging.getLogger().level == s.log_level
-            assert logging.getLogger('msg').level == s.log_level
+            assert logging.getLogger('msg').level == s.trace_level
             assert logging.getLogger('conn').level == s.log_level
             assert logging.getLogger('data').level == s.log_level
-            assert logging.getLogger('tracer').level == s.log_level
+            assert logging.getLogger('tracer').level == s.trace_level
+            assert logging.getLogger('asyncio').level == s.log_level
+            assert logging.getLogger('hypercorn.access').level == logging.INFO
+            assert logging.getLogger('hypercorn.error').level == logging.INFO
+
+        with patch.dict(os.environ, {'LOG_LVL': 'WARN', 'TRACE_LVL': 'ERROR'}):
+            s.parse_args(['--log_backups', '3'])
+            s.init_logging_system()
+            assert s.log_backups == 3
+            assert s.log_level == logging.WARNING
+            assert s.trace_level == logging.ERROR
+            assert logging.handlers.log_backups == 3
+            assert logging.getLogger().level == s.log_level
+            assert logging.getLogger('msg').level == s.trace_level
+            assert logging.getLogger('conn').level == s.log_level
+            assert logging.getLogger('data').level == s.log_level
+            assert logging.getLogger('tracer').level == s.trace_level
             assert logging.getLogger('asyncio').level == s.log_level
             assert logging.getLogger('hypercorn.access').level == logging.INFO
             assert logging.getLogger('hypercorn.error').level == logging.INFO
