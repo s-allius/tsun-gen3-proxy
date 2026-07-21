@@ -17,10 +17,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Update actions/setup-python action to v7
 - Update dependency coverage to v7.15.2
 
-### Added
-
-- add env variable to set log level of trace.log
-
 ## [0.16.0] - 2026-07-06
 
 ### Added
