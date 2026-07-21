@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- add env variable to set log level of trace.log
+- add env variable to set log level of trace.log [#640](https://github.com/s-allius/tsun-gen3-proxy/issues/640)
 
 ## [0.16.0] - 2026-07-06
 
