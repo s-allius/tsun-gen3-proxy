@@ -278,6 +278,8 @@ configuration:
           INFO(default): Informationen, Warnungen und Fehlermeldungen  -  
           WARN: Nur Warnungen und Fehlermeldungen  -  
           ERROR: Nur Fehlermeldungen
+      trace_level:
+        name: Trace-Level
       retention_days:
         name: Retention Period
         description: >+

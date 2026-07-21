@@ -55,6 +55,10 @@ bashio::log.green "run.sh: info: app log retention: $LOG_RETENTION days"
 LOG_LVL=$(bashio::config "logging.level" $LOG_LVL)
 bashio::log.green "run.sh: info: app log level: $LOG_LVL"
 
+# overwrite trace_lvl if available
+TRACE_LVL=$(bashio::config "logging.trace_level" $LOG_LVL)
+bashio::log.green "run.sh: info: app trace level: $TRACE_LVL"
+export TRACE_LVL
 
 # Create folder for log und config files
 mkdir -p /homeassistant/tsun-proxy/logs

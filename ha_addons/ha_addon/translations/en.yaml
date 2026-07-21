@@ -265,6 +265,8 @@ configuration:
           INFO(default): Information, warnings, and error messages  -  
           WARN: Warnings and error messages only  -  
           ERROR: Error messages only
+      trace_level:
+        name: Trace level
       retention_days:
         name: Retention Period
         description: >+
