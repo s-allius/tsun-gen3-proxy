@@ -180,12 +180,20 @@ class Server():
             f"{self.log_backups if self.log_backups > 0 else 'unlimited'}")
 
         self.log_level = self.get_log_level()
+        self.trace_level = self.get_trace_level()
         logging.info('******')
 
         if self.log_level:
             loggers = ['', 'msg', 'conn', 'data', 'tracer', 'asyncio', 'test']
             for logger_name in loggers:
                 logging.getLogger(logger_name).setLevel(self.log_level)
+
+        if self.trace_level:
+            loggers = ['msg', 'tracer']
+            for logger_name in loggers:
+                logging.getLogger(logger_name).setLevel(self.trace_level)
+        else:
+            self.trace_level = self.log_level
 
     def build_config(self):
         """
@@ -224,16 +232,23 @@ class Server():
             int | None: The logging level (e.g., logging.DEBUG)
                         or None if not set.
         """
-        levels = {
-            'DEBUG': logging.DEBUG,
-            'WARN': logging.WARNING,
-            'INFO': logging.INFO,
-            'ERROR': logging.ERROR,
-        }
         log_lvl_str = os.getenv('LOG_LVL', None)
         logging.info(f"LOG_LVL environment: {log_lvl_str}")
 
-        return levels.get(log_lvl_str)
+        return logging.getLevelNamesMapping().get(log_lvl_str)
+
+    def get_trace_level(self) -> int | None:
+        """
+        Maps the TRACE_LVL environment variable to logging module constants.
+
+        Returns:
+            int | None: The logging level (e.g., logging.DEBUG)
+                        or None if not set.
+        """
+        trace_lvl_str = os.getenv('TRACE_LVL', None)
+        logging.info(f"TRACE_LVL environment: {trace_lvl_str}")
+
+        return logging.getLevelNamesMapping().get(trace_lvl_str)
 
 
 class ProxyState:

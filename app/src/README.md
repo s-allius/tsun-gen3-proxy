@@ -36,6 +36,7 @@ The application loads configuration in the following priority:
 ### Environment Variables
 
 - `LOG_LVL`: Set to `DEBUG`, `INFO`, `WARN`, or `ERROR`.
+- `TRACE_LVL`: Set to `DEBUG`, `INFO`, `WARN`, or `ERROR`.
 - `SERVICE_NAME`: The name identifying this instance (default: `proxy`).
 - `SLUG` / `HOSTNAME`: Used for Home Assistant App identification.
 
