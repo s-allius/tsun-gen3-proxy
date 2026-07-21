@@ -5,11 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleases]
+## [Unreleased]
 
 ### Changed
 
 - Update dependency aiohttp to v3.14.2
+- Update actions/setup-python action to v7
+- Update dependency coverage to v7.15.2
 
 ## [0.16.0] - 2026-07-06
 
