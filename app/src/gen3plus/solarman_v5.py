@@ -849,11 +849,17 @@ class SolarmanV5(SolarmanBase):
     def __parse_modbus_rsp(self, data, modbus_msg_len):
         inv_update = False
         self.modbus_elms = 0
+        offset = 14
+        if data[offset] == 0xff:
+            offset += 1
+            modbus_msg_len -= 1
+            logger.debug('Skip invalid byte (0xff) before Modbus message')
+
         if (self.mb_scan):
-            self._dump_modbus_scan(data, 14, modbus_msg_len)
+            self._dump_modbus_scan(data, offset, modbus_msg_len)
 
         ts = self._timestamp()
-        for key, update, _ in self.mb.recv_resp(self.db, data[14:]):
+        for key, update, _ in self.mb.recv_resp(self.db, data[offset:]):
             self.modbus_elms += 1
             if update:
                 if key == 'inverter':

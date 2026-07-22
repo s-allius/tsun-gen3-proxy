@@ -17,6 +17,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Update actions/setup-python action to v7
 - Update dependency coverage to v7.15.2
 
+### Fixed
+
+- Fix Regular CRC errors for MODBUS responses [#645](https://github.com/s-allius/tsun-gen3-proxy/issues/645)
+
 ## [0.16.0] - 2026-07-06
 
 ### Added
