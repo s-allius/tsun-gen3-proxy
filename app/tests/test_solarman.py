@@ -752,6 +752,22 @@ def msg_modbus_rsp():  # 0x1510
     return msg
 
 @pytest.fixture
+def msg_modbus_rsp_0xff():  # 0x1510
+    msg  = b'\xa5\x74\x00\x10\x15\x03\x03' +get_sn()  +b'\x02\x01'
+    msg += total()  
+    msg += hb()
+    msg += b'\x00\x00\x00\x00\xff\x01\x03\x60\x00\x01\x12'
+    msg += b'\x02\x12\x12\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x40\x20\x08'
+    msg += b'\xc8\x00\x0d\x13\x87\x00\x39\x00\x00\x02\x58\x01\x29\x01\x3b\x00'
+    msg += b'\x27\x00\x6c\x01\x44\x00\x20\x00\x58\x01\x42\x00\x29\x00\x73\x00'
+    msg += b'\x00\x00\x01\x00\x00\x00\x00\x00\x03\xbc\xe1\x00\x00\x00\x01\x5a'
+    msg += b'\xce\x00\x00\x00\x01\x28\x99\x00\x00\x00\x01\x60\x7b\x00\x00\x00'
+    msg += b'\x00\x06\x16\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00\x6e\xf6'
+    msg += correct_checksum(msg)
+    msg += b'\x15'
+    return msg
+
+@pytest.fixture
 def msg_modbus_rsp_mb_4():  # 0x1510, MODBUS Type:4
     msg  = b'\xa5\x3b\x00\x10\x15\x03\x03' +get_sn()  +b'\x02\x01'
     msg += total()  
@@ -2206,6 +2222,31 @@ async def test_msg_modbus_rsp3(my_loop, config_tsun_inv1, msg_modbus_rsp):
     assert m.db.get_db_value(Register.VERSION) == 'V4.0.10'
     assert m.new_data['inverter'] == False
 
+    m.close()
+
+@pytest.mark.asyncio(loop_scope="module")
+async def test_msg_modbus_rsp_0xff(my_loop, config_tsun_inv1, msg_modbus_rsp_0xff):
+    _ = config_tsun_inv1
+    m = MemoryStream(msg_modbus_rsp_0xff)
+    m.db.stat['proxy']['Unknown_Ctrl'] = 0
+    m.db.stat['proxy']['Modbus_Command'] = 0
+    m.mb.last_addr = 1
+    m.mb.last_len = 0x30
+    m.mb.req_pend = True
+    m.mb.last_fcode = 3
+    m.mb.err = -1
+    m.read()         # read complete msg, and dispatch msg
+    assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
+    assert m.msg_count == 1
+    assert m.control == 0x1510
+    assert str(m.seq) == '03:03'
+    assert m.header_len==11
+    assert m.data_len==116
+    assert m.mb.err == 0
+    assert m.ifc.fwd_fifo.get()==b''
+    assert m.ifc.tx_fifo.get()==b''
+    assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
+    assert m.db.stat['proxy']['Modbus_Command'] == 0
     m.close()
 
 @pytest.mark.asyncio(loop_scope="module")

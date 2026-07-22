@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Fix Regular CRC errors for MODBUS responses [#645](https://github.com/s-allius/tsun-gen3-proxy/issues/645)
 - Add env variable to set log level of trace.log [#640](https://github.com/s-allius/tsun-gen3-proxy/issues/640)
 
 ### Changed
