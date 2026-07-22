@@ -850,11 +850,10 @@ class SolarmanV5(SolarmanBase):
         inv_update = False
         self.modbus_elms = 0
         offset = 14
-        if data[offset] & 0x80 == 0x80:
+        if data[offset] == 0xff:
             offset += 1
             modbus_msg_len -= 1
-            logger.error('Invalid 0xff byte inModbus Msg')
-            self.inc_counter('Invalid_Msg_Format')
+            logger.debug('Skip invalid byte (0xff) before Modbus message')
 
         if (self.mb_scan):
             self._dump_modbus_scan(data, offset, modbus_msg_len)
