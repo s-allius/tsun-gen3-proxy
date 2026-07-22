@@ -187,13 +187,6 @@ class Server():
             loggers = ['', 'msg', 'conn', 'data', 'tracer', 'asyncio', 'test']
             for logger_name in loggers:
                 logging.getLogger(logger_name).setLevel(self.log_level)
-                
-        if self.trace_level:
-            loggers = ['msg', 'tracer']
-            for logger_name in loggers:
-                logging.getLogger(logger_name).setLevel(self.trace_level)
-        else:
-            self.trace_level = self.log_level
 
         if self.trace_level:
             loggers = ['msg', 'tracer']
