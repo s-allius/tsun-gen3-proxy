@@ -2,5 +2,5 @@
     aiohttp==3.14.2
     schema==0.7.8
     aiocron==2.1
-    quart==0.20
+    quart==0.21.0
     quart-babel==1.0.7
