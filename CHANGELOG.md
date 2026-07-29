@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Update dependency aiohttp to v3.14.3
 - Update dependency quart to v0.21.0
 - Update dependency aiohttp to v3.14.2
 - Update actions/setup-python action to v7
