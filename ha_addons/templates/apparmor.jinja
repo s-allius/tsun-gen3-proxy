@@ -52,8 +52,13 @@ profile {{slug}} flags=(attach_disconnected,mediate_deleted) {
   network inet dgram,
   
   # --- RUNTIME DIRECTORIES (S6-RC) ---
-  /run/ w,
-  /run/** rwk,
+  /run/ r,
+  /run/** rw,
+  /run/**/ r,
+  /run/s6/ rw,
+  /run/{s6,s6-rc*,service}/** rwk,
+  
+  /run/s6/basedir/scripts/** ixmr,
   /run/{s6,s6-rc*,service}/** ix,
   
   # --- EXECUTABLES ---
