@@ -76,6 +76,14 @@ class Modbus():
         0x002b: {'reg': Register.BATT_HW_VERS,         'fmt': '!h'},                 # noqa: E501
         0x002c: {'reg': Register.BATT_SW_VERS,         'fmt': '!h'},                 # noqa: E501
 
+        # sesor_list: native response
+        3012:   {'reg': Register.GRID_VOLTAGE,         'fmt': '<H', 'ratio': 0.1},   # noqa: E501
+        3013:   {'reg': Register.GRID_CURRENT,         'fmt': '<H', 'ratio': 0.01},  # noqa: E501
+        3015:   {'reg': Register.GRID_FREQUENCY,       'fmt': '<H', 'ratio': 0.01},  # noqa: E501
+        3020:   {'reg': Register.RATED_POWER,          'fmt': '<H', 'ratio':    1},  # noqa: E501
+        3022:   {'reg': Register.INVERTER_TEMP,        'fmt': '<H', 'ratio': 0.1},   # noqa: E501
+        3024:   {'reg': Register.TOTAL_GENERATION,     'fmt': '<L', 'ratio': 0.01},  # noqa: E501
+
         # sensor_list: 0x1097
         0x1000: {'reg': Register.SERIAL_NUMBER,        'fmt': '!16s'},               # noqa: E501
         # 0x1008: {},  # val 0002
@@ -289,6 +297,84 @@ class Modbus():
 
         return True
 
+    def recv_native_resp(self, info_db, buf: bytes) -> \
+            Generator[tuple[str, bool, int | float | str], None, None]:
+        """Generator which check and parse a received MODBUS response.
+
+        Keyword arguments:
+            info_db: database for info lockups
+            buf: received Modbus RTU response frame
+
+        Returns on error and set Self.err to:
+            1: CRC error
+            2: Wrong server address
+            3: Unexpected function code
+            4: Unexpected data length
+            5: No MODBUS request pending
+
+        (7E) 0:A1 1:81 2:01 3:0B 4:B8 5:00 6:40
+        0: Family code
+        1: Response code
+        2: Inverter Number
+        3-4: Address of first register
+        5-6: No of registers
+        """
+        # logging.info(f'recv_resp: first byte modbus:{buf[0]} len:{len(buf)}')
+
+        fcode = buf[0]
+        # last_addr = buf[1]
+        res = struct.unpack_from('!HH', buf, 3)
+        first_reg = res[0]
+        last_len = res[1]
+        data_available = self.last_addr == self.last_addr and \
+            (fcode == 0xa1 or fcode == 0xa2 or fcode == 0xa3)
+        self.err = 0
+        # swap crc bytes for native response, to match the crc check
+        buf = buf[0:-2] + buf[-2:][::-1]
+        if self.__native_resp_error_check(buf, data_available, last_len):
+            return
+
+        if data_available:
+            self.__stop_timer()          # stop timer and send next pdu
+            yield from self.__process_data(info_db, buf[7:], first_reg,
+                                           last_len >> 1)
+        else:
+            self.__stop_timer()
+
+        self.counter['retries'][f'{self.retry_cnt}'] += 1
+        if self.rsp_handler:
+            self.rsp_handler()
+        self.__send_next_from_que()
+
+    def __native_resp_error_check(self, buf: bytes, data_available: bool,
+                                  elmlen: int) -> bool:
+        '''Check the MODBUS response for errors, returns True if one accure'''
+        if not self.req_pend:
+            self.err = 5
+            return True
+        if not self.__check_crc(buf):
+            logger.error(f'[{self.node_id}] Native resp: CRC error')
+            self.err = 1
+            return True
+        if buf[0] != self.last_addr:
+            logger.info(f'[{self.node_id}] Native resp: Wrong addr {buf[0]}')
+            self.err = 2
+            return True
+        fcode = buf[1]
+        if fcode != self.last_fcode:
+            logger.info(f'[{self.node_id}] Native resp: Wrong fcode {fcode}'
+                        f' != {self.last_fcode}')
+            self.err = 3
+            return True
+        if data_available:
+            if elmlen != self.last_len:
+                logger.info(f'[{self.node_id}] Native resp: len error {elmlen}'
+                            f' != {self.last_len}')
+                self.err = 4
+                return True
+
+        return False
+
     def recv_resp(self, info_db, buf: bytes) -> \
             Generator[tuple[str, bool, int | float | str], None, None]:
         """Generator which check and parse a received MODBUS response.
@@ -317,7 +403,7 @@ class Modbus():
             elmlen = buf[2] >> 1
             first_reg = self.last_reg  # save last_reg before sending next pdu
             self.__stop_timer()          # stop timer and send next pdu
-            yield from self.__process_data(info_db, buf, first_reg, elmlen)
+            yield from self.__process_data(info_db, buf[3:], first_reg, elmlen)
         else:
             self.__stop_timer()
 
@@ -364,7 +450,7 @@ class Modbus():
                 info_id = row['reg']
                 keys, level, unit, must_incr = info_db._key_obj(info_id)
                 if keys:
-                    result = Fmt.get_value(buf, 3+2*i, row)
+                    result = Fmt.get_value(buf, 2*i, row)
                     name, update = info_db.update_db(keys, must_incr,
                                                      result)
                     yield keys[0], update, result

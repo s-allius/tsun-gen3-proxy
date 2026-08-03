@@ -960,6 +960,30 @@ def dcu_command_rsp_msg():  # 0x1510
     return msg
 
 @pytest.fixture
+def inv_command_ind_msg_native_prot():  # 0x4510
+    msg  = b'\xa5\x1a\x00\x10\x45\x00\x01' +get_sn() +b'\x02\xb0\x02'
+    msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'           
+    msg += b'\xa1\x01\x00\x0b\xB8\x00\x02\x00\x20\xD3\x3F'
+    msg += correct_checksum(msg)
+    msg += b'\x15'
+    return msg
+
+@pytest.fixture
+def inv_command_rsp_msg_native_prot():  # 0x1510
+    msg  = b'\xa5\x58\x00\x10\x15\x00\xC6' +get_sn()  +b'\x02\x01'
+    msg += total()  
+    msg += hb()
+    msg += b'\x00\x00\x00\x00'
+    msg += b'\x7E\xA1\x81\x01\x0B\xB8\x00\x40\x01\x00\x00\x4C\x00\x00\x00\x00'
+    msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x6E\x11\x03\x00\x19\x10\x03\x00'
+    msg += b'\x29\x09\x45\x00\x29\x00\x86\x13\x02\x00\x5E\x00\x00\x00\x19\x10'
+    msg += b'\xB8\x0B\x8C\x08\x8E\x01\x01\x00\x71\xE8\x00\x00\xE8\x80\xC6\x05'
+    msg += b'\x5C\x00\x00\x00\x00\x00\x00\x00\xFD\x6E'
+    msg += correct_checksum(msg)
+    msg += b'\x15'
+    return msg
+
+@pytest.fixture
 def config_tsun_allow_all():
     Config.act_config = {
         'ha':{
@@ -3042,6 +3066,56 @@ async def test_msg_modbus_inv_1097(my_loop, config_tsun_inv1, inv_1097_modbus_rs
     assert m.ifc.fwd_fifo.get()==inv_1097_modbus_rsp
     assert m.ifc.tx_fifo.get()==b''
     assert m.db.get_db_value(Register.GRID_VOLTAGE) == 244.0
+    assert m.new_data['input'] == False
+
+    m.close()
+
+@pytest.mark.asyncio(loop_scope="module")
+async def test_msg_modbus_native_rsp(my_loop, config_tsun_inv1, inv_command_rsp_msg_native_prot):
+    '''Modbus response with a valid Modbus request must be forwarded'''
+    _ = config_tsun_inv1  # setup config structure
+    m = MemoryStream(inv_command_rsp_msg_native_prot)
+
+    m.mb.rsp_handler = m._SolarmanV5__forward_msg
+    m.mb.last_addr = 0xa1
+    m.mb.last_fcode = 0x81
+    m.mb.last_len = 0x40
+    m.mb.last_reg = 3000
+    m.mb.req_pend = True
+    m.mb.err = 0
+    m.new_data['input'] = False
+
+    m.read()         # read complete msg, and dispatch msg
+    assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
+    assert m.mb.err == 0
+    assert m.msg_count == 1
+    assert m.ifc.fwd_fifo.get()==inv_command_rsp_msg_native_prot
+    assert m.ifc.tx_fifo.get()==b''
+    assert m.db.get_db_value(Register.GRID_VOLTAGE) == 234.5
+    assert m.db.get_db_value(Register.GRID_CURRENT) == 0.69
+    # assert m.db.get_db_value(Register.OUTPUT_POWER) == 342.0
+    # assert m.db.get_db_value(Register.TEST_VAL_3) == 0
+    assert m.db.get_db_value(Register.GRID_FREQUENCY) == 49.98
+    assert m.db.get_db_value(Register.RATED_POWER) == 3000
+    assert m.db.get_db_value(Register.INVERTER_TEMP) == 39.8
+    # assert m.db.get_db_value(Register.TEST_VAL_6) == 0
+    # assert m.db.get_db_value(Register.DAILY_GENERATION) == 0.69
+    assert m.db.get_db_value(Register.TOTAL_GENERATION) == 595.05
+    # assert m.db.get_db_value(Register.TEST_VAL_10) == 0
+    # assert m.db.get_db_value(Register.INSULATION_IMP_RX) == 9.43
+    # assert m.db.get_db_value(Register.INSULATION_IMP_RY) == 0.61
+    # assert m.new_data['input'] == True
+    m.new_data['input'] = False
+
+    m.mb.req_pend = True
+    m.append_msg(inv_command_rsp_msg_native_prot)
+    m.read()         # read complete msg, and dispatch msg
+    assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
+    assert m.mb.err == 0
+    assert m.msg_count == 2
+    assert m.ifc.fwd_fifo.get()==inv_command_rsp_msg_native_prot
+    assert m.ifc.tx_fifo.get()==b''
+    assert m.db.get_db_value(Register.GRID_VOLTAGE) == 234.5
     assert m.new_data['input'] == False
 
     m.close()
