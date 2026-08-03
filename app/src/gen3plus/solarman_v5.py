@@ -850,16 +850,25 @@ class SolarmanV5(SolarmanBase):
         inv_update = False
         self.modbus_elms = 0
         offset = 14
+        resp_fnc = self.mb.recv_resp
         if data[offset] == 0xff:
             offset += 1
             modbus_msg_len -= 1
             logger.debug('Skip invalid byte (0xff) before Modbus message')
+        elif data[offset] == 0x7e:
+            resp_fnc = self.mb.recv_native_resp
+            offset += 1
+            modbus_msg_len -= 1
+
+            hex_dump_memory(logging.ERROR,
+                            'TSUN Native data paylod '
+                            f'{self.addr}:', data[offset:], modbus_msg_len)
 
         if (self.mb_scan):
             self._dump_modbus_scan(data, offset, modbus_msg_len)
 
         ts = self._timestamp()
-        for key, update, _ in self.mb.recv_resp(self.db, data[offset:]):
+        for key, update, _ in resp_fnc(self.db, data[offset:]):
             self.modbus_elms += 1
             if update:
                 if key == 'inverter':
