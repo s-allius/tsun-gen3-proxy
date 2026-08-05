@@ -64,7 +64,7 @@ async def test_build_modbus_pdu():
     assert mb.last_fcode == 0xA1   
     assert mb.last_addr == 1
     assert mb.last_reg == 3000
-    assert mb.last_len == 32
+    assert mb.last_len == 64
     assert mb.err == 0
 
 @pytest.mark.asyncio(loop_scope="module")
