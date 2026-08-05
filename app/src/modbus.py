@@ -254,6 +254,26 @@ class Modbus():
     def set_node_id(self, node_id: str):
         self.node_id = node_id
 
+    def build_native_msg(
+            self, addr: int, func: int, reg: int, val: int,
+            log_lvl=logging.DEBUG) -> None:
+        """Build TSUN native MODBUS request frame and add it to the tx queue
+
+        Keyword arguments:
+            addr: RTU server address (inverter)
+            func: MODBUS function code
+            reg:  16-bit register number
+            val:  16 bit value
+
+        """
+        msg = struct.pack('>BBBBHHH', 0x7e, func, addr, 0, reg, 2, val)
+        msg += struct.pack('>H', self.__calc_crc(msg[1:]))
+        self.que.put_nowait({'req': msg,
+                             'rsp_hdl': None,
+                             'log_lvl': log_lvl})
+        if self.que.qsize() == 1:
+            self.__send_next_from_que()
+
     def build_msg(self, addr: int, func: int, reg: int, val: int,
                   log_lvl=logging.DEBUG) -> None:
         """Build MODBUS RTU request frame and add it to the tx queue
@@ -329,8 +349,6 @@ class Modbus():
         data_available = self.last_addr == self.last_addr and \
             (fcode == 0xa1 or fcode == 0xa2 or fcode == 0xa3)
         self.err = 0
-        # swap crc bytes for native response, to match the crc check
-        buf = buf[0:-2] + buf[-2:][::-1]
         if self.__native_resp_error_check(buf, data_available, last_len):
             return
 
@@ -352,7 +370,7 @@ class Modbus():
         if not self.req_pend:
             self.err = 5
             return True
-        if not self.__check_crc(buf):
+        if not self.__check_crc(buf, swap_crc=True):
             logger.error(f'[{self.node_id}] Native resp: CRC error')
             self.err = 1
             return True
@@ -505,12 +523,20 @@ class Modbus():
             self.last_req = req
             self.rsp_handler = item['rsp_hdl']
             self.last_log_lvl = item['log_lvl']
-            self.last_addr = req[0]
-            self.last_fcode = req[1]
+            if req[0] == 0x7e:
+                self.last_fcode = req[1]
+                self.last_addr = req[2]
 
-            res = struct.unpack_from('>HH', req, 2)
-            self.last_reg = res[0]
-            self.last_len = res[1]
+                res = struct.unpack_from('>HHH', req, 4)
+                self.last_reg = res[0]
+                self.last_len = res[2]
+            else:
+                self.last_addr = req[0]
+                self.last_fcode = req[1]
+
+                res = struct.unpack_from('>HH', req, 2)
+                self.last_reg = res[0]
+                self.last_len = res[1]
             self.retry_cnt = 0
             self.__start_timer()
             self.snd_handler(self.last_req, self.last_log_lvl, state='Command')
@@ -520,8 +546,12 @@ class Modbus():
     '''
     Helper function for CRC-16 handling
     '''
-    def __check_crc(self, msg: bytes) -> bool:
+    def __check_crc(self, msg: bytes, swap_crc: bool = False) -> bool:
         '''Check CRC-16 and returns True if valid'''
+        if swap_crc:
+            # swap crc bytes for native response, to match the crc check
+            msg = msg[0:-2] + msg[-2:][::-1]
+
         valid = 0 == self.__calc_crc(msg)
         if not valid:
             crc = self.__calc_crc(msg[:-2])
