@@ -38,6 +38,9 @@ async def test_modbus_crc():
     msg += b'\x00\x00\x00\x00\x00\x00\x00\xe6\xef'
     assert 0 == mb._Modbus__calc_crc(msg)
 
+    assert 0xd33f == mb._Modbus__calc_crc(b'\xA1\x01\x00\x0B\xB8\x00\x02\x00\x20') # \xD3\x3F
+    assert 0 == mb._Modbus__calc_crc(b'\xA1\x01\x00\x0B\xB8\x00\x02\x00\x20\x3F\xd3')
+
 @pytest.mark.asyncio(loop_scope="module")
 async def test_build_modbus_pdu():
     '''Check building and sending a MODBUS RTU'''
@@ -49,6 +52,19 @@ async def test_build_modbus_pdu():
     assert mb.last_fcode == 6   
     assert mb.last_reg == 0x2000
     assert mb.last_len == 18
+    assert mb.err == 0
+
+@pytest.mark.asyncio(loop_scope="module")
+async def test_build_modbus_pdu():
+    '''Check building and sending a MODBUS RTU'''
+    mb = ModbusTestHelper()
+    mb.build_native_msg(1,0xA1,3000,32)
+    assert mb.pdu == b'\x7E\xA1\x01\x00\x0B\xB8\x00\x02\x00\x20\xD3\x3F'
+    assert mb._Modbus__check_crc(mb.pdu[1:], swap_crc=True)
+    assert mb.last_fcode == 0xA1   
+    assert mb.last_addr == 1
+    assert mb.last_reg == 3000
+    assert mb.last_len == 32
     assert mb.err == 0
 
 @pytest.mark.asyncio(loop_scope="module")
