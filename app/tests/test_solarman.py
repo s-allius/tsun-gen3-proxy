@@ -2524,6 +2524,7 @@ async def test_start_client_mode_detection(my_loop, config_tsun_detect, msg_modb
     m.send_start_cmd(get_sn_int(), str_test_ip, False, m.mb_first_timeout)
     assert m.sensor_list_detection.detection_running == True
     assert m.sensor_list == 0x2b0
+    assert m.mb_type == 'rtu'
     assert m.sent_pdu==bytearray(b'\xa5\x17\x00\x10E\x01\x00!Ce{\x02\xb0\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x030\x00\x000J\xde\xf1\x15')
     assert m.db.get_db_value(Register.IP_ADDRESS) == str_test_ip
     assert m.db.get_db_value(Register.HEARTBEAT_INTERVAL) == 120
@@ -2555,9 +2556,87 @@ async def test_start_client_mode_detection(my_loop, config_tsun_detect, msg_modb
     assert m.mb.err == 0
     assert m.sensor_list_detection.detection_running == False
     assert m.sensor_list == 0x1097
+    assert m.mb_type == 'rtu'
 
     mock_logger.error.assert_not_called()
     assert "Use sensor-list: 0x1097 for 'Y170000000000002'" in str(mock_logger.info.mock_calls)
+
+    m.close()
+
+@pytest.mark.asyncio(loop_scope="module")
+async def test_start_client_mode_detection2(my_loop, config_tsun_detect, msg_modbus_rsp_mb_Err5, inv_command_rsp_msg_native_prot,str_test_ip, logger_mock):
+    '''Test sensor-list detection by sending Modbus responses with different sensor-lists, 
+    and check if correct sensor-list is detected and used for polling.
+    
+    MODBUS retransmitting on a missing valid response is disabled in the MODBUS class.'''
+    _ = config_tsun_detect
+    mock_logger = logger_mock
+    assert asyncio.get_running_loop()
+    m = MemoryStream(b'')
+    m.mb.max_retries = 0          # test pdus without retranmsission
+    m.mb.timeout = 0.1            # timeout in MODBUS class must be shorter than test sleep time
+    m.mb_first_timeout = 0.2        # set longer timeout to disable the solarman timer, since we want to test the mb_timer timeout handling here
+    m.mb_timeout = 5        # set longer timeout to disable the solarman timer, since we want to test the mb_timer timeout handling here
+    assert m.state == State.init
+    assert m.no_forwarding == False
+    assert m.mb_timer.tim == None
+    assert asyncio.get_running_loop() == m.mb_timer.loop
+    m.send_start_cmd(get_sn_int(), str_test_ip, False, m.mb_first_timeout)
+    assert m.sensor_list_detection.detection_running == True
+    assert m.sensor_list == 0x2b0
+    assert m.mb_type == 'rtu'
+    assert m.sent_pdu==bytearray(b'\xa5\x17\x00\x10E\x01\x00!Ce{\x02\xb0\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x030\x00\x000J\xde\xf1\x15')
+    assert m.db.get_db_value(Register.IP_ADDRESS) == str_test_ip
+    assert m.db.get_db_value(Register.HEARTBEAT_INTERVAL) == 120
+
+    assert m.state == State.up
+    assert m.no_forwarding == True
+
+    assert "'Testing sensor-list: 0x2b0 by reading modbus registers at 0x3000" in str(mock_logger.info.mock_calls)
+    assert m.mb_type == 'rtu'
+    mock_logger.reset_mock()
+    assert next(m.mb_timer.exp_count) == 0
+    
+    await asyncio.sleep(0.2)
+    assert m.sent_pdu==bytearray(b'\xa5\x17\x00\x10E\x02\x00!Ce{\x02\x97\x10\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x03\x10\x00\x00\x10@\xc6\x85\x15')
+    assert m.ifc.tx_fifo.get()==b''
+    assert next(m.mb_timer.exp_count) == 2
+    m.mb.req_pend = True
+
+    assert "'Testing sensor-list: 0x1097 by reading modbus registers at 0x1000" in str(mock_logger.info.mock_calls)
+    assert m.mb_type == 'rtu'
+    mock_logger.reset_mock()
+
+    await asyncio.sleep(0.2)
+    assert m.sent_pdu==bytearray(b'\xa5\x17\x00\x10E\x03\x00!Ce{\x02\x26\x30\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x03\x00\x00\x00\x2d\x85\xd7\x98\x15')
+    assert m.ifc.tx_fifo.get()==b''
+    assert next(m.mb_timer.exp_count) == 4
+    m.mb.req_pend = True
+
+    assert "'Testing sensor-list: 0x3026 by reading modbus registers at 0x00" in str(mock_logger.info.mock_calls)
+    assert m.mb_type == 'rtu'
+    mock_logger.reset_mock()
+
+    await asyncio.sleep(0.2)
+    assert m.sent_pdu==bytearray(b'\xa5\x1b\x00\x10E\x04\x00!Ce{\x02\xb0\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x7e\xa1\x01\x00\x0b\xb8\x00\x02\x00\x20\xd3?\x83\x15')
+    assert m.ifc.tx_fifo.get()==b''
+    assert next(m.mb_timer.exp_count) == 6
+    m.mb.req_pend = True
+
+    assert "'Testing sensor-list: 0x2b0 by reading modbus registers at 0xbb8" in str(mock_logger.info.mock_calls)
+    assert m.mb_type == 'native'
+    mock_logger.reset_mock()
+    m.append_msg(inv_command_rsp_msg_native_prot)
+    m.read()         # read complete msg, and dispatch msg
+    assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
+    assert m.msg_count == 1
+    assert m.mb.err == 0
+    assert m.sensor_list_detection.detection_running == False
+    assert m.sensor_list == 0x2b0
+    assert m.mb_type == 'native'
+
+    mock_logger.error.assert_not_called()
+    assert "Use sensor-list: 0x2b0 for 'Y170000000000002'" in str(mock_logger.info.mock_calls)
 
     m.close()
 
@@ -2581,6 +2660,7 @@ async def test_start_client_mode_detect_retrans(my_loop, config_tsun_detect, msg
     m.send_start_cmd(get_sn_int(), str_test_ip, False, m.mb_first_timeout)
     assert m.sensor_list_detection.detection_running == True
     assert m.sensor_list == 0x2b0
+    assert m.mb_type == 'rtu'
     assert m.sent_pdu==bytearray(b'\xa5\x17\x00\x10E\x01\x00!Ce{\x02\xb0\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x030\x00\x000J\xde\xf1\x15')
     assert m.db.get_db_value(Register.IP_ADDRESS) == str_test_ip
     assert m.db.get_db_value(Register.HEARTBEAT_INTERVAL) == 120
@@ -2624,6 +2704,7 @@ async def test_start_client_mode_detect_retrans(my_loop, config_tsun_detect, msg
     assert m.mb.err == 0
     assert m.sensor_list_detection.detection_running == False
     assert m.sensor_list == 0x1097
+    assert m.mb_type == 'rtu'
 
     mock_logger.error.assert_not_called()
     assert "Use sensor-list: 0x1097 for 'Y170000000000002'" in str(mock_logger.info.mock_calls)
@@ -2651,6 +2732,7 @@ async def test_start_client_mode_detect_timeout(my_loop, config_tsun_detect, msg
     m.send_start_cmd(get_sn_int(), str_test_ip, False, m.mb_first_timeout)
     assert m.sensor_list_detection.detection_running == True
     assert m.sensor_list == 0x2b0
+    assert m.mb_type == 'rtu'
     assert m.sent_pdu==bytearray(b'\xa5\x17\x00\x10E\x01\x00!Ce{\x02\xb0\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x030\x00\x000J\xde\xf1\x15')
     assert m.db.get_db_value(Register.IP_ADDRESS) == str_test_ip
     assert m.db.get_db_value(Register.HEARTBEAT_INTERVAL) == 120
@@ -3077,8 +3159,8 @@ async def test_msg_modbus_native_rsp(my_loop, config_tsun_inv1, inv_command_rsp_
     m = MemoryStream(inv_command_rsp_msg_native_prot)
 
     m.mb.rsp_handler = m._SolarmanV5__forward_msg
-    m.mb.last_addr = 0xa1
-    m.mb.last_fcode = 0x81
+    m.mb.last_addr = 0x1
+    m.mb.last_fcode = 0xA1
     m.mb.last_len = 0x40
     m.mb.last_reg = 3000
     m.mb.req_pend = True

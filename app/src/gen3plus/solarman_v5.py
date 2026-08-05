@@ -46,9 +46,11 @@ class SensorListDetection():
     def __init__(self):
         self.idx = -1
         self.detection_running = False
-        self.scan_reg = [{'list': 0x02b0, 'addr': 0x3000, 'len': 48},
-                         {'list': 0x1097, 'addr': 0x1000, 'len': 16},
-                         {'list': 0x3026, 'addr': 0x0000, 'len': 45}]
+        self.scan_reg = [
+            {'list': 0x02b0, 'addr': 0x3000, 'len': 48, 'type': 'rtu'},
+            {'list': 0x1097, 'addr': 0x1000, 'len': 16, 'type': 'rtu'},
+            {'list': 0x3026, 'addr': 0x0000, 'len': 45, 'type': 'rtu'},
+            {'list': 0x02b0, 'addr': 3000, 'len': 32, 'type': 'native'}]
 
     def next(self) -> tuple[int, list[dict[str, int]]]:
         self.detection_running = True
@@ -59,7 +61,8 @@ class SensorListDetection():
         logger.info(f"Testing sensor-list: {reg['list']:#04x}"
                     f" by reading modbus registers at {reg['addr']:#04x} ")
 
-        return reg['list'], [{'addr': reg['addr'], 'len': reg['len']}]
+        return reg['list'], reg['type'], [
+            {'addr': reg['addr'], 'len': reg['len']}]
 
     def found(self) -> None:
         self.detection_running = False
@@ -380,7 +383,7 @@ class SolarmanV5(SolarmanBase):
         self._set_serial_no(snr)
         if self.sensor_list == 0:
             self.mb_slow_regs = []
-            self.sensor_list, self.mb_regs = \
+            self.sensor_list, self.mb_type, self.mb_regs = \
                 self.sensor_list_detection.next()
 
         self.mb_timeout = start_timeout
@@ -554,6 +557,7 @@ class SolarmanV5(SolarmanBase):
             if self.sensor_list_detection.is_running():
                 (
                     self.sensor_list,
+                    self.mb_type,
                     self.mb_regs,
                 ) = self.sensor_list_detection.next()
 

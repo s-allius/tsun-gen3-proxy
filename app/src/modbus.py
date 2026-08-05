@@ -374,11 +374,11 @@ class Modbus():
             logger.error(f'[{self.node_id}] Native resp: CRC error')
             self.err = 1
             return True
-        if buf[0] != self.last_addr:
-            logger.info(f'[{self.node_id}] Native resp: Wrong addr {buf[0]}')
+        if buf[2] != self.last_addr:
+            logger.info(f'[{self.node_id}] Native resp: Wrong addr {buf[2]}')
             self.err = 2
             return True
-        fcode = buf[1]
+        fcode = buf[0]
         if fcode != self.last_fcode:
             logger.info(f'[{self.node_id}] Native resp: Wrong fcode {fcode}'
                         f' != {self.last_fcode}')
@@ -529,7 +529,7 @@ class Modbus():
 
                 res = struct.unpack_from('>HHH', req, 4)
                 self.last_reg = res[0]
-                self.last_len = res[2]
+                self.last_len = res[1] * res[2]
             else:
                 self.last_addr = req[0]
                 self.last_fcode = req[1]
