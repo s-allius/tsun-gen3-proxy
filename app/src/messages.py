@@ -118,6 +118,7 @@ class Message(ProtocolIfc):
         self.mb_first_timeout = self.MB_START_TIMEOUT
         '''timer value for next Modbus polling request'''
         self.modbus_polling = False
+        self.mb_type = 'rtu'
         self.mb_start_reg = 0
         self.mb_step = 0
         self.mb_bytes = 0
@@ -191,7 +192,11 @@ class Message(ProtocolIfc):
             logger.log(log_lvl, f'[{self.node_id}] ignore MODBUS cmd,'
                        ' as the state is not UP')
             return
-        self.mb.build_msg(dev_id, func, addr, val, log_lvl)
+        match(self.mb_type):
+            case 'rtu':
+                self.mb.build_msg(dev_id, func, addr, val, log_lvl)
+            case 'native':
+                self.mb.build_native_msg(dev_id, 0xA1, addr, val, log_lvl)
 
     def send_modbus_cmd(self, func, addr, val, log_lvl) -> None:
         self._send_modbus_cmd(Modbus.INV_ADDR, func, addr, val, log_lvl)
