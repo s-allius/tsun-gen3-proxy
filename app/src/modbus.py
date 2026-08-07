@@ -342,11 +342,11 @@ class Modbus():
         # logging.info(f'recv_resp: first byte modbus:{buf[0]} len:{len(buf)}')
 
         fcode = buf[0]
-        # last_addr = buf[1]
+        last_addr = buf[2]
         res = struct.unpack_from('!HH', buf, 3)
         first_reg = res[0]
         last_len = res[1]
-        data_available = self.last_addr == self.last_addr and \
+        data_available = self.last_addr == last_addr and \
             (fcode == 0xa1 or fcode == 0xa2 or fcode == 0xa3)
         self.err = 0
         if self.__native_resp_error_check(buf, data_available, last_len):
@@ -384,12 +384,11 @@ class Modbus():
                         f' != {self.last_fcode}')
             self.err = 3
             return True
-        if data_available:
-            if elmlen != self.last_len:
-                logger.info(f'[{self.node_id}] Native resp: len error {elmlen}'
-                            f' != {self.last_len}')
-                self.err = 4
-                return True
+        if data_available and elmlen != self.last_len:
+            logger.info(f'[{self.node_id}] Native resp: len error {elmlen}'
+                        f' != {self.last_len}')
+            self.err = 4
+            return True
 
         return False
 

@@ -38,8 +38,8 @@ async def test_modbus_crc():
     msg += b'\x00\x00\x00\x00\x00\x00\x00\xe6\xef'
     assert 0 == mb._Modbus__calc_crc(msg)
 
-    assert 0xd33f == mb._Modbus__calc_crc(b'\xA1\x01\x00\x0B\xB8\x00\x02\x00\x20') # \xD3\x3F
-    assert 0 == mb._Modbus__calc_crc(b'\xA1\x01\x00\x0B\xB8\x00\x02\x00\x20\x3F\xd3')
+    assert mb._Modbus__calc_crc(b'\xA1\x01\x00\x0B\xB8\x00\x02\x00\x20') == 0xd33f
+    assert mb._Modbus__calc_crc(b'\xA1\x01\x00\x0B\xB8\x00\x02\x00\x20\x3F\xd3') == 0
 
 @pytest.mark.asyncio(loop_scope="module")
 async def test_build_modbus_pdu():
