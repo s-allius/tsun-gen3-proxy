@@ -382,6 +382,7 @@ class Modbus():
         status_code = buf[2]
         match status_code:
             case 0x01:
+                # fallthrough, no error
                 pass
             case 0x11:
                 logger.info(f'[{self.node_id}] Native resp: Unknown addr')
