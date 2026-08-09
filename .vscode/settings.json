@@ -28,5 +28,12 @@
         ".venv/lib"
     ],
     "coverage-gutters.coverageBaseDir": "tsun",
-    "makefile.configureOnOpen": false
+    "makefile.configureOnOpen": false,
+    "python-envs.pythonProjects": [
+        {
+            "path": ".",
+            "envManager": "ms-python.python:pyenv",
+            "packageManager": "ms-python.python:pip"
+        }
+    ]
 }
