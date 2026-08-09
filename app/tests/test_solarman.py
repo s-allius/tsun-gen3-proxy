@@ -307,6 +307,26 @@ def invalid_checksum(): # 0x4110
     return msg
 
 @pytest.fixture
+def device_ind_msg_0xff_filled(): # 0x4110
+    msg  = b'\xa5\xd4\x00\x10\x41\x00\x01' +get_sn()  +b'\x02\x32\x35\x6d\x5d'
+    msg += b'\x20\x00\x00\x00\x00\x00\x00\x00\x05\x3c\x78\x01\x17\x01\x4c\x53'  #  ........<x...LS
+    msg += b'\x57\x35\x42\x4c\x45\x5f\x31\x37\x5f\x30\x32\x42\x30\x5f\x31\x2e'  # W5BLE_17_02B0_1.
+    msg += b'\x30\x38\x2d\x44\x31\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'  # 08-D1...........
+    msg += b'\x00\x00\x00\x00\x00\x00\x40\x2a\x8f\x89\x8c\xd2\x31\x39\x32\x2e'  # ......@*....192.
+    msg += b'\x31\x36\x38\x2e\x37\x2e\x31\x39\x00\x00\x00\x00\x02\x00\x01\xb0'  # 168.7.19........
+    msg += b'\x02\x0f\x00\xff\x56\x31\x2e\x31\x2e\x30\x30\x2e\x30\x42\x00\x00'  # ....V1.1.00.0B..
+    msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'  # ................
+    msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xfe\xfe\x00\x00'  # ................
+    msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'  # ................
+    msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'  # ................
+    msg += b'\x00\x00\x00\x00\x00\x00\x00\x41\x6c\x6c\x69\x75\x73\x2d\x48\x6f'
+    msg += b'\x6d\x65\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff'  
+    msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xe2\x74\x9a'      # .............t.
+    msg += correct_checksum(msg)
+    msg += b'\x15'             
+    return msg
+
+@pytest.fixture
 def inverter_ind_msg():  # 0x4210
     msg  = b'\xa5\x99\x01\x10\x42\x01\x02' +get_sn()  +b'\x01\xb0\x02\xbc\xc8'
     msg += b'\x24\x32\x6c\x1f\x00\x00\xa0\x47\xe4\x33\x01\x00\x03\x08\x00\x00'
@@ -1372,6 +1392,27 @@ async def test_read_two_messages4(my_loop, config_tsun_dcu1, dcu_dev_ind_msg, dc
     m._init_new_client_conn()
     assert m.ifc.tx_fifo.get()==b''
     m.close()
+
+@pytest.mark.asyncio(loop_scope="module")
+async def test_0xff_fill_bytes(my_loop, config_tsun_inv1, device_ind_msg_0xff_filled, device_rsp_msg):
+    '''test that 0xff fill bytes are removed from fixed size strings in the message'''
+    _ = my_loop
+    _ = config_tsun_inv1
+    m = MemoryStream(device_ind_msg_0xff_filled, (0,))
+    m.read()         # read complete msg, and dispatch msg
+    assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
+    assert m.msg_count == 1
+    assert m.header_len==11
+    assert m.snr == 2070233889
+    assert m.unique_id == '2070233889'
+    assert m.control == 0x4110
+    assert str(m.seq) == '01:01'
+    assert m.data_len == 0xd4
+    assert m.ifc.rx_get()==b''
+    assert m.ifc.tx_fifo.get()==device_rsp_msg
+    assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
+    m.close()
+
 
 @pytest.mark.asyncio(loop_scope="module")
 async def test_unkown_frame_code(my_loop, config_tsun_inv1, inverter_ind_msg_81, inverter_rsp_msg_81):

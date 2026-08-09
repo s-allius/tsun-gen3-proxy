@@ -230,7 +230,7 @@ class Fmt:
             return None
         result = res[0]
         if isinstance(result, (bytearray, bytes)):
-            result = result.decode().split('\x00')[0]
+            result = result.decode('utf-8', errors='ignore').rstrip('\x00\xff')
         if 'func' in row:
             result = row['func'](res)
         if 'ratio' in row:
