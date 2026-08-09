@@ -332,7 +332,8 @@ class Modbus():
             4: Unexpected data length
             5: No MODBUS request pending
             6: Unknown start register address
-            7: Unknown status code
+            7: invalid length requested
+            8: Unknown status code
 
         (7E) 0:A1 1:81 2:01 3:0B 4:B8 5:00 6:40
         0: Family code
@@ -387,14 +388,14 @@ class Modbus():
                 self.err = 6
                 return True
             case 0x12:
-                self.err = 4
+                self.err = 7
                 logger.info(f'[{self.node_id}] Native resp: Invalid length')
                 return True
             case _:
                 logger.info(
                     f'[{self.node_id}] Native resp: Unknown status code'
                     f' {status_code}')
-                self.err = 7
+                self.err = 8
                 return True
 
         fcode = buf[0]
@@ -573,8 +574,8 @@ class Modbus():
         valid = 0 == self.__calc_crc(msg)
         if not valid:
             crc = self.__calc_crc(msg[:-2])
-            logging.info(f'CRC error: {msg[-1]:02x}{msg[-2]:02x} != {crc:04x}'
-                         f' for msg: {msg.hex()}')
+            logging.error(f'CRC error: {msg[-1]:02x}{msg[-2]:02x} != {crc:04x}'
+                          f' for msg: {msg.hex()}')
         return valid
 
     def __calc_crc(self, buffer: bytes) -> int:
