@@ -331,22 +331,26 @@ class Modbus():
             3: Unexpected function code
             4: Unexpected data length
             5: No MODBUS request pending
+            6: Unknown start register address
+            7: Unknown status code
 
         (7E) 0:A1 1:81 2:01 3:0B 4:B8 5:00 6:40
         0: Family code
-        1: Response code
-        2: Inverter Number
+        1: Sub code
+        2: Status code (0x01: OK;
+                        0x11: Unknown Start Reg Addr;
+                        0x12: Invalid length)
         3-4: Address of first register
         5-6: No of registers
         """
         # logging.info(f'recv_resp: first byte modbus:{buf[0]} len:{len(buf)}')
 
         fcode = buf[0]
-        last_addr = buf[2]
+        status_code = buf[2]
         res = struct.unpack_from('!HH', buf, 3)
         first_reg = res[0]
         last_len = res[1]
-        data_available = self.last_addr == last_addr and \
+        data_available = status_code == 0x01 and \
             (fcode == 0xa1 or fcode == 0xa2 or fcode == 0xa3)
         self.err = 0
         if self.__native_resp_error_check(buf, data_available, last_len):
@@ -374,10 +378,25 @@ class Modbus():
             logger.error(f'[{self.node_id}] Native resp: CRC error')
             self.err = 1
             return True
-        if buf[2] != self.last_addr:
-            logger.info(f'[{self.node_id}] Native resp: Wrong addr {buf[2]}')
-            self.err = 2
-            return True
+        status_code = buf[2]
+        match status_code:
+            case 0x01:
+                pass
+            case 0x11:
+                logger.info(f'[{self.node_id}] Native resp: Unknown addr')
+                self.err = 6
+                return True
+            case 0x12:
+                self.err = 4
+                logger.info(f'[{self.node_id}] Native resp: Invalid length')
+                return True
+            case _:
+                logger.info(
+                    f'[{self.node_id}] Native resp: Unknown status code'
+                    f' {status_code}')
+                self.err = 7
+                return True
+
         fcode = buf[0]
         if fcode != self.last_fcode:
             logger.info(f'[{self.node_id}] Native resp: Wrong fcode {fcode}'
