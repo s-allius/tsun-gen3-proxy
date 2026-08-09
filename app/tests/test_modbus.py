@@ -92,7 +92,7 @@ class TestModbusProtocol:
         for key, update, val in mb.recv_resp(mb.db, b'\x01\x03\x04\x01\x2c\x00\x46\xbb\xf3'):
             call += 1
         assert mb.err == 1
-        assert 0 == call
+        assert call == 0
         assert mb.req_pend == True
         # cleanup queue
         mb._Modbus__stop_timer()
@@ -115,7 +115,7 @@ class TestModbusProtocol:
         for key, update in mb.recv_resp(mb.db, b'\x02\x03\x04\x01\x2c\x00\x46\x88\xf4'):
             call += 1
         assert mb.err == 2
-        assert 0 == call
+        assert call == 0
         assert mb.req_pend == True
         assert mb.que.qsize() == 0
 
@@ -138,7 +138,7 @@ class TestModbusProtocol:
             call += 1
 
         assert mb.err == 3
-        assert 0 == call
+        assert call == 0
         assert mb.req_pend == True
         assert mb.que.qsize() == 0
 
@@ -162,7 +162,7 @@ class TestModbusProtocol:
             call += 1
 
         assert mb.err == 4
-        assert 0 == call
+        assert call == 0
         assert mb.req_pend == True
         assert mb.que.qsize() == 0
 
@@ -183,7 +183,7 @@ class TestModbusProtocol:
             call += 1
 
         assert mb.err == 5
-        assert 0 == call
+        assert call == 0
         assert mb.req_pend == False
         assert mb.que.qsize() == 0
 
@@ -206,11 +206,11 @@ class TestModbusProtocol:
             elif key == 'env':
                 assert update == True
             else:
-                assert False
+                pytest.fail(f'Unexpected key {key}')
             assert exp_result[call] == val
             call += 1
-        assert 0 == mb.err
-        assert 5 == call
+        assert mb.err == 0
+        assert call == 5
         assert mb.que.qsize() == 0
         assert not mb.req_pend
 
@@ -253,11 +253,11 @@ class TestNativeProtocol:
             elif key == 'env':
                 assert update == True
             else:
-                assert False
+                pytest.fail(f'Unexpected key {key}')
             assert exp_result[call] == val
             call += 1
-        assert 0 == mb.err
-        assert 5 == call
+        assert mb.err == 0
+        assert call == 5   
         assert mb.que.qsize() == 0
         assert not mb.req_pend
 
@@ -275,7 +275,7 @@ class TestNativeProtocol:
         for key, update, val in mb.recv_native_resp(mb.db, b'\xA1\x81\x01\x0b\xb8\x00\x02\x6a\x04'):
             call += 1
         assert mb.err == 1
-        assert 0 == call
+        assert call == 0
         assert mb.req_pend
         # cleanup queue
         mb._Modbus__stop_timer()
@@ -295,7 +295,7 @@ class TestNativeProtocol:
         for key, update, val in mb.recv_native_resp(mb.db, b'\xA7\x81\x01\x0b\xb8\x00\x02\xdb\xed'):
             call += 1
         assert mb.err == 3
-        assert 0 == call
+        assert call == 0
         assert mb.req_pend
         # cleanup queue
         mb._Modbus__stop_timer()
@@ -315,7 +315,7 @@ class TestNativeProtocol:
         for key, update, val in mb.recv_native_resp(mb.db, b'\xA1\x81\x01\x0b\xb8\x00\x02\xdb\x8b'):
             call += 1
         assert mb.err == 4
-        assert 0 == call
+        assert call == 0
         assert mb.req_pend
         # cleanup queue
         mb._Modbus__stop_timer()
@@ -332,7 +332,7 @@ class TestNativeProtocol:
         for key, update, val in mb.recv_native_resp(mb.db, b'\xA1\x81\x01\x0b\xb8\x00\x02\xdb\x8b'):
             call += 1
         assert mb.err == 5
-        assert 0 == call
+        assert call == 0
 
     @pytest.mark.asyncio(loop_scope="module")
     async def test_recv_native_unknown_addr(self):
@@ -348,7 +348,7 @@ class TestNativeProtocol:
         for key, update, val in mb.recv_native_resp(mb.db, b'\xA1\x81\x11\x0b\xb8\x00\x02\x00\x00\x6a\x37'):
             call += 1
         assert mb.err == 6
-        assert 0 == call
+        assert call == 0
         assert mb.req_pend
         # cleanup queue
         mb._Modbus__stop_timer()
@@ -368,7 +368,7 @@ class TestNativeProtocol:
         for key, update, val in mb.recv_native_resp(mb.db, b'\xA1\x81\x12\x0b\xb8\x00\x02\x00\x00\x6a\x04'):
             call += 1
         assert mb.err == 7
-        assert 0 == call
+        assert call == 0
         assert mb.req_pend
         # cleanup queue
         mb._Modbus__stop_timer()
@@ -388,7 +388,7 @@ class TestNativeProtocol:
         for key, update, val in mb.recv_native_resp(mb.db, b'\xA1\x81\x21\x0b\xb8\x00\x02\x00\x00\x69\x07'):
             call += 1
         assert mb.err == 8
-        assert 0 == call
+        assert call == 0
         assert mb.req_pend
         # cleanup queue
         mb._Modbus__stop_timer()
