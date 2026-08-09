@@ -55,7 +55,7 @@ async def test_build_modbus_pdu():
     assert mb.err == 0
 
 @pytest.mark.asyncio(loop_scope="module")
-async def test_build_modbus_pdu():
+async def test_build_native_modbus_pdu():
     '''Check building and sending a MODBUS RTU'''
     mb = ModbusTestHelper()
     mb.build_native_msg(1,0xA1,3000,32)
@@ -102,6 +102,28 @@ async def test_recv_resp_crc_err():
     # check matching response, but with CRC error
     call = 0
     for key, update, val in mb.recv_resp(mb.db, b'\x01\x03\x04\x01\x2c\x00\x46\xbb\xf3'):
+        call += 1
+    assert mb.err == 1
+    assert 0 == call
+    assert mb.req_pend == True
+    # cleanup queue
+    mb._Modbus__stop_timer()
+    assert not mb.req_pend
+
+@pytest.mark.asyncio(loop_scope="module")
+async def test_recv_native_resp_crc_err():
+    '''Receive a response with invalid CRC, which must be dropped'''
+    mb = ModbusTestHelper()
+    # simulate a transmitted request
+    mb.req_pend = True
+    mb.last_addr = 1
+    mb.last_fcode = 0xA1
+    mb.last_reg = 0x3000
+    mb.last_len = 2
+    mb.set_node_id('test')
+    # check matching response, but with CRC error
+    call = 0
+    for key, update, val in mb.recv_native_resp(mb.db, b'\xA1\x81\x01\x0b\xb8\x00\x02\x6a\x04'):
         call += 1
     assert mb.err == 1
     assert 0 == call
@@ -223,6 +245,36 @@ async def test_parse_resp():
         call += 1
     assert 0 == mb.err
     assert 5 == call
+    assert mb.que.qsize() == 0
+    assert not mb.req_pend
+
+@pytest.mark.asyncio(loop_scope="module")
+async def test_parse_native_resp():
+    '''Receive matching native response and parse the values'''
+    mb = ModbusTestHelper()
+    mb.build_native_msg(1, 0xA1,0x3007,16)
+    assert mb.que.qsize() == 0
+    assert mb.req_pend
+
+    call = 0
+    mb.set_node_id('test')
+    exp_result = [300.0, 21.88, 0.01]
+    for key, update, val in mb.recv_native_resp(mb.db, b'\xA1\x81\x01\x0B\xB8\x00\x20\x6E\x11\x03\x00\x19\x10\x03\x00' +
+        b'\x29\x09\x45\x00\x29\x00\x86\x13\x02\x00\x5E\x00\x00\x00\x19\x10' +
+        b'\xB8\x0B\x8C\x08\x8E\x01\x01\x00\xCB\x88'):
+
+        if key == 'grid':
+            assert update == True
+        elif key == 'inverter':
+            assert update == True
+        elif key == 'env':
+            assert update == True
+        else:
+            assert False
+        assert exp_result[call] == val
+        call += 1
+    assert 0 == mb.err
+    assert 3 == call
     assert mb.que.qsize() == 0
     assert not mb.req_pend
 
