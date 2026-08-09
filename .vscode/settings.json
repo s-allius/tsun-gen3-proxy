@@ -1,0 +1,39 @@
+{
+    "python.analysis.extraPaths": [
+        "app/src",
+        "app/tests",
+        ".venv/lib",
+    ],
+    "python.testing.pytestArgs": [
+        "-vvv",
+        "--cov=app/src",
+        "--cov-report=xml",
+        "app",
+        "system_tests"
+    ],
+    "python.testing.unittestEnabled": false,
+    "python.testing.pytestEnabled": true,
+    "flake8.args": [
+        "--extend-exclude=app/tests/*.py,system_tests/*.py"   
+    ],
+    "sonarlint.connectedMode.project": {
+        "connectionId": "s-allius",
+        "projectKey": "s-allius_tsun-gen3-proxy"
+    },
+    "files.exclude": {
+        "**/*.pyi": true
+    },
+    "python.analysis.typeEvaluation.deprecateTypingAliases": true,
+    "python.autoComplete.extraPaths": [
+        ".venv/lib"
+    ],
+    "coverage-gutters.coverageBaseDir": "tsun",
+    "makefile.configureOnOpen": false,
+    "python-envs.pythonProjects": [
+        {
+            "path": ".",
+            "envManager": "ms-python.python:pyenv",
+            "packageManager": "ms-python.python:pip"
+        }
+    ]
+}
