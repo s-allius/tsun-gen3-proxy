@@ -1308,7 +1308,7 @@ async def test_read_two_messages(my_loop, config_tsun_allow_all, device_ind_msg,
     _ = config_tsun_allow_all
     m = MemoryStream(device_ind_msg, (0,))
     m.append_msg(inverter_ind_msg)
-    assert 0 == m.sensor_list
+    assert m.sensor_list == 0
     m._init_new_client_conn()
     m.read()         # read complete msg, and dispatch msg
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
@@ -1323,8 +1323,8 @@ async def test_read_two_messages(my_loop, config_tsun_allow_all, device_ind_msg,
     assert m.msg_recvd[1]['control']==0x4210
     assert m.msg_recvd[1]['seq']=='02:02'
     assert m.msg_recvd[1]['data_len']==0x199
-    assert '02b0' == m.db.get_db_value(Register.SENSOR_LIST, None)
-    assert 0x02b0 == m.sensor_list
+    assert m.db.get_db_value(Register.SENSOR_LIST, None) == '02b0'
+    assert m.sensor_list == 0x02b0
     assert m.ifc.fwd_fifo.get()==device_ind_msg+inverter_ind_msg
     assert m.ifc.tx_fifo.get()==device_rsp_msg+inverter_rsp_msg
 
@@ -1364,7 +1364,7 @@ async def test_read_two_messages3(my_loop, config_tsun_allow_all, device_ind_msg
     _ = config_tsun_allow_all
     m = MemoryStream(inverter_ind_msg, (0,))
     m.append_msg(device_ind_msg2)
-    assert 0 == m.sensor_list
+    assert m.sensor_list == 0
     m._init_new_client_conn()
     m.read()         # read complete msg, and dispatch msg
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
@@ -1379,8 +1379,8 @@ async def test_read_two_messages3(my_loop, config_tsun_allow_all, device_ind_msg
     assert m.msg_recvd[1]['control']==0x4110
     assert m.msg_recvd[1]['seq']=='03:03'
     assert m.msg_recvd[1]['data_len']==0xd4
-    assert '02b0' == m.db.get_db_value(Register.SENSOR_LIST, None)
-    assert 0x02b0 == m.sensor_list
+    assert m.db.get_db_value(Register.SENSOR_LIST, None) == '02b0'
+    assert m.sensor_list == 0x02b0
     assert m.ifc.fwd_fifo.get()==inverter_ind_msg+device_ind_msg2
     assert m.ifc.tx_fifo.get()==inverter_rsp_msg+device_rsp_msg2
 
@@ -1393,7 +1393,7 @@ async def test_read_two_messages4(my_loop, config_tsun_dcu1, dcu_dev_ind_msg, dc
     _ = config_tsun_dcu1
     m = MemoryStream(dcu_dev_ind_msg, (0,))
     m.append_msg(dcu_data_ind_msg)
-    assert 0 == m.sensor_list
+    assert m.sensor_list == 0
     m._init_new_client_conn()
     m.read()         # read complete msg, and dispatch msg
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
@@ -1408,8 +1408,8 @@ async def test_read_two_messages4(my_loop, config_tsun_dcu1, dcu_dev_ind_msg, dc
     assert m.msg_recvd[1]['control']==0x4210
     assert m.msg_recvd[1]['seq']=='02:93'
     assert m.msg_recvd[1]['data_len']==111
-    assert '3026' == m.db.get_db_value(Register.SENSOR_LIST, None)
-    assert 0x3026 == m.sensor_list
+    assert m.db.get_db_value(Register.SENSOR_LIST, None) == '3026'
+    assert m.sensor_list == 0x3026
     assert m.ifc.fwd_fifo.get()==dcu_dev_ind_msg+dcu_data_ind_msg
     assert m.ifc.tx_fifo.get()==dcu_dev_rsp_msg+dcu_data_rsp_msg
 
@@ -1654,17 +1654,17 @@ async def test_sync_end_rsp(my_loop, config_tsun_inv1, sync_end_rsp_msg):
 async def test_build_modell_600(my_loop, config_tsun_allow_all, inverter_ind_msg):
     _ = config_tsun_allow_all
     m = MemoryStream(inverter_ind_msg, (0,))
-    assert 0 == m.sensor_list
-    assert 0 == m.db.get_db_value(Register.MAX_DESIGNED_POWER, 0)
-    assert None == m.db.get_db_value(Register.RATED_POWER, None)
-    assert None == m.db.get_db_value(Register.INVERTER_TEMP, None)
+    assert m.sensor_list == 0
+    assert m.db.get_db_value(Register.MAX_DESIGNED_POWER, 0) == 0
+    assert m.db.get_db_value(Register.RATED_POWER, None) is None
+    assert m.db.get_db_value(Register.INVERTER_TEMP, None) is None
     m.read()         # read complete msg, and dispatch msg
-    assert 2000 == m.db.get_db_value(Register.MAX_DESIGNED_POWER, 0)
-    assert 600 == m.db.get_db_value(Register.RATED_POWER, 0)
-    assert 4 == m.db.get_db_value(Register.NO_INPUTS, 0)
-    assert 'TSOL-MS2000(600)' == m.db.get_db_value(Register.EQUIPMENT_MODEL, 0)
-    assert '02b0' == m.db.get_db_value(Register.SENSOR_LIST, None)
-    assert 0 == m.sensor_list   # must not been set by an inverter data ind
+    assert m.db.get_db_value(Register.MAX_DESIGNED_POWER, 0) == 2000
+    assert m.db.get_db_value(Register.RATED_POWER, 0) == 600
+    assert m.db.get_db_value(Register.NO_INPUTS, 0) == 4
+    assert m.db.get_db_value(Register.EQUIPMENT_MODEL, 0) == 'TSOL-MS2000(600)'
+    assert m.db.get_db_value(Register.SENSOR_LIST, None) == '02b0'
+    assert m.sensor_list == 0  # must not been set by an inverter data ind
 
     m.ifc.tx_clear() # clear send buffer for next test    
     m._init_new_client_conn()
@@ -1675,110 +1675,110 @@ async def test_build_modell_600(my_loop, config_tsun_allow_all, inverter_ind_msg
 async def test_build_modell_1600(my_loop, config_tsun_allow_all, inverter_ind_msg1600):
     _ = config_tsun_allow_all
     m = MemoryStream(inverter_ind_msg1600, (0,))
-    assert 0 == m.db.get_db_value(Register.MAX_DESIGNED_POWER, 0)
-    assert None == m.db.get_db_value(Register.RATED_POWER, None)
-    assert None == m.db.get_db_value(Register.INVERTER_TEMP, None)
+    assert m.db.get_db_value(Register.MAX_DESIGNED_POWER, 0) == 0
+    assert m.db.get_db_value(Register.RATED_POWER, None) is None
+    assert m.db.get_db_value(Register.INVERTER_TEMP, None) is None
     m.read()         # read complete msg, and dispatch msg
-    assert 1600 == m.db.get_db_value(Register.MAX_DESIGNED_POWER, 0)
-    assert 1600 == m.db.get_db_value(Register.RATED_POWER, 0)
-    assert 4 == m.db.get_db_value(Register.NO_INPUTS, 0)
-    assert 'TSOL-MS1600' == m.db.get_db_value(Register.EQUIPMENT_MODEL, 0)
+    assert m.db.get_db_value(Register.MAX_DESIGNED_POWER, 0) == 1600
+    assert m.db.get_db_value(Register.RATED_POWER, 0) == 1600
+    assert m.db.get_db_value(Register.NO_INPUTS, 0) == 4
+    assert m.db.get_db_value(Register.EQUIPMENT_MODEL, 0) == 'TSOL-MS1600'
     m.close()
 
 @pytest.mark.asyncio(loop_scope="module")
 async def test_build_modell_1800(my_loop, config_tsun_allow_all, inverter_ind_msg1800):
     _ = config_tsun_allow_all
     m = MemoryStream(inverter_ind_msg1800, (0,))
-    assert 0 == m.db.get_db_value(Register.MAX_DESIGNED_POWER, 0)
-    assert None == m.db.get_db_value(Register.RATED_POWER, None)
-    assert None == m.db.get_db_value(Register.INVERTER_TEMP, None)
+    assert m.db.get_db_value(Register.MAX_DESIGNED_POWER, 0) == 0
+    assert m.db.get_db_value(Register.RATED_POWER, None) is None
+    assert m.db.get_db_value(Register.INVERTER_TEMP, None) is None
     m.read()         # read complete msg, and dispatch msg
-    assert 1800 == m.db.get_db_value(Register.MAX_DESIGNED_POWER, 0)
-    assert 1800 == m.db.get_db_value(Register.RATED_POWER, 0)
-    assert 4 == m.db.get_db_value(Register.NO_INPUTS, 0)
-    assert 'TSOL-MS1800' == m.db.get_db_value(Register.EQUIPMENT_MODEL, 0)
+    assert m.db.get_db_value(Register.MAX_DESIGNED_POWER, 0) == 1800
+    assert m.db.get_db_value(Register.RATED_POWER, 0) == 1800
+    assert m.db.get_db_value(Register.NO_INPUTS, 0) == 4
+    assert m.db.get_db_value(Register.EQUIPMENT_MODEL, 0) == 'TSOL-MS1800'
     m.close()
 
 @pytest.mark.asyncio(loop_scope="module")
 async def test_build_modell_2000(my_loop, config_tsun_allow_all, inverter_ind_msg2000):
     _ = config_tsun_allow_all
     m = MemoryStream(inverter_ind_msg2000, (0,))
-    assert 0 == m.db.get_db_value(Register.MAX_DESIGNED_POWER, 0)
-    assert None == m.db.get_db_value(Register.RATED_POWER, None)
-    assert None == m.db.get_db_value(Register.INVERTER_TEMP, None)
+    assert m.db.get_db_value(Register.MAX_DESIGNED_POWER, 0) == 0
+    assert m.db.get_db_value(Register.RATED_POWER, None) is None
+    assert m.db.get_db_value(Register.INVERTER_TEMP, None) is None
     m.read()         # read complete msg, and dispatch msg
-    assert 2000 == m.db.get_db_value(Register.MAX_DESIGNED_POWER, 0)
-    assert 2000 == m.db.get_db_value(Register.RATED_POWER, 0)
-    assert 4 == m.db.get_db_value(Register.NO_INPUTS, 0)
-    assert 'TSOL-MS2000' == m.db.get_db_value(Register.EQUIPMENT_MODEL, 0)
+    assert m.db.get_db_value(Register.MAX_DESIGNED_POWER, 0) == 2000
+    assert m.db.get_db_value(Register.RATED_POWER, 0) == 2000
+    assert m.db.get_db_value(Register.NO_INPUTS, 0) == 4
+    assert m.db.get_db_value(Register.EQUIPMENT_MODEL, 0) == 'TSOL-MS2000'
     m.close()
 
 @pytest.mark.asyncio(loop_scope="module")
 async def test_build_modell_800(my_loop, config_tsun_allow_all, inverter_ind_msg800):
     _ = config_tsun_allow_all
     m = MemoryStream(inverter_ind_msg800, (0,))
-    assert 0 == m.db.get_db_value(Register.MAX_DESIGNED_POWER, 0)
-    assert None == m.db.get_db_value(Register.RATED_POWER, None)
-    assert None == m.db.get_db_value(Register.INVERTER_TEMP, None)
+    assert m.db.get_db_value(Register.MAX_DESIGNED_POWER, 0) == 0
+    assert m.db.get_db_value(Register.RATED_POWER, None) is None
+    assert m.db.get_db_value(Register.INVERTER_TEMP, None) is None
     m.read()         # read complete msg, and dispatch msg
-    assert 800 == m.db.get_db_value(Register.MAX_DESIGNED_POWER, 0)
-    assert 800 == m.db.get_db_value(Register.RATED_POWER, 0)
-    assert 2 == m.db.get_db_value(Register.NO_INPUTS, 0)
-    assert 'TSOL-MS800' == m.db.get_db_value(Register.EQUIPMENT_MODEL, 0)
+    assert m.db.get_db_value(Register.MAX_DESIGNED_POWER, 0) == 800
+    assert m.db.get_db_value(Register.RATED_POWER, 0) == 800
+    assert m.db.get_db_value(Register.NO_INPUTS, 0) == 2
+    assert m.db.get_db_value(Register.EQUIPMENT_MODEL, 0) == 'TSOL-MS800'
     m.close()
 
 @pytest.mark.asyncio(loop_scope="module")
 async def test_build_modell_900(my_loop, config_tsun_allow_all, inverter_ind_msg900):
     _ = config_tsun_allow_all
     m = MemoryStream(inverter_ind_msg900, (0,))
-    assert 0 == m.db.get_db_value(Register.MAX_DESIGNED_POWER, 0)
-    assert None == m.db.get_db_value(Register.RATED_POWER, None)
-    assert None == m.db.get_db_value(Register.INVERTER_TEMP, None)
+    assert m.db.get_db_value(Register.MAX_DESIGNED_POWER, 0) == 0
+    assert m.db.get_db_value(Register.RATED_POWER, None) is None
+    assert m.db.get_db_value(Register.INVERTER_TEMP, None) is None
     m.read()         # read complete msg, and dispatch msg
-    assert 900 == m.db.get_db_value(Register.MAX_DESIGNED_POWER, 0)
-    assert 900 == m.db.get_db_value(Register.RATED_POWER, 0)
-    assert 2 == m.db.get_db_value(Register.NO_INPUTS, 0)
-    assert 'TSOL-MS900' == m.db.get_db_value(Register.EQUIPMENT_MODEL, 0)
+    assert m.db.get_db_value(Register.MAX_DESIGNED_POWER, 0) == 900
+    assert m.db.get_db_value(Register.RATED_POWER, 0) == 900
+    assert m.db.get_db_value(Register.NO_INPUTS, 0) == 2
+    assert m.db.get_db_value(Register.EQUIPMENT_MODEL, 0) == 'TSOL-MS900'
     m.close()
 
 @pytest.mark.asyncio(loop_scope="module")
 async def test_build_modell_900_y00(my_loop, config_tsun_titan, inverter_ind_msg900_y00):
     _ = config_tsun_titan
     m = MemoryStream(inverter_ind_msg900_y00, (0,))
-    assert 0 == m.db.get_db_value(Register.MAX_DESIGNED_POWER, 0)
-    assert None == m.db.get_db_value(Register.RATED_POWER, None)
-    assert None == m.db.get_db_value(Register.INVERTER_TEMP, None)
+    assert m.db.get_db_value(Register.MAX_DESIGNED_POWER, 0) == 0
+    assert m.db.get_db_value(Register.RATED_POWER, None) is None
+    assert m.db.get_db_value(Register.INVERTER_TEMP, None) is None
     m.read()         # read complete msg, and dispatch msg
-    assert 900 == m.db.get_db_value(Register.MAX_DESIGNED_POWER, 0)
-    assert 900 == m.db.get_db_value(Register.RATED_POWER, 0)
-    assert 2 == m.db.get_db_value(Register.NO_INPUTS, 0)
-    assert 'TSOL-MX900' == m.db.get_db_value(Register.EQUIPMENT_MODEL, 0)
+    assert m.db.get_db_value(Register.MAX_DESIGNED_POWER, 0) == 900
+    assert m.db.get_db_value(Register.RATED_POWER, 0) == 900
+    assert m.db.get_db_value(Register.NO_INPUTS, 0) == 2
+    assert m.db.get_db_value(Register.EQUIPMENT_MODEL, 0) == 'TSOL-MX900'
     m.close()
 
 @pytest.mark.asyncio(loop_scope="module")
 async def test_build_modell_1000_410(my_loop, config_tsun_dcu1, dcu_data_ind_msg):
     _ = config_tsun_dcu1
     m = MemoryStream(dcu_data_ind_msg, (0,))
-    assert 0 == m.db.get_db_value(Register.MAX_DESIGNED_POWER, 0)
-    assert None == m.db.get_db_value(Register.RATED_POWER, None)
-    assert None == m.db.get_db_value(Register.INVERTER_TEMP, None)
+    assert m.db.get_db_value(Register.MAX_DESIGNED_POWER, 0) == 0
+    assert m.db.get_db_value(Register.RATED_POWER, None) is None
+    assert m.db.get_db_value(Register.INVERTER_TEMP, None) is None
     m.read()         # read complete msg, and dispatch msg
-    assert 0 == m.db.get_db_value(Register.MAX_DESIGNED_POWER, 0)
-    assert 0 == m.db.get_db_value(Register.RATED_POWER, 0)
-    assert 2 == m.db.get_db_value(Register.NO_INPUTS, 0)
-    assert 'TSOL-DC1000' == m.db.get_db_value(Register.EQUIPMENT_MODEL, 0)
+    assert m.db.get_db_value(Register.MAX_DESIGNED_POWER, 0) == 0
+    assert m.db.get_db_value(Register.RATED_POWER, 0) == 0
+    assert m.db.get_db_value(Register.NO_INPUTS, 0) == 2
+    assert m.db.get_db_value(Register.EQUIPMENT_MODEL, 0) == 'TSOL-DC1000'
     m.close()
 
 @pytest.mark.asyncio(loop_scope="module")
 async def test_build_logger_modell(my_loop, config_tsun_allow_all, device_ind_msg):
     _ = config_tsun_allow_all
     m = MemoryStream(device_ind_msg, (0,))
-    assert 0 == m.db.get_db_value(Register.COLLECTOR_FW_VERSION, 0)
-    assert 'IGEN TECH' == m.db.get_db_value(Register.CHIP_TYPE, None)
-    assert None == m.db.get_db_value(Register.CHIP_MODEL, None)
+    assert m.db.get_db_value(Register.COLLECTOR_FW_VERSION, 0) == 0
+    assert m.db.get_db_value(Register.CHIP_TYPE, None) == 'IGEN TECH'
+    assert m.db.get_db_value(Register.CHIP_MODEL, None) is None
     m.read()         # read complete msg, and dispatch msg
-    assert 'LSW5BLE_17_02B0_1.05' == m.db.get_db_value(Register.CHIP_MODEL, 0)
-    assert 'V1.1.00.0B' == m.db.get_db_value(Register.COLLECTOR_FW_VERSION, 0).rstrip('\00')
+    assert m.db.get_db_value(Register.CHIP_MODEL, 0) == 'LSW5BLE_17_02B0_1.05'
+    assert m.db.get_db_value(Register.COLLECTOR_FW_VERSION, 0).rstrip('\00') == 'V1.1.00.0B'
     m.close()
 
 @pytest.mark.asyncio(loop_scope="module")
@@ -1813,13 +1813,13 @@ async def test_proxy_counter(my_loop, config_tsun_inv1):
     m.inc_counter('Unknown_Msg')
     assert m.new_data == {}
     assert Infos.new_stat_data == {'proxy': True}
-    assert 1 == m.db.stat['proxy']['Unknown_Msg']
+    assert m.db.stat['proxy']['Unknown_Msg'] == 1
 
     Infos.new_stat_data['proxy'] =  False
     m.dec_counter('Unknown_Msg')
     assert m.new_data == {}
     assert Infos.new_stat_data == {'proxy': True}
-    assert 0 == m.db.stat['proxy']['Unknown_Msg']
+    assert m.db.stat['proxy']['Unknown_Msg'] == 0
     m.close()
 
 @pytest.mark.asyncio(loop_scope="module")
@@ -1833,7 +1833,7 @@ async def test_msg_build_modbus_req(my_loop, config_tsun_inv1, device_ind_msg, d
     assert m.ifc.fwd_fifo.get()==device_ind_msg
 
     m.send_modbus_cmd(Modbus.WRITE_SINGLE_REG, 0x2008, 0, logging.DEBUG)
-    assert 0 == m.send_msg_ofs
+    assert m.send_msg_ofs == 0
     assert m.ifc.fwd_fifo.get() == b''
     assert m.sent_pdu == b'' # modbus command must be ignore, cause connection is still not up
     assert m.ifc.tx_fifo.get() == b''    # modbus command must be ignore, cause connection is still not up
@@ -1851,7 +1851,7 @@ async def test_msg_build_modbus_req(my_loop, config_tsun_inv1, device_ind_msg, d
     assert m.ifc.fwd_fifo.get()==inverter_ind_msg
 
     m.send_modbus_cmd(Modbus.WRITE_SINGLE_REG, 0x2008, 0, logging.DEBUG)
-    assert 0 == m.send_msg_ofs
+    assert m.send_msg_ofs == 0
     assert m.ifc.fwd_fifo.get() == b''
     assert m.sent_pdu == msg_modbus_cmd
     assert m.ifc.tx_fifo.get()== b''
@@ -3173,7 +3173,7 @@ async def test_proxy_dcu_cmd(my_loop, config_tsun_dcu1, patch_open_connection, d
         assert l.db.stat['proxy']['AT_Command'] == 0
         assert l.db.stat['proxy']['AT_Command_Blocked'] == 0
         assert l.db.stat['proxy']['Modbus_Command'] == 0
-        assert 0 == l.db.get_db_value(Register.NO_INPUTS, 0)
+        assert l.db.get_db_value(Register.NO_INPUTS, 0) == 0
 
         l.append_msg(dcu_command_rsp_msg)
         l.read() # read at resp
