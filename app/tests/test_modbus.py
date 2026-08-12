@@ -74,7 +74,7 @@ class TestModbusProtocol:
         assert mb.last_fcode == 0   
         assert mb.last_reg == 0
         assert mb.last_len == 0
-        assert mb.err == 1
+        assert mb.err == Modbus.ERR_CRC
 
     @pytest.mark.asyncio(loop_scope="module")
     async def test_recv_resp_crc_err(self):
@@ -91,7 +91,7 @@ class TestModbusProtocol:
         call = 0
         for key, update, val in mb.recv_resp(mb.db, b'\x01\x03\x04\x01\x2c\x00\x46\xbb\xf3'):
             call += 1
-        assert mb.err == 1
+        assert mb.err == Modbus.ERR_CRC
         assert call == 0
         assert mb.req_pend == True
         # cleanup queue
@@ -114,7 +114,7 @@ class TestModbusProtocol:
         call = 0
         for key, update in mb.recv_resp(mb.db, b'\x02\x03\x04\x01\x2c\x00\x46\x88\xf4'):
             call += 1
-        assert mb.err == 2
+        assert mb.err == Modbus.ERR_WRONG_ADDR
         assert call == 0
         assert mb.req_pend == True
         assert mb.que.qsize() == 0
@@ -137,7 +137,7 @@ class TestModbusProtocol:
         for key, update, val in mb.recv_resp(mb.db, b'\x01\x03\x04\x01\x2c\x00\x46\xbb\xf4'):
             call += 1
 
-        assert mb.err == 3
+        assert mb.err == Modbus.ERR_UNEXPECTED_FCODE
         assert call == 0
         assert mb.req_pend == True
         assert mb.que.qsize() == 0
@@ -161,7 +161,7 @@ class TestModbusProtocol:
         for key, update, _ in mb.recv_resp(mb.db, b'\x01\x03\x04\x01\x2c\x00\x46\xbb\xf4'):
             call += 1
 
-        assert mb.err == 4
+        assert mb.err == Modbus.ERR_UNEXPECTED_LEN
         assert call == 0
         assert mb.req_pend == True
         assert mb.que.qsize() == 0
@@ -172,7 +172,7 @@ class TestModbusProtocol:
 
     @pytest.mark.asyncio(loop_scope="module")
     async def test_recv_unexpect_resp(self):
-        '''Receive a response when we havb't sent a request'''
+        '''Receive a response when we havn't sent a request'''
         mb = ModbusTestHelper()
         assert not mb.req_pend
     
@@ -182,7 +182,7 @@ class TestModbusProtocol:
         for key, update, val in mb.recv_resp(mb.db, b'\x01\x03\x04\x01\x2c\x00\x46\xbb\xf4'):
             call += 1
 
-        assert mb.err == 5
+        assert mb.err == Modbus.ERR_NO_REQ_PENDING
         assert call == 0
         assert mb.req_pend == False
         assert mb.que.qsize() == 0
@@ -274,7 +274,7 @@ class TestNativeProtocol:
         call = 0
         for key, update, val in mb.recv_native_resp(mb.db, b'\xA1\x81\x01\x0b\xb8\x00\x02\x6a\x04'):
             call += 1
-        assert mb.err == 1
+        assert mb.err == Modbus.ERR_CRC
         assert call == 0
         assert mb.req_pend
         # cleanup queue
@@ -294,7 +294,7 @@ class TestNativeProtocol:
         call = 0
         for key, update, val in mb.recv_native_resp(mb.db, b'\xA7\x81\x01\x0b\xb8\x00\x02\xdb\xed'):
             call += 1
-        assert mb.err == 3
+        assert mb.err == Modbus.ERR_UNEXPECTED_FCODE
         assert call == 0
         assert mb.req_pend
         # cleanup queue
@@ -314,7 +314,7 @@ class TestNativeProtocol:
         call = 0
         for key, update, val in mb.recv_native_resp(mb.db, b'\xA1\x81\x01\x0b\xb8\x00\x02\xdb\x8b'):
             call += 1
-        assert mb.err == 4
+        assert mb.err == Modbus.ERR_UNEXPECTED_LEN
         assert call == 0
         assert mb.req_pend
         # cleanup queue
@@ -331,7 +331,7 @@ class TestNativeProtocol:
         call = 0
         for key, update, val in mb.recv_native_resp(mb.db, b'\xA1\x81\x01\x0b\xb8\x00\x02\xdb\x8b'):
             call += 1
-        assert mb.err == 5
+        assert mb.err == Modbus.ERR_NO_REQ_PENDING
         assert call == 0
 
     @pytest.mark.asyncio(loop_scope="module")
@@ -347,7 +347,7 @@ class TestNativeProtocol:
         call = 0
         for key, update, val in mb.recv_native_resp(mb.db, b'\xA1\x81\x11\x0b\xb8\x00\x02\x00\x00\x6a\x37'):
             call += 1
-        assert mb.err == 6
+        assert mb.err == Modbus.ERR_UNKNOWN_ADDR
         assert call == 0
         assert mb.req_pend
         # cleanup queue
@@ -367,7 +367,7 @@ class TestNativeProtocol:
         call = 0
         for key, update, val in mb.recv_native_resp(mb.db, b'\xA1\x81\x12\x0b\xb8\x00\x02\x00\x00\x6a\x04'):
             call += 1
-        assert mb.err == 7
+        assert mb.err == Modbus.ERR_INVALID_LEN
         assert call == 0
         assert mb.req_pend
         # cleanup queue
@@ -387,7 +387,7 @@ class TestNativeProtocol:
         call = 0
         for key, update, val in mb.recv_native_resp(mb.db, b'\xA1\x81\x21\x0b\xb8\x00\x02\x00\x00\x69\x07'):
             call += 1
-        assert mb.err == 8
+        assert mb.err == Modbus.ERR_UNKNOWN_STATUS
         assert call == 0
         assert mb.req_pend
         # cleanup queue
