@@ -196,7 +196,7 @@ class Message(ProtocolIfc):
             case 'rtu':
                 self.mb.build_msg(dev_id, func, addr, val, log_lvl)
             case 'native':
-                self.mb.build_native_msg(dev_id, 0xA1, addr, val, log_lvl)
+                self.mb.build_native_msg(func, addr, val, log_lvl)
 
     def send_modbus_cmd(self, func, addr, val, log_lvl) -> None:
         self._send_modbus_cmd(Modbus.INV_ADDR, func, addr, val, log_lvl)

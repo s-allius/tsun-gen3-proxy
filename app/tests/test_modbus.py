@@ -222,9 +222,9 @@ class TestNativeProtocol:
     async def test_build_native_modbus_pdu(self):
         '''Check building and sending a MODBUS RTU'''
         mb = ModbusTestHelper()
-        mb.build_native_msg(1,0xA1,3000,32)
-        assert mb.pdu == b'\x7E\xA1\x01\x00\x0B\xB8\x00\x02\x00\x20\xD3\x3F'
-        assert mb._Modbus__check_crc(mb.pdu[1:], swap_crc=True)
+        mb.build_native_msg(Modbus.NATIVE_READ_REGS_0x01,3000,32)
+        assert mb.pdu == b'\xA1\x01\x00\x0B\xB8\x00\x02\x00\x20\xD3\x3F'
+        assert mb._Modbus__check_crc(mb.pdu, swap_crc=True)
         assert mb.last_fcode == 0xA1   
         assert mb.last_addr == 1
         assert mb.last_reg == 3000
@@ -235,7 +235,7 @@ class TestNativeProtocol:
     async def test_parse_native_resp(self):
         '''Receive matching native response and parse the values'''
         mb = ModbusTestHelper()
-        mb.build_native_msg(1, 0xA1,0x3007,16)
+        mb.build_native_msg(Modbus.NATIVE_READ_REGS_0x01,0x3007,16)
         assert mb.que.qsize() == 0
         assert mb.req_pend
 
@@ -266,7 +266,7 @@ class TestNativeProtocol:
         '''Receive a response with invalid CRC, which must be dropped'''
         mb = ModbusTestHelper()
         # simulate a transmitted request
-        mb.build_native_msg(1, 0xA1,0x3000,1)
+        mb.build_native_msg(Modbus.NATIVE_READ_REGS_0x01,0x3000,1)
         mb.set_node_id('test')
         assert mb.req_pend
     
@@ -286,7 +286,7 @@ class TestNativeProtocol:
         '''Receive a response with invalid function code, which must be dropped'''
         mb = ModbusTestHelper()
         # simulate a transmitted request
-        mb.build_native_msg(1, 0xA1,0x3000,1)
+        mb.build_native_msg(Modbus.NATIVE_READ_REGS_0x01,0x3000,1)
         mb.set_node_id('test')
         assert mb.req_pend
     
@@ -306,7 +306,7 @@ class TestNativeProtocol:
         '''Receive a response with a wrong element count, which must be dropped'''
         mb = ModbusTestHelper()
         # simulate a transmitted request
-        mb.build_native_msg(1, 0xA1,0x3000,2)
+        mb.build_native_msg(Modbus.NATIVE_READ_REGS_0x01,0x3000,2)
         mb.set_node_id('test')
         assert mb.req_pend
     
@@ -339,7 +339,7 @@ class TestNativeProtocol:
         '''Receive a response with unknown address, which must be dropped'''
         mb = ModbusTestHelper()
         # simulate a transmitted request
-        mb.build_native_msg(1, 0xA1,0x3000,2)
+        mb.build_native_msg(Modbus.NATIVE_READ_REGS_0x01,0x3000,2)
         mb.set_node_id('test')
         assert mb.req_pend
     
@@ -359,7 +359,7 @@ class TestNativeProtocol:
         '''Receive a response with invalid length requested, which must be dropped'''
         mb = ModbusTestHelper()
         # simulate a transmitted request
-        mb.build_native_msg(1, 0xA1,0x3000,2)
+        mb.build_native_msg(Modbus.NATIVE_READ_REGS_0x01,0x3000,2)
         mb.set_node_id('test')
         assert mb.req_pend
     
@@ -379,7 +379,7 @@ class TestNativeProtocol:
         '''Receive a response with unknown status code, which must be dropped'''
         mb = ModbusTestHelper()
         # simulate a transmitted request
-        mb.build_native_msg(1, 0xA1,0x3000,2)
+        mb.build_native_msg(Modbus.NATIVE_READ_REGS_0x01,0x3000,2)
         mb.set_node_id('test')
         assert mb.req_pend
     
