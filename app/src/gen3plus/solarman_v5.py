@@ -54,7 +54,7 @@ class SensorListDetection():
             {'list': 0x3026, 'addr': 0x0000, 'len': 45,
              'type': 'rtu', 'func': Modbus.READ_REGS},
             {'list': 0x02b0, 'addr': 3000, 'len': 32,
-             'type': 'native', 'func': Modbus.NATIVE_READ_REGS_0x01},]
+             'type': 'native', 'func': Modbus.NATIVE_READ_VALUES},]
 
     def next(self) -> tuple[int, list[dict[str, int]]]:
         self.detection_running = True
@@ -486,11 +486,11 @@ class SolarmanV5(SolarmanBase):
                     case 'native':
                         self.mb_regs = [
                             {'addr': 3000, 'len': 32,
-                             'func': Modbus.NATIVE_READ_REGS_0x01}
+                             'func': Modbus.NATIVE_READ_VALUES}
                             ]
                         self.mb_slow_regs = [
                             {'addr': 2000, 'len': 96,
-                             'func': Modbus.NATIVE_READ_REGS_0x21}
+                             'func': Modbus.NATIVE_READ_REGS}
                             ]
             case _:
                 return
