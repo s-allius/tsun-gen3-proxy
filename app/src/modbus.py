@@ -69,9 +69,9 @@ class Modbus():
     WRITE_SINGLE_REG = 6
     '''Modbus function code: Write Single Register'''
 
-    NATIVE_READ_REGS_0x01 = (0xA1, 0x01)
-    '''MODBUS function code: Read Holding Register (native)'''
-    NATIVE_READ_REGS_0x21 = (0xA1, 0x21)
+    NATIVE_READ_VALUES = (0xA1, 0x01)
+    '''MODBUS function code: Read Measurement Values (native)'''
+    NATIVE_READ_REGS = (0xA1, 0x21)
     '''MODBUS function code: Read Holding Register (native)'''
 
     __crc_tab = []
@@ -294,7 +294,7 @@ class Modbus():
         self.node_id = node_id
 
     def build_native_msg(
-            self, func: int, reg: int, val: int,
+            self, func: bytearray, reg: int, val: int,
             log_lvl=logging.DEBUG) -> None:
         """Build TSUN native MODBUS request frame and add it to the tx queue
 
