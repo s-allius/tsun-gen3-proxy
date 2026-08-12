@@ -47,10 +47,14 @@ class SensorListDetection():
         self.idx = -1
         self.detection_running = False
         self.scan_reg = [
-            {'list': 0x02b0, 'addr': 0x3000, 'len': 48, 'type': 'rtu'},
-            {'list': 0x1097, 'addr': 0x1000, 'len': 16, 'type': 'rtu'},
-            {'list': 0x3026, 'addr': 0x0000, 'len': 45, 'type': 'rtu'},
-            {'list': 0x02b0, 'addr': 3000, 'len': 32, 'type': 'native'}]
+            {'list': 0x02b0, 'addr': 0x3000, 'len': 48,
+             'type': 'rtu', 'func': Modbus.READ_REGS},
+            {'list': 0x1097, 'addr': 0x1000, 'len': 16,
+             'type': 'rtu', 'func': Modbus.READ_REGS},
+            {'list': 0x3026, 'addr': 0x0000, 'len': 45,
+             'type': 'rtu', 'func': Modbus.READ_REGS},
+            {'list': 0x02b0, 'addr': 3000, 'len': 32,
+             'type': 'native', 'func': Modbus.NATIVE_READ_REGS_0x01},]
 
     def next(self) -> tuple[int, list[dict[str, int]]]:
         self.detection_running = True
@@ -62,7 +66,7 @@ class SensorListDetection():
                     f" by reading modbus registers at {reg['addr']:#04x} ")
 
         return reg['list'], reg['type'], [
-            {'addr': reg['addr'], 'len': reg['len']}]
+            {'addr': reg['addr'], 'len': reg['len'], 'func': reg['func']}]
 
     def found(self) -> None:
         self.detection_running = False
@@ -355,8 +359,10 @@ class SolarmanV5(SolarmanBase):
 
         self.sensor_list = 0
         self.sensor_list_detection = SensorListDetection()
-        self.mb_regs = [{'addr': 0x3000, 'len': 48}]
-        self.mb_slow_regs = [{'addr': 0x2000, 'len': 96}]
+        self.mb_regs = [
+            {'addr': 0x3000, 'len': 48, 'func': Modbus.READ_REGS}]
+        self.mb_slow_regs = [
+            {'addr': 0x2000, 'len': 96, 'func': Modbus.READ_REGS}]
         self.background_tasks = set()
 
     '''
@@ -409,7 +415,7 @@ class SolarmanV5(SolarmanBase):
                                   logging.INFO)
         else:
             for reg in self.mb_regs:
-                self._send_modbus_cmd(Modbus.INV_ADDR, Modbus.READ_REGS,
+                self._send_modbus_cmd(Modbus.INV_ADDR, reg['func'],
                                       reg['addr'], reg['len'], logging.DEBUG)
 
         self.mb_timer.start(self.mb_timeout)
@@ -448,22 +454,44 @@ class SolarmanV5(SolarmanBase):
 
         match self.sensor_list:
             case 0x3026:
-                self.mb_regs = [{'addr': 0x0000, 'len': 45}]
+                self.mb_regs = [
+                    {'addr': 0x0000, 'len': 45, 'func': Modbus.READ_REGS}
+                    ]
                 self.mb_slow_regs = []
             case 0x1097:
                 self.mb_regs = [
-                    {'addr': 0x1100, 'len': 0x10},  # alarm & faults
-                    {'addr': 0x1200, 'len': 0x30},  # grid and temp. values
-                    {'addr': 0x1300, 'len': 0x40},  # inverter measurements
+                    {'addr': 0x1100, 'len': 0x10,
+                     'func': Modbus.READ_REGS},  # alarm & faults
+                    {'addr': 0x1200, 'len': 0x30,
+                     'func': Modbus.READ_REGS},  # grid and temp. values
+                    {'addr': 0x1300, 'len': 0x40,
+                     'func': Modbus.READ_REGS},  # inverter measurements
                     ]
                 self.mb_slow_regs = [
-                    {'addr': 0x1000, 'len': 0x10},
-                    {'addr': 0x1400, 'len': 0x50},
+                    {'addr': 0x1000, 'len': 0x10, 'func': Modbus.READ_REGS},
+                    {'addr': 0x1400, 'len': 0x50, 'func': Modbus.READ_REGS},
                     # block 'addr': 0x1a00, 'len': 0xa0 seams to be empty
                     ]
             case 0x02b0:
-                self.mb_regs = [{'addr': 0x3000, 'len': 48}]
-                self.mb_slow_regs = [{'addr': 0x2000, 'len': 96}]
+                match self.mb_type:
+                    case 'rtu':
+                        self.mb_regs = [
+                            {'addr': 0x3000, 'len': 48,
+                             'func': Modbus.READ_REGS}
+                            ]
+                        self.mb_slow_regs = [
+                            {'addr': 0x2000, 'len': 96,
+                             'func': Modbus.READ_REGS}
+                            ]
+                    case 'native':
+                        self.mb_regs = [
+                            {'addr': 3000, 'len': 32,
+                             'func': Modbus.NATIVE_READ_REGS_0x01}
+                            ]
+                        self.mb_slow_regs = [
+                            {'addr': 2000, 'len': 96,
+                             'func': Modbus.NATIVE_READ_REGS_0x21}
+                            ]
             case _:
                 return
 
@@ -562,13 +590,13 @@ class SolarmanV5(SolarmanBase):
                 ) = self.sensor_list_detection.next()
 
             for reg in self.mb_regs:
-                self._send_modbus_cmd(Modbus.INV_ADDR, Modbus.READ_REGS,
+                self._send_modbus_cmd(Modbus.INV_ADDR, reg['func'],
                                       reg['addr'], reg['len'], logging.INFO)
 
             if 1 == (exp_cnt % 30):
                 # logging.info("Regular Modbus Status request")
                 for reg in self.mb_slow_regs:
-                    self._send_modbus_cmd(Modbus.INV_ADDR, Modbus.READ_REGS,
+                    self._send_modbus_cmd(Modbus.INV_ADDR, reg['func'],
                                           reg['addr'], reg['len'],
                                           logging.INFO)
 
@@ -863,10 +891,6 @@ class SolarmanV5(SolarmanBase):
             resp_fnc = self.mb.recv_native_resp
             offset += 1
             modbus_msg_len -= 1
-
-            hex_dump_memory(logging.ERROR,
-                            'TSUN Native data paylod '
-                            f'{self.addr}:', data[offset:], modbus_msg_len)
 
         if (self.mb_scan):
             self._dump_modbus_scan(data, 14, modbus_msg_len)

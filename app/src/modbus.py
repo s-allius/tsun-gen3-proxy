@@ -69,6 +69,11 @@ class Modbus():
     WRITE_SINGLE_REG = 6
     '''Modbus function code: Write Single Register'''
 
+    NATIVE_READ_REGS_0x01 = (0xA1, 0x01)
+    '''MODBUS function code: Read Holding Register (native)'''
+    NATIVE_READ_REGS_0x21 = (0xA1, 0x21)
+    '''MODBUS function code: Read Holding Register (native)'''
+
     __crc_tab = []
     mb_reg_mapping = {
         # sensor_list: 0x3026
@@ -289,19 +294,19 @@ class Modbus():
         self.node_id = node_id
 
     def build_native_msg(
-            self, addr: int, func: int, reg: int, val: int,
+            self, func: int, reg: int, val: int,
             log_lvl=logging.DEBUG) -> None:
         """Build TSUN native MODBUS request frame and add it to the tx queue
 
         Keyword arguments:
-            addr: RTU server address (inverter)
-            func: MODBUS function code
+            func[0]: MODBUS function code
+            func[1]: sub address
             reg:  16-bit register number
             val:  16 bit value
 
         """
-        msg = struct.pack('>BBBBHHH', 0x7e, func, addr, 0, reg, 2, val)
-        msg += struct.pack('>H', self.__calc_crc(msg[1:]))
+        msg = struct.pack('>BBBHHH', func[0], func[1], 0, reg, 2, val)
+        msg += struct.pack('>H', self.__calc_crc(msg))
         self.que.put_nowait({'req': msg,
                              'rsp_hdl': None,
                              'log_lvl': log_lvl})
@@ -544,11 +549,11 @@ class Modbus():
             self.last_req = req
             self.rsp_handler = item['rsp_hdl']
             self.last_log_lvl = item['log_lvl']
-            if req[0] == 0x7e:
-                self.last_fcode = req[1]
-                self.last_addr = req[2]
+            if req[0] >= 0xA1:
+                self.last_fcode = req[0]
+                self.last_addr = req[1]
 
-                res = struct.unpack_from('>HHH', req, 4)
+                res = struct.unpack_from('>HHH', req, 3)
                 self.last_reg = res[0]
                 self.last_len = res[1] * res[2]
             else:
