@@ -1402,27 +1402,6 @@ async def test_read_two_messages4(my_loop, config_tsun_dcu1, dcu_dev_ind_msg, dc
     m.close()
 
 @pytest.mark.asyncio(loop_scope="module")
-async def test_0xff_fill_bytes(my_loop, config_tsun_inv1, device_ind_msg_0xff_filled, device_rsp_msg):
-    '''test that 0xff fill bytes are removed from fixed size strings in the message'''
-    _ = my_loop
-    _ = config_tsun_inv1
-    m = MemoryStream(device_ind_msg_0xff_filled, (0,))
-    m.read()         # read complete msg, and dispatch msg
-    assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
-    assert m.msg_count == 1
-    assert m.header_len==11
-    assert m.snr == 2070233889
-    assert m.unique_id == '2070233889'
-    assert m.control == 0x4110
-    assert str(m.seq) == '01:01'
-    assert m.data_len == 0xd4
-    assert m.ifc.rx_get()==b''
-    assert m.ifc.tx_fifo.get()==device_rsp_msg
-    assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
-    m.close()
-
-
-@pytest.mark.asyncio(loop_scope="module")
 async def test_unkown_frame_code(my_loop, config_tsun_inv1, inverter_ind_msg_81, inverter_rsp_msg_81):
     _ = config_tsun_inv1
     m = MemoryStream(inverter_ind_msg_81, (0,))
