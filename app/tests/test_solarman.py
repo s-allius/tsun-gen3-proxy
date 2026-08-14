@@ -2638,12 +2638,12 @@ async def test_start_client_mode_detection2(my_loop, config_tsun_detect, msg_mod
     mock_logger.reset_mock()
 
     await asyncio.sleep(0.2)
-    assert m.sent_pdu==bytearray(b'\xA5\x1A\x00\x10\x45\x04\x00!Ce{\x02\xB0\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xA1\x01\x00\x0B\xB8\x00\x02\x00\x20\xD3\x3F\x04\x15')
+    assert m.sent_pdu==bytearray(b'\xA5\x1A\x00\x10\x45\x04\x00!Ce{\x02\x97\x10\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xA1\x01\x00\x0B\xB8\x00\x02\x00\x20\xD3\x3F\xf9\x15')
     assert m.ifc.tx_fifo.get()==b''
     assert next(m.mb_timer.exp_count) == 6
     m.mb.req_pend = True
 
-    assert "'Testing sensor-list: 0x2b0 by reading modbus registers at 0xbb8" in str(mock_logger.info.mock_calls)
+    assert "'Testing sensor-list: 0x1097 by reading modbus registers at 0xbb8" in str(mock_logger.info.mock_calls)
     assert m.mb_type == 'native'
     mock_logger.reset_mock()
     m.append_msg(inv_command_rsp_msg_native_prot)
@@ -2652,11 +2652,11 @@ async def test_start_client_mode_detection2(my_loop, config_tsun_detect, msg_mod
     assert m.msg_count == 1
     assert m.mb.err == 0
     assert m.sensor_list_detection.detection_running == False
-    assert m.sensor_list == 0x2b0
+    assert m.sensor_list == 0x1097
     assert m.mb_type == 'native'
 
     mock_logger.error.assert_not_called()
-    assert "Use sensor-list: 0x2b0 for 'Y170000000000002'" in str(mock_logger.info.mock_calls)
+    assert "Use sensor-list: 0x1097 for 'Y170000000000002'" in str(mock_logger.info.mock_calls)
 
     m.close()
 
