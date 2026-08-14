@@ -71,6 +71,12 @@ class Modbus():
 
     NATIVE_READ_VALUES = (0xA1, 0x01)
     '''MODBUS function code: Read Measurement Values (native)'''
+    NATIVE_READ_ALARMS = (0xA2, 0x02)
+    '''MODBUS function code: Read Alarm Values (native)'''
+    NATIVE_READ_BLOCK_A = (0xA3, 0x03)
+    '''MODBUS function code: Read Input Block A Values (native)'''
+    NATIVE_READ_BLOCK_B = (0xA4, 0x04)
+    '''MODBUS function code: Read Input Block A Values (native)'''
     NATIVE_READ_REGS = (0xA1, 0x21)
     '''MODBUS function code: Read Holding Register (native)'''
 
@@ -115,13 +121,48 @@ class Modbus():
         0x002b: {'reg': Register.BATT_HW_VERS,         'fmt': '!h'},                 # noqa: E501
         0x002c: {'reg': Register.BATT_SW_VERS,         'fmt': '!h'},                 # noqa: E501
 
-        # sesor_list: native response
+        # sensor_list: native response
         3012:   {'reg': Register.GRID_VOLTAGE,         'fmt': '<H', 'ratio': 0.1},   # noqa: E501
         3013:   {'reg': Register.GRID_CURRENT,         'fmt': '<H', 'ratio': 0.01},  # noqa: E501
         3015:   {'reg': Register.GRID_FREQUENCY,       'fmt': '<H', 'ratio': 0.01},  # noqa: E501
         3020:   {'reg': Register.RATED_POWER,          'fmt': '<H', 'ratio':    1},  # noqa: E501
-        3022:   {'reg': Register.INVERTER_TEMP,        'fmt': '<H', 'ratio': 0.1},   # noqa: E501
+        3021:   {'reg': Register.OUTPUT_POWER,         'fmt': '<H', 'ratio': 0.1},   # noqa: E501
+        3022:   {'reg': Register.DAILY_GENERATION,     'fmt': '<H', 'ratio': 0.01},  # noqa: E501
         3024:   {'reg': Register.TOTAL_GENERATION,     'fmt': '<L', 'ratio': 0.01},  # noqa: E501
+
+        3600:   {'reg': Register.PV1_VOLTAGE,           'fmt': '<H', 'ratio': 0.1},   # noqa: E501
+        3601:   {'reg': Register.PV1_CURRENT,           'fmt': '<H', 'ratio': 0.01},  # noqa: E501
+        3602:   {'reg': Register.PV1_POWER,             'fmt': '<H', 'ratio': 0.1},   # noqa: E501
+        3603:   {'reg': Register.PV1_DAILY_GENERATION,  'fmt': '<H', 'ratio': 0.01},  # noqa: E501
+        3607:   {'reg': Register.PV2_VOLTAGE,           'fmt': '<H', 'ratio': 0.1},   # noqa: E501
+        3608:   {'reg': Register.PV2_CURRENT,           'fmt': '<H', 'ratio': 0.01},  # noqa: E501
+        3609:   {'reg': Register.PV2_POWER,             'fmt': '<H', 'ratio': 0.1},   # noqa: E501
+        3610:   {'reg': Register.PV2_DAILY_GENERATION,  'fmt': '<H', 'ratio': 0.01},  # noqa: E501
+        3614:   {'reg': Register.PV3_VOLTAGE,           'fmt': '<H', 'ratio': 0.1},   # noqa: E501
+        3615:   {'reg': Register.PV3_CURRENT,           'fmt': '<H', 'ratio': 0.01},  # noqa: E501
+        3616:   {'reg': Register.PV3_POWER,             'fmt': '<H', 'ratio': 0.1},   # noqa: E501
+        3617:   {'reg': Register.PV3_DAILY_GENERATION,  'fmt': '<H', 'ratio': 0.01},  # noqa: E501
+
+        3624:   {'reg': Register.PV1_TOTAL_GENERATION,  'fmt': '<L', 'ratio': 0.01},  # noqa: E501
+        3626:   {'reg': Register.PV2_TOTAL_GENERATION,  'fmt': '<L', 'ratio': 0.01},  # noqa: E501
+        3628:   {'reg': Register.PV3_TOTAL_GENERATION,  'fmt': '<L', 'ratio': 0.01},  # noqa: E501
+
+        3800:   {'reg': Register.PV4_VOLTAGE,           'fmt': '<H', 'ratio': 0.1},   # noqa: E501
+        3801:   {'reg': Register.PV4_CURRENT,           'fmt': '<H', 'ratio': 0.01},  # noqa: E501
+        3802:   {'reg': Register.PV4_POWER,             'fmt': '<H', 'ratio': 0.1},   # noqa: E501
+        3803:   {'reg': Register.PV4_DAILY_GENERATION,  'fmt': '<H', 'ratio': 0.01},  # noqa: E501
+        3807:   {'reg': Register.PV5_VOLTAGE,           'fmt': '<H', 'ratio': 0.1},   # noqa: E501
+        3808:   {'reg': Register.PV5_CURRENT,           'fmt': '<H', 'ratio': 0.01},  # noqa: E501
+        3809:   {'reg': Register.PV5_POWER,             'fmt': '<H', 'ratio': 0.1},   # noqa: E501
+        3810:   {'reg': Register.PV5_DAILY_GENERATION,  'fmt': '<H', 'ratio': 0.01},  # noqa: E501
+        3814:   {'reg': Register.PV6_VOLTAGE,           'fmt': '<H', 'ratio': 0.1},   # noqa: E501
+        3815:   {'reg': Register.PV6_CURRENT,           'fmt': '<H', 'ratio': 0.01},  # noqa: E501
+        3816:   {'reg': Register.PV6_POWER,             'fmt': '<H', 'ratio': 0.1},   # noqa: E501
+        3817:   {'reg': Register.PV6_DAILY_GENERATION,  'fmt': '<H', 'ratio': 0.01},  # noqa: E501
+
+        3824:   {'reg': Register.PV4_TOTAL_GENERATION,  'fmt': '<L', 'ratio': 0.01},  # noqa: E501
+        3826:   {'reg': Register.PV5_TOTAL_GENERATION,  'fmt': '<L', 'ratio': 0.01},  # noqa: E501
+        3828:   {'reg': Register.PV6_TOTAL_GENERATION,  'fmt': '<L', 'ratio': 0.01},  # noqa: E501
 
         # sensor_list: 0x1097
         0x1000: {'reg': Register.SERIAL_NUMBER,        'fmt': '!16s'},               # noqa: E501

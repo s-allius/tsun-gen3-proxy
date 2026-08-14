@@ -486,11 +486,17 @@ class SolarmanV5(SolarmanBase):
                     case 'native':
                         self.mb_regs = [
                             {'addr': 3000, 'len': 32,
-                             'func': Modbus.NATIVE_READ_VALUES}
+                             'func': Modbus.NATIVE_READ_VALUES},
+                            {'addr': 3600, 'len': 32,
+                             'func': Modbus.NATIVE_READ_BLOCK_A},
+                            {'addr': 3800, 'len': 32,
+                             'func': Modbus.NATIVE_READ_BLOCK_B},
                             ]
                         self.mb_slow_regs = [
-                            {'addr': 2000, 'len': 96,
-                             'func': Modbus.NATIVE_READ_REGS}
+                            {'addr': 2000, 'len': 48,
+                             'func': Modbus.NATIVE_READ_REGS},
+                            {'addr': 3300, 'len': 4,
+                             'func': Modbus.NATIVE_READ_ALARMS},
                             ]
             case _:
                 return
