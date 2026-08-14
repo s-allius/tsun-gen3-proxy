@@ -53,7 +53,7 @@ class SensorListDetection():
              'type': 'rtu', 'func': Modbus.READ_REGS},
             {'list': 0x3026, 'addr': 0x0000, 'len': 45,
              'type': 'rtu', 'func': Modbus.READ_REGS},
-            {'list': 0x02b0, 'addr': 3000, 'len': 32,
+            {'list': 0x1097, 'addr': 3000, 'len': 32,
              'type': 'native', 'func': Modbus.NATIVE_READ_VALUES},]
 
     def next(self) -> tuple[int, list[dict[str, int]]]:
@@ -459,29 +459,23 @@ class SolarmanV5(SolarmanBase):
                     ]
                 self.mb_slow_regs = []
             case 0x1097:
-                self.mb_regs = [
-                    {'addr': 0x1100, 'len': 0x10,
-                     'func': Modbus.READ_REGS},  # alarm & faults
-                    {'addr': 0x1200, 'len': 0x30,
-                     'func': Modbus.READ_REGS},  # grid and temp. values
-                    {'addr': 0x1300, 'len': 0x40,
-                     'func': Modbus.READ_REGS},  # inverter measurements
-                    ]
-                self.mb_slow_regs = [
-                    {'addr': 0x1000, 'len': 0x10, 'func': Modbus.READ_REGS},
-                    {'addr': 0x1400, 'len': 0x50, 'func': Modbus.READ_REGS},
-                    # block 'addr': 0x1a00, 'len': 0xa0 seams to be empty
-                    ]
-            case 0x02b0:
                 match self.mb_type:
                     case 'rtu':
                         self.mb_regs = [
-                            {'addr': 0x3000, 'len': 48,
-                             'func': Modbus.READ_REGS}
+                            {'addr': 0x1100, 'len': 0x10,
+                             'func': Modbus.READ_REGS},  # alarm & faults
+                            {'addr': 0x1200, 'len': 0x30,
+                             'func': Modbus.READ_REGS},  # grid and temp.
+                            {'addr': 0x1300, 'len': 0x40,
+                             'func': Modbus.READ_REGS},  # measurements
                             ]
                         self.mb_slow_regs = [
-                            {'addr': 0x2000, 'len': 96,
-                             'func': Modbus.READ_REGS}
+                            {'addr': 0x1000, 'len': 0x10,
+                             'func': Modbus.READ_REGS},
+                            {'addr': 0x1400, 'len': 0x50,
+                             'func': Modbus.READ_REGS},
+                            # block 'addr': 0x1a00, 'len': 0xa0
+                            # seams to be empty
                             ]
                     case 'native':
                         self.mb_regs = [
@@ -493,10 +487,21 @@ class SolarmanV5(SolarmanBase):
                              'func': Modbus.NATIVE_READ_BLOCK_B},
                             ]
                         self.mb_slow_regs = [
-                            {'addr': 2000, 'len': 48,
+                            {'addr': 2000, 'len': 96,
                              'func': Modbus.NATIVE_READ_REGS},
                             {'addr': 3300, 'len': 4,
                              'func': Modbus.NATIVE_READ_ALARMS},
+                            ]
+            case 0x02b0:
+                match self.mb_type:
+                    case 'rtu':
+                        self.mb_regs = [
+                            {'addr': 0x3000, 'len': 48,
+                             'func': Modbus.READ_REGS}
+                            ]
+                        self.mb_slow_regs = [
+                            {'addr': 0x2000, 'len': 96,
+                             'func': Modbus.READ_REGS}
                             ]
             case _:
                 return
