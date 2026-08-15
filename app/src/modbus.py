@@ -121,7 +121,7 @@ class Modbus():
         0x002b: {'reg': Register.BATT_HW_VERS,         'fmt': '!h'},                 # noqa: E501
         0x002c: {'reg': Register.BATT_SW_VERS,         'fmt': '!h'},                 # noqa: E501
 
-        # sensor_list: native response
+        # sensor_list: 0x1511
         2042:   {'reg': Register.MAX_DESIGNED_POWER,   'fmt': '<H', 'ratio':  1},    # noqa: E501
 
         3012:   {'reg': Register.GRID_VOLTAGE,         'fmt': '<H', 'ratio': 0.1},   # noqa: E501
