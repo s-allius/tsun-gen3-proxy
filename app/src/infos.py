@@ -54,6 +54,7 @@ class Register(Enum):
     DETECT_STATUS_2 = 88
     INSULATION_IMP_RX = 89
     INSULATION_IMP_RY = 90
+    AMBIENT_TEMP = 91
     PV1_VOLTAGE = 100
     PV1_CURRENT = 101
     PV1_POWER = 102
@@ -666,6 +667,7 @@ class Infos:
         Register.INVERTER_STATUS: {'name': ['env',  'Inverter_Status'],            'level': logging.INFO,  'unit': '',     'ha': {'dev': 'inverter', 'comp': 'sensor', 'dev_cla': None, 'stat_cla': None, 'id': 'inv_status_', 'name': 'Inverter Status', 'val_tpl': __status_type_val_tpl,          'icon': POWER}},  # noqa: E501
         Register.DETECT_STATUS_1: {'name': ['env',  'Detect_Status_1'],            'level': logging.DEBUG, 'unit': ''},  # noqa: E501
         Register.DETECT_STATUS_2: {'name': ['env',  'Detect_Status_2'],            'level': logging.DEBUG, 'unit': ''},  # noqa: E501
+        Register.AMBIENT_TEMP:    {'name': ['env',  'Ambient_Temp'],               'level': logging.DEBUG, 'unit': '°C',   'ha': {'dev': 'inverter', 'dev_cla': 'temperature', 'stat_cla': 'measurement', 'id': 'ambient_',    'fmt': FMT_INT, 'name': 'Ambient Temperature'}},  # noqa: E501
 
         # input measures:
         Register.TS_INPUT:     {'name': ['input', 'Timestamp'],                    'level': logging.INFO,  'unit': ''},  # noqa: E501

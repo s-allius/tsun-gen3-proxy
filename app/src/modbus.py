@@ -134,12 +134,12 @@ class Modbus():
         # 3014:   {'reg': Register.TEST_VAL_4,           'fmt': '<H', 'ration': 1},    # noqa: E501
         3015:   {'reg': Register.GRID_FREQUENCY,       'fmt': '<H', 'ratio': 0.01},  # noqa: E501
         # 3016:   {'reg': Register.TEST_VAL_5,           'fmt': '<H', 'ration': 1},    # noqa: E501
-        # 3017:   {'reg': Register.TEST_VAL_6,           'fmt': '<H', 'offset': -40},  # noqa: E501
+        3017:   {'reg': Register.INVERTER_TEMP,           'fmt': '<H', 'offset': -40},  # noqa: E501
         3020:   {'reg': Register.RATED_POWER,          'fmt': '<H', 'ratio':    1},  # noqa: E501
         3021:   {'reg': Register.OUTPUT_POWER,         'fmt': '<H', 'ratio': 0.1},   # noqa: E501
         3022:   {'reg': Register.DAILY_GENERATION,     'fmt': '<H', 'ratio': 0.01},  # noqa: E501
         3023:   {'reg': Register.TOTAL_GENERATION,     'fmt': '<HH', 'func': Fmt.swap, 'ratio': 0.01},  # noqa: E501
-        3028:   {'reg': Register.INVERTER_TEMP,        'fmt': '<H', 'offset': -40},  # noqa: E501
+        3028:   {'reg': Register.AMBIENT_TEMP,         'fmt': '<H', 'offset': -40},  # noqa: E501
 
         3600:   {'reg': Register.PV1_VOLTAGE,           'fmt': '<H', 'ratio': 0.1},   # noqa: E501
         3601:   {'reg': Register.PV1_CURRENT,           'fmt': '<H', 'ratio': 0.01},  # noqa: E501
@@ -634,8 +634,8 @@ class Modbus():
         valid = 0 == self.__calc_crc(msg)
         if not valid:
             crc = self.__calc_crc(msg[:-2])
-            logging.error(f'CRC error: {msg[-1]:02x}{msg[-2]:02x} != {crc:04x}'
-                          f' for msg: {msg.hex()}')
+            logging.info(f'CRC error: {msg[-1]:02x}{msg[-2]:02x} != {crc:04x}'
+                         f' for msg: {msg.hex()}')
         return valid
 
     def __calc_crc(self, buffer: bytes) -> int:

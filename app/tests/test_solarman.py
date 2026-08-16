@@ -3277,7 +3277,8 @@ async def test_msg_modbus_native_rsp(my_loop, config_tsun_inv1, inv_command_rsp_
     # assert m.db.get_db_value(Register.TEST_VAL_3) == 0
     assert m.db.get_db_value(Register.GRID_FREQUENCY) == 49.98
     assert m.db.get_db_value(Register.RATED_POWER) == 3000
-    assert m.db.get_db_value(Register.INVERTER_TEMP) == 52
+    assert m.db.get_db_value(Register.INVERTER_TEMP) == 54
+    assert m.db.get_db_value(Register.AMBIENT_TEMP) == 52
     # assert m.db.get_db_value(Register.TEST_VAL_6) == 0
     assert m.db.get_db_value(Register.DAILY_GENERATION) == 3.98
     assert m.db.get_db_value(Register.TOTAL_GENERATION) == 1250.41
