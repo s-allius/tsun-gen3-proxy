@@ -122,6 +122,7 @@ class Modbus():
         0x002c: {'reg': Register.BATT_SW_VERS,         'fmt': '!h'},                 # noqa: E501
 
         # sensor_list: 0x1511
+        2000:   {'reg': Register.PROD_COMPL_TYPE,      'fmt': '<H'},
         2042:   {'reg': Register.MAX_DESIGNED_POWER,   'fmt': '<H', 'ratio':  1},    # noqa: E501
 
         3000:   {'reg': Register.INVERTER_STATUS,      'fmt': '<H'},                 # noqa: E501

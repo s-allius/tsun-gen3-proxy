@@ -233,6 +233,8 @@ class RegisterMap:
         0x4202f120: {'reg': Register.PV5_TOTAL_GENERATION, 'fmt': '!L', 'ratio': 0.01},  # noqa: E501
         0x4202f124: {'reg': Register.PV6_DAILY_GENERATION, 'fmt': '!H', 'ratio': 0.01},  # noqa: E501
         0x4202f126: {'reg': Register.PV6_TOTAL_GENERATION, 'fmt': '!L', 'ratio': 0.01},  # noqa: E501
+
+        0x4202f138: {'reg': Register.PROD_COMPL_TYPE,      'fmt': '!H'},
     }
     map_3026 = {
         'len': 0x7a,
