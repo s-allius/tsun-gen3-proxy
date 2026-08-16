@@ -249,6 +249,13 @@ class Fmt:
             return int(val, 16)
 
     @staticmethod
+    def swap(val: tuple | str, reverse=False) -> str | int:
+        if not reverse:
+            return val[0] << 16 | val[1]
+        else:
+            return int(val, 16)
+
+    @staticmethod
     def mac(val: tuple | str, reverse=False) -> str | tuple:
         if not reverse:
             return "%02x:%02x:%02x:%02x:%02x:%02x" % val

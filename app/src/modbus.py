@@ -76,7 +76,7 @@ class Modbus():
     NATIVE_READ_BLOCK_A = (0xA3, 0x03)
     '''MODBUS function code: Read Input Block A Values (native)'''
     NATIVE_READ_BLOCK_B = (0xA4, 0x04)
-    '''MODBUS function code: Read Input Block A Values (native)'''
+    '''MODBUS function code: Read Input Block B Values (native)'''
     NATIVE_READ_REGS = (0xA1, 0x21)
     '''MODBUS function code: Read Holding Register (native)'''
 
@@ -124,13 +124,22 @@ class Modbus():
         # sensor_list: 0x1511
         2042:   {'reg': Register.MAX_DESIGNED_POWER,   'fmt': '<H', 'ratio':  1},    # noqa: E501
 
+        3000:   {'reg': Register.INVERTER_STATUS,      'fmt': '<H'},                 # noqa: E501
+        # 3008:   {'reg': Register.VERSION,              'fmt': '<H', 'func': Fmt.version},  # noqa: E501
+        # 3009:   {'reg': Register.TEST_VAL_1,           'fmt': '<H', 'ration': 1},    # noqa: E501
+        # 3010:   {'reg': Register.TEST_VAL_2,           'fmt': '<H', 'ration': 1},    # noqa: E501
+        # 3011:   {'reg': Register.TEST_VAL_3,           'fmt': '<H', 'ration': 1},    # noqa: E501
         3012:   {'reg': Register.GRID_VOLTAGE,         'fmt': '<H', 'ratio': 0.1},   # noqa: E501
         3013:   {'reg': Register.GRID_CURRENT,         'fmt': '<H', 'ratio': 0.01},  # noqa: E501
+        # 3014:   {'reg': Register.TEST_VAL_4,           'fmt': '<H', 'ration': 1},    # noqa: E501
         3015:   {'reg': Register.GRID_FREQUENCY,       'fmt': '<H', 'ratio': 0.01},  # noqa: E501
+        # 3016:   {'reg': Register.TEST_VAL_5,           'fmt': '<H', 'ration': 1},    # noqa: E501
+        # 3017:   {'reg': Register.TEST_VAL_6,           'fmt': '<H', 'offset': -40},  # noqa: E501
         3020:   {'reg': Register.RATED_POWER,          'fmt': '<H', 'ratio':    1},  # noqa: E501
         3021:   {'reg': Register.OUTPUT_POWER,         'fmt': '<H', 'ratio': 0.1},   # noqa: E501
         3022:   {'reg': Register.DAILY_GENERATION,     'fmt': '<H', 'ratio': 0.01},  # noqa: E501
-        3024:   {'reg': Register.TOTAL_GENERATION,     'fmt': '<L', 'ratio': 0.01},  # noqa: E501
+        3023:   {'reg': Register.TOTAL_GENERATION,     'fmt': '<HH', 'func': Fmt.swap, 'ratio': 0.01},  # noqa: E501
+        3028:   {'reg': Register.INVERTER_TEMP,        'fmt': '<H', 'offset': -40},  # noqa: E501
 
         3600:   {'reg': Register.PV1_VOLTAGE,           'fmt': '<H', 'ratio': 0.1},   # noqa: E501
         3601:   {'reg': Register.PV1_CURRENT,           'fmt': '<H', 'ratio': 0.01},  # noqa: E501
@@ -145,9 +154,9 @@ class Modbus():
         3616:   {'reg': Register.PV3_POWER,             'fmt': '<H', 'ratio': 0.1},   # noqa: E501
         3617:   {'reg': Register.PV3_DAILY_GENERATION,  'fmt': '<H', 'ratio': 0.01},  # noqa: E501
 
-        3624:   {'reg': Register.PV1_TOTAL_GENERATION,  'fmt': '<L', 'ratio': 0.01},  # noqa: E501
-        3626:   {'reg': Register.PV2_TOTAL_GENERATION,  'fmt': '<L', 'ratio': 0.01},  # noqa: E501
-        3628:   {'reg': Register.PV3_TOTAL_GENERATION,  'fmt': '<L', 'ratio': 0.01},  # noqa: E501
+        3624:   {'reg': Register.PV1_TOTAL_GENERATION,  'fmt': '<HH', 'func': Fmt.swap, 'ratio': 0.01},  # noqa: E501
+        3626:   {'reg': Register.PV2_TOTAL_GENERATION,  'fmt': '<HH', 'func': Fmt.swap, 'ratio': 0.01},  # noqa: E501
+        3628:   {'reg': Register.PV3_TOTAL_GENERATION,  'fmt': '<HH', 'func': Fmt.swap, 'ratio': 0.01},  # noqa: E501
 
         3800:   {'reg': Register.PV4_VOLTAGE,           'fmt': '<H', 'ratio': 0.1},   # noqa: E501
         3801:   {'reg': Register.PV4_CURRENT,           'fmt': '<H', 'ratio': 0.01},  # noqa: E501
@@ -162,9 +171,9 @@ class Modbus():
         3816:   {'reg': Register.PV6_POWER,             'fmt': '<H', 'ratio': 0.1},   # noqa: E501
         3817:   {'reg': Register.PV6_DAILY_GENERATION,  'fmt': '<H', 'ratio': 0.01},  # noqa: E501
 
-        3824:   {'reg': Register.PV4_TOTAL_GENERATION,  'fmt': '<L', 'ratio': 0.01},  # noqa: E501
-        3826:   {'reg': Register.PV5_TOTAL_GENERATION,  'fmt': '<L', 'ratio': 0.01},  # noqa: E501
-        3828:   {'reg': Register.PV6_TOTAL_GENERATION,  'fmt': '<L', 'ratio': 0.01},  # noqa: E501
+        3824:   {'reg': Register.PV4_TOTAL_GENERATION,  'fmt': '<HH', 'func': Fmt.swap, 'ratio': 0.01},  # noqa: E501
+        3826:   {'reg': Register.PV5_TOTAL_GENERATION,  'fmt': '<HH', 'func': Fmt.swap, 'ratio': 0.01},  # noqa: E501
+        3828:   {'reg': Register.PV6_TOTAL_GENERATION,  'fmt': '<HH', 'func': Fmt.swap, 'ratio': 0.01},  # noqa: E501
 
         # sensor_list: 0x1097
         0x1000: {'reg': Register.SERIAL_NUMBER,        'fmt': '!16s'},               # noqa: E501
@@ -405,7 +414,8 @@ class Modbus():
         """Generator which checks and parses a received MODBUS response."""
         fcode, status_code, first_reg, last_len = \
             self.__parse_native_response(buf)
-        data_available = status_code == 0x01 and fcode in {0xa1, 0xa2, 0xa3}
+        data_available = status_code == 0x01 and fcode in {
+            0xa1, 0xa2, 0xa3, 0xa4}
         self.err = 0
 
         if self.__native_resp_error_check(buf, data_available, last_len):

@@ -199,6 +199,7 @@ class RegisterMap:
         # entities with home assistant, the offset is behind the length
         # of the message, so they are not part of the message, but they
         # are needed for the entities to be created
+        0x4201f0c0: {'reg': Register.INVERTER_STATUS,      'fmt': '!H'},                 # noqa: E501
         0x4202f0e0: {'reg': Register.PV1_VOLTAGE,          'fmt': '!H', 'ratio':  0.1},  # noqa: E501
         0x4202f0e2: {'reg': Register.PV1_CURRENT,          'fmt': '!H', 'ratio': 0.01},  # noqa: E501
         0x4202f0e4: {'reg': Register.PV1_POWER,            'fmt': '!H', 'ratio':  0.1},  # noqa: E501
@@ -292,6 +293,7 @@ class RegisterSel:
     __sensor_map = {
             0x02b0: RegisterMap.map_02b0,
             0x1097: RegisterMap.map_1097,
+            0x1511: RegisterMap.map_1511,
             0x3026: RegisterMap.map_3026,
     }
 

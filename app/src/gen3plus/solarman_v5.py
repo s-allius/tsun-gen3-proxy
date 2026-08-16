@@ -474,6 +474,7 @@ class SolarmanV5(SolarmanBase):
                     {'addr': 3300, 'len': 4,
                      'func': Modbus.NATIVE_READ_ALARMS},
                     ]
+                self.mb_type = 'native'
 
             case 0x1097:
                 self.mb_regs = [
@@ -700,7 +701,9 @@ class SolarmanV5(SolarmanBase):
             db.set_db_def_value(Register.NO_INPUTS, 2)
 
         # 2. Determine the model series (MX or MS)
-        if snr_prefix == 'Y00':
+        if self.mb_type == 'native':
+            series = 'MP'
+        elif snr_prefix == 'Y00':
             series = 'MX'
         else:
             series = 'MS'
@@ -713,7 +716,7 @@ class SolarmanV5(SolarmanBase):
         suffix = f'({rated})' if has_rated_suffix else ''
 
         # 4. Add model-specific modifier ('D' for 3000 series)
-        extra = 'D' if max_pow == 3000 else ''
+        extra = 'D' if max_pow == 3000 and self.mb_type == 'rtu' else ''
 
         # 5. Assemble the final model name string
         model = f'TSOL-{series}{max_pow}{extra}{suffix}'
