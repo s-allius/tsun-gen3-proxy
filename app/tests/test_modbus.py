@@ -241,7 +241,7 @@ class TestNativeProtocol:
 
         call = 0
         mb.set_node_id('test')
-        exp_result = [6.9, 0.41, 0.02, -40, 2188, 39.8, 0.01]
+        exp_result = [0.03, 6.9, 0.41, 0.02, -40, 30.0, 2188, 39.8, 0.01]
         for key, update, val in mb.recv_native_resp(mb.db, b'\xA1\x81\x01\x0B\xBF\x00\x20\x6E\x11\x03\x00\x19\x10\x03\x00' +
             b'\x29\x09\x45\x00\x29\x00\x86\x13\x02\x00\x5E\x00\x00\x00\x19\x10' +
             b'\xB8\x0B\x8C\x08\x8E\x01\x01\x00\x0B\x4A'):
@@ -259,7 +259,7 @@ class TestNativeProtocol:
             assert exp_result[call] == val
             call += 1
         assert mb.err == 0
-        assert call == 7
+        assert call == 9
         assert mb.que.qsize() == 0
         assert not mb.req_pend
 

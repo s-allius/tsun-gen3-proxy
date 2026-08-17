@@ -127,20 +127,28 @@ class Modbus():
 
         3000:   {'reg': Register.INVERTER_STATUS,      'fmt': '<H'},                 # noqa: E501
         # 3008:   {'reg': Register.VERSION,              'fmt': '<H', 'func': Fmt.version},  # noqa: E501
-        # 3009:   {'reg': Register.TEST_VAL_1,           'fmt': '<H', 'ration': 1},    # noqa: E501
-        # 3010:   {'reg': Register.TEST_VAL_2,           'fmt': '<H', 'ration': 1},    # noqa: E501
-        # 3011:   {'reg': Register.TEST_VAL_3,           'fmt': '<H', 'ration': 1},    # noqa: E501
+        # 3009:   {'reg': Register.TEST_VAL_1,           'fmt': '<H', 'ratio': 1},    # noqa: E501
+        3010:   {'reg': Register.DC1_BUS_VOLTAGE,      'fmt': '<H', 'ratio': 0.01},  # noqa: E501
+        # 3011:   {'reg': Register.TEST_VAL_3,           'fmt': '<H', 'ratio': 1},    # noqa: E501
         3012:   {'reg': Register.GRID_VOLTAGE,         'fmt': '<H', 'ratio': 0.1},   # noqa: E501
         3013:   {'reg': Register.GRID_CURRENT,         'fmt': '<H', 'ratio': 0.01},  # noqa: E501
-        # 3014:   {'reg': Register.TEST_VAL_4,           'fmt': '<H', 'ration': 1},    # noqa: E501
+        # 3014:   {'reg': Register.TEST_VAL_4,           'fmt': '<H', 'ratio': 1},    # noqa: E501
         3015:   {'reg': Register.GRID_FREQUENCY,       'fmt': '<H', 'ratio': 0.01},  # noqa: E501
-        # 3016:   {'reg': Register.TEST_VAL_5,           'fmt': '<H', 'ration': 1},    # noqa: E501
-        3017:   {'reg': Register.INVERTER_TEMP,           'fmt': '<H', 'offset': -40},  # noqa: E501
+        # 3016:   {'reg': Register.TEST_VAL_5,           'fmt': '<H', 'ratio': 1},    # noqa: E501
+        3017:   {'reg': Register.INVERTER_TEMP,        'fmt': '<H', 'offset': -40},  # noqa: E501
+        # 3018:   {'reg': Register.TEST_VAL_6,           'fmt': '<H', 'ratio': 1},    # noqa: E501
+        3019:   {'reg': Register.DC2_BUS_VOLTAGE,      'fmt': '<H', 'ratio': 0.01},  # noqa: E501
         3020:   {'reg': Register.RATED_POWER,          'fmt': '<H', 'ratio':    1},  # noqa: E501
         3021:   {'reg': Register.OUTPUT_POWER,         'fmt': '<H', 'ratio': 0.1},   # noqa: E501
         3022:   {'reg': Register.DAILY_GENERATION,     'fmt': '<H', 'ratio': 0.01},  # noqa: E501
         3023:   {'reg': Register.TOTAL_GENERATION,     'fmt': '<HH', 'func': Fmt.swap, 'ratio': 0.01},  # noqa: E501
+        # 3025:   {'reg': Register.TEST_VAL_8,           'fmt': '<H', 'ratio': 1},    # noqa: E501
+        # 3026:   {'reg': Register.TEST_VAL_9,           'fmt': '<H', 'ratio': 1},    # noqa: E501
+        # 3027:   {'reg': Register.TEST_VAL_10,          'fmt': '<H', 'ratio': 1},    # noqa: E501
         3028:   {'reg': Register.AMBIENT_TEMP,         'fmt': '<H', 'offset': -40},  # noqa: E501
+        # 3029:   {'reg': Register.TEST_VAL_11,          'fmt': '<H', 'ratio': 1},    # noqa: E501
+        # 3030:   {'reg': Register.TEST_VAL_12,          'fmt': '<H', 'ratio': 1},    # noqa: E501
+        # 3031:   {'reg': Register.TEST_VAL_13,          'fmt': '<H', 'ratio': 1},    # noqa: E501
 
         3600:   {'reg': Register.PV1_VOLTAGE,           'fmt': '<H', 'ratio': 0.1},   # noqa: E501
         3601:   {'reg': Register.PV1_CURRENT,           'fmt': '<H', 'ratio': 0.01},  # noqa: E501

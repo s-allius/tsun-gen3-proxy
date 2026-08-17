@@ -102,6 +102,8 @@ class Register(Enum):
     DSP_STATUS = 254
     WORK_MODE = 255
     OUTPUT_SHUTDOWN = 256
+    DC1_BUS_VOLTAGE = 257
+    DC2_BUS_VOLTAGE = 258
 
     GRID_VOLTAGE = 300
     GRID_CURRENT = 301
@@ -627,6 +629,8 @@ class Infos:
         Register.PV6_MODEL:        {'name': ['inverter', 'PV6_Model'],             'level': logging.DEBUG, 'unit': ''},  # noqa: E501
         Register.BOOT_STATUS:      {'name': ['inverter', 'BOOT_STATUS'],           'level': logging.DEBUG, 'unit': ''},  # noqa: E501
         Register.DSP_STATUS:       {'name': ['inverter', 'DSP_STATUS'],            'level': logging.DEBUG, 'unit': ''},  # noqa: E501
+        Register.DC1_BUS_VOLTAGE:  {'name': ['inverter', 'DC1_Bus_Voltage'],       'level': logging.DEBUG, 'unit': 'V',    'ha': {'dev': 'inverter', 'dev_cla': 'voltage',     'stat_cla': 'measurement', 'id': 'bus_volt_1_',  'fmt': FMT_FLOAT, 'name': 'DC1 Bus Voltage', 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.DC2_BUS_VOLTAGE:  {'name': ['inverter', 'DC2_Bus_Voltage'],       'level': logging.DEBUG, 'unit': 'V',    'ha': {'dev': 'inverter', 'dev_cla': 'voltage',     'stat_cla': 'measurement', 'id': 'bus_volt_2_',  'fmt': FMT_FLOAT, 'name': 'DC2 Bus Voltage', 'ent_cat': 'diagnostic'}},  # noqa: E501
 
         Register.INSULATION_IMP_RX: {'name': ['inverter', 'INSULATION_IMP_RX'],    'level': logging.DEBUG, 'unit': 'MΩ',   'ha': {'dev': 'inverter', 'dev_cla': None, 'stat_cla': 'measurement', 'id': 'imp_rx_',  'fmt': FMT_FLOAT, 'name': 'Insulation Impendance RX', 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.INSULATION_IMP_RY: {'name': ['inverter', 'INSULATION_IMP_RY'],    'level': logging.DEBUG, 'unit': 'MΩ',   'ha': {'dev': 'inverter', 'dev_cla': None, 'stat_cla': 'measurement', 'id': 'imp_ry_',  'fmt': FMT_FLOAT, 'name': 'Insulation Impendance RY', 'ent_cat': 'diagnostic'}},  # noqa: E501

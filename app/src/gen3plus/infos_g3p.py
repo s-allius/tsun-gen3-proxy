@@ -202,6 +202,8 @@ class RegisterMap:
         0x4201f0c0: {'reg': Register.INVERTER_STATUS,      'fmt': '!H'},                 # noqa: E501
         0x4201f0d8: {'reg': Register.INVERTER_TEMP,        'fmt': '!H', 'offset': -40},  # noqa: E501
         0x4201f0da: {'reg': Register.AMBIENT_TEMP,         'fmt': '!H', 'offset': -40},  # noqa: E501
+        0x4201f0dc: {'reg': Register.DC1_BUS_VOLTAGE,      'fmt': '!H', 'ratio': 0.01},  # noqa: E501
+        0x4201f0de: {'reg': Register.DC2_BUS_VOLTAGE,      'fmt': '!H', 'ratio': 0.01},  # noqa: E501
         0x4202f0e0: {'reg': Register.PV1_VOLTAGE,          'fmt': '!H', 'ratio':  0.1},  # noqa: E501
         0x4202f0e2: {'reg': Register.PV1_CURRENT,          'fmt': '!H', 'ratio': 0.01},  # noqa: E501
         0x4202f0e4: {'reg': Register.PV1_POWER,            'fmt': '!H', 'ratio':  0.1},  # noqa: E501
