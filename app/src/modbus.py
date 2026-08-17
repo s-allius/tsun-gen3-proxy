@@ -126,7 +126,7 @@ class Modbus():
         2042:   {'reg': Register.MAX_DESIGNED_POWER,   'fmt': '<H', 'ratio':  1},    # noqa: E501
 
         3000:   {'reg': Register.INVERTER_STATUS,      'fmt': '<H'},                 # noqa: E501
-        # 3008:   {'reg': Register.VERSION,              'fmt': '<H', 'func': Fmt.version},  # noqa: E501
+        3008:   {'reg': Register.VERSION,              'fmt': '<H', 'func': Fmt.version},  # noqa: E501
         # 3009:   {'reg': Register.TEST_VAL_1,           'fmt': '<H', 'ratio': 1},    # noqa: E501
         3010:   {'reg': Register.DC1_BUS_VOLTAGE,      'fmt': '<H', 'ratio': 0.01},  # noqa: E501
         # 3011:   {'reg': Register.TEST_VAL_3,           'fmt': '<H', 'ratio': 1},    # noqa: E501
@@ -142,13 +142,13 @@ class Modbus():
         3021:   {'reg': Register.OUTPUT_POWER,         'fmt': '<H', 'ratio': 0.1},   # noqa: E501
         3022:   {'reg': Register.DAILY_GENERATION,     'fmt': '<H', 'ratio': 0.01},  # noqa: E501
         3023:   {'reg': Register.TOTAL_GENERATION,     'fmt': '<HH', 'func': Fmt.swap, 'ratio': 0.01},  # noqa: E501
-        # 3025:   {'reg': Register.TEST_VAL_8,           'fmt': '<H', 'ratio': 1},    # noqa: E501
-        # 3026:   {'reg': Register.TEST_VAL_9,           'fmt': '<H', 'ratio': 1},    # noqa: E501
-        # 3027:   {'reg': Register.TEST_VAL_10,          'fmt': '<H', 'ratio': 1},    # noqa: E501
+        3025:   {'reg': Register.TEST_VAL_8,           'fmt': '<H', 'ratio': 1},    # noqa: E501
+        3026:   {'reg': Register.TEST_VAL_9,           'fmt': '<H', 'ratio': 1},    # noqa: E501
+        3027:   {'reg': Register.TEST_VAL_10,          'fmt': '<H', 'ratio': 1},    # noqa: E501
         3028:   {'reg': Register.AMBIENT_TEMP,         'fmt': '<H', 'offset': -40},  # noqa: E501
-        # 3029:   {'reg': Register.TEST_VAL_11,          'fmt': '<H', 'ratio': 1},    # noqa: E501
-        # 3030:   {'reg': Register.TEST_VAL_12,          'fmt': '<H', 'ratio': 1},    # noqa: E501
-        # 3031:   {'reg': Register.TEST_VAL_13,          'fmt': '<H', 'ratio': 1},    # noqa: E501
+        3029:   {'reg': Register.TEST_VAL_11,          'fmt': '<H', 'ratio': 1},    # noqa: E501
+        3030:   {'reg': Register.TEST_VAL_12,          'fmt': '<H', 'ratio': 1},    # noqa: E501
+        3031:   {'reg': Register.TEST_VAL_13,          'fmt': '<H', 'ratio': 1},    # noqa: E501
 
         3600:   {'reg': Register.PV1_VOLTAGE,           'fmt': '<H', 'ratio': 0.1},   # noqa: E501
         3601:   {'reg': Register.PV1_CURRENT,           'fmt': '<H', 'ratio': 0.01},  # noqa: E501
@@ -162,10 +162,13 @@ class Modbus():
         3615:   {'reg': Register.PV3_CURRENT,           'fmt': '<H', 'ratio': 0.01},  # noqa: E501
         3616:   {'reg': Register.PV3_POWER,             'fmt': '<H', 'ratio': 0.1},   # noqa: E501
         3617:   {'reg': Register.PV3_DAILY_GENERATION,  'fmt': '<H', 'ratio': 0.01},  # noqa: E501
-
+        3622:   {'reg': Register.VERSION_QCPU1,         'fmt': '<H', 'func': Fmt.version},  # noqa: E501
+        3623:   {'reg': Register.TEST_VAL_14,           'fmt': '<H', 'ratio': 1},    # noqa: E501
         3624:   {'reg': Register.PV1_TOTAL_GENERATION,  'fmt': '<HH', 'func': Fmt.swap, 'ratio': 0.01},  # noqa: E501
         3626:   {'reg': Register.PV2_TOTAL_GENERATION,  'fmt': '<HH', 'func': Fmt.swap, 'ratio': 0.01},  # noqa: E501
         3628:   {'reg': Register.PV3_TOTAL_GENERATION,  'fmt': '<HH', 'func': Fmt.swap, 'ratio': 0.01},  # noqa: E501
+        3630:   {'reg': Register.TEST_VAL_15,           'fmt': '<H', 'ratio': 1},    # noqa: E501
+        3631:   {'reg': Register.TEST_VAL_16,           'fmt': '<H', 'ratio': 1},    # noqa: E501
 
         3800:   {'reg': Register.PV4_VOLTAGE,           'fmt': '<H', 'ratio': 0.1},   # noqa: E501
         3801:   {'reg': Register.PV4_CURRENT,           'fmt': '<H', 'ratio': 0.01},  # noqa: E501
@@ -179,10 +182,13 @@ class Modbus():
         3815:   {'reg': Register.PV6_CURRENT,           'fmt': '<H', 'ratio': 0.01},  # noqa: E501
         3816:   {'reg': Register.PV6_POWER,             'fmt': '<H', 'ratio': 0.1},   # noqa: E501
         3817:   {'reg': Register.PV6_DAILY_GENERATION,  'fmt': '<H', 'ratio': 0.01},  # noqa: E501
-
+        3822:   {'reg': Register.VERSION_QCPU2,         'fmt': '<H', 'func': Fmt.version},  # noqa: E501
+        3823:   {'reg': Register.TEST_VAL_17,           'fmt': '<H', 'ratio': 1},    # noqa: E501
         3824:   {'reg': Register.PV4_TOTAL_GENERATION,  'fmt': '<HH', 'func': Fmt.swap, 'ratio': 0.01},  # noqa: E501
         3826:   {'reg': Register.PV5_TOTAL_GENERATION,  'fmt': '<HH', 'func': Fmt.swap, 'ratio': 0.01},  # noqa: E501
         3828:   {'reg': Register.PV6_TOTAL_GENERATION,  'fmt': '<HH', 'func': Fmt.swap, 'ratio': 0.01},  # noqa: E501
+        3830:   {'reg': Register.TEST_VAL_18,           'fmt': '<H', 'ratio': 1},    # noqa: E501
+        3831:   {'reg': Register.TEST_VAL_19,           'fmt': '<H', 'ratio': 1},    # noqa: E501
 
         # sensor_list: 0x1097
         0x1000: {'reg': Register.SERIAL_NUMBER,        'fmt': '!16s'},               # noqa: E501

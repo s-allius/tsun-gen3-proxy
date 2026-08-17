@@ -199,11 +199,19 @@ class RegisterMap:
         # entities with home assistant, the offset is behind the length
         # of the message, so they are not part of the message, but they
         # are needed for the entities to be created
-        0x4201f0c0: {'reg': Register.INVERTER_STATUS,      'fmt': '!H'},                 # noqa: E501
-        0x4201f0d8: {'reg': Register.INVERTER_TEMP,        'fmt': '!H', 'offset': -40},  # noqa: E501
-        0x4201f0da: {'reg': Register.AMBIENT_TEMP,         'fmt': '!H', 'offset': -40},  # noqa: E501
-        0x4201f0dc: {'reg': Register.DC1_BUS_VOLTAGE,      'fmt': '!H', 'ratio': 0.01},  # noqa: E501
-        0x4201f0de: {'reg': Register.DC2_BUS_VOLTAGE,      'fmt': '!H', 'ratio': 0.01},  # noqa: E501
+        0x4202f0c0: {'reg': Register.INVERTER_STATUS,      'fmt': '!H'},                 # noqa: E501
+        0x4202f0c8: {'reg': Register.INVERTER_TEMP,        'fmt': '!H', 'offset': -40},  # noqa: E501
+        0x4202f0ca: {'reg': Register.AMBIENT_TEMP,         'fmt': '!H', 'offset': -40},  # noqa: E501
+        0x4202f0cc: {'reg': Register.DC1_BUS_VOLTAGE,      'fmt': '!H', 'ratio': 0.01},  # noqa: E501
+        0x4202f0ce: {'reg': Register.DC2_BUS_VOLTAGE,      'fmt': '!H', 'ratio': 0.01},  # noqa: E501        0x42010076: {'reg': Register.BATT_HW_VERS,         'fmt': '!h'},                 # noqa: E501 # hardware version
+        0x4202f0d0: {'reg': Register.VERSION_QCPU1,        'fmt': '!h'},                 # noqa: E501 # hardware version
+        0x4202f0d2: {'reg': Register.VERSION_QCPU2,        'fmt': '!h'},                 # noqa: E501 # hardware version
+        0x4202f0d4: {'reg': Register.GRID_VOLTAGE,         'fmt': '!H', 'ratio':  0.1},  # noqa: E501
+        0x4202f0d6: {'reg': Register.GRID_CURRENT,         'fmt': '!H', 'ratio': 0.01},  # noqa: E501
+        0x4202f0d8: {'reg': Register.GRID_FREQUENCY,       'fmt': '!H', 'ratio': 0.01},  # noqa: E501
+        0x4202f0da: {'reg': Register.MAX_DESIGNED_POWER,   'fmt': '!H'},
+        0x4202f0dc: {'reg': Register.RATED_POWER,          'fmt': '!H', 'ratio':    1},  # noqa: E501
+        0x4202f0de: {'reg': Register.OUTPUT_POWER,         'fmt': '!H', 'ratio':  0.1},  # noqa: E501
         0x4202f0e0: {'reg': Register.PV1_VOLTAGE,          'fmt': '!H', 'ratio':  0.1},  # noqa: E501
         0x4202f0e2: {'reg': Register.PV1_CURRENT,          'fmt': '!H', 'ratio': 0.01},  # noqa: E501
         0x4202f0e4: {'reg': Register.PV1_POWER,            'fmt': '!H', 'ratio':  0.1},  # noqa: E501
@@ -235,6 +243,8 @@ class RegisterMap:
         0x4202f120: {'reg': Register.PV5_TOTAL_GENERATION, 'fmt': '!L', 'ratio': 0.01},  # noqa: E501
         0x4202f124: {'reg': Register.PV6_DAILY_GENERATION, 'fmt': '!H', 'ratio': 0.01},  # noqa: E501
         0x4202f126: {'reg': Register.PV6_TOTAL_GENERATION, 'fmt': '!L', 'ratio': 0.01},  # noqa: E501
+        0x4202f128: {'reg': Register.DAILY_GENERATION,     'fmt': '!H', 'ratio': 0.01},  # noqa: E501
+        0x4202f12a: {'reg': Register.TOTAL_GENERATION,     'fmt': '!L', 'ratio': 0.01},  # noqa: E501
 
         0x4202f138: {'reg': Register.PROD_COMPL_TYPE,      'fmt': '!H'},
     }
