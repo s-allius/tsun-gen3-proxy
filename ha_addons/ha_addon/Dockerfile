@@ -18,7 +18,7 @@ ARG BUILD_FROM="ghcr.io/hassio-addons/base:21.0.2"
 FROM $BUILD_FROM AS base
 
 # Installiere Python und pip
-RUN apk add --no-cache python3=3.14.5-r0 py3-pip=26.1.2-r0
+RUN apk add --no-cache python3=3.14.7-r1 py3-pip=26.1.2-r0
 
 
 
