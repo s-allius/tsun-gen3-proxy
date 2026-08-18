@@ -201,10 +201,10 @@ class Message(ProtocolIfc):
                        ' as the state is not UP')
             return
         match(self.mb_type):
-            case MbType.rtu:
-                self.mb.build_msg(dev_id, func, addr, val, log_lvl)
             case MbType.native:
                 self.mb.build_native_msg(func, addr, val, log_lvl)
+            case _:
+                self.mb.build_msg(dev_id, func, addr, val, log_lvl)
 
     def send_modbus_cmd(self, func, addr, val, log_lvl) -> None:
         self._send_modbus_cmd(Modbus.INV_ADDR, func, addr, val, log_lvl)
