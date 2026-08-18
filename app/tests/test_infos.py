@@ -277,3 +277,10 @@ def test_version_cnv():
     assert string == 'V1.2.3F'
     val = Fmt.version(string, reverse=True)
     assert val == tst_val[0]
+
+def test_swap_cnv():
+    tst_val = (0x1234, 0x5678)
+    res = Fmt.swap(tst_val)
+    assert res == 0x12345678
+    val = Fmt.swap(res, reverse=True)
+    assert val == tst_val

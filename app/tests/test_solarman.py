@@ -996,6 +996,15 @@ def dcu_command_rsp_msg():  # 0x1510
     return msg
 
 @pytest.fixture
+def msg_native_modbus_cmd():
+    msg  = b'\xa5\x1a\x00\x10\x45\x03\x02' +get_sn()  +b'\x02\xb0\x02'
+    msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xa1\x01\x00\x20'
+    msg += b'\x08\x00\x02\x00\x02\x0b\xf8'
+    msg += correct_checksum(msg)
+    msg += b'\x15'
+    return msg
+
+@pytest.fixture
 def inv_command_ind_msg_native_prot():  # 0x4510
     msg  = b'\xa5\x1a\x00\x10\x45\x00\x01' +get_sn() +b'\x02\xb0\x02'
     msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'           
@@ -1869,6 +1878,42 @@ async def test_msg_build_modbus_req(my_loop, config_tsun_inv1, device_ind_msg, d
     assert m.send_msg_ofs == 0
     assert m.ifc.fwd_fifo.get() == b''
     assert m.sent_pdu == msg_modbus_cmd
+    assert m.ifc.tx_fifo.get()== b''
+    m.close()
+
+@pytest.mark.asyncio(loop_scope="module")
+async def test_msg_build_native_modbus_req(my_loop, config_tsun_inv1, device_ind_msg, device_rsp_msg, inverter_ind_msg, inverter_rsp_msg, msg_native_modbus_cmd):
+    _ = config_tsun_inv1
+    m = MemoryStream(device_ind_msg, (0,), True)
+    m.mb_type = "native"
+    m.read()
+    assert m.control == 0x4110
+    assert str(m.seq) == '01:01'
+    assert m.ifc.tx_fifo.get()==device_rsp_msg
+    assert m.ifc.fwd_fifo.get()==device_ind_msg
+
+    m.send_modbus_cmd(Modbus.NATIVE_READ_VALUES, 0x2008, 2, logging.DEBUG)
+    assert m.send_msg_ofs == 0
+    assert m.ifc.fwd_fifo.get() == b''
+    assert m.sent_pdu == b'' # modbus command must be ignore, cause connection is still not up
+    assert m.ifc.tx_fifo.get() == b''    # modbus command must be ignore, cause connection is still not up
+
+    m.append_msg(inverter_ind_msg)
+    m.read()
+    assert m.control == 0x4210
+    assert str(m.seq) == '02:02'
+    assert m.msg_recvd[0]['control']==0x4110
+    assert m.msg_recvd[0]['seq']=='01:01'
+    assert m.msg_recvd[1]['control']==0x4210
+    assert m.msg_recvd[1]['seq']=='02:02'
+    assert m.ifc.rx_get()==b''
+    assert m.ifc.tx_fifo.get()==inverter_rsp_msg
+    assert m.ifc.fwd_fifo.get()==inverter_ind_msg
+
+    m.send_modbus_cmd(Modbus.NATIVE_READ_VALUES, 0x2008, 2, logging.DEBUG)
+    assert m.send_msg_ofs == 0
+    assert m.ifc.fwd_fifo.get() == b''
+    assert m.sent_pdu == msg_native_modbus_cmd
     assert m.ifc.tx_fifo.get()== b''
     m.close()
 

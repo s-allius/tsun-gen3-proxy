@@ -260,11 +260,11 @@ class Fmt:
             return int(val, 16)
 
     @staticmethod
-    def swap(val: tuple | str, reverse=False) -> str | int:
+    def swap(val: tuple | int, reverse=False) -> int | tuple:
         if not reverse:
             return val[0] << 16 | val[1]
         else:
-            return int(val, 16)
+            return (val >> 16, val & 0xffff)
 
     @staticmethod
     def mac(val: tuple | str, reverse=False) -> str | tuple:
