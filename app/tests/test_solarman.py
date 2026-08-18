@@ -13,7 +13,7 @@ from gen3plus.solarman_v5 import SolarmanV5, SolarmanBase
 from cnf.config import Config
 from infos import Infos, Register
 from modbus import Modbus
-from messages import State, Message
+from messages import State, Message, MbType
 from proxy import Proxy
 from test_inverter_g3p import FakeReader, FakeWriter, patch_open_connection
 from inverter_base import InverterBase
@@ -1885,7 +1885,7 @@ async def test_msg_build_modbus_req(my_loop, config_tsun_inv1, device_ind_msg, d
 async def test_msg_build_native_modbus_req(my_loop, config_tsun_inv1, device_ind_msg, device_rsp_msg, inverter_ind_msg, inverter_rsp_msg, msg_native_modbus_cmd):
     _ = config_tsun_inv1
     m = MemoryStream(device_ind_msg, (0,), True)
-    m.mb_type = "native"
+    m.mb_type = MbType.native
     m.read()
     assert m.control == 0x4110
     assert str(m.seq) == '01:01'
@@ -2666,7 +2666,7 @@ async def test_start_client_mode_detection(my_loop, config_tsun_detect, msg_modb
     m.send_start_cmd(get_sn_int(), str_test_ip, False, m.mb_first_timeout)
     assert m.sensor_list_detection.detection_running == True
     assert m.sensor_list == 0x2b0
-    assert m.mb_type == 'rtu'
+    assert m.mb_type == MbType.rtu
     assert m.sent_pdu==bytearray(b'\xa5\x17\x00\x10E\x01\x00!Ce{\x02\xb0\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x030\x00\x000J\xde\xf1\x15')
     assert m.db.get_db_value(Register.IP_ADDRESS) == str_test_ip
     assert m.db.get_db_value(Register.HEARTBEAT_INTERVAL) == 120
@@ -2698,7 +2698,7 @@ async def test_start_client_mode_detection(my_loop, config_tsun_detect, msg_modb
     assert m.mb.err == 0
     assert m.sensor_list_detection.detection_running == False
     assert m.sensor_list == 0x1097
-    assert m.mb_type == 'rtu'
+    assert m.mb_type == MbType.rtu
 
     mock_logger.error.assert_not_called()
     assert "Use sensor-list: 0x1097 for 'Y170000000000002'" in str(mock_logger.info.mock_calls)
@@ -2726,7 +2726,7 @@ async def test_start_client_mode_detection2(my_loop, config_tsun_detect, msg_mod
     m.send_start_cmd(get_sn_int(), str_test_ip, False, m.mb_first_timeout)
     assert m.sensor_list_detection.detection_running == True
     assert m.sensor_list == 0x2b0
-    assert m.mb_type == 'rtu'
+    assert m.mb_type == MbType.rtu
     assert m.sent_pdu==bytearray(b'\xa5\x17\x00\x10E\x01\x00!Ce{\x02\xb0\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x030\x00\x000J\xde\xf1\x15')
     assert m.db.get_db_value(Register.IP_ADDRESS) == str_test_ip
     assert m.db.get_db_value(Register.HEARTBEAT_INTERVAL) == 120
@@ -2735,7 +2735,7 @@ async def test_start_client_mode_detection2(my_loop, config_tsun_detect, msg_mod
     assert m.no_forwarding == True
 
     assert "'Testing sensor-list: 0x2b0 by reading modbus registers at 0x3000" in str(mock_logger.info.mock_calls)
-    assert m.mb_type == 'rtu'
+    assert m.mb_type == MbType.rtu
     mock_logger.reset_mock()
     assert next(m.mb_timer.exp_count) == 0
     
@@ -2746,7 +2746,7 @@ async def test_start_client_mode_detection2(my_loop, config_tsun_detect, msg_mod
     m.mb.req_pend = True
 
     assert "'Testing sensor-list: 0x1097 by reading modbus registers at 0x1000" in str(mock_logger.info.mock_calls)
-    assert m.mb_type == 'rtu'
+    assert m.mb_type == MbType.rtu
     mock_logger.reset_mock()
 
     await asyncio.sleep(0.2)
@@ -2756,7 +2756,7 @@ async def test_start_client_mode_detection2(my_loop, config_tsun_detect, msg_mod
     m.mb.req_pend = True
 
     assert "'Testing sensor-list: 0x3026 by reading modbus registers at 0x00" in str(mock_logger.info.mock_calls)
-    assert m.mb_type == 'rtu'
+    assert m.mb_type == MbType.rtu
     mock_logger.reset_mock()
 
     await asyncio.sleep(0.2)
@@ -2766,7 +2766,7 @@ async def test_start_client_mode_detection2(my_loop, config_tsun_detect, msg_mod
     m.mb.req_pend = True
 
     assert "'Testing sensor-list: 0x1511 by reading modbus registers at 0xbb8" in str(mock_logger.info.mock_calls)
-    assert m.mb_type == 'native'
+    assert m.mb_type == MbType.native
     mock_logger.reset_mock()
     m.append_msg(inv_command_rsp_msg_native_prot)
     m.read()         # read complete msg, and dispatch msg
@@ -2775,7 +2775,7 @@ async def test_start_client_mode_detection2(my_loop, config_tsun_detect, msg_mod
     assert m.mb.err == 0
     assert m.sensor_list_detection.detection_running == False
     assert m.sensor_list == 0x1511
-    assert m.mb_type == 'native'
+    assert m.mb_type == MbType.native
 
     mock_logger.error.assert_not_called()
     assert "Use sensor-list: 0x1511 for 'Y170000000000002'" in str(mock_logger.info.mock_calls)
@@ -2802,7 +2802,7 @@ async def test_start_client_mode_detect_retrans(my_loop, config_tsun_detect, msg
     m.send_start_cmd(get_sn_int(), str_test_ip, False, m.mb_first_timeout)
     assert m.sensor_list_detection.detection_running == True
     assert m.sensor_list == 0x2b0
-    assert m.mb_type == 'rtu'
+    assert m.mb_type == MbType.rtu
     assert m.sent_pdu==bytearray(b'\xa5\x17\x00\x10E\x01\x00!Ce{\x02\xb0\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x030\x00\x000J\xde\xf1\x15')
     assert m.db.get_db_value(Register.IP_ADDRESS) == str_test_ip
     assert m.db.get_db_value(Register.HEARTBEAT_INTERVAL) == 120
@@ -2846,7 +2846,7 @@ async def test_start_client_mode_detect_retrans(my_loop, config_tsun_detect, msg
     assert m.mb.err == 0
     assert m.sensor_list_detection.detection_running == False
     assert m.sensor_list == 0x1097
-    assert m.mb_type == 'rtu'
+    assert m.mb_type == MbType.rtu
 
     mock_logger.error.assert_not_called()
     assert "Use sensor-list: 0x1097 for 'Y170000000000002'" in str(mock_logger.info.mock_calls)
@@ -2874,7 +2874,7 @@ async def test_start_client_mode_detect_timeout(my_loop, config_tsun_detect, msg
     m.send_start_cmd(get_sn_int(), str_test_ip, False, m.mb_first_timeout)
     assert m.sensor_list_detection.detection_running == True
     assert m.sensor_list == 0x2b0
-    assert m.mb_type == 'rtu'
+    assert m.mb_type == MbType.rtu
     assert m.sent_pdu==bytearray(b'\xa5\x17\x00\x10E\x01\x00!Ce{\x02\xb0\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x030\x00\x000J\xde\xf1\x15')
     assert m.db.get_db_value(Register.IP_ADDRESS) == str_test_ip
     assert m.db.get_db_value(Register.HEARTBEAT_INTERVAL) == 120

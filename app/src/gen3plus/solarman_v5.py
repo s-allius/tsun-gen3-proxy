@@ -7,7 +7,7 @@ from datetime import datetime
 
 from proxy import Proxy
 from async_ifc import AsyncIfc
-from messages import hex_dump_memory, Message, State
+from messages import hex_dump_memory, Message, State, MbType
 from cnf.config import Config
 from modbus import Modbus
 from gen3plus.infos_g3p import InfosG3P
@@ -48,15 +48,15 @@ class SensorListDetection():
         self.detection_running = False
         self.scan_reg = [
             {'list': 0x02b0, 'addr': 0x3000, 'len': 48,
-             'type': 'rtu', 'func': Modbus.READ_REGS},
+             'type': MbType.rtu, 'func': Modbus.READ_REGS},
             {'list': 0x1097, 'addr': 0x1000, 'len': 16,
-             'type': 'rtu', 'func': Modbus.READ_REGS},
+             'type': MbType.rtu, 'func': Modbus.READ_REGS},
             {'list': 0x3026, 'addr': 0x0000, 'len': 45,
-             'type': 'rtu', 'func': Modbus.READ_REGS},
+             'type': MbType.rtu, 'func': Modbus.READ_REGS},
             {'list': 0x1511, 'addr': 3000, 'len': 32,
-             'type': 'native', 'func': Modbus.NATIVE_READ_VALUES},]
+             'type': MbType.native, 'func': Modbus.NATIVE_READ_VALUES},]
 
-    def next(self) -> tuple[int, list[dict[str, int]]]:
+    def next(self) -> tuple[int, MbType, list[dict[str, int]]]:
         self.detection_running = True
         self.idx = (self.idx + 1) % len(self.scan_reg)
         reg = self.scan_reg[self.idx]
@@ -474,7 +474,7 @@ class SolarmanV5(SolarmanBase):
                     {'addr': 2000, 'len': 96,
                      'func': Modbus.NATIVE_READ_REGS},
                     ]
-                self.mb_type = 'native'
+                self.mb_type = MbType.native
 
             case 0x1097:
                 self.mb_regs = [
@@ -701,7 +701,7 @@ class SolarmanV5(SolarmanBase):
             db.set_db_def_value(Register.NO_INPUTS, 2)
 
         # 2. Determine the model series (MX or MS)
-        if self.mb_type == 'native':
+        if self.mb_type == MbType.native:
             series = 'MP'
         elif snr_prefix == 'Y00':
             series = 'MX'
@@ -716,7 +716,7 @@ class SolarmanV5(SolarmanBase):
         suffix = f'({rated})' if has_rated_suffix else ''
 
         # 4. Add model-specific modifier ('D' for 3000 series)
-        extra = 'D' if max_pow == 3000 and self.mb_type == 'rtu' else ''
+        extra = 'D' if max_pow == 3000 and self.mb_type == MbType.rtu else ''
 
         # 5. Assemble the final model name string
         model = f'TSOL-{series}{max_pow}{extra}{suffix}'
