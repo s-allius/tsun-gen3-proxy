@@ -254,6 +254,8 @@ class TestNativeProtocol:
                 assert update == True
             elif key == 'total':
                 assert update == True
+            elif key == 'other':
+                assert update == True
             else:
                 pytest.fail(f'Unexpected key {key}')
             assert exp_result[call] == val

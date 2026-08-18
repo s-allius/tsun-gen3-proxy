@@ -187,6 +187,27 @@ class RegisterMap:
         0x4201f120: {'reg': Register.PV5_TOTAL_GENERATION, 'fmt': '!L', 'ratio': 0.01},  # noqa: E501
         0x4201f124: {'reg': Register.PV6_DAILY_GENERATION, 'fmt': '!H', 'ratio': 0.01},  # noqa: E501
         0x4201f126: {'reg': Register.PV6_TOTAL_GENERATION, 'fmt': '!L', 'ratio': 0.01},  # noqa: E501
+
+        0x4201f0c0: {'reg': Register.INVERTER_STATUS,      'fmt': '!H'},                 # noqa: E501
+        0x4201f0c8: {'reg': Register.INVERTER_TEMP,        'fmt': '!H', 'offset': -40},  # noqa: E501
+        # 0x4201f0ca: {'reg': Register.AMBIENT_TEMP,         'fmt': '!H', 'offset': -40},  # noqa: E501
+        # 0x4201f0cc: {'reg': Register.DC1_BUS_VOLTAGE,      'fmt': '!H', 'ratio': 0.01},  # noqa: E501
+        # 0x4201f0ce: {'reg': Register.DC2_BUS_VOLTAGE,      'fmt': '!H', 'ratio': 0.01},  # noqa: E501        0x42010076: {'reg': Register.BATT_HW_VERS,         'fmt': '!h'},                 # noqa: E501 # hardware version
+        # 0x4201f0d0: {'reg': Register.VERSION_QCPU1,        'fmt': '!h'},                 # noqa: E501 # hardware version
+        # 0x4201f0d2: {'reg': Register.VERSION_QCPU2,        'fmt': '!h'},                 # noqa: E501 # hardware version
+        0x4201f0d4: {'reg': Register.GRID_VOLTAGE,         'fmt': '!H', 'ratio':  0.1},  # noqa: E501
+        0x4201f0d6: {'reg': Register.GRID_CURRENT,         'fmt': '!H', 'ratio': 0.01},  # noqa: E501
+        0x4201f0d8: {'reg': Register.GRID_FREQUENCY,       'fmt': '!H', 'ratio': 0.01},  # noqa: E501
+        0x4201f0da: {'reg': Register.MAX_DESIGNED_POWER,   'fmt': '!H'},
+        0x4201f0dc: {'reg': Register.RATED_POWER,          'fmt': '!H', 'ratio':    1},  # noqa: E501
+        0x4201f0de: {'reg': Register.OUTPUT_POWER,         'fmt': '!H', 'ratio':  0.1},  # noqa: E501
+        0x4201f128: {'reg': Register.DAILY_GENERATION,     'fmt': '!H', 'ratio': 0.01},  # noqa: E501
+        0x4201f12a: {'reg': Register.TOTAL_GENERATION,     'fmt': '!L', 'ratio': 0.01},  # noqa: E501
+        0x4201f12c: {'reg': Register.INSULATION_IMP_RX,    'fmt': '!H', 'ratio': 0.01},  # noqa: E501
+        0x4201f12e: {'reg': Register.INSULATION_IMP_RY,    'fmt': '!H', 'ratio': 0.01},  # noqa: E501
+
+        0x4201f138: {'reg': Register.PROD_COMPL_TYPE,      'fmt': '!H'},
+
     }
     map_1511 = {
         # fixme, msg is not fully defined yet, only the first 3 regs are known

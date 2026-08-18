@@ -106,6 +106,12 @@ class Register(Enum):
     DC2_BUS_VOLTAGE = 258
     VERSION_QCPU1 = 259
     VERSION_QCPU2 = 260
+    PV1_ALARM = 261
+    PV2_ALARM = 262
+    PV3_ALARM = 263
+    PV4_ALARM = 264
+    PV5_ALARM = 265
+    PV6_ALARM = 266
 
     GRID_VOLTAGE = 300
     GRID_CURRENT = 301
@@ -631,8 +637,6 @@ class Infos:
         Register.PV6_MODEL:        {'name': ['inverter', 'PV6_Model'],             'level': logging.DEBUG, 'unit': ''},  # noqa: E501
         Register.BOOT_STATUS:      {'name': ['inverter', 'BOOT_STATUS'],           'level': logging.DEBUG, 'unit': ''},  # noqa: E501
         Register.DSP_STATUS:       {'name': ['inverter', 'DSP_STATUS'],            'level': logging.DEBUG, 'unit': ''},  # noqa: E501
-        Register.DC1_BUS_VOLTAGE:  {'name': ['inverter', 'DC1_Bus_Voltage'],       'level': logging.DEBUG, 'unit': 'V',    'ha': {'dev': 'inverter', 'dev_cla': 'voltage',     'stat_cla': 'measurement', 'id': 'bus_volt_1_',  'fmt': FMT_FLOAT, 'name': 'DC1 Bus Voltage', 'ent_cat': 'diagnostic'}},  # noqa: E501
-        Register.DC2_BUS_VOLTAGE:  {'name': ['inverter', 'DC2_Bus_Voltage'],       'level': logging.DEBUG, 'unit': 'V',    'ha': {'dev': 'inverter', 'dev_cla': 'voltage',     'stat_cla': 'measurement', 'id': 'bus_volt_2_',  'fmt': FMT_FLOAT, 'name': 'DC2 Bus Voltage', 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.VERSION_QCPU1:    {'name': ['inverter', 'FW_Version_QCPU1'],      'level': logging.INFO,  'unit': '',     'ha': {'dev': 'inverter', 'dev_cla': None, 'stat_cla': None, 'id': 'qcpu1_version_',          'fmt': FMT_STR, 'name': 'Fw Version QCPU1', 'icon': INFOMATION, 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.VERSION_QCPU2:    {'name': ['inverter', 'FW_Version_QCPU2'],      'level': logging.INFO,  'unit': '',     'ha': {'dev': 'inverter', 'dev_cla': None, 'stat_cla': None, 'id': 'qcpu2_version_',          'fmt': FMT_STR, 'name': 'Fw Version QCPU2', 'icon': INFOMATION, 'ent_cat': 'diagnostic'}},  # noqa: E501
 
@@ -730,6 +734,8 @@ class Infos:
         Register.OUTPUT_SHUTDOWN:    {'name': ['other', 'Output_Shutdown'],         'level': logging.DEBUG, 'unit': ''},  # noqa: E501
         Register.RATED_LEVEL:        {'name': ['other', 'Rated_Level'],             'level': logging.DEBUG, 'unit': ''},  # noqa: E501
         Register.GRID_VOLT_CAL_COEF: {'name': ['other', 'Grid_Volt_Cal_Coef'],      'level': logging.DEBUG, 'unit': ''},  # noqa: E501
+        Register.DC1_BUS_VOLTAGE:    {'name': ['other', 'DC1_Bus_Voltage'],         'level': logging.DEBUG, 'unit': 'V',    'ha': {'dev': 'inverter', 'dev_cla': 'voltage',     'stat_cla': 'measurement', 'id': 'bus_volt_1_',  'fmt': FMT_FLOAT, 'name': 'DC1 Bus Voltage', 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.DC2_BUS_VOLTAGE:    {'name': ['other', 'DC2_Bus_Voltage'],         'level': logging.DEBUG, 'unit': 'V',    'ha': {'dev': 'inverter', 'dev_cla': 'voltage',     'stat_cla': 'measurement', 'id': 'bus_volt_2_',  'fmt': FMT_FLOAT, 'name': 'DC2 Bus Voltage', 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.INV_UNKNOWN_1:      {'name': ['inv_unknown', 'Unknown_1'],         'level': logging.DEBUG, 'unit': ''},  # noqa: E501
 
         # Batterie DC-1000: Electricity Genration
