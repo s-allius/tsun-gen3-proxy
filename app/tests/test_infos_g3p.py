@@ -575,7 +575,7 @@ def test_exception_and_calc(inverter_data: bytes):
     
     for key, update in i.parse (inverter_data, 0x42, 1, 0x02b0):
         pass  #  side effect is calling generator i.parse()
-    assert 54 == i.get_db_value(Register.INVERTER_TEMP, 0)
+    assert i.get_db_value(Register.INVERTER_TEMP, 0) == 54
 
     build_msg = i.build(0x42, 1, 0x02b0)
     assert build_msg[32:0xd8] == inverter_data[32:0xd8]
@@ -591,7 +591,7 @@ def test_exception_and_calc(inverter_data: bytes):
     i.db.clear()    
     for key, update in i.parse (inverter_data, 0x42, 1, 0x02b0):
         pass  #  side effect is calling generator i.parse()
-    assert 14 == i.get_db_value(Register.INVERTER_TEMP, 0)
+    assert i.get_db_value(Register.INVERTER_TEMP, 0) == 14
 
     build_msg = i.build(0x42, 1, 0x02b0)
     assert build_msg[32:-1] == inverter_data[32:-1]
