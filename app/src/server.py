@@ -268,43 +268,6 @@ class ProxyState:
         ProxyState._is_up = value
 
 
-class HypercornLogHndl:
-    """
-    Utility class to manage Hypercorn's logging handlers.
-    Used to prevent Hypercorn from overriding custom logging configurations.
-    """
-    access_hndl = []
-    error_hndl = []
-    must_fix = False
-    HYPERC_ERR = 'hypercorn.error'
-    HYPERC_ACC = 'hypercorn.access'
-
-    @classmethod
-    def save(cls):
-        """Saves current Hypercorn logger handlers."""
-        cls.access_hndl = logging.getLogger(cls.HYPERC_ACC).handlers
-        cls.error_hndl = logging.getLogger(cls.HYPERC_ERR).handlers
-        cls.must_fix = True
-
-    @classmethod
-    def restore(cls):
-        """Restores saved handlers to Hypercorn loggers
-        if they were overwritten."""
-        if not cls.must_fix:
-            return
-        cls.must_fix = False
-
-        acc_logger = logging.getLogger(cls.HYPERC_ACC)
-        if acc_logger.handlers != cls.access_hndl:
-            print(' * Fixing hypercorn.access handlers')
-            acc_logger.handlers = cls.access_hndl
-
-        err_logger = logging.getLogger(cls.HYPERC_ERR)
-        if err_logger.handlers != cls.error_hndl:
-            print(' * Fixing hypercorn.error handlers')
-            err_logger.handlers = cls.error_hndl
-
-
 # Quart Application Setup
 app = Quart(__name__,
             template_folder='web/templates',
@@ -383,7 +346,6 @@ async def startup_app():    # pragma: no cover
     - Starts TCP servers (listeners) for different inverter types
       based on configuration.
     """
-    HypercornLogHndl.save()
     loop = asyncio.get_event_loop()
     Proxy.class_init()
     Schedule.start()
@@ -416,12 +378,6 @@ async def startup_app():    # pragma: no cover
         task.add_done_callback(app.background_tasks.discard)
 
     ProxyState.set_up(True)
-
-
-@app.before_request
-async def startup_request():
-    """Ensures logging handlers are correctly set before each request."""
-    HypercornLogHndl.restore()
 
 
 @app.after_serving
