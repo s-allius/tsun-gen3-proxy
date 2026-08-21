@@ -187,6 +187,82 @@ class RegisterMap:
         0x4201f120: {'reg': Register.PV5_TOTAL_GENERATION, 'fmt': '!L', 'ratio': 0.01},  # noqa: E501
         0x4201f124: {'reg': Register.PV6_DAILY_GENERATION, 'fmt': '!H', 'ratio': 0.01},  # noqa: E501
         0x4201f126: {'reg': Register.PV6_TOTAL_GENERATION, 'fmt': '!L', 'ratio': 0.01},  # noqa: E501
+
+        0x4201f0c0: {'reg': Register.INVERTER_STATUS,      'fmt': '!H'},                 # noqa: E501
+        0x4201f0c8: {'reg': Register.INVERTER_TEMP,        'fmt': '!H', 'offset': -40},  # noqa: E501
+        0x4201f0d4: {'reg': Register.GRID_VOLTAGE,         'fmt': '!H', 'ratio':  0.1},  # noqa: E501
+        0x4201f0d6: {'reg': Register.GRID_CURRENT,         'fmt': '!H', 'ratio': 0.01},  # noqa: E501
+        0x4201f0d8: {'reg': Register.GRID_FREQUENCY,       'fmt': '!H', 'ratio': 0.01},  # noqa: E501
+        0x4201f0da: {'reg': Register.MAX_DESIGNED_POWER,   'fmt': '!H'},
+        0x4201f0dc: {'reg': Register.RATED_POWER,          'fmt': '!H', 'ratio':    1},  # noqa: E501
+        0x4201f0de: {'reg': Register.OUTPUT_POWER,         'fmt': '!H', 'ratio':  0.1},  # noqa: E501
+        0x4201f128: {'reg': Register.DAILY_GENERATION,     'fmt': '!H', 'ratio': 0.01},  # noqa: E501
+        0x4201f12a: {'reg': Register.TOTAL_GENERATION,     'fmt': '!L', 'ratio': 0.01},  # noqa: E501
+        0x4201f12c: {'reg': Register.INSULATION_IMP_RX,    'fmt': '!H', 'ratio': 0.01},  # noqa: E501
+        0x4201f12e: {'reg': Register.INSULATION_IMP_RY,    'fmt': '!H', 'ratio': 0.01},  # noqa: E501
+
+        0x4201f138: {'reg': Register.PROD_COMPL_TYPE,      'fmt': '!H'},
+
+    }
+    map_1511 = {
+        # fixme, msg is not fully defined yet, only the first 3 regs are known
+        'len': 0x30,
+        0x4201000c: {'reg': Register.SENSOR_LIST,          'fmt': '<H', 'func': Fmt.hex4},   # noqa: E501
+        0x4201001c: {'reg': Register.POWER_ON_TIME,        'fmt': '<H', 'ratio':    1, 'dep': ProxyMode.SERVER},  # noqa: E501
+        0x42010020: {'reg': Register.SERIAL_NUMBER,        'fmt': '!16s'},               # noqa: E501
+
+        # fixme, the following registers are needed for registering the
+        # entities with home assistant, the offset is behind the length
+        # of the message, so they are not part of the message, but they
+        # are needed for the entities to be created
+        0x4202f0c0: {'reg': Register.INVERTER_STATUS,      'fmt': '!H'},                 # noqa: E501
+        0x4202f0c8: {'reg': Register.INVERTER_TEMP,        'fmt': '!H', 'offset': -40},  # noqa: E501
+        0x4202f0ca: {'reg': Register.AMBIENT_TEMP,         'fmt': '!H', 'offset': -40},  # noqa: E501
+        0x4202f0cc: {'reg': Register.DC1_BUS_VOLTAGE,      'fmt': '!H', 'ratio': 0.01},  # noqa: E501
+        0x4202f0ce: {'reg': Register.DC2_BUS_VOLTAGE,      'fmt': '!H', 'ratio': 0.01},  # noqa: E501
+        0x4202f0d0: {'reg': Register.VERSION_QCPU1,        'fmt': '!h'},
+        0x4202f0d2: {'reg': Register.VERSION_QCPU2,        'fmt': '!h'},
+        0x4202f0d4: {'reg': Register.GRID_VOLTAGE,         'fmt': '!H', 'ratio':  0.1},  # noqa: E501
+        0x4202f0d6: {'reg': Register.GRID_CURRENT,         'fmt': '!H', 'ratio': 0.01},  # noqa: E501
+        0x4202f0d8: {'reg': Register.GRID_FREQUENCY,       'fmt': '!H', 'ratio': 0.01},  # noqa: E501
+        0x4202f0da: {'reg': Register.MAX_DESIGNED_POWER,   'fmt': '!H'},
+        0x4202f0dc: {'reg': Register.RATED_POWER,          'fmt': '!H', 'ratio':    1},  # noqa: E501
+        0x4202f0de: {'reg': Register.OUTPUT_POWER,         'fmt': '!H', 'ratio':  0.1},  # noqa: E501
+        0x4202f0e0: {'reg': Register.PV1_VOLTAGE,          'fmt': '!H', 'ratio':  0.1},  # noqa: E501
+        0x4202f0e2: {'reg': Register.PV1_CURRENT,          'fmt': '!H', 'ratio': 0.01},  # noqa: E501
+        0x4202f0e4: {'reg': Register.PV1_POWER,            'fmt': '!H', 'ratio':  0.1},  # noqa: E501
+        0x4202f0e6: {'reg': Register.PV2_VOLTAGE,          'fmt': '!H', 'ratio':  0.1},  # noqa: E501
+        0x4202f0e8: {'reg': Register.PV2_CURRENT,          'fmt': '!H', 'ratio': 0.01},  # noqa: E501
+        0x4202f0ea: {'reg': Register.PV2_POWER,            'fmt': '!H', 'ratio':  0.1},  # noqa: E501
+        0x4202f0ec: {'reg': Register.PV3_VOLTAGE,          'fmt': '!H', 'ratio':  0.1},  # noqa: E501
+        0x4202f0ee: {'reg': Register.PV3_CURRENT,          'fmt': '!H', 'ratio': 0.01},  # noqa: E501
+        0x4202f0f0: {'reg': Register.PV3_POWER,            'fmt': '!H', 'ratio':  0.1},  # noqa: E501
+        0x4202f0f2: {'reg': Register.PV4_VOLTAGE,          'fmt': '!H', 'ratio':  0.1},  # noqa: E501
+        0x4202f0f4: {'reg': Register.PV4_CURRENT,          'fmt': '!H', 'ratio': 0.01},  # noqa: E501
+        0x4202f0f6: {'reg': Register.PV4_POWER,            'fmt': '!H', 'ratio':  0.1},  # noqa: E501
+        0x4202f0f8: {'reg': Register.PV5_VOLTAGE,          'fmt': '!H', 'ratio':  0.1},  # noqa: E501
+        0x4202f0fa: {'reg': Register.PV5_CURRENT,          'fmt': '!H', 'ratio': 0.01},  # noqa: E501
+        0x4202f0fe: {'reg': Register.PV5_POWER,            'fmt': '!H', 'ratio':  0.1},  # noqa: E501
+        0x4202f100: {'reg': Register.PV6_VOLTAGE,          'fmt': '!H', 'ratio':  0.1},  # noqa: E501
+        0x4202f102: {'reg': Register.PV6_CURRENT,          'fmt': '!H', 'ratio': 0.01},  # noqa: E501
+        0x4202f104: {'reg': Register.PV6_POWER,            'fmt': '!H', 'ratio':  0.1},  # noqa: E501
+
+        0x4202f106: {'reg': Register.PV1_DAILY_GENERATION, 'fmt': '!H', 'ratio': 0.01},  # noqa: E501
+        0x4202f108: {'reg': Register.PV1_TOTAL_GENERATION, 'fmt': '!L', 'ratio': 0.01},  # noqa: E501
+        0x4202f10c: {'reg': Register.PV2_DAILY_GENERATION, 'fmt': '!H', 'ratio': 0.01},  # noqa: E501
+        0x4202f10e: {'reg': Register.PV2_TOTAL_GENERATION, 'fmt': '!L', 'ratio': 0.01},  # noqa: E501
+        0x4202f112: {'reg': Register.PV3_DAILY_GENERATION, 'fmt': '!H', 'ratio': 0.01},  # noqa: E501
+        0x4202f114: {'reg': Register.PV3_TOTAL_GENERATION, 'fmt': '!L', 'ratio': 0.01},  # noqa: E501
+        0x4202f118: {'reg': Register.PV4_DAILY_GENERATION, 'fmt': '!H', 'ratio': 0.01},  # noqa: E501
+        0x4202f11a: {'reg': Register.PV4_TOTAL_GENERATION, 'fmt': '!L', 'ratio': 0.01},  # noqa: E501
+        0x4202f11e: {'reg': Register.PV5_DAILY_GENERATION, 'fmt': '!H', 'ratio': 0.01},  # noqa: E501
+        0x4202f120: {'reg': Register.PV5_TOTAL_GENERATION, 'fmt': '!L', 'ratio': 0.01},  # noqa: E501
+        0x4202f124: {'reg': Register.PV6_DAILY_GENERATION, 'fmt': '!H', 'ratio': 0.01},  # noqa: E501
+        0x4202f126: {'reg': Register.PV6_TOTAL_GENERATION, 'fmt': '!L', 'ratio': 0.01},  # noqa: E501
+        0x4202f128: {'reg': Register.DAILY_GENERATION,     'fmt': '!H', 'ratio': 0.01},  # noqa: E501
+        0x4202f12a: {'reg': Register.TOTAL_GENERATION,     'fmt': '!L', 'ratio': 0.01},  # noqa: E501
+
+        0x4202f138: {'reg': Register.PROD_COMPL_TYPE,      'fmt': '!H'},
     }
     map_3026 = {
         'len': 0x7a,
@@ -249,6 +325,7 @@ class RegisterSel:
     __sensor_map = {
             0x02b0: RegisterMap.map_02b0,
             0x1097: RegisterMap.map_1097,
+            0x1511: RegisterMap.map_1511,
             0x3026: RegisterMap.map_3026,
     }
 

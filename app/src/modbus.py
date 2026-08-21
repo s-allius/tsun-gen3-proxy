@@ -26,6 +26,40 @@ CRC_INIT = 0xFFFF
 
 class Modbus():
     '''Simple MODBUS implementation with TX queue and retransmit timer'''
+
+    # Error codes
+    ERR_CRC = 1
+    '''CRC error: The received message has an invalid CRC checksum.'''
+
+    ERR_WRONG_ADDR = 2
+    '''Wrong server address:
+    The response address does not match the expected address.'''
+
+    ERR_UNEXPECTED_FCODE = 3
+    '''Unexpected function code:
+    The function code in the response does not match the request.'''
+
+    ERR_UNEXPECTED_LEN = 4
+    '''Unexpected data length:
+    The length of the data in the response does not match
+    the expected length.'''
+
+    ERR_NO_REQ_PENDING = 5
+    '''No MODBUS request pending:
+    A response was received, but no request is currently pending.'''
+
+    ERR_UNKNOWN_ADDR = 6
+    '''Unknown start register address:
+    The response indicates an unknown register address.'''
+
+    ERR_INVALID_LEN = 7
+    '''Invalid length requested:
+    The response indicates an invalid length in the request.'''
+
+    ERR_UNKNOWN_STATUS = 8
+    '''Unknown status code:
+    The response contains an unrecognized status code.'''
+
     INV_ADDR = 1
     '''MODBUS server address of the TSUN inverter'''
     READ_REGS = 3
@@ -34,6 +68,17 @@ class Modbus():
     '''MODBUS function code: Read Input Register'''
     WRITE_SINGLE_REG = 6
     '''Modbus function code: Write Single Register'''
+
+    NATIVE_READ_VALUES = (0xA1, 0x01)
+    '''MODBUS function code: Read Measurement Values (native)'''
+    NATIVE_READ_ALARMS = (0xA2, 0x02)
+    '''MODBUS function code: Read Alarm Values (native)'''
+    NATIVE_READ_BLOCK_A = (0xA3, 0x03)
+    '''MODBUS function code: Read Input Block A Values (native)'''
+    NATIVE_READ_BLOCK_B = (0xA4, 0x04)
+    '''MODBUS function code: Read Input Block B Values (native)'''
+    NATIVE_READ_REGS = (0xA1, 0x21)
+    '''MODBUS function code: Read Holding Register (native)'''
 
     __crc_tab = []
     mb_reg_mapping = {
@@ -75,6 +120,81 @@ class Modbus():
         0x002a: {'reg': Register.BATT_ALARM,           'fmt': '!h'},                 # noqa: E501
         0x002b: {'reg': Register.BATT_HW_VERS,         'fmt': '!h'},                 # noqa: E501
         0x002c: {'reg': Register.BATT_SW_VERS,         'fmt': '!h'},                 # noqa: E501
+
+        # sensor_list: 0x1511
+        2000:   {'reg': Register.PROD_COMPL_TYPE,      'fmt': '<H'},
+        2042:   {'reg': Register.MAX_DESIGNED_POWER,   'fmt': '<H', 'ratio':  1},    # noqa: E501
+
+        3000:   {'reg': Register.INVERTER_STATUS,      'fmt': '<H'},                 # noqa: E501
+        3008:   {'reg': Register.VERSION,              'fmt': '<H', 'func': Fmt.version},  # noqa: E501
+        # 3009:   {'reg': Register.TEST_VAL_1,           'fmt': '<H', 'ratio': 1},    # noqa: E501
+        3010:   {'reg': Register.DC1_BUS_VOLTAGE,      'fmt': '<H', 'ratio': 0.01},  # noqa: E501
+        # 3011:   {'reg': Register.TEST_VAL_3,           'fmt': '<H', 'ratio': 1},    # noqa: E501
+        3012:   {'reg': Register.GRID_VOLTAGE,         'fmt': '<H', 'ratio': 0.1},   # noqa: E501
+        3013:   {'reg': Register.GRID_CURRENT,         'fmt': '<H', 'ratio': 0.01},  # noqa: E501
+        # 3014:   {'reg': Register.TEST_VAL_4,           'fmt': '<H', 'ratio': 1},    # noqa: E501
+        3015:   {'reg': Register.GRID_FREQUENCY,       'fmt': '<H', 'ratio': 0.01},  # noqa: E501
+        # 3016:   {'reg': Register.TEST_VAL_5,           'fmt': '<H', 'ratio': 1},    # noqa: E501
+        3017:   {'reg': Register.INVERTER_TEMP,        'fmt': '<H', 'offset': -40},  # noqa: E501
+        # 3018:   {'reg': Register.TEST_VAL_6,           'fmt': '<H', 'ratio': 1},    # noqa: E501
+        3019:   {'reg': Register.DC2_BUS_VOLTAGE,      'fmt': '<H', 'ratio': 0.01},  # noqa: E501
+        3020:   {'reg': Register.RATED_POWER,          'fmt': '<H', 'ratio':    1},  # noqa: E501
+        3021:   {'reg': Register.OUTPUT_POWER,         'fmt': '<H', 'ratio': 0.1},   # noqa: E501
+        3022:   {'reg': Register.DAILY_GENERATION,     'fmt': '<H', 'ratio': 0.01},  # noqa: E501
+        3023:   {'reg': Register.TOTAL_GENERATION,     'fmt': '<HH', 'func': Fmt.swap, 'ratio': 0.01},  # noqa: E501
+        3025:   {'reg': Register.TEST_VAL_8,           'fmt': '<H', 'ratio': 1},    # noqa: E501
+        3026:   {'reg': Register.TEST_VAL_9,           'fmt': '<H', 'ratio': 1},    # noqa: E501
+        3027:   {'reg': Register.TEST_VAL_10,          'fmt': '<H', 'ratio': 1},    # noqa: E501
+        3028:   {'reg': Register.AMBIENT_TEMP,         'fmt': '<H', 'offset': -40},  # noqa: E501
+        3029:   {'reg': Register.TEST_VAL_11,          'fmt': '<H', 'ratio': 1},    # noqa: E501
+        3030:   {'reg': Register.TEST_VAL_12,          'fmt': '<H', 'ratio': 1},    # noqa: E501
+        3031:   {'reg': Register.TEST_VAL_13,          'fmt': '<H', 'ratio': 1},    # noqa: E501
+
+        3600:   {'reg': Register.PV1_VOLTAGE,           'fmt': '<H', 'ratio': 0.1},   # noqa: E501
+        3601:   {'reg': Register.PV1_CURRENT,           'fmt': '<H', 'ratio': 0.01},  # noqa: E501
+        3602:   {'reg': Register.PV1_POWER,             'fmt': '<H', 'ratio': 0.1},   # noqa: E501
+        3603:   {'reg': Register.PV1_DAILY_GENERATION,  'fmt': '<H', 'ratio': 0.01},  # noqa: E501
+        3606:   {'reg': Register.PV1_ALARM,             'fmt': '<H'},                 # noqa: E501
+        3607:   {'reg': Register.PV2_VOLTAGE,           'fmt': '<H', 'ratio': 0.1},   # noqa: E501
+        3608:   {'reg': Register.PV2_CURRENT,           'fmt': '<H', 'ratio': 0.01},  # noqa: E501
+        3609:   {'reg': Register.PV2_POWER,             'fmt': '<H', 'ratio': 0.1},   # noqa: E501
+        3610:   {'reg': Register.PV2_DAILY_GENERATION,  'fmt': '<H', 'ratio': 0.01},  # noqa: E501
+        3613:   {'reg': Register.PV2_ALARM,             'fmt': '<H'},                 # noqa: E501
+        3614:   {'reg': Register.PV3_VOLTAGE,           'fmt': '<H', 'ratio': 0.1},   # noqa: E501
+        3615:   {'reg': Register.PV3_CURRENT,           'fmt': '<H', 'ratio': 0.01},  # noqa: E501
+        3616:   {'reg': Register.PV3_POWER,             'fmt': '<H', 'ratio': 0.1},   # noqa: E501
+        3617:   {'reg': Register.PV3_DAILY_GENERATION,  'fmt': '<H', 'ratio': 0.01},  # noqa: E501
+        3620:   {'reg': Register.PV3_ALARM,             'fmt': '<H'},                 # noqa: E501
+        3622:   {'reg': Register.VERSION_QCPU1,         'fmt': '<H', 'func': Fmt.version},  # noqa: E501
+        3623:   {'reg': Register.TEST_VAL_14,           'fmt': '<H', 'ratio': 1},    # noqa: E501
+        3624:   {'reg': Register.PV1_TOTAL_GENERATION,  'fmt': '<HH', 'func': Fmt.swap, 'ratio': 0.01},  # noqa: E501
+        3626:   {'reg': Register.PV2_TOTAL_GENERATION,  'fmt': '<HH', 'func': Fmt.swap, 'ratio': 0.01},  # noqa: E501
+        3628:   {'reg': Register.PV3_TOTAL_GENERATION,  'fmt': '<HH', 'func': Fmt.swap, 'ratio': 0.01},  # noqa: E501
+        3630:   {'reg': Register.TEST_VAL_15,           'fmt': '<H', 'ratio': 1},    # noqa: E501
+        3631:   {'reg': Register.TEST_VAL_16,           'fmt': '<H', 'ratio': 1},    # noqa: E501
+
+        3800:   {'reg': Register.PV4_VOLTAGE,           'fmt': '<H', 'ratio': 0.1},   # noqa: E501
+        3801:   {'reg': Register.PV4_CURRENT,           'fmt': '<H', 'ratio': 0.01},  # noqa: E501
+        3802:   {'reg': Register.PV4_POWER,             'fmt': '<H', 'ratio': 0.1},   # noqa: E501
+        3803:   {'reg': Register.PV4_DAILY_GENERATION,  'fmt': '<H', 'ratio': 0.01},  # noqa: E501
+        3806:   {'reg': Register.PV4_ALARM,             'fmt': '<H'},                 # noqa: E501
+        3807:   {'reg': Register.PV5_VOLTAGE,           'fmt': '<H', 'ratio': 0.1},   # noqa: E501
+        3808:   {'reg': Register.PV5_CURRENT,           'fmt': '<H', 'ratio': 0.01},  # noqa: E501
+        3809:   {'reg': Register.PV5_POWER,             'fmt': '<H', 'ratio': 0.1},   # noqa: E501
+        3810:   {'reg': Register.PV5_DAILY_GENERATION,  'fmt': '<H', 'ratio': 0.01},  # noqa: E501
+        3813:   {'reg': Register.PV5_ALARM,             'fmt': '<H'},                 # noqa: E501
+        3814:   {'reg': Register.PV6_VOLTAGE,           'fmt': '<H', 'ratio': 0.1},   # noqa: E501
+        3815:   {'reg': Register.PV6_CURRENT,           'fmt': '<H', 'ratio': 0.01},  # noqa: E501
+        3816:   {'reg': Register.PV6_POWER,             'fmt': '<H', 'ratio': 0.1},   # noqa: E501
+        3817:   {'reg': Register.PV6_DAILY_GENERATION,  'fmt': '<H', 'ratio': 0.01},  # noqa: E501
+        3820:   {'reg': Register.PV6_ALARM,             'fmt': '<H'},                 # noqa: E501
+        3822:   {'reg': Register.VERSION_QCPU2,         'fmt': '<H', 'func': Fmt.version},  # noqa: E501
+        3823:   {'reg': Register.TEST_VAL_17,           'fmt': '<H', 'ratio': 1},    # noqa: E501
+        3824:   {'reg': Register.PV4_TOTAL_GENERATION,  'fmt': '<HH', 'func': Fmt.swap, 'ratio': 0.01},  # noqa: E501
+        3826:   {'reg': Register.PV5_TOTAL_GENERATION,  'fmt': '<HH', 'func': Fmt.swap, 'ratio': 0.01},  # noqa: E501
+        3828:   {'reg': Register.PV6_TOTAL_GENERATION,  'fmt': '<HH', 'func': Fmt.swap, 'ratio': 0.01},  # noqa: E501
+        3830:   {'reg': Register.TEST_VAL_18,           'fmt': '<H', 'ratio': 1},    # noqa: E501
+        3831:   {'reg': Register.TEST_VAL_19,           'fmt': '<H', 'ratio': 1},    # noqa: E501
 
         # sensor_list: 0x1097
         0x1000: {'reg': Register.SERIAL_NUMBER,        'fmt': '!16s'},               # noqa: E501
@@ -246,6 +366,26 @@ class Modbus():
     def set_node_id(self, node_id: str):
         self.node_id = node_id
 
+    def build_native_msg(
+            self, func: bytearray, reg: int, val: int,
+            log_lvl=logging.DEBUG) -> None:
+        """Build TSUN native MODBUS request frame and add it to the tx queue
+
+        Keyword arguments:
+            func[0]: MODBUS function code
+            func[1]: sub address
+            reg:  16-bit register number
+            val:  16 bit value
+
+        """
+        msg = struct.pack('>BBBHHH', func[0], func[1], 0, reg, 2, val)
+        msg += struct.pack('>H', self.__calc_crc(msg))
+        self.que.put_nowait({'req': msg,
+                             'rsp_hdl': None,
+                             'log_lvl': log_lvl})
+        if self.que.qsize() == 1:
+            self.__send_next_from_que()
+
     def build_msg(self, addr: int, func: int, reg: int, val: int,
                   log_lvl=logging.DEBUG) -> None:
         """Build MODBUS RTU request frame and add it to the tx queue
@@ -289,34 +429,127 @@ class Modbus():
 
         return True
 
-    def recv_resp(self, info_db, buf: bytes) -> \
-            Generator[tuple[str, bool, int | float | str], None, None]:
-        """Generator which check and parse a received MODBUS response.
-
-        Keyword arguments:
-            info_db: database for info lockups
-            buf: received Modbus RTU response frame
-
-        Returns on error and set Self.err to:
-            1: CRC error
-            2: Wrong server address
-            3: Unexpected function code
-            4: Unexpected data length
-            5: No MODBUS request pending
-        """
-        # logging.info(f'recv_resp: first byte modbus:{buf[0]} len:{len(buf)}')
-
-        fcode = buf[1]
-        data_available = self.last_addr == self.INV_ADDR and \
-            (fcode == 3 or fcode == 4)
+    def recv_native_resp(
+            self, info_db, buf: bytes
+            ) -> Generator[tuple[str, bool, int | float | str], None, None]:
+        """Generator which checks and parses a received MODBUS response."""
+        fcode, status_code, first_reg, last_len = \
+            self.__parse_native_response(buf)
+        data_available = status_code == 0x01 and fcode in {
+            0xa1, 0xa2, 0xa3, 0xa4}
         self.err = 0
+
+        if self.__native_resp_error_check(buf, data_available, last_len):
+            return
+
+        yield from self.__handle_response(data_available, info_db, buf[7:],
+                                          first_reg, last_len >> 1)
+
+    def __native_resp_error_check(
+            self, buf: bytes, data_available: bool, elmlen: int
+            ) -> bool:
+        """Check the MODBUS response for errors, returns True if one occurs."""
+        if not self.req_pend:
+            return self.__set_error(self.ERR_NO_REQ_PENDING)
+
+        if not self.__check_crc(buf, swap_crc=True):
+            logger.error(f'[{self.node_id}] Native resp: CRC error')
+            return self.__set_error(self.ERR_CRC)
+
+        if self.__check_status_code(buf[2]):
+            return True
+
+        if self.__check_function_code(buf[0]) or \
+           self.__check_data_length(data_available, elmlen):
+            return True
+
+        return False
+
+    def recv_resp(
+            self, info_db, buf: bytes
+            ) -> Generator[tuple[str, bool, int | float | str], None, None]:
+        """Generator which checks and parses a received MODBUS response."""
+        fcode = buf[1]
+        data_available = self.last_addr == self.INV_ADDR and fcode in {3, 4}
+        self.err = 0
+
         if self.__resp_error_check(buf, data_available):
             return
 
+        yield from self.__handle_response(data_available, info_db,
+                                          buf[3:], self.last_reg, buf[2] >> 1)
+
+    def __resp_error_check(self, buf: bytes, data_available: bool) -> bool:
+        """Check the MODBUS response for errors, returns True if one occurs."""
+        if not self.req_pend:
+            return self.__set_error(self.ERR_NO_REQ_PENDING)
+
+        if not self.__check_crc(buf):
+            logger.error(f'[{self.node_id}] Modbus resp: CRC error')
+            return self.__set_error(self.ERR_CRC)
+
+        if buf[0] != self.last_addr:
+            logger.info(f'[{self.node_id}] Modbus resp: Wrong addr {buf[0]}')
+            return self.__set_error(self.ERR_WRONG_ADDR)
+
+        if self.__check_function_code(buf[1]) or \
+           self.__check_data_length(data_available, buf[2] >> 1):
+            return True
+
+        return False
+
+    # Neue Hilfsfunktionen
+    def __parse_native_response(self, buf: bytes) -> tuple[int, int, int, int]:
+        """Parse the native MODBUS response."""
+        fcode = buf[0]
+        status_code = buf[2]
+        first_reg, last_len = struct.unpack_from('!HH', buf, 3)
+        return fcode, status_code, first_reg, last_len
+
+    def __set_error(self, code: int) -> bool:
+        """Set the error code and return True."""
+        self.err = code
+        return True
+
+    def __check_status_code(self, status_code: int) -> bool:
+        """Check the status code for errors."""
+        match status_code:
+            case 0x01:
+                return False
+            case 0x11:
+                logger.info(f'[{self.node_id}] Native resp: Unknown addr')
+                return self.__set_error(self.ERR_UNKNOWN_ADDR)
+            case 0x12:
+                logger.info(f'[{self.node_id}] Native resp: Invalid length')
+                return self.__set_error(self.ERR_INVALID_LEN)
+            case _:
+                logger.info(f'[{self.node_id}] Native resp: '
+                            f'Unknown status code {status_code}')
+                return self.__set_error(self.ERR_UNKNOWN_STATUS)
+
+    def __check_function_code(self, fcode: int) -> bool:
+        """Check if the function code matches the last function code."""
+        if fcode != self.last_fcode:
+            logger.info(f'[{self.node_id}] Native resp: '
+                        f'Wrong fcode {fcode} != {self.last_fcode}')
+            return self.__set_error(self.ERR_UNEXPECTED_FCODE)
+        return False
+
+    def __check_data_length(self, data_available: bool, elmlen: int) -> bool:
+        """Check if the data length matches the expected length."""
+        if data_available and elmlen != self.last_len:
+            logger.info(f'[{self.node_id}] Native resp: '
+                        f'len error {elmlen} != {self.last_len}')
+            return self.__set_error(self.ERR_UNEXPECTED_LEN)
+        return False
+
+    def __handle_response(
+            self, data_available: bool, info_db, buf: bytes,
+            first_reg: int, elmlen: int
+            ) -> Generator[tuple[str, bool, int | float | str], None, None]:
+        """Generator which parses a received MODBUS data."""
         if data_available:
-            elmlen = buf[2] >> 1
-            first_reg = self.last_reg  # save last_reg before sending next pdu
-            self.__stop_timer()          # stop timer and send next pdu
+            self.__stop_timer()
             yield from self.__process_data(info_db, buf, first_reg, elmlen)
         else:
             self.__stop_timer()
@@ -325,35 +558,6 @@ class Modbus():
         if self.rsp_handler:
             self.rsp_handler()
         self.__send_next_from_que()
-
-    def __resp_error_check(self, buf: bytes, data_available: bool) -> bool:
-        '''Check the MODBUS response for errors, returns True if one accure'''
-        if not self.req_pend:
-            self.err = 5
-            return True
-        if not self.__check_crc(buf):
-            logger.error(f'[{self.node_id}] Modbus resp: CRC error')
-            self.err = 1
-            return True
-        if buf[0] != self.last_addr:
-            logger.info(f'[{self.node_id}] Modbus resp: Wrong addr {buf[0]}')
-            self.err = 2
-            return True
-        fcode = buf[1]
-        if fcode != self.last_fcode:
-            logger.info(f'[{self.node_id}] Modbus: Wrong fcode {fcode}'
-                        f' != {self.last_fcode}')
-            self.err = 3
-            return True
-        if data_available:
-            elmlen = buf[2] >> 1
-            if elmlen != self.last_len:
-                logger.info(f'[{self.node_id}] Modbus: len error {elmlen}'
-                            f' != {self.last_len}')
-                self.err = 4
-                return True
-
-        return False
 
     def __process_data(self, info_db, buf: bytes, first_reg, elmlen):
         '''Generator over received registers, updates the db'''
@@ -364,7 +568,7 @@ class Modbus():
                 info_id = row['reg']
                 keys, level, unit, must_incr = info_db._key_obj(info_id)
                 if keys:
-                    result = Fmt.get_value(buf, 3+2*i, row)
+                    result = Fmt.get_value(buf, 2*i, row)
                     name, update = info_db.update_db(keys, must_incr,
                                                      result)
                     yield keys[0], update, result
@@ -419,12 +623,20 @@ class Modbus():
             self.last_req = req
             self.rsp_handler = item['rsp_hdl']
             self.last_log_lvl = item['log_lvl']
-            self.last_addr = req[0]
-            self.last_fcode = req[1]
+            if req[0] >= 0xA1:
+                self.last_fcode = req[0]
+                self.last_addr = req[1]
 
-            res = struct.unpack_from('>HH', req, 2)
-            self.last_reg = res[0]
-            self.last_len = res[1]
+                res = struct.unpack_from('>HHH', req, 3)
+                self.last_reg = res[0]
+                self.last_len = res[1] * res[2]
+            else:
+                self.last_addr = req[0]
+                self.last_fcode = req[1]
+
+                res = struct.unpack_from('>HH', req, 2)
+                self.last_reg = res[0]
+                self.last_len = res[1]
             self.retry_cnt = 0
             self.__start_timer()
             self.snd_handler(self.last_req, self.last_log_lvl, state='Command')
@@ -434,8 +646,12 @@ class Modbus():
     '''
     Helper function for CRC-16 handling
     '''
-    def __check_crc(self, msg: bytes) -> bool:
+    def __check_crc(self, msg: bytes, swap_crc: bool = False) -> bool:
         '''Check CRC-16 and returns True if valid'''
+        if swap_crc:
+            # swap crc bytes for native response, to match the crc check
+            msg = msg[0:-2] + msg[-2:][::-1]
+
         valid = 0 == self.__calc_crc(msg)
         if not valid:
             crc = self.__calc_crc(msg[:-2])

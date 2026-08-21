@@ -7,7 +7,7 @@ from datetime import datetime
 
 from proxy import Proxy
 from async_ifc import AsyncIfc
-from messages import hex_dump_memory, Message, State
+from messages import hex_dump_memory, Message, State, MbType
 from cnf.config import Config
 from modbus import Modbus
 from gen3plus.infos_g3p import InfosG3P
@@ -46,11 +46,17 @@ class SensorListDetection():
     def __init__(self):
         self.idx = -1
         self.detection_running = False
-        self.scan_reg = [{'list': 0x02b0, 'addr': 0x3000, 'len': 48},
-                         {'list': 0x1097, 'addr': 0x1000, 'len': 16},
-                         {'list': 0x3026, 'addr': 0x0000, 'len': 45}]
+        self.scan_reg = [
+            {'list': 0x02b0, 'addr': 0x3000, 'len': 48,
+             'type': MbType.rtu, 'func': Modbus.READ_REGS},
+            {'list': 0x1097, 'addr': 0x1000, 'len': 16,
+             'type': MbType.rtu, 'func': Modbus.READ_REGS},
+            {'list': 0x3026, 'addr': 0x0000, 'len': 45,
+             'type': MbType.rtu, 'func': Modbus.READ_REGS},
+            {'list': 0x1511, 'addr': 3000, 'len': 32,
+             'type': MbType.native, 'func': Modbus.NATIVE_READ_VALUES},]
 
-    def next(self) -> tuple[int, list[dict[str, int]]]:
+    def next(self) -> tuple[int, MbType, list[dict[str, int]]]:
         self.detection_running = True
         self.idx = (self.idx + 1) % len(self.scan_reg)
         reg = self.scan_reg[self.idx]
@@ -59,7 +65,8 @@ class SensorListDetection():
         logger.info(f"Testing sensor-list: {reg['list']:#04x}"
                     f" by reading modbus registers at {reg['addr']:#04x} ")
 
-        return reg['list'], [{'addr': reg['addr'], 'len': reg['len']}]
+        return reg['list'], reg['type'], [
+            {'addr': reg['addr'], 'len': reg['len'], 'func': reg['func']}]
 
     def found(self) -> None:
         self.detection_running = False
@@ -352,8 +359,10 @@ class SolarmanV5(SolarmanBase):
 
         self.sensor_list = 0
         self.sensor_list_detection = SensorListDetection()
-        self.mb_regs = [{'addr': 0x3000, 'len': 48}]
-        self.mb_slow_regs = [{'addr': 0x2000, 'len': 96}]
+        self.mb_regs = [
+            {'addr': 0x3000, 'len': 48, 'func': Modbus.READ_REGS}]
+        self.mb_slow_regs = [
+            {'addr': 0x2000, 'len': 96, 'func': Modbus.READ_REGS}]
         self.background_tasks = set()
 
     '''
@@ -380,7 +389,7 @@ class SolarmanV5(SolarmanBase):
         self._set_serial_no(snr)
         if self.sensor_list == 0:
             self.mb_slow_regs = []
-            self.sensor_list, self.mb_regs = \
+            self.sensor_list, self.mb_type, self.mb_regs = \
                 self.sensor_list_detection.next()
 
         self.mb_timeout = start_timeout
@@ -406,7 +415,7 @@ class SolarmanV5(SolarmanBase):
                                   logging.INFO)
         else:
             for reg in self.mb_regs:
-                self._send_modbus_cmd(Modbus.INV_ADDR, Modbus.READ_REGS,
+                self._send_modbus_cmd(Modbus.INV_ADDR, reg['func'],
                                       reg['addr'], reg['len'], logging.DEBUG)
 
         self.mb_timer.start(self.mb_timeout)
@@ -445,22 +454,55 @@ class SolarmanV5(SolarmanBase):
 
         match self.sensor_list:
             case 0x3026:
-                self.mb_regs = [{'addr': 0x0000, 'len': 45}]
-                self.mb_slow_regs = []
-            case 0x1097:
                 self.mb_regs = [
-                    {'addr': 0x1100, 'len': 0x10},  # alarm & faults
-                    {'addr': 0x1200, 'len': 0x30},  # grid and temp. values
-                    {'addr': 0x1300, 'len': 0x40},  # inverter measurements
+                    {'addr': 0x0000, 'len': 45, 'func': Modbus.READ_REGS}
+                    ]
+                self.mb_slow_regs = []
+
+            case 0x1511:
+                self.mb_regs = [
+                    {'addr': 3000, 'len': 32,
+                     'func': Modbus.NATIVE_READ_VALUES},
+                    {'addr': 3300, 'len': 16,
+                     'func': Modbus.NATIVE_READ_ALARMS},
+                    {'addr': 3600, 'len': 32,
+                     'func': Modbus.NATIVE_READ_BLOCK_A},
+                    {'addr': 3800, 'len': 32,
+                     'func': Modbus.NATIVE_READ_BLOCK_B},
                     ]
                 self.mb_slow_regs = [
-                    {'addr': 0x1000, 'len': 0x10},
-                    {'addr': 0x1400, 'len': 0x50},
-                    # block 'addr': 0x1a00, 'len': 0xa0 seams to be empty
+                    {'addr': 2000, 'len': 96,
+                     'func': Modbus.NATIVE_READ_REGS},
                     ]
+                self.mb_type = MbType.native
+
+            case 0x1097:
+                self.mb_regs = [
+                    {'addr': 0x1100, 'len': 0x10,
+                     'func': Modbus.READ_REGS},  # alarm & faults
+                    {'addr': 0x1200, 'len': 0x30,
+                     'func': Modbus.READ_REGS},  # grid and temp.
+                    {'addr': 0x1300, 'len': 0x40,
+                     'func': Modbus.READ_REGS},  # measurements
+                    ]
+                self.mb_slow_regs = [
+                    {'addr': 0x1000, 'len': 0x10,
+                     'func': Modbus.READ_REGS},
+                    {'addr': 0x1400, 'len': 0x50,
+                     'func': Modbus.READ_REGS},
+                    # block 'addr': 0x1a00, 'len': 0xa0
+                    # seams to be empty
+                    ]
+
             case 0x02b0:
-                self.mb_regs = [{'addr': 0x3000, 'len': 48}]
-                self.mb_slow_regs = [{'addr': 0x2000, 'len': 96}]
+                self.mb_regs = [
+                    {'addr': 0x3000, 'len': 48,
+                     'func': Modbus.READ_REGS}
+                    ]
+                self.mb_slow_regs = [
+                    {'addr': 0x2000, 'len': 96,
+                     'func': Modbus.READ_REGS}
+                    ]
             case _:
                 return
 
@@ -554,17 +596,18 @@ class SolarmanV5(SolarmanBase):
             if self.sensor_list_detection.is_running():
                 (
                     self.sensor_list,
+                    self.mb_type,
                     self.mb_regs,
                 ) = self.sensor_list_detection.next()
 
             for reg in self.mb_regs:
-                self._send_modbus_cmd(Modbus.INV_ADDR, Modbus.READ_REGS,
+                self._send_modbus_cmd(Modbus.INV_ADDR, reg['func'],
                                       reg['addr'], reg['len'], logging.INFO)
 
             if 1 == (exp_cnt % 30):
                 # logging.info("Regular Modbus Status request")
                 for reg in self.mb_slow_regs:
-                    self._send_modbus_cmd(Modbus.INV_ADDR, Modbus.READ_REGS,
+                    self._send_modbus_cmd(Modbus.INV_ADDR, reg['func'],
                                           reg['addr'], reg['len'],
                                           logging.INFO)
 
@@ -658,7 +701,9 @@ class SolarmanV5(SolarmanBase):
             db.set_db_def_value(Register.NO_INPUTS, 2)
 
         # 2. Determine the model series (MX or MS)
-        if snr_prefix == 'Y00':
+        if self.mb_type == MbType.native:
+            series = 'MP'
+        elif snr_prefix == 'Y00':
             series = 'MX'
         else:
             series = 'MS'
@@ -671,7 +716,7 @@ class SolarmanV5(SolarmanBase):
         suffix = f'({rated})' if has_rated_suffix else ''
 
         # 4. Add model-specific modifier ('D' for 3000 series)
-        extra = 'D' if max_pow == 3000 else ''
+        extra = 'D' if max_pow == 3000 and self.mb_type == MbType.rtu else ''
 
         # 5. Assemble the final model name string
         model = f'TSOL-{series}{max_pow}{extra}{suffix}'
@@ -850,16 +895,21 @@ class SolarmanV5(SolarmanBase):
         inv_update = False
         self.modbus_elms = 0
         offset = 14
+        resp_fnc = self.mb.recv_resp
         if data[offset] == 0xff:
             offset += 1
             modbus_msg_len -= 1
             logger.debug('Skip invalid byte (0xff) before Modbus message')
+        elif data[offset] == 0x7e:
+            resp_fnc = self.mb.recv_native_resp
+            offset += 1
+            modbus_msg_len -= 1
 
         if (self.mb_scan):
             self._dump_modbus_scan(data, offset, modbus_msg_len)
 
         ts = self._timestamp()
-        for key, update, _ in self.mb.recv_resp(self.db, data[offset:]):
+        for key, update, _ in resp_fnc(self.db, data[offset:]):
             self.modbus_elms += 1
             if update:
                 if key == 'inverter':

@@ -190,16 +190,16 @@ def test_pv_module_config():
         'pv5':{},
                  }
     i.set_pv_module_details(dt)
-    assert 'TSUN1' == i.dev_value(Register.PV1_MANUFACTURER)
-    assert 'TSUN2' == i.dev_value(Register.PV2_MANUFACTURER)
-    assert 'TSUN3' == i.dev_value(Register.PV3_MANUFACTURER)
-    assert None == i.dev_value(Register.PV4_MANUFACTURER)
-    assert None == i.dev_value(Register.PV5_MANUFACTURER)
-    assert 'Module 100W' == i.dev_value(Register.PV1_MODEL)
-    assert  None == i.dev_value(Register.PV2_MODEL)
-    assert 'Module 300W' == i.dev_value(Register.PV3_MODEL)
-    assert 'Module 400W' == i.dev_value(Register.PV4_MODEL)
-    assert  None == i.dev_value(Register.PV5_MODEL)
+    assert i.dev_value(Register.PV1_MANUFACTURER) == 'TSUN1'
+    assert i.dev_value(Register.PV2_MANUFACTURER) == 'TSUN2'
+    assert i.dev_value(Register.PV3_MANUFACTURER) == 'TSUN3'
+    assert i.dev_value(Register.PV4_MANUFACTURER) is None
+    assert i.dev_value(Register.PV5_MANUFACTURER) is None
+    assert i.dev_value(Register.PV1_MODEL) == 'Module 100W'
+    assert i.dev_value(Register.PV2_MODEL) is None
+    assert i.dev_value(Register.PV3_MODEL) == 'Module 300W'
+    assert i.dev_value(Register.PV4_MODEL) == 'Module 400W'
+    assert i.dev_value(Register.PV5_MODEL) is None
 
 def test_broken_info_defs():
     i = Infos()
@@ -213,35 +213,35 @@ def test_broken_info_defs():
 
 def test_get_value():
     i = Infos()
-    assert None == i.get_db_value(Register.PV1_VOLTAGE, None)
-    assert None == i.get_db_value(Register.PV2_VOLTAGE, None)
+    assert i.get_db_value(Register.PV1_VOLTAGE, None) is None
+    assert i.get_db_value(Register.PV2_VOLTAGE, None) is None
 
-    i.set_db_def_value(Register.PV1_VOLTAGE, 30) 
-    assert 30 == i.get_db_value(Register.PV1_VOLTAGE, None)
-    assert None == i.get_db_value(Register.PV2_VOLTAGE, None)
+    i.set_db_def_value(Register.PV1_VOLTAGE, 30) == 30
+    assert i.get_db_value(Register.PV1_VOLTAGE, None)
+    assert i.get_db_value(Register.PV2_VOLTAGE, None) is None
 
     i.set_db_def_value(Register.PV2_VOLTAGE, 30.3) 
-    assert 30 == i.get_db_value(Register.PV1_VOLTAGE, None)
+    assert i.get_db_value(Register.PV1_VOLTAGE, None) == 30
     assert math.isclose(30.3,i.get_db_value(Register.PV2_VOLTAGE, None), rel_tol=1e-09, abs_tol=1e-09)
 
 def test_update_value():
     i = Infos()
-    assert None == i.get_db_value(Register.PV1_VOLTAGE, None)
+    assert i.get_db_value(Register.PV1_VOLTAGE, None) is None
 
     keys = i.info_defs[Register.PV1_VOLTAGE]['name']
     _, update = i.update_db(keys, True, 30) 
     assert update == True
-    assert 30 == i.get_db_value(Register.PV1_VOLTAGE, None)
+    assert i.get_db_value(Register.PV1_VOLTAGE, None) == 30
 
     keys = i.info_defs[Register.PV1_VOLTAGE]['name']
     _, update = i.update_db(keys, True, 30) 
     assert update == False
-    assert 30 == i.get_db_value(Register.PV1_VOLTAGE, None)
+    assert i.get_db_value(Register.PV1_VOLTAGE, None) == 30
 
     keys = i.info_defs[Register.PV1_VOLTAGE]['name']
     _, update = i.update_db(keys, False, 29) 
     assert update == True
-    assert 29 == i.get_db_value(Register.PV1_VOLTAGE, None)
+    assert i.get_db_value(Register.PV1_VOLTAGE, None) == 29
 
 def test_key_obj():
     i = Infos()
@@ -277,3 +277,10 @@ def test_version_cnv():
     assert string == 'V1.2.3F'
     val = Fmt.version(string, reverse=True)
     assert val == tst_val[0]
+
+def test_swap_cnv():
+    tst_val = (0x1234, 0x5678)
+    res = Fmt.swap(tst_val)
+    assert res == 0x12345678
+    val = Fmt.swap(res, reverse=True)
+    assert val == tst_val
