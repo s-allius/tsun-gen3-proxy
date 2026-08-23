@@ -3,7 +3,7 @@
 import shutil
 import logging
 from abc import ABC, abstractmethod
-from schema import Schema, And, Or, Use, Optional
+from schema import Schema, And, Or, Use, Optional, Regex
 
 
 class ConfigIfc(ABC):
@@ -101,7 +101,12 @@ class Config():
                     Optional('bytes', default=0x10): Use(int),
                 },
                 Optional('suggested_area', default=""): Use(str),
-                Optional('sensor_list', default=0): Use(int),
+                Optional('sensor_list', default=0): Or(
+                    Use(int),
+                    And(Use(str),
+                        Regex("^(0x|#)?[0-9a-fA-F]{4}$")
+                        )
+                ),
                 Optional('pv1'): {
                     Optional('type'): Use(str),
                     Optional('manufacturer'): Use(str),
@@ -149,7 +154,12 @@ class Config():
                     Optional('bytes', default=0x10): Use(int),
                 },
                 Optional('suggested_area', default=""): Use(str),
-                Optional('sensor_list', default=0): Use(int),
+                Optional('sensor_list', default=0): Or(
+                    Use(int),
+                    And(Use(str),
+                        Regex("^(0x|#)?[0-9a-fA-F]{4}$")
+                        )
+                ),
                 Optional('pv1'): {
                     Optional('type'): Use(str),
                     Optional('manufacturer'): Use(str),

@@ -60,9 +60,9 @@ class SensorListDetection():
         self.detection_running = True
         self.idx = (self.idx + 1) % len(self.scan_reg)
         reg = self.scan_reg[self.idx]
-        logging.info(f"Testing sensor-list: {reg['list']:#04x}"
+        logging.info(f"Testing sensor-list: {reg['list']:04X}"
                      f" by reading modbus registers at {reg['addr']:#04x} ")
-        logger.info(f"Testing sensor-list: {reg['list']:#04x}"
+        logger.info(f"Testing sensor-list: {reg['list']:04X}"
                     f" by reading modbus registers at {reg['addr']:#04x} ")
 
         return reg['list'], reg['type'], [
@@ -507,10 +507,10 @@ class SolarmanV5(SolarmanBase):
                 return
 
         self.db.set_db_def_value(Register.SENSOR_LIST,
-                                 f"{self.sensor_list:04x}")
-        logging.info(f"Use sensor-list: {self.sensor_list:#04x}"
+                                 f"{self.sensor_list:04X}")
+        logging.info(f"Use sensor-list: {self.sensor_list:04X}"
                      f" for '{serial_no}'")
-        logger.info(f"Use sensor-list: {self.sensor_list:#04x}"
+        logger.info(f"Use sensor-list: {self.sensor_list:04X}"
                     f" for '{serial_no}'")
 
     def _set_serial_no(self, snr: int):
@@ -645,7 +645,7 @@ class SolarmanV5(SolarmanBase):
     def send_dcu_cmd(self, pdu: bytearray):
         if self.sensor_list != 0x3026:
             logger.debug(f'[{self.node_id}] DCU CMD not allowed,'
-                         f' for sensor: {self.sensor_list:#04x}')
+                         f' for sensor: {self.sensor_list:04X}')
             return
 
         if self.state != State.up:

@@ -116,7 +116,7 @@ def inverter_ind_msg():  # 0x4210
 
 @pytest.fixture
 def inverter_rsp_msg():  # 0x1210
-    msg  = b'\xa5\x0a\x00\x10\x12\x02\02' +get_sn()  +b'\x01\x01'
+    msg  = b'\xa5\x0a\x00\x10\x12\x02\x02' +get_sn()  +b'\x01\x01'
     msg += b'\x00\x00\x00\x00'
     msg += b'\x3c\x00\x00\x00'
     msg += correct_checksum(msg)

@@ -592,7 +592,7 @@ def inverter_ind_msg_81():  # 0x4210 fcode 0x81
 
 @pytest.fixture
 def inverter_rsp_msg():  # 0x1210
-    msg  = b'\xa5\x0a\x00\x10\x12\x02\02' +get_sn()  +b'\x01\x01'
+    msg  = b'\xa5\x0a\x00\x10\x12\x02\x02' +get_sn()  +b'\x01\x01'
     msg += total()  
     msg += hb()
     msg += correct_checksum(msg)
@@ -601,7 +601,7 @@ def inverter_rsp_msg():  # 0x1210
 
 @pytest.fixture
 def inverter_rsp_msg_81():  # 0x1210 fcode 0x81
-    msg  = b'\xa5\x0a\x00\x10\x12\x03\03' +get_sn()  +b'\x81\x01'
+    msg  = b'\xa5\x0a\x00\x10\x12\x03\x03' +get_sn()  +b'\x81\x01'
     msg += total()  
     msg += hb()
     msg += correct_checksum(msg)
@@ -2674,7 +2674,7 @@ async def test_start_client_mode_detection(my_loop, config_tsun_detect, msg_modb
     assert m.state == State.up
     assert m.no_forwarding == True
 
-    assert "'Testing sensor-list: 0x2b0 by reading modbus registers at 0x3000" in str(mock_logger.info.mock_calls)
+    assert "'Testing sensor-list: 02B0 by reading modbus registers at 0x3000" in str(mock_logger.info.mock_calls)
     mock_logger.reset_mock()
     m.append_msg(msg_modbus_rsp_mb_Err5)
     m.read()         # read complete msg, and dispatch msg
@@ -2689,7 +2689,7 @@ async def test_start_client_mode_detection(my_loop, config_tsun_detect, msg_modb
     assert m.ifc.tx_fifo.get()==b''
     assert next(m.mb_timer.exp_count) == 1
 
-    assert "'Testing sensor-list: 0x1097 by reading modbus registers at 0x1000" in str(mock_logger.info.mock_calls)
+    assert "'Testing sensor-list: 1097 by reading modbus registers at 0x1000" in str(mock_logger.info.mock_calls)
     mock_logger.reset_mock()
     m.append_msg(msg_modbus_rsp_mb_1097_ok)
     m.read()         # read complete msg, and dispatch msg
@@ -2701,7 +2701,7 @@ async def test_start_client_mode_detection(my_loop, config_tsun_detect, msg_modb
     assert m.mb_type == MbType.rtu
 
     mock_logger.error.assert_not_called()
-    assert "Use sensor-list: 0x1097 for 'Y170000000000002'" in str(mock_logger.info.mock_calls)
+    assert "Use sensor-list: 1097 for 'Y170000000000002'" in str(mock_logger.info.mock_calls)
 
     m.close()
 
@@ -2734,7 +2734,7 @@ async def test_start_client_mode_detection2(my_loop, config_tsun_detect, msg_mod
     assert m.state == State.up
     assert m.no_forwarding == True
 
-    assert "'Testing sensor-list: 0x2b0 by reading modbus registers at 0x3000" in str(mock_logger.info.mock_calls)
+    assert "'Testing sensor-list: 02B0 by reading modbus registers at 0x3000" in str(mock_logger.info.mock_calls)
     assert m.mb_type == MbType.rtu
     mock_logger.reset_mock()
     assert next(m.mb_timer.exp_count) == 0
@@ -2745,7 +2745,7 @@ async def test_start_client_mode_detection2(my_loop, config_tsun_detect, msg_mod
     assert next(m.mb_timer.exp_count) == 2
     m.mb.req_pend = True
 
-    assert "'Testing sensor-list: 0x1097 by reading modbus registers at 0x1000" in str(mock_logger.info.mock_calls)
+    assert "'Testing sensor-list: 1097 by reading modbus registers at 0x1000" in str(mock_logger.info.mock_calls)
     assert m.mb_type == MbType.rtu
     mock_logger.reset_mock()
 
@@ -2755,7 +2755,7 @@ async def test_start_client_mode_detection2(my_loop, config_tsun_detect, msg_mod
     assert next(m.mb_timer.exp_count) == 4
     m.mb.req_pend = True
 
-    assert "'Testing sensor-list: 0x3026 by reading modbus registers at 0x00" in str(mock_logger.info.mock_calls)
+    assert "'Testing sensor-list: 3026 by reading modbus registers at 0x00" in str(mock_logger.info.mock_calls)
     assert m.mb_type == MbType.rtu
     mock_logger.reset_mock()
 
@@ -2765,7 +2765,7 @@ async def test_start_client_mode_detection2(my_loop, config_tsun_detect, msg_mod
     assert next(m.mb_timer.exp_count) == 6
     m.mb.req_pend = True
 
-    assert "'Testing sensor-list: 0x1511 by reading modbus registers at 0xbb8" in str(mock_logger.info.mock_calls)
+    assert "'Testing sensor-list: 1511 by reading modbus registers at 0xbb8" in str(mock_logger.info.mock_calls)
     assert m.mb_type == MbType.native
     mock_logger.reset_mock()
     m.append_msg(inv_command_rsp_msg_native_prot)
@@ -2778,7 +2778,7 @@ async def test_start_client_mode_detection2(my_loop, config_tsun_detect, msg_mod
     assert m.mb_type == MbType.native
 
     mock_logger.error.assert_not_called()
-    assert "Use sensor-list: 0x1511 for 'Y170000000000002'" in str(mock_logger.info.mock_calls)
+    assert "Use sensor-list: 1511 for 'Y170000000000002'" in str(mock_logger.info.mock_calls)
 
     m.close()
 
@@ -2810,7 +2810,7 @@ async def test_start_client_mode_detect_retrans(my_loop, config_tsun_detect, msg
     assert m.state == State.up
     assert m.no_forwarding == True
 
-    assert "'Testing sensor-list: 0x2b0 by reading modbus registers at 0x3000" in str(mock_logger.info.mock_calls)
+    assert "'Testing sensor-list: 02B0 by reading modbus registers at 0x3000" in str(mock_logger.info.mock_calls)
     mock_logger.reset_mock()
     m.append_msg(msg_modbus_rsp_mb_Err5)
     m.read()         # read complete msg, and dispatch msg
@@ -2824,7 +2824,7 @@ async def test_start_client_mode_detect_retrans(my_loop, config_tsun_detect, msg
     assert m.mb.err == 1
     assert next(m.mb_timer.exp_count) == 1
 
-    assert "'Testing sensor-list: 0x2b0 by reading modbus registers at 0x3000" not in str(mock_logger.info.mock_calls)
+    assert "'Testing sensor-list: 02B0 by reading modbus registers at 0x3000" not in str(mock_logger.info.mock_calls)
     mock_logger.reset_mock()
     m.append_msg(msg_modbus_rsp_mb_Err5)
     m.read()         # read complete msg, and dispatch msg
@@ -2837,7 +2837,7 @@ async def test_start_client_mode_detect_retrans(my_loop, config_tsun_detect, msg
     assert m.sent_pdu==bytearray(b'\xa5\x17\x00\x10E\x05\x03!Ce{\x02\x97\x10\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x03\x10\x00\x00\x10@\xc6\x8b\x15')
     assert next(m.mb_timer.exp_count) == 3
 
-    assert "'Testing sensor-list: 0x1097 by reading modbus registers at 0x1000" in str(mock_logger.info.mock_calls)
+    assert "'Testing sensor-list: 1097 by reading modbus registers at 0x1000" in str(mock_logger.info.mock_calls)
     mock_logger.reset_mock()
     m.append_msg(msg_modbus_rsp_mb_1097_ok)
     m.read()         # read complete msg, and dispatch msg
@@ -2849,7 +2849,7 @@ async def test_start_client_mode_detect_retrans(my_loop, config_tsun_detect, msg
     assert m.mb_type == MbType.rtu
 
     mock_logger.error.assert_not_called()
-    assert "Use sensor-list: 0x1097 for 'Y170000000000002'" in str(mock_logger.info.mock_calls)
+    assert "Use sensor-list: 1097 for 'Y170000000000002'" in str(mock_logger.info.mock_calls)
 
     m.close()
 
@@ -2882,7 +2882,7 @@ async def test_start_client_mode_detect_timeout(my_loop, config_tsun_detect, msg
     assert m.state == State.up
     assert m.no_forwarding == True
 
-    assert "'Testing sensor-list: 0x2b0 by reading modbus registers at 0x3000" in str(mock_logger.info.mock_calls)
+    assert "'Testing sensor-list: 02B0 by reading modbus registers at 0x3000" in str(mock_logger.info.mock_calls)
     mock_logger.reset_mock()
     assert next(m.mb_timer.exp_count) == 0
     
@@ -2894,7 +2894,7 @@ async def test_start_client_mode_detect_timeout(my_loop, config_tsun_detect, msg
     assert m.sent_pdu==bytearray(b'\xa5\x17\x00\x10E\x03\x00!Ce{\x02\x97\x10\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x03\x10\x00\x00\x10@\xc6\x86\x15')
     assert next(m.mb_timer.exp_count) == 3
 
-    assert "'Testing sensor-list: 0x1097 by reading modbus registers at 0x1000" in str(mock_logger.info.mock_calls)
+    assert "'Testing sensor-list: 1097 by reading modbus registers at 0x1000" in str(mock_logger.info.mock_calls)
     mock_logger.reset_mock()
     m.append_msg(msg_modbus_rsp_mb_1097_ok)
     m.read()         # read complete msg, and dispatch msg
@@ -2905,7 +2905,7 @@ async def test_start_client_mode_detect_timeout(my_loop, config_tsun_detect, msg
     assert m.sensor_list == 0x1097
 
     mock_logger.error.assert_not_called()
-    assert "Use sensor-list: 0x1097 for 'Y170000000000002'" in str(mock_logger.info.mock_calls)
+    assert "Use sensor-list: 1097 for 'Y170000000000002'" in str(mock_logger.info.mock_calls)
 
     m.close()
 

@@ -55,6 +55,11 @@ configuration:
           Bei aktivem Client-Modus kann der Proxy die gelesenen Daten an die TSUN/Solarman Cloud 
           weiterleiten. Der Proxy emuliert dabei ein Gerät für die Cloud. Aktivieren Sie diese 
           Option, wenn Sie die Weiterleitung nutzen möchten.
+      sensor_list:
+        name: Sensor-Liste
+        description: >-
+          Geben Sie hier die 4 stellige Sensor-Listen Nummer (z. B. „02B0“, „1097“ oder „1511“) an.
+          Lassen sie das Feld leer oder nutzen „0000“ damit der Proxy eine automatische Erkennung durchführt.
       pv1.manufacturer:
         name: PV-1 Modul Hersteller            
       pv1.type:
@@ -133,6 +138,11 @@ configuration:
           Bei aktivem Client-Modus kann der Proxy die gelesenen Daten an die TSUN/Solarman Cloud 
           weiterleiten. Der Proxy emuliert dabei ein Gerät für die Cloud. Aktivieren Sie diese 
           Option, wenn Sie die Weiterleitung nutzen möchten.
+      sensor_list:
+        name: Sensor-Liste
+        description: >-
+          Geben Sie hier die 4 stellige Sensor-Listen Nummer (z. B. „0908“ oder „3026“) an.
+          Lassen sie das Feld leer oder nutzen „0000“ damit der Proxy eine automatische Erkennung durchführt.
       pv1.manufacturer:
         name: PV-1 Modul Hersteller            
       pv1.type:
