@@ -157,7 +157,7 @@ class InverterBase(InverterIfc, Proxy):
     async def async_publ_mqtt(self) -> None:
         '''publish data to MQTT broker'''
         stream = self.local.stream
-        if not stream or not stream.unique_id:
+        if not stream or not stream.unique_id or self.mqtt is None:
             return
         # check if new inverter or collector infos are available or when the
         #  home assistant has changed the status back to online
@@ -170,6 +170,7 @@ class InverterBase(InverterIfc, Proxy):
                     or ('status' in stream.new_data and
                         stream.new_data['status'])
                     or self.mqtt.ha_restarts != self.__ha_restarts):
+                logging.info("Registering proxy entities with Home Assistant")
                 await self._register_proxy_stat_home_assistant()
                 await self.__register_home_assistant(stream)
                 self.__ha_restarts = self.mqtt.ha_restarts
@@ -179,13 +180,11 @@ class InverterBase(InverterIfc, Proxy):
             for key in Infos.new_stat_data:
                 await Proxy._async_publ_mqtt_proxy_stat(key)
 
-        except MqttCodeError as error:
-            logging.error(f'Mqtt except: {error}')
+        except MqttCodeError:
+            logging.exception('Mqtt exception')
         except Exception:
             Infos.inc_counter('SW_Exception')
-            logging.error(
-                f"Inverter: Exception:\n"
-                f"{traceback.format_exc()}")
+            logging.exception("Exception occurred")
 
     async def __async_publ_mqtt_packet(self, stream, key):
         db = stream.db.db

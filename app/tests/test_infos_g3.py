@@ -705,7 +705,7 @@ def test_must_incr_total(inv_data_seq2, inv_data_seq2_zero):
         if key == 'total' or key == 'inverter' or key == 'env':
             assert update == True
             tests +=1   
-    assert tests==12
+    assert tests==13
     assert json.dumps(i.db['total']) == json.dumps({'Daily_Generation': 1.7, 'Total_Generation': 17.36})
     assert json.dumps(i.db['input']) == json.dumps({"pv1": {"Voltage": 33.6, "Current": 1.91, "Power": 64.5, "Daily_Generation": 1.08, "Total_Generation": 9.74}, "pv2": {"Voltage": 33.5, "Current": 1.36, "Power": 45.7, "Daily_Generation": 0.62, "Total_Generation": 7.62}, "pv3": {"Voltage": 0.0, "Current": 0.0, "Power": 0.0}, "pv4": {"Voltage": 0.0, "Current": 0.0, "Power": 0.0}})
     assert json.dumps(i.db['env']) == json.dumps({"Inverter_Status": 1, "Inverter_Temp": 23})
@@ -719,7 +719,7 @@ def test_must_incr_total(inv_data_seq2, inv_data_seq2_zero):
     assert json.dumps(i.db['total']) == json.dumps({'Daily_Generation': 1.7, 'Total_Generation': 17.36})
     assert json.dumps(i.db['input']) == json.dumps({"pv1": {"Voltage": 33.6, "Current": 1.91, "Power": 64.5, "Daily_Generation": 1.08, "Total_Generation": 9.74}, "pv2": {"Voltage": 33.5, "Current": 1.36, "Power": 45.7, "Daily_Generation": 0.62, "Total_Generation": 7.62}, "pv3": {"Voltage": 0.0, "Current": 0.0, "Power": 0.0}, "pv4": {"Voltage": 0.0, "Current": 0.0, "Power": 0.0}})
     assert json.dumps(i.db['env']) == json.dumps({"Inverter_Status": 1, "Inverter_Temp": 23})
-    assert json.dumps(i.db['inverter']) == json.dumps({"Rated_Power": 600, "BOOT_STATUS": 0, "DSP_STATUS": 21930, "Work_Mode": 0, "Max_Designed_Power": -1, "Input_Coefficient": -0.1, "Output_Coefficient": 100.0, "No_Inputs": 2})
+    assert json.dumps(i.db['inverter']) == json.dumps({"Rated_Power": 600, "BOOT_STATUS": 0, "DSP_STATUS": 21930, "Work_Mode": 0, "Max_Designed_Power": -1, "Input_Coefficient": -0.1, "Country": 2, "Output_Coefficient": 100.0, "No_Inputs": 2})
         
     tests = 0
     for key, update in i.parse (inv_data_seq2_zero, sensor=0x01900001):

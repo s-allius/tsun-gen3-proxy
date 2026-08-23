@@ -64,8 +64,8 @@ def test_empty_config():
 
 @pytest.fixture
 def ConfigDefault():
-    return {'gen3plus': {'at_acl': {'mqtt': {'allow': ['AT+'], 'block': []}, 'tsun': {'allow': ['AT+Z', 'AT+UPURL', 'AT+SUPDATE'], 'block': []}}}, 'tsun': {'enabled': True, 'host': 'logger.talent-monitoring.com', 'port': 5005}, 'solarman': {'enabled': True, 'host': 'iot.talent-monitoring.com', 'port': 10000}, 'mqtt': {'host': 'mqtt', 'port': 1883, 'user': None, 'passwd': None}, 'ha': {'auto_conf_prefix': 'homeassistant', 'discovery_prefix': 'homeassistant', 'entity_prefix': 'tsun', 'proxy_node_id': 'proxy', 'proxy_unique_id': 'P170000000000001'},
-                   'inverters': {
+    return {'gen3plus': {'at_acl': {'mqtt': {'allow': ['AT+'], 'block': []}, 'tsun': {'allow': ['AT+Z', 'AT+UPURL', 'AT+SUPDATE'], 'block': []}}}, 'tsun': {'enabled': True, 'listener': True, 'host': 'logger.talent-monitoring.com', 'port': 5005}, 'solarman': {'enabled': True, 'listener': True, 'host': 'iot.talent-monitoring.com', 'port': 10000}, 'mqtt': {'host': 'mqtt', 'port': 1883, 'user': None, 'passwd': None}, 'ha': {'auto_conf_prefix': 'homeassistant', 'discovery_prefix': 'homeassistant', 'entity_prefix': 'tsun', 'proxy_node_id': 'proxy', 'proxy_unique_id': 'P170000000000001'},
+                    'inverters': {
                        'allow_all': False,
                        'R170000000000001': {
                            'suggested_area': '', 
@@ -119,9 +119,11 @@ def ConfigComplete():
                          'block': ['AT+SUPDATE']}
             }
         },
-        'tsun': {'enabled': True, 'host': 'logger.talent-monitoring.com',
+        'tsun': {'enabled': True, 'listener': True,
+                 'host': 'logger.talent-monitoring.com',
                  'port': 5005},
-        'solarman': {'enabled': True, 'host': 'iot.talent-monitoring.com',
+        'solarman': {'enabled': True, 'listener': True,
+                     'host': 'iot.talent-monitoring.com',
                      'port': 10000},
         'mqtt': {'host': 'mqtt', 'port': 1883, 'user': None, 'passwd': None},
         'ha': {'auto_conf_prefix': 'homeassistant',
@@ -181,7 +183,7 @@ def ConfigComplete():
 def test_default_config():
     Config.init(ConfigReadToml("app/src/cnf/default_config.toml"))
     validated = Config.def_config
-    assert validated == {'gen3plus': {'at_acl': {'mqtt': {'allow': ['AT+'], 'block': []}, 'tsun': {'allow': ['AT+Z', 'AT+UPURL', 'AT+SUPDATE'], 'block': []}}}, 'tsun': {'enabled': True, 'host': 'logger.talent-monitoring.com', 'port': 5005}, 'solarman': {'enabled': True, 'host': 'iot.talent-monitoring.com', 'port': 10000}, 'mqtt': {'host': 'mqtt', 'port': 1883, 'user': None, 'passwd': None}, 'ha': {'auto_conf_prefix': 'homeassistant', 'discovery_prefix': 'homeassistant', 'entity_prefix': 'tsun', 'proxy_node_id': 'proxy', 'proxy_unique_id': 'P170000000000001'},
+    assert validated == {'gen3plus': {'at_acl': {'mqtt': {'allow': ['AT+'], 'block': []}, 'tsun': {'allow': ['AT+Z', 'AT+UPURL', 'AT+SUPDATE'], 'block': []}}}, 'tsun': {'enabled': True, 'listener': True, 'host': 'logger.talent-monitoring.com', 'port': 5005}, 'solarman': {'enabled': True, 'listener': True, 'host': 'iot.talent-monitoring.com', 'port': 10000}, 'mqtt': {'host': 'mqtt', 'port': 1883, 'user': None, 'passwd': None}, 'ha': {'auto_conf_prefix': 'homeassistant', 'discovery_prefix': 'homeassistant', 'entity_prefix': 'tsun', 'proxy_node_id': 'proxy', 'proxy_unique_id': 'P170000000000001'},
                          'batteries': {
                              '4100000000000001': {
                                  'modbus_polling': True,
@@ -223,10 +225,10 @@ def test_default_config():
                                  'sensor_list': 0}}}
 
 def test_full_config(ConfigComplete):
-    cnf = {'tsun': {'enabled': True, 'host': 'logger.talent-monitoring.com', 'port': 5005}, 
+    cnf = {'tsun': {'enabled': True, 'listener': True, 'host': 'logger.talent-monitoring.com', 'port': 5005}, 
            'gen3plus': {'at_acl': {'mqtt': {'allow': ['AT+'], 'block': ['AT+SUPDATE']},
                                    'tsun': {'allow': ['AT+Z', 'AT+UPURL', 'AT+SUPDATE'], 'block': ['AT+SUPDATE']}}},
-           'solarman': {'enabled': True, 'host': 'iot.talent-monitoring.com', 'port': 10000}, 
+           'solarman': {'enabled': True, 'listener': True, 'host': 'iot.talent-monitoring.com', 'port': 10000}, 
            'mqtt': {'host': 'mqtt', 'port': 1883, 'user': '', 'passwd': ''}, 
            'ha': {'auto_conf_prefix': 'homeassistant', 'discovery_prefix': 'homeassistant', 'entity_prefix': 'tsun', 'proxy_node_id': 'proxy', 'proxy_unique_id': 'P170000000000001'}, 
            'batteries': {
@@ -257,7 +259,7 @@ def test_read_empty(ConfigDefault):
     assert cnf == ConfigDefault
     
     defcnf = Config.def_config.get('solarman') 
-    assert defcnf == {'enabled': True, 'host': 'iot.talent-monitoring.com', 'port': 10000}
+    assert defcnf == {'enabled': True, 'listener': True, 'host': 'iot.talent-monitoring.com', 'port': 10000}
     assert True == Config.is_default('solarman')
 
 def test_no_file():
@@ -293,7 +295,7 @@ def test_read_cnf1():
 
     assert err == None
     cnf = Config.get()
-    assert cnf == {'gen3plus': {'at_acl': {'mqtt': {'allow': ['AT+'], 'block': []}, 'tsun': {'allow': ['AT+Z', 'AT+UPURL', 'AT+SUPDATE'], 'block': []}}}, 'tsun': {'enabled': True, 'host': 'logger.talent-monitoring.com', 'port': 5005}, 'solarman': {'enabled': False, 'host': 'iot.talent-monitoring.com', 'port': 10000}, 'mqtt': {'host': 'mqtt', 'port': 1883, 'user': None, 'passwd': None}, 'ha': {'auto_conf_prefix': 'homeassistant', 'discovery_prefix': 'homeassistant', 'entity_prefix': 'tsun', 'proxy_node_id': 'proxy', 'proxy_unique_id': 'P170000000000001'},
+    assert cnf == {'gen3plus': {'at_acl': {'mqtt': {'allow': ['AT+'], 'block': []}, 'tsun': {'allow': ['AT+Z', 'AT+UPURL', 'AT+SUPDATE'], 'block': []}}}, 'tsun': {'enabled': True, 'listener': True, 'host': 'logger.talent-monitoring.com', 'port': 5005}, 'solarman': {'enabled': False, 'listener': True, 'host': 'iot.talent-monitoring.com', 'port': 10000}, 'mqtt': {'host': 'mqtt', 'port': 1883, 'user': None, 'passwd': None}, 'ha': {'auto_conf_prefix': 'homeassistant', 'discovery_prefix': 'homeassistant', 'entity_prefix': 'tsun', 'proxy_node_id': 'proxy', 'proxy_unique_id': 'P170000000000001'},
                    'batteries': {
                        '4100000000000001': {
                            'modbus_polling': True,
@@ -338,9 +340,9 @@ def test_read_cnf1():
                     }
                   }
     cnf = Config.get('solarman')
-    assert cnf == {'enabled': False, 'host': 'iot.talent-monitoring.com', 'port': 10000}    
+    assert cnf == {'enabled': False, 'listener': True, 'host': 'iot.talent-monitoring.com', 'port': 10000}    
     defcnf = Config.def_config.get('solarman') 
-    assert defcnf == {'enabled': True, 'host': 'iot.talent-monitoring.com', 'port': 10000}
+    assert defcnf == {'enabled': True, 'listener': True, 'host': 'iot.talent-monitoring.com', 'port': 10000}
     assert False == Config.is_default('solarman')
                    
 def test_read_cnf2():
@@ -353,7 +355,7 @@ def test_read_cnf2():
 
     assert err == None
     cnf = Config.get()
-    assert cnf == {'gen3plus': {'at_acl': {'mqtt': {'allow': ['AT+'], 'block': []}, 'tsun': {'allow': ['AT+Z', 'AT+UPURL', 'AT+SUPDATE'], 'block': []}}}, 'tsun': {'enabled': True, 'host': 'logger.talent-monitoring.com', 'port': 5005}, 'solarman': {'enabled': True, 'host': 'iot.talent-monitoring.com', 'port': 10000}, 'mqtt': {'host': 'mqtt', 'port': 1883, 'user': None, 'passwd': None}, 'ha': {'auto_conf_prefix': 'homeassistant', 'discovery_prefix': 'homeassistant', 'entity_prefix': 'tsun', 'proxy_node_id': 'proxy', 'proxy_unique_id': 'P170000000000001'},
+    assert cnf == {'gen3plus': {'at_acl': {'mqtt': {'allow': ['AT+'], 'block': []}, 'tsun': {'allow': ['AT+Z', 'AT+UPURL', 'AT+SUPDATE'], 'block': []}}}, 'tsun': {'enabled': True, 'listener': True, 'host': 'logger.talent-monitoring.com', 'port': 5005}, 'solarman': {'enabled': True, 'listener': True, 'host': 'iot.talent-monitoring.com', 'port': 10000}, 'mqtt': {'host': 'mqtt', 'port': 1883, 'user': None, 'passwd': None}, 'ha': {'auto_conf_prefix': 'homeassistant', 'discovery_prefix': 'homeassistant', 'entity_prefix': 'tsun', 'proxy_node_id': 'proxy', 'proxy_unique_id': 'P170000000000001'},
                    'batteries': {
                        '4100000000000001': {
                            'modbus_polling': True,
@@ -421,7 +423,7 @@ def test_read_cnf4():
 
     assert err == None
     cnf = Config.get()
-    assert cnf == {'gen3plus': {'at_acl': {'mqtt': {'allow': ['AT+'], 'block': []}, 'tsun': {'allow': ['AT+Z', 'AT+UPURL', 'AT+SUPDATE'], 'block': []}}}, 'tsun': {'enabled': True, 'host': 'logger.talent-monitoring.com', 'port': 5005}, 'solarman': {'enabled': True, 'host': 'iot.talent-monitoring.com', 'port': 5000}, 'mqtt': {'host': 'mqtt', 'port': 1883, 'user': None, 'passwd': None}, 'ha': {'auto_conf_prefix': 'homeassistant', 'discovery_prefix': 'homeassistant', 'entity_prefix': 'tsun', 'proxy_node_id': 'proxy', 'proxy_unique_id': 'P170000000000001'},
+    assert cnf == {'gen3plus': {'at_acl': {'mqtt': {'allow': ['AT+'], 'block': []}, 'tsun': {'allow': ['AT+Z', 'AT+UPURL', 'AT+SUPDATE'], 'block': []}}}, 'tsun': {'enabled': True, 'listener': True, 'host': 'logger.talent-monitoring.com', 'port': 5005}, 'solarman': {'enabled': True, 'listener': True, 'host': 'iot.talent-monitoring.com', 'port': 5000}, 'mqtt': {'host': 'mqtt', 'port': 1883, 'user': None, 'passwd': None}, 'ha': {'auto_conf_prefix': 'homeassistant', 'discovery_prefix': 'homeassistant', 'entity_prefix': 'tsun', 'proxy_node_id': 'proxy', 'proxy_unique_id': 'P170000000000001'},
                    'batteries': {
                        '4100000000000001': {
                            'modbus_polling': True,

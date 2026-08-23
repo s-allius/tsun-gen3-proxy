@@ -1,4 +1,4 @@
-# Home Assistant Add-on: TSUN Proxy
+# Home Assistant App: TSUN Proxy
 
 [TSUN Proxy][tsunproxy] enables a reliable connection between TSUN third generation
 inverters and an MQTT broker. With the proxy, you can easily retrieve real-time values
@@ -8,45 +8,45 @@ The optional connection to the TSUN Cloud can be disabled!
 
 ## Pre-requisites
 
-1. This Add-on requires an MQTT broker to work.
-For a typical installation, we recommend the [Mosquitto add-on][Mosquitto] running on your Home Assistant.
+1. This App requires an MQTT broker to work.
+For a typical installation, we recommend the [Mosquitto App][Mosquitto] running on your Home Assistant.
 
 2. You need to loop the proxy into the connection between the inverter and the TSUN Cloud,
 you must adapt the DNS record within the network that your inverter uses. You need a mapping
 from logger.talent-monitoring.com and/or iot.talent-monitoring.com to the IP address of your
 Home Assistant.
-This can be done, for example, by adding a local DNS record to [AdGuard Home Add-on][AdGuard]
+This can be done, for example, by adding a local DNS record to [AdGuard Home App][AdGuard]
 (navigate to `filters` on the AdGuard panel and add an entry under `custom filtering rules`).
 
 ## Installation
 
-The installation of this add-on is pretty straightforward and not different in
-comparison to installing any other Home Assistant add-on.
+The installation of this app is pretty straightforward and not different in
+comparison to installing any other Home Assistant app.
 
-1. Add the repository URL to the Home Assistant add-on store
+1. Add the repository URL to the Home Assistant app store
 [![Add repository on my Home Assistant][repository-badge]][repository-url]
-2. Reload the add-on store page
-3. Click the "Install" button to install the add-on.
-4. Add your inverter configuration to the add-on configuration
-5. Start the "TSUN-Proxy" add-on
-6. Check the logs of the "TSUN-Proxy" add-on to see if everything went well.
+2. Reload the app store page
+3. Click the "Install" button to install the app.
+4. Add your inverter configuration to the app configuration
+5. Start the "TSUN-Proxy" app
+6. Check the logs of the "TSUN-Proxy" app to see if everything went well.
 
-_Please note, the add-on is pre-configured to connect with
+_Please note, the app is pre-configured to connect with
 Home Assistants default MQTT Broker. There is no need to configure any MQTT parameters
-if you're running an MOSQUITTO add-on. Home Assistant communication and TSUN Cloud URL
+if you're running a Mosquitto app. Home Assistant communication and TSUN Cloud URL
 and Ports are also pre-configured._
 
 This automatic handling of the TSUN Cloud and MQTT Broker conflicts with the
 [TSUN Proxy official documentation][tsunproxy]. The official documentation
 will state `mqtt.host`, `mqtt.port`, `mqtt.user`, `mqtt.passwd` `solarman.host`,
 `solarman.port` `tsun.host`, `tsun.port` and Home Assistant options are required.
-For the add-on, however, this isn't needed.
+For the app, however, this isn't needed.
 
 ## Configuration
 
-**Note**: _Remember to restart the add-on when the configuration is changed._
+**Note**: _Remember to restart the app when the configuration is changed._
 
-Example add-on configuration after installation:
+Example app configuration after installation:
 
 ```yaml
 inverters:
@@ -62,7 +62,7 @@ inverters:
 
 **Note**: _This is just an example, you need to replace the values with your own!_
 
-Example add-on configuration for GEN3PLUS inverters:
+Example app configuration for GEN3PLUS inverters:
 
 ```yaml
 inverters:
@@ -84,7 +84,7 @@ inverters:
     pv4.type: SF-M18/144550
 ```
 
-Example add-on configuration for GEN3PLUS energie storages:
+Example app configuration for GEN3PLUS energy storages:
 
 ```yaml
 batteries:
@@ -101,14 +101,39 @@ batteries:
 
 **Note**: _This is just an example, you need to replace the values with your own!_
 
-more information about the configuration can be found in the [configuration details page][configdetails].
+More information about the configuration can be found in the [configuration details page][configdetails].
 
 ## MQTT settings
 
-By default, this add-on requires no `mqtt` config from the user. **This is not an error!**
+By default, this app requires no `mqtt` config from the user. **This is not an error!**
 
 However, you are free to set them if you want to override, however, in
-general usage, that should not be needed and is not recommended for this add-on.
+general usage, that should not be needed and is not recommended for this app.
+
+## Troubleshooting: "Missing option" Configuration Errors
+
+If you switch the Add-on configuration tab to **YAML mode** and manually delete or modify sections, you might encounter an error upon saving or starting the add-on, such as:
+
+> _Saving failed: Missing option 'mqtt' in root in TSUN-Proxy_
+
+or:
+
+> _Saving failed: Missing option 'ha' in root in TSUN-Proxy_
+
+### Why this happens
+
+The Home Assistant Supervisor requires both structural keys (`mqtt:` and `ha:`) to be present on the root level of your configuration, even if they are empty. If you completely erase the `mqtt:` or `ha:` blocks from the YAML text editor, the system will block the save process.
+
+### How to fix it
+
+Do not delete these objects. If you want to use the default internal Home Assistant configuration without manual overrides, simply leave the blocks empty like this:
+
+```yaml
+mqtt: {}
+ha: {}
+```
+
+As long as both blocks are present in your YAML configuration, the system will validate correctly, allow you to save, and the proxy will use the recommended automatic defaults.
 
 ## Changelog & Releases
 
@@ -121,7 +146,7 @@ based on the following:
 
 - `MAJOR`: Incompatible or major changes.
 - `MINOR`: Backwards-compatible new features and enhancements.
-- `PATCH`: Backwards-compatible bugfixes and package updates.
+- `PATCH`: Backwards-compatible bug fixes and package updates.
 
 ## Support
 

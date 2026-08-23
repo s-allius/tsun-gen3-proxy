@@ -32,6 +32,7 @@ class Register(Enum):
     OUTPUT_COEFFICIENT = 30
     PROD_COMPL_TYPE = 31
     AVAIL_STATUS = 32
+    PROT_VERSION = 33
     INVERTER_CNT = 50
     UNKNOWN_SNR = 51
     UNKNOWN_MSG = 52
@@ -52,6 +53,9 @@ class Register(Enum):
     INVERTER_STATUS = 86
     DETECT_STATUS_1 = 87
     DETECT_STATUS_2 = 88
+    INSULATION_IMP_RX = 89
+    INSULATION_IMP_RY = 90
+    AMBIENT_TEMP = 91
     PV1_VOLTAGE = 100
     PV1_CURRENT = 101
     PV1_POWER = 102
@@ -99,6 +103,16 @@ class Register(Enum):
     DSP_STATUS = 254
     WORK_MODE = 255
     OUTPUT_SHUTDOWN = 256
+    DC1_BUS_VOLTAGE = 257
+    DC2_BUS_VOLTAGE = 258
+    VERSION_QCPU1 = 259
+    VERSION_QCPU2 = 260
+    PV1_ALARM = 261
+    PV2_ALARM = 262
+    PV3_ALARM = 263
+    PV4_ALARM = 264
+    PV5_ALARM = 265
+    PV6_ALARM = 266
 
     GRID_VOLTAGE = 300
     GRID_CURRENT = 301
@@ -228,7 +242,7 @@ class Fmt:
             return None
         result = res[0]
         if isinstance(result, (bytearray, bytes)):
-            result = result.decode().split('\x00')[0]
+            result = result.decode('utf-8', errors='ignore').rstrip('\x00\xff')
         if 'func' in row:
             result = row['func'](res)
         if 'ratio' in row:
@@ -245,6 +259,13 @@ class Fmt:
             return f'{val[0]:04x}'
         else:
             return int(val, 16)
+
+    @staticmethod
+    def swap(val: tuple | int, reverse=False) -> int | tuple:
+        if not reverse:
+            return val[0] << 16 | val[1]
+        else:
+            return (val >> 16, val & 0xffff)
 
     @staticmethod
     def mac(val: tuple | str, reverse=False) -> str | tuple:
@@ -271,7 +292,7 @@ class Fmt:
 
     @staticmethod
     def set_value(buf: bytearray, idx: int, row: dict, val):
-        '''Get a value from buf and interpret as in row defined'''
+        '''Build and set a value in buf as in row defined'''
         fmt = row['fmt']
         if 'offset' in row:
             val = val - row['offset']
@@ -328,12 +349,14 @@ class Infos:
     SOLAR_POWER_VAR = 'mdi:solar-power-variant'
     SOLAR_POWER = 'mdi:solar-power'
     WIFI = 'mdi:wifi'
+    INFOMATION = 'mdi:information-variant'
     ALARM_LIGHT = 'mdi:alarm-light'
     UPDATE = 'mdi:update'
     DAILY_GEN = 'Daily Generation'
     TOTAL_GEN = 'Total Generation'
     TOTAL_CHARG = 'Total Charging Energy'
     FMT_INT = '| int'
+    FMT_STR = '| string'
     FMT_FLOAT = '| float'
     FMT_STRING_SEC = '| string + " s"'
     stat = {}
@@ -379,6 +402,7 @@ class Infos:
 
     __comm_type_val_tpl = "{%set com_types = ['n/a','Wi-Fi', 'G4', 'G5', 'GPRS'] %}{{com_types[value_json['Communication_Type']|int(0)]|default(value_json['Communication_Type'])}}"    # noqa: E501
     __work_mode_val_tpl = "{%set mode = ['Normal-Mode', 'Aging-Mode', 'ATE-Mode', 'Shielding GFDI', 'DTU-Mode'] %}{{mode[value_json['Work_Mode']|int(0)]|default(value_json['Work_Mode'])}}"    # noqa: E501
+    __country_val_tpl = "{%set country = ['Testing', 'Brazil', 'German', 'Netherland', 'Irland', 'Italy', 'Poland', 'Belgium', 'France', 'Austria', 'Spain', 'VDE 0126', 'Australia', 'Thailand MEA', 'Thailand PEA', 'South Afrika', 'UK'] %}{{country[value_json['Country']|int(0)]|default(value_json['Country'])}}"    # noqa: E501
     __status_type_val_tpl = "{%set inv_status = ['Off-line', 'On-grid', 'Off-grid'] %}{{inv_status[value_json['Inverter_Status']|int(0)]|default(value_json['Inverter_Status'])}}"    # noqa: E501
     __mppt1_status_type_val_tpl = "{%set mppt_status = ['Standby', 'On', 'Off'] %}{{mppt_status[value_json['pv1']['MPPT-Status']|int(0)]|default(value_json['pv1']['MPPT-Status'])}}"    # noqa: E501
     __mppt2_status_type_val_tpl = "{%set mppt_status = ['Standby', 'On', 'Off'] %}{{mppt_status[value_json['pv2']['MPPT-Status']|int(0)]|default(value_json['pv2']['MPPT-Status'])}}"    # noqa: E501
@@ -615,6 +639,13 @@ class Infos:
         Register.PV6_MODEL:        {'name': ['inverter', 'PV6_Model'],             'level': logging.DEBUG, 'unit': ''},  # noqa: E501
         Register.BOOT_STATUS:      {'name': ['inverter', 'BOOT_STATUS'],           'level': logging.DEBUG, 'unit': ''},  # noqa: E501
         Register.DSP_STATUS:       {'name': ['inverter', 'DSP_STATUS'],            'level': logging.DEBUG, 'unit': ''},  # noqa: E501
+        Register.VERSION_QCPU1:    {'name': ['inverter', 'FW_Version_QCPU1'],      'level': logging.INFO,  'unit': '',     'ha': {'dev': 'inverter', 'dev_cla': None, 'stat_cla': None, 'id': 'qcpu1_version_',          'fmt': FMT_STR, 'name': 'Fw Version QCPU1', 'icon': INFOMATION, 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.VERSION_QCPU2:    {'name': ['inverter', 'FW_Version_QCPU2'],      'level': logging.INFO,  'unit': '',     'ha': {'dev': 'inverter', 'dev_cla': None, 'stat_cla': None, 'id': 'qcpu2_version_',          'fmt': FMT_STR, 'name': 'Fw Version QCPU2', 'icon': INFOMATION, 'ent_cat': 'diagnostic'}},  # noqa: E501
+
+        Register.INSULATION_IMP_RX: {'name': ['inverter', 'INSULATION_IMP_RX'],    'level': logging.DEBUG, 'unit': 'MΩ',   'ha': {'dev': 'inverter', 'dev_cla': None, 'stat_cla': 'measurement', 'id': 'imp_rx_',  'fmt': FMT_FLOAT, 'name': 'Insulation Impendance RX', 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.INSULATION_IMP_RY: {'name': ['inverter', 'INSULATION_IMP_RY'],    'level': logging.DEBUG, 'unit': 'MΩ',   'ha': {'dev': 'inverter', 'dev_cla': None, 'stat_cla': 'measurement', 'id': 'imp_ry_',  'fmt': FMT_FLOAT, 'name': 'Insulation Impendance RY', 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.PROT_VERSION:      {'name': ['inverter', 'PROT_Version'],         'level': logging.INFO,  'unit': '',     'ha': {'dev': 'inverter', 'dev_cla': None, 'stat_cla': None, 'id': 'prot_version_',          'fmt': FMT_STR, 'name': 'Protocol Version', 'icon': INFOMATION, 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.PROD_COMPL_TYPE:   {'name': ['inverter', 'Country'],              'level': logging.INFO,  'unit': '',     'ha': {'dev': 'inverter', 'comp': 'sensor', 'dev_cla': None, 'stat_cla': None, 'id': 'country_', 'name': 'Country', 'val_tpl': __country_val_tpl,  'icon': 'mdi:earth', 'ent_cat': 'diagnostic'}},  # noqa: E501
         # proxy:
         Register.INVERTER_CNT:       {'name': ['proxy', 'Inverter_Cnt'],       'singleton': True,   'ha': {'dev': 'proxy', 'comp': 'sensor', 'dev_cla': None, 'stat_cla': None, 'id': 'inv_count_',     'fmt': FMT_INT, 'name': 'Active Inverter Connections',    'icon': COUNTER}},  # noqa: E501
         Register.CLOUD_CONN_CNT:     {'name': ['proxy', 'Cloud_Conn_Cnt'],     'singleton': True,   'ha': {'dev': 'proxy', 'comp': 'sensor', 'dev_cla': None, 'stat_cla': None, 'id': 'cloud_conn_count_', 'fmt': FMT_INT, 'name': 'Active Cloud Connections',    'icon': COUNTER}},  # noqa: E501
@@ -650,6 +681,7 @@ class Infos:
         Register.INVERTER_STATUS: {'name': ['env',  'Inverter_Status'],            'level': logging.INFO,  'unit': '',     'ha': {'dev': 'inverter', 'comp': 'sensor', 'dev_cla': None, 'stat_cla': None, 'id': 'inv_status_', 'name': 'Inverter Status', 'val_tpl': __status_type_val_tpl,          'icon': POWER}},  # noqa: E501
         Register.DETECT_STATUS_1: {'name': ['env',  'Detect_Status_1'],            'level': logging.DEBUG, 'unit': ''},  # noqa: E501
         Register.DETECT_STATUS_2: {'name': ['env',  'Detect_Status_2'],            'level': logging.DEBUG, 'unit': ''},  # noqa: E501
+        Register.AMBIENT_TEMP:    {'name': ['env',  'Ambient_Temp'],               'level': logging.DEBUG, 'unit': '°C',   'ha': {'dev': 'inverter', 'dev_cla': 'temperature', 'stat_cla': 'measurement', 'id': 'ambient_',    'fmt': FMT_INT, 'name': 'Ambient Temperature'}},  # noqa: E501
 
         # input measures:
         Register.TS_INPUT:     {'name': ['input', 'Timestamp'],                    'level': logging.INFO,  'unit': ''},  # noqa: E501
@@ -696,7 +728,7 @@ class Infos:
         Register.COMMUNICATION_TYPE: {'name': ['controller', 'Communication_Type'], 'level': logging.INFO, 'unit': '',     'ha': {'dev': 'controller', 'dev_cla': None,       'stat_cla': None,          'id': 'comm_type_',           'name': 'Communication Type', 'val_tpl': __comm_type_val_tpl, 'comp': 'sensor', 'icon': WIFI}},  # noqa: E501
         Register.DATA_UP_INTERVAL:   {'name': ['controller', 'Data_Up_Interval'],   'level': logging.INFO, 'unit': 's',    'ha': {'dev': 'controller', 'dev_cla': None,       'stat_cla': None,          'id': 'data_up_intval_', 'fmt': FMT_STRING_SEC, 'name': 'Data Up Interval', 'icon': UPDATE, 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.HEARTBEAT_INTERVAL: {'name': ['controller', 'Heartbeat_Interval'], 'level': logging.INFO, 'unit': 's',    'ha': {'dev': 'controller', 'dev_cla': None,       'stat_cla': None,          'id': 'heartbeat_intval_',    'fmt': FMT_STRING_SEC, 'name': 'Heartbeat Interval', 'icon': UPDATE, 'ent_cat': 'diagnostic'}},  # noqa: E501
-        Register.IP_ADDRESS:         {'name': ['controller', 'IP_Address'],         'level': logging.INFO, 'unit': '',     'ha': {'dev': 'controller', 'dev_cla': None,       'stat_cla': None,          'id': 'ip_address_',           'fmt': '| string',        'name': 'IP Address', 'icon': WIFI, 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.IP_ADDRESS:         {'name': ['controller', 'IP_Address'],         'level': logging.INFO, 'unit': '',     'ha': {'dev': 'controller', 'dev_cla': None,       'stat_cla': None,          'id': 'ip_address_',           'fmt': FMT_STR,        'name': 'IP Address', 'icon': WIFI, 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.POLLING_INTERVAL:   {'name': ['controller', 'Polling_Interval'],   'level': logging.INFO, 'unit': 's',    'ha': {'dev': 'controller', 'dev_cla': None,       'stat_cla': None,          'id': 'polling_intval_', 'fmt': FMT_STRING_SEC, 'name': 'Polling Interval', 'icon': UPDATE, 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.SENSOR_LIST:        {'name': ['controller', 'Sensor_List'],        'level': logging.INFO,  'unit': ''},  # noqa: E501
         Register.SSID:               {'name': ['controller', 'WiFi_SSID'],          'level': logging.DEBUG, 'unit': ''},  # noqa: E501
@@ -704,7 +736,8 @@ class Infos:
         Register.OUTPUT_SHUTDOWN:    {'name': ['other', 'Output_Shutdown'],         'level': logging.DEBUG, 'unit': ''},  # noqa: E501
         Register.RATED_LEVEL:        {'name': ['other', 'Rated_Level'],             'level': logging.DEBUG, 'unit': ''},  # noqa: E501
         Register.GRID_VOLT_CAL_COEF: {'name': ['other', 'Grid_Volt_Cal_Coef'],      'level': logging.DEBUG, 'unit': ''},  # noqa: E501
-        Register.PROD_COMPL_TYPE:    {'name': ['other', 'Prod_Compliance_Type'],    'level': logging.INFO,  'unit': ''},  # noqa: E501
+        Register.DC1_BUS_VOLTAGE:    {'name': ['other', 'DC1_Bus_Voltage'],         'level': logging.DEBUG, 'unit': 'V',    'ha': {'dev': 'inverter', 'dev_cla': 'voltage',     'stat_cla': 'measurement', 'id': 'bus_volt_1_',  'fmt': FMT_FLOAT, 'name': 'DC1 Bus Voltage', 'ent_cat': 'diagnostic'}},  # noqa: E501
+        Register.DC2_BUS_VOLTAGE:    {'name': ['other', 'DC2_Bus_Voltage'],         'level': logging.DEBUG, 'unit': 'V',    'ha': {'dev': 'inverter', 'dev_cla': 'voltage',     'stat_cla': 'measurement', 'id': 'bus_volt_2_',  'fmt': FMT_FLOAT, 'name': 'DC2 Bus Voltage', 'ent_cat': 'diagnostic'}},  # noqa: E501
         Register.INV_UNKNOWN_1:      {'name': ['inv_unknown', 'Unknown_1'],         'level': logging.DEBUG, 'unit': ''},  # noqa: E501
 
         # Batterie DC-1000: Electricity Genration

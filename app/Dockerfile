@@ -4,11 +4,11 @@ ARG GID=1000
 
 #
 # first stage for our base image
-FROM python:3.13-alpine AS base
+FROM python:3.14.7-alpine AS base
 
 COPY --chmod=0700 ./hardening_base.sh /
 RUN apk upgrade --no-cache && \
-    apk add --no-cache su-exec=0.2-r3	&& \
+    apk add --no-cache su-exec=0.3-r0	&& \
     /hardening_base.sh && \
     rm /hardening_base.sh
 
@@ -18,7 +18,7 @@ FROM base AS builder
 
 # copy the dependencies file to the root dir and install requirements
 COPY ./requirements.txt /root/
-RUN apk add --no-cache build-base=0.5-r3 && \
+RUN apk add --no-cache build-base=0.5-r4 && \
     python -m pip install --no-cache-dir pip==24.3.1 wheel==0.45.1 && \
     python -OO -m pip wheel --no-cache-dir --wheel-dir=/root/wheels -r /root/requirements.txt
 
@@ -31,12 +31,14 @@ ARG VERSION
 ARG UID
 ARG GID
 ARG LOG_LVL=INFO
+ARG TRACE_LVL=INFO
 ARG environment
 
 ENV SERVICE_NAME=$SERVICE_NAME
 ENV UID=$UID
 ENV GID=$GID 
 ENV LOG_LVL=$LOG_LVL
+ENV TRACE_LVL=$TRACE_LVL
 ENV HOME=/home/$SERVICE_NAME
 
     

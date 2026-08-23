@@ -406,7 +406,9 @@ def test_full_config(ConfigComplete):
      }
    ],
    "tsun.enabled": true,
+   "tsun.listener": true,
    "solarman.enabled": true,
+   "solarman.listener": true,
    "inverters.allow_all": false,
    "gen3plus.at_acl.tsun.allow": [
      "AT+Z",

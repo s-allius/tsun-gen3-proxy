@@ -1,0 +1,8 @@
+{
+    "mqtt": {
+        "host"= "mqtt", 
+        "port": 1883, 
+        "user": "", 
+        "passwd": ""
+    }
+}

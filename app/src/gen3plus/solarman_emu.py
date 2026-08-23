@@ -102,14 +102,18 @@ class SolarmanEmu(SolarmanBase):
         '''send a inverter data message to the TSUN cloud'''
         self.hb_timer.start(self.hb_timeout)
         self.data_timer.start(self.data_up_inv)
-        _len = 420
         ftype = 1
-        build_msg = self.db.build(_len, 0x42, ftype, 0x02b0)
+        sensor_list = int(self.db.get_db_value(Register.SENSOR_LIST, "0"),
+                          16)
+
+        logging.info(f"EMU send_data_cb, sensor_list: {sensor_list:#04x}")
+
+        build_msg = self.db.build(0x42, ftype, sensor_list)
 
         self._build_header(0x4210)
         self.ifc.tx_add(
             struct.pack(
-                '<BHLLLHL', ftype, 0x02b0,
+                '<BHLLLHL', ftype, sensor_list,
                 self._emu_timestamp(),
                 self.seconds_since_last_sync(),
                 self.time_ofs,

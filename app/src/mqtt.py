@@ -1,7 +1,6 @@
 import asyncio
 import logging
 import aiomqtt
-import traceback
 import struct
 import inspect
 
@@ -116,9 +115,7 @@ class Mqtt(metaclass=Singleton):
             except Exception:
                 # self.inc_counter('SW_Exception')   # fixme
                 self.ctime = None
-                logger_mqtt.error(
-                    f"Exception:\n"
-                    f"{traceback.format_exc()}")
+                logger_mqtt.exception("Exception occurred")
 
     async def _init_new_conn(self):
         self.ctime = datetime.now()

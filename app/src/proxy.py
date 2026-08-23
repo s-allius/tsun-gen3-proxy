@@ -72,7 +72,7 @@ class Proxy():
         await cls._register_proxy_stat_home_assistant()
 
         # send values of the proxy status counters
-        await asyncio.sleep(0.5)            # wait a bit, before sending data
+        await asyncio.sleep(0.15)            # wait a bit, before sending data
         Infos.new_stat_data['proxy'] = True   # force sending data to sync ha
         await cls._async_publ_mqtt_proxy_stat('proxy')
 

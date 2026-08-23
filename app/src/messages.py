@@ -78,6 +78,14 @@ class State(Enum):
     '''connection closed'''
 
 
+class MbType(Enum):
+    '''type of the modbus encoding'''
+    rtu = 1
+    '''use Modbus RTU encoding'''
+    native = 2
+    '''use TSUN native encoding'''
+
+
 class Message(ProtocolIfc):
     MAX_START_TIME = 400
     '''maximum time without a received msg in sec'''
@@ -121,6 +129,7 @@ class Message(ProtocolIfc):
         self.mb_first_timeout = self.MB_START_TIMEOUT
         '''timer value for next Modbus polling request'''
         self.modbus_polling = False
+        self.mb_type = MbType.rtu
         self.mb_start_reg = 0
         self.mb_step = 0
         self.mb_bytes = 0
@@ -194,7 +203,11 @@ class Message(ProtocolIfc):
             logger.log(log_lvl, f'[{self.node_id}] ignore MODBUS cmd,'
                        ' as the state is not UP')
             return
-        self.mb.build_msg(dev_id, func, addr, val, log_lvl)
+        match(self.mb_type):
+            case MbType.native:
+                self.mb.build_native_msg(func, addr, val, log_lvl)
+            case _:
+                self.mb.build_msg(dev_id, func, addr, val, log_lvl)
 
     def send_modbus_cmd(self, func, addr, val, log_lvl) -> None:
         self._send_modbus_cmd(Modbus.INV_ADDR, func, addr, val, log_lvl)
@@ -215,13 +228,21 @@ class Message(ProtocolIfc):
                               logging.INFO)
 
     def _dump_modbus_scan(self, data, hdr_len, modbus_msg_len):
+        expected_len = 5 + self.mb.last_len * 2
         if (data[hdr_len] == self.mb_inv_no and
-                data[hdr_len+1] == Modbus.READ_REGS):
+                data[hdr_len+1] == Modbus.READ_REGS and
+                modbus_msg_len == expected_len):
             logging.info(f'[{self.node_id}] Valid MODBUS data '
                          f'(reg: 0x{self.mb.last_reg:04x}):')
             hex_dump_memory(logging.INFO, 'Valid MODBUS data '
                             f'(reg: 0x{self.mb.last_reg:04x}):',
                             data[hdr_len:], modbus_msg_len)
+        else:
+            logging.info(f'[{self.node_id}] INvalid MODBUS data '
+                         f'(reg: 0x{self.mb.last_reg:04x}'
+                         f' Code: 0x{data[hdr_len]:02x}'
+                         f'{data[hdr_len+1]:02x}'
+                         f' len:{modbus_msg_len} exp_len:{expected_len}):')
 
     def _inv_disc(self):
         logging.warning(f"Un-Available: [{self.node_id}]")

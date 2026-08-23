@@ -3,7 +3,7 @@ import pytest
 import logging
 import os
 from mock import patch
-from server import app, Server, ProxyState, HypercornLogHndl
+from server import app, Server, ProxyState
 from inverter_base import InverterBase
 from gen3.talent import Talent
 
@@ -44,6 +44,33 @@ class TestServerClass:
             log_lvl = s.get_log_level()
             assert log_lvl == None
 
+    def test_get_trace_level(self):
+        s = self.FakeServer()
+
+        with patch.dict(os.environ, {}):
+            trace_lvl = s.get_trace_level()
+            assert trace_lvl == None
+
+        with patch.dict(os.environ, {'TRACE_LVL': 'DEBUG'}):
+            trace_lvl = s.get_trace_level()
+            assert trace_lvl == logging.DEBUG
+
+        with patch.dict(os.environ, {'TRACE_LVL': 'INFO'}):
+            trace_lvl = s.get_trace_level()
+            assert trace_lvl == logging.INFO
+
+        with patch.dict(os.environ, {'TRACE_LVL': 'WARN'}):
+            trace_lvl = s.get_trace_level()
+            assert trace_lvl == logging.WARNING
+
+        with patch.dict(os.environ, {'TRACE_LVL': 'ERROR'}):
+            trace_lvl = s.get_trace_level()
+            assert trace_lvl == logging.ERROR
+
+        with patch.dict(os.environ, {'TRACE_LVL': 'UNKNOWN'}):
+            trace_lvl = s.get_trace_level()
+            assert trace_lvl == None
+
     def test_default_args(self):
         s = self.FakeServer()
         assert s.config_path == './config/'
@@ -55,39 +82,62 @@ class TestServerClass:
         assert s.log_backups == 0
 
     def test_parse_args_empty(self):
-        s = self.FakeServer()
-        s.parse_args([])
-        assert s.config_path == './config/'
-        assert s.json_config == None
-        assert s.toml_config == None
-        assert s.trans_path == '../translations/'
-        assert s.rel_urls == False
-        assert s.log_path == './log/'
-        assert s.log_backups == 0
+        with patch('os.getcwd', return_value='/my_base'):
+            s = self.FakeServer()
+            s.parse_args([])
+            assert s.config_path == '/my_base/config/'
+            assert s.json_config == None
+            assert s.toml_config == None
+            assert s.trans_path == '../translations/'
+            assert s.rel_urls == False
+            assert s.log_path == '/my_base/log/'
+            assert s.log_backups == 0
 
     def test_parse_args_short(self):
-        s = self.FakeServer()
-        s.parse_args(['-r', '-c', '/tmp/my-config', '-j', 'cnf.jsn', '-t', 'cnf.tml', '-tr', '/my/trans/', '-l', '/my_logs/', '-b', '3'])
-        assert s.config_path == '/tmp/my-config'
-        assert s.json_config == 'cnf.jsn'
-        assert s.toml_config == 'cnf.tml'
-        assert s.trans_path == '/my/trans/'
-        assert s.rel_urls == True
-        assert s.log_path == '/my_logs/'
-        assert s.log_backups == 3
+        with patch('os.getcwd', return_value='/my_base'):
+            s = self.FakeServer()
+            s.parse_args(['-r', '-c', '/my_base/my-config', '-j', 'cnf.jsn', '-t', 'cnf.tml', '-tr', '/my/trans/', '-l', './my_logs/', '-b', '3'])
+            assert s.config_path == '/my_base/my-config/'
+            assert s.json_config == 'cnf.jsn'
+            assert s.toml_config == 'cnf.tml'
+            assert s.trans_path == '/my/trans/'
+            assert s.rel_urls == True
+            assert s.log_path == '/my_base/my_logs/'
+            assert s.log_backups == 3
+
+    def test_parse_args_short2(self):
+        with patch('os.getcwd', return_value='/my_base'):
+            s = self.FakeServer()
+            s.parse_args(['-r', '-c', '/data/my-config', '-j', 'cnf.jsn', '-t', 'cnf.tml', '-tr', '/my/trans/', '-l', '/data/my_logs/', '-b', '3'])
+            assert s.config_path == '/data/my-config/'
+            assert s.json_config == 'cnf.jsn'
+            assert s.toml_config == 'cnf.tml'
+            assert s.trans_path == '/my/trans/'
+            assert s.rel_urls == True
+            assert s.log_path == '/data/my_logs/'
+            assert s.log_backups == 3
 
     def test_parse_args_long(self):
+        with patch('os.getcwd', return_value='/my_base'):
+            s = self.FakeServer()
+            s.parse_args(['--rel_urls', '--config_path', '/homeassistant/my-config', '--json_config', 'cnf.jsn',
+                          '--toml_config', 'cnf.tml', '--trans_path', '/my/trans/', '--log_path', '/homeassistant/my_logs/',
+                          '--log_backups', '3'])
+            assert s.config_path == '/homeassistant/my-config/'
+            assert s.json_config == 'cnf.jsn'
+            assert s.toml_config == 'cnf.tml'
+            assert s.trans_path == '/my/trans/'
+            assert s.rel_urls == True
+            assert s.log_path == '/homeassistant/my_logs/'
+            assert s.log_backups == 3
+
+    def test_parse_path_invalid(self, capsys):
         s = self.FakeServer()
-        s.parse_args(['--rel_urls', '--config_path', '/tmp/my-config', '--json_config', 'cnf.jsn',
-                      '--toml_config', 'cnf.tml', '--trans_path', '/my/trans/', '--log_path', '/my_logs/',
-                      '--log_backups', '3'])
-        assert s.config_path == '/tmp/my-config'
-        assert s.json_config == 'cnf.jsn'
-        assert s.toml_config == 'cnf.tml'
-        assert s.trans_path == '/my/trans/'
-        assert s.rel_urls == True
-        assert s.log_path == '/my_logs/'
-        assert s.log_backups == 3
+        with pytest.raises(SystemExit) as exc_info: 
+            s.parse_args(['--log_path', '/root/my_logs/'])
+        assert exc_info.value.code == 1
+        captured = capsys.readouterr()
+        assert "Access denied (path:/root/my_logs)" in captured.err
 
     def test_parse_args_invalid(self):
         s = self.FakeServer()
@@ -109,25 +159,39 @@ class TestServerClass:
         assert logging.getLogger('data').level == logging.DEBUG
         assert logging.getLogger('tracer').level == logging.INFO
         assert logging.getLogger('asyncio').level == logging.INFO
-        assert logging.getLogger('hypercorn.access').level == logging.INFO
-        assert logging.getLogger('hypercorn.error').level == logging.INFO
+        assert logging.getLogger('server').level == logging.INFO
 
         with patch.dict(os.environ, {'LOG_LVL': 'WARN'}):
             s.parse_args(['--log_backups', '3'])
             s.init_logging_system()
             assert s.log_backups == 3
             assert s.log_level == logging.WARNING
+            assert s.trace_level == logging.WARNING
             assert logging.handlers.log_backups == 3
             assert logging.getLogger().level == s.log_level
-            assert logging.getLogger('msg').level == s.log_level
+            assert logging.getLogger('msg').level == s.trace_level
             assert logging.getLogger('conn').level == s.log_level
             assert logging.getLogger('data').level == s.log_level
-            assert logging.getLogger('tracer').level == s.log_level
+            assert logging.getLogger('tracer').level == s.trace_level
             assert logging.getLogger('asyncio').level == s.log_level
-            assert logging.getLogger('hypercorn.access').level == logging.INFO
-            assert logging.getLogger('hypercorn.error').level == logging.INFO
+            assert logging.getLogger('server').level == logging.INFO
 
-    def test_build_config_error(self, caplog):
+        with patch.dict(os.environ, {'LOG_LVL': 'WARN', 'TRACE_LVL': 'ERROR'}):
+            s.parse_args(['--log_backups', '3'])
+            s.init_logging_system()
+            assert s.log_backups == 3
+            assert s.log_level == logging.WARNING
+            assert s.trace_level == logging.ERROR
+            assert logging.handlers.log_backups == 3
+            assert logging.getLogger().level == s.log_level
+            assert logging.getLogger('msg').level == s.trace_level
+            assert logging.getLogger('conn').level == s.log_level
+            assert logging.getLogger('data').level == s.log_level
+            assert logging.getLogger('tracer').level == s.trace_level
+            assert logging.getLogger('asyncio').level == s.log_level
+            assert logging.getLogger('server').level == logging.INFO
+
+    def test_build_config_error1(self, caplog):
         s = self.FakeServer()
         s.src_dir = 'app/src/'
         s.toml_config = 'app/tests/cnf/invalid_config.toml'
@@ -137,56 +201,21 @@ class TestServerClass:
         assert "Can't read from app/tests/cnf/invalid_config.toml" in caplog.text
         assert "Key 'port' error:" in caplog.text
 
-
-class TestHypercornLogHndl:
-    class FakeServer(Server):
-        def __init__(self):
-            pass  # don't call the suoer(.__init__ for unit tests
-
-    def test_save_and_restore(self, capsys):
+    def test_build_config_error2(self, caplog):
         s = self.FakeServer()
         s.src_dir = 'app/src/'
-        s.init_logging_system()
+        s.json_config = 'app/tests/cnf/invalid_config.json'
 
-        h = HypercornLogHndl()
-        assert h.must_fix == False
-        assert len(h.access_hndl) == 0
-        assert len(h.error_hndl) == 0
-
-        h.save()
-        assert h.must_fix == True
-        assert len(h.access_hndl) == 1
-        assert len(h.error_hndl) == 2
-        assert h.access_hndl == logging.getLogger('hypercorn.access').handlers
-        assert h.error_hndl == logging.getLogger('hypercorn.error').handlers
-
-        logging.getLogger('hypercorn.access').handlers = []
-        logging.getLogger('hypercorn.error').handlers = []
-        
-        h.restore()
-        assert h.must_fix == False
-        assert h.access_hndl == logging.getLogger('hypercorn.access').handlers
-        assert h.error_hndl == logging.getLogger('hypercorn.error').handlers
-        output = capsys.readouterr().out.rstrip()
-        assert "* Fix hypercorn.access setting" in output
-        assert "* Fix hypercorn.error setting" in output
-
-        h.restore()  # second restore do nothing
-        assert h.must_fix == False
-        output = capsys.readouterr().out.rstrip()
-        assert output == ''
-
-        h.save()     # save the same values second time
-        assert h.must_fix == True
-
-        h.restore()  # restore without changing the handlers
-        assert h.must_fix == False
-        output = capsys.readouterr().out.rstrip()
-        assert output == ''
+        with caplog.at_level(logging.ERROR):
+            s.build_config()
+        assert "Can't read from app/tests/cnf/invalid_config.json" in caplog.text
+        assert "Expecting ':' delimiter" in caplog.text
 
 
 class TestApp:
-    @pytest.mark.asyncio
+    EXCEPTION_LOG_MSG = "Exception"
+
+    @pytest.mark.asyncio(loop_scope="module")
     async def test_ready(self):
         """Test the ready route."""
 
@@ -204,7 +233,7 @@ class TestApp:
         result = await response.get_data()
         assert result == b"Is ready"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio(loop_scope="module")
     async def test_healthy(self):
         """Test the healthy route."""
         reader = FakeReader()
@@ -225,7 +254,7 @@ class TestApp:
             result = await response.get_data()
             assert result == b"I'm fine"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio(loop_scope="module")
     async def test_unhealthy(self, monkeypatch, caplog):
         """Test the healthy route."""
         def result_false(self):
@@ -248,14 +277,14 @@ class TestApp:
             assert response.status_code == 200
             result = await response.get_data()
             assert result == b"I'm fine"
-            assert "" == caplog.text
+            assert self.EXCEPTION_LOG_MSG not in caplog.text
 
             ProxyState.set_up(True)
             response = await client.get('/-/healthy')
             assert response.status_code == 503
             result = await response.get_data()
             assert result == b"I have a problem"
-            assert "" == caplog.text
+            assert self.EXCEPTION_LOG_MSG not in caplog.text
 
     @pytest.mark.asyncio
     async def test_healthy_exception(self, monkeypatch, caplog):
@@ -271,7 +300,7 @@ class TestApp:
         InverterBase._registry.clear()
         reader = FakeReader()
         writer = FakeWriter()
-
+        logging.getLogger().level = logging.INFO
         with caplog.at_level(logging.INFO) and InverterBase(reader, writer, 'tsun', Talent):
             ProxyState.set_up(False)
             app.testing = True
@@ -280,11 +309,11 @@ class TestApp:
             assert response.status_code == 200
             result = await response.get_data()
             assert result == b"I'm fine"
-            assert "" == caplog.text
+            assert self.EXCEPTION_LOG_MSG not in caplog.text
 
             ProxyState.set_up(True)
             response = await client.get('/-/healthy')
             assert response.status_code == 200
             result = await response.get_data()
             assert result == b"I'm fine"
-            assert "Exception:" in caplog.text
+            assert self.EXCEPTION_LOG_MSG in caplog.text

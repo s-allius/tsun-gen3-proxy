@@ -7,6 +7,7 @@ load_dotenv()
 
 SOLARMAN_INV_SNR = os.getenv('SOLARMAN_INV_SNR', '00000080')
 SOLARMAN_DCU_SNR = os.getenv('SOLARMAN_DCU_SNR', '00000080')
+SOLARMAN_CLOUD_URL = os.getenv('SOLARMAN_CLOUD_URL', 'logger.talent-monitoring.com')
 
 def get_sn() -> bytes:
     return bytes.fromhex(SOLARMAN_INV_SNR)
@@ -171,7 +172,7 @@ def dcu_data_rsp_msg():  # 0x1210
 
 @pytest.fixture(scope="session")
 def client_connection():
-    host = 'logger.talent-monitoring.com'
+    host = SOLARMAN_CLOUD_URL
     port = 10000
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.connect((host, port))
@@ -188,7 +189,7 @@ def check_response(data, msg):
 
 
 def tempclient_connection():
-    host = 'logger.talent-monitoring.com'
+    host = SOLARMAN_CLOUD_URL
     port = 10000
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.connect((host, port))
