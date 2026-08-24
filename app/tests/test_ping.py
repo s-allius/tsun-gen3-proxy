@@ -25,9 +25,9 @@ async def test_ping():
     # ifc.rx_set_cb(app_read)
     await ifc.server_loop()
     print('End loop')
-    assert 0 == ifc.rx_len()
-    assert 0 == ifc.tx_len()
-    assert b'ping' == writer.buf
+    assert ifc.rx_len() == 0
+    assert ifc.tx_len() == 0
+    assert writer.buf == b'ping'
     del ifc
 
     cnt = 0

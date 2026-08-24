@@ -296,7 +296,7 @@ async def test_modbus_cnf2(config_conn, patch_no_mqtt, patch_open):
             m.ifc._reader.on_recv.set()
             del m
         
-    assert 1 == test
+    assert test == 1
     await asyncio.sleep(0.01)
     assert Infos.stat['proxy']['Inverter_Cnt'] == 0
 
@@ -327,7 +327,7 @@ async def test_modbus_cnf3(config_conn, patch_no_mqtt, patch_open):
                 m.ifc._reader.on_recv.set()
                 del m
 
-    assert 2 == test
+    assert  test == 2
     await asyncio.sleep(0.01)
     assert Infos.stat['proxy']['Inverter_Cnt'] == 0
 

@@ -201,7 +201,7 @@ async def test_snd_inv_data(my_loop, config_tsun_inv1, inverter_ind_msg, inverte
     assert cld.msg_recvd[0]['control']==0x1210
     assert cld.msg_recvd[0]['seq']=='02:02'
     assert cld.msg_recvd[0]['data_len']==0x0a
-    assert '02B0' == cld.db.get_db_value(Register.SENSOR_LIST, None)
+    assert cld.db.get_db_value(Register.SENSOR_LIST, None) == '02B0'
     assert cld.db.stat['proxy']['Unknown_Msg'] == 0
 
     cld.close()
@@ -228,7 +228,7 @@ async def test_rcv_invalid(my_loop, config_tsun_inv1, inverter_ind_msg, inverter
     assert cld.msg_recvd[0]['control']==0x4210
     assert cld.msg_recvd[0]['seq']=='00:01'
     assert cld.msg_recvd[0]['data_len']==0x199
-    assert '02B0' == cld.db.get_db_value(Register.SENSOR_LIST, None)
+    assert cld.db.get_db_value(Register.SENSOR_LIST, None) == '02B0'
     assert cld.db.stat['proxy']['Unknown_Msg'] == 1
 
 
