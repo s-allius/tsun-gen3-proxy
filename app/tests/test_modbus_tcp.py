@@ -15,8 +15,6 @@ from proxy import Proxy
 from modbus_tcp import ModbusConn, ModbusTcp
 
 
-pytest_plugins = ('pytest_asyncio',)
-
 # initialize the proxy statistics
 Infos.static_init()
 

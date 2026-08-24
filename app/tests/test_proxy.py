@@ -12,9 +12,6 @@ from gen3plus.solarman_v5 import SolarmanV5
 from cnf.config import Config
 
 
-pytest_plugins = ('pytest_asyncio',)
-
-
 @pytest.fixture(scope="module", autouse=True)
 def module_init():
     def new_init(cls, cb_mqtt_is_up):

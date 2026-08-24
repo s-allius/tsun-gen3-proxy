@@ -15,8 +15,6 @@ from async_stream import AsyncStream
 
 from test_modbus_tcp import patch_mqtt_err, patch_mqtt_except, test_port, test_hostname
 
-pytest_plugins = ('pytest_asyncio',)
-
 # initialize the proxy statistics
 Infos.static_init()
 

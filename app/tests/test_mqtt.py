@@ -17,8 +17,6 @@ from cnf.config import Config
 NO_MOSQUITTO_TEST = False
 '''disable all tests with connections to test.mosquitto.org'''
 
-pytest_plugins = ('pytest_asyncio',)
-
 @pytest.fixture(autouse=True)
 def module_init():
     Singleton._instances.clear()

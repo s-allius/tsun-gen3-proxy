@@ -10,8 +10,6 @@ from test_solarman import FakeIfc, FakeInverter, MemoryStream, get_sn_int, get_s
 from test_infos_g3p import str_test_ip, bytes_test_ip
 
 
-pytest_plugins = ('pytest_asyncio',)
-
 timestamp = 0x3224c8bc
 
 class InvStream(MemoryStream):

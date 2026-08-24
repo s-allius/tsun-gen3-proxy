@@ -4,8 +4,6 @@ import asyncio
 from modbus import Modbus
 from infos import Infos, Register
 
-pytest_plugins = ('pytest_asyncio',)
-
 class ModbusTestHelper(Modbus):
     def __init__(self):
         super().__init__(self.send_cb)

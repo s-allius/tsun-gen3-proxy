@@ -14,8 +14,6 @@ from gen3plus.inverter_g3p import InverterG3P
 from test_modbus_tcp import patch_mqtt_err, patch_mqtt_except, test_port, test_hostname
 
 
-pytest_plugins = ('pytest_asyncio',)
-
 # initialize the proxy statistics
 Infos.static_init()
 
