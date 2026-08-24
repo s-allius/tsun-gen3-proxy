@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Improve sensor-list configuration [#667](https://github.com/s-allius/tsun-gen3-proxy/issues/667)
 - Update dependency quart to v0.22.0
 - Update ghcr.io/hassio-addons/base Docker tag to v21.0.2
 - Update dependency python-dotenv to v1.2.3
@@ -28,6 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- fix SonarQube warnings and code smells
 - Proxy crashes on receiving 0xff fill bytes in fixed size string arrays [#656](https://github.com/s-allius/tsun-gen3-proxy/issues/656)
 - Fix Regular CRC errors for MODBUS responses [#645](https://github.com/s-allius/tsun-gen3-proxy/issues/645)
 
