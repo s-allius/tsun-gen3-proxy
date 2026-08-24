@@ -19,7 +19,7 @@ NO_MOSQUITTO_TEST = False
 
 pytest_plugins = ('pytest_asyncio',)
 
-@pytest.fixture(scope="function", autouse=True)
+@pytest.fixture(autouse=True)
 def module_init():
     Singleton._instances.clear()
     yield
@@ -35,7 +35,7 @@ def test_hostname():
     # else:
         return 'test.mosquitto.org'
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def aiomqtt_mock(monkeypatch):
     recv_que = asyncio.Queue()
         
