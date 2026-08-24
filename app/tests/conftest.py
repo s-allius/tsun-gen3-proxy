@@ -1,6 +1,7 @@
 import pytest_asyncio
 import asyncio
 
+pytest_plugins = ('pytest_asyncio',)
 
 @pytest_asyncio.fixture
 async def my_loop():

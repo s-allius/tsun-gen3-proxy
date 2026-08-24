@@ -9,8 +9,6 @@ from gen3.talent import Talent
 
 from test_inverter_base import FakeReader, FakeWriter
 
-pytest_plugins = ('pytest_asyncio',)
-
 
 class TestServerClass:
     class FakeServer(Server):

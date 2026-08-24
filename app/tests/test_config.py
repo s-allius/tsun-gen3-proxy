@@ -260,7 +260,7 @@ def test_read_empty(ConfigDefault):
     
     defcnf = Config.def_config.get('solarman') 
     assert defcnf == {'enabled': True, 'listener': True, 'host': 'iot.talent-monitoring.com', 'port': 10000}
-    assert True == Config.is_default('solarman')
+    assert Config.is_default('solarman') == True
 
 def test_no_file():
     Config.init(ConfigReadToml("default_config.toml"))
@@ -343,7 +343,7 @@ def test_read_cnf1():
     assert cnf == {'enabled': False, 'listener': True, 'host': 'iot.talent-monitoring.com', 'port': 10000}    
     defcnf = Config.def_config.get('solarman') 
     assert defcnf == {'enabled': True, 'listener': True, 'host': 'iot.talent-monitoring.com', 'port': 10000}
-    assert False == Config.is_default('solarman')
+    assert Config.is_default('solarman') == False
                    
 def test_read_cnf2():
     test_buffer.rd = "solarman.enabled = 'FALSE'"
@@ -399,7 +399,7 @@ def test_read_cnf2():
                        }
                     }
                   }
-    assert True == Config.is_default('solarman')
+    assert Config.is_default('solarman') == True
 
 def test_read_cnf3(ConfigDefault):
     test_buffer.rd = "solarman.port = 'FALSE'"
@@ -467,7 +467,7 @@ def test_read_cnf4():
                        }
                     }
                   }
-    assert False == Config.is_default('solarman')
+    assert Config.is_default('solarman') == False
 
 def test_read_cnf5():
     test_buffer.rd = "solarman.port = 1023"

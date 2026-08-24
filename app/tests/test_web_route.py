@@ -29,7 +29,6 @@ class FakeServer(Server):
         pass  # don't call the suoer(.__init__ for unit tests
 
 
-pytest_plugins = ('pytest_asyncio',)
 @pytest.fixture(scope="module")
 def app():
     yield my_app

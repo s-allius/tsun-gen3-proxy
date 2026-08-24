@@ -22,8 +22,6 @@ from test_modbus_tcp import test_port, test_hostname
 
 
 
-pytest_plugins = ('pytest_asyncio',)
-
 # initialize the proxy statistics
 Infos.static_init()
 

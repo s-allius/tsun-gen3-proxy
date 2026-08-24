@@ -15,15 +15,12 @@ from proxy import Proxy
 from modbus_tcp import ModbusConn, ModbusTcp
 
 
-pytest_plugins = ('pytest_asyncio',)
-
 # initialize the proxy statistics
 Infos.static_init()
 
 @pytest.fixture(scope="module", autouse=True)
 def module_init():
     Singleton._instances.clear()
-    yield
 
 @pytest.fixture(scope="module")
 def test_port():
@@ -131,7 +128,7 @@ class FakeWriter():
             return self.conn
         elif sel == 'sockname':
             return 'sock:1234'
-        assert False
+        pytest.fail('unsupportet value for sel argument in get_extra_info() call')
     def is_closing(self):
         return self.closing
     def close(self):

@@ -15,8 +15,6 @@ from async_stream import AsyncStream
 
 from test_modbus_tcp import patch_mqtt_err, patch_mqtt_except, test_port, test_hostname
 
-pytest_plugins = ('pytest_asyncio',)
-
 # initialize the proxy statistics
 Infos.static_init()
 
@@ -42,7 +40,7 @@ def config_conn():
 @pytest.fixture(scope="module", autouse=True)
 def module_init():
     Singleton._instances.clear()
-    yield
+
 
 class FakeReader():
     def __init__(self):
@@ -62,7 +60,7 @@ class FakeWriter():
             return ('47.1.2.3', 10000)
         elif sel == 'sockname':
             return 'sock:1234'
-        assert False
+        pytest.fail('unsupportet value for sel argument in get_extra_info() call')
     def is_closing(self):
         return False
     def close(self):

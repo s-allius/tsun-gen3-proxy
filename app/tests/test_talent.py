@@ -10,8 +10,6 @@ from messages import State
 from mock import patch
 
  
-pytest_plugins = ('pytest_asyncio',)
-
 # initialize the proxy statistics
 Infos.static_init()
 

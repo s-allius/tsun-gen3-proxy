@@ -13,7 +13,6 @@ from mock import patch, call
 from test_modbus_tcp import FakeReader, FakeWriter
 from test_inverter_base import config_conn, patch_open_connection
 
-pytest_plugins = ('pytest_asyncio',)
 
 # initialize the proxy statistics
 Infos.static_init()
