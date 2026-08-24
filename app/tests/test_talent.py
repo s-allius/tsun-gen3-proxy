@@ -1493,7 +1493,7 @@ def test_msg_act_time(config_no_modbus_poll, msg_act_time, msg_act_time_ack):
     assert m.ifc.fwd_fifo.get()==msg_act_time
     assert m.ifc.tx_fifo.get()==msg_act_time_ack
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
-    assert 125 == m.db.get_db_value(Register.POLLING_INTERVAL, 0)
+    assert m.db.get_db_value(Register.POLLING_INTERVAL, 0) == 125
     m.close()
 
 def test_msg_act_time2(config_tsun_inv1, msg_act_time, msg_act_time_ack):
@@ -1517,7 +1517,7 @@ def test_msg_act_time2(config_tsun_inv1, msg_act_time, msg_act_time_ack):
     assert m.ifc.fwd_fifo.get()==msg_act_time
     assert m.ifc.tx_fifo.get()==msg_act_time_ack
     assert m.db.stat['proxy']['Unknown_Ctrl'] == 0
-    assert 123 == m.db.get_db_value(Register.POLLING_INTERVAL, 0)
+    assert m.db.get_db_value(Register.POLLING_INTERVAL, 0) == 123
     m.close()
 
 def test_msg_act_time_ofs(config_tsun_inv1, msg_act_time, msg_act_time_ofs, msg_act_time_ack):
@@ -1905,12 +1905,12 @@ def test_msg_inv_invalid(config_tsun_inv1, msg_inverter_invalid):
 def test_build_modell_3000(config_tsun_allow_all, msg_inverter_ms3000_ind):
     _ = config_tsun_allow_all
     m = MemoryStream(msg_inverter_ms3000_ind, (0,))
-    assert 0 == m.db.get_db_value(Register.MAX_DESIGNED_POWER, 0)
-    assert None == m.db.get_db_value(Register.RATED_POWER, None)
-    assert None == m.db.get_db_value(Register.INVERTER_TEMP, None)
+    assert m.db.get_db_value(Register.MAX_DESIGNED_POWER, 0) == 0
+    assert m.db.get_db_value(Register.RATED_POWER, None) == None
+    assert m.db.get_db_value(Register.INVERTER_TEMP, None) == None
     m.read()         # read complete msg, and dispatch msg
-    assert 3000 == m.db.get_db_value(Register.MAX_DESIGNED_POWER, 0)
-    assert 0 == m.db.get_db_value(Register.RATED_POWER, 0)
+    assert m.db.get_db_value(Register.MAX_DESIGNED_POWER, 0) == 3000
+    assert m.db.get_db_value(Register.RATED_POWER, 0) == 0
     assert 'TSOL-MS3000' == m.db.get_db_value(Register.EQUIPMENT_MODEL, 0)
     m.close()
 
@@ -2006,7 +2006,7 @@ def test_msg_unknown(config_tsun_inv1, msg_unknown):
     assert m.data_len==4
     assert m.ifc.fwd_fifo.get()==msg_unknown
     assert m.ifc.tx_fifo.get()==b''
-    assert 1 == m.db.stat['proxy']['Unknown_Msg']
+    assert m.db.stat['proxy']['Unknown_Msg'] == 1
     m.close()
 
 def test_ctrl_byte():
@@ -2081,8 +2081,8 @@ def test_proxy_counter():
     assert Infos.new_stat_data == {'proxy': True}
     assert m.db.new_stat_data == {'proxy': True}
     assert c.db.new_stat_data == {'proxy': True}
-    assert 1 == m.db.stat['proxy']['Unknown_Msg']
-    assert 1 == c.db.stat['proxy']['Unknown_Msg']
+    assert m.db.stat['proxy']['Unknown_Msg'] == 1
+    assert c.db.stat['proxy']['Unknown_Msg'] == 1
     Infos.new_stat_data['proxy'] =  False
 
     c.inc_counter('Unknown_Msg')
@@ -2090,8 +2090,8 @@ def test_proxy_counter():
     assert Infos.new_stat_data == {'proxy': True}
     assert m.db.new_stat_data == {'proxy': True}
     assert c.db.new_stat_data == {'proxy': True}
-    assert 2 == m.db.stat['proxy']['Unknown_Msg']
-    assert 2 == c.db.stat['proxy']['Unknown_Msg']
+    assert m.db.stat['proxy']['Unknown_Msg'] == 2
+    assert c.db.stat['proxy']['Unknown_Msg'] == 2
     Infos.new_stat_data['proxy'] =  False
 
     c.inc_counter('Modbus_Command')
@@ -2099,14 +2099,14 @@ def test_proxy_counter():
     assert Infos.new_stat_data == {'proxy': True}
     assert m.db.new_stat_data == {'proxy': True}
     assert c.db.new_stat_data == {'proxy': True}
-    assert 2 == m.db.stat['proxy']['Modbus_Command']
-    assert 2 == c.db.stat['proxy']['Modbus_Command']
+    assert m.db.stat['proxy']['Modbus_Command'] == 2
+    assert c.db.stat['proxy']['Modbus_Command'] == 2
 
     Infos.new_stat_data['proxy'] =  False
     m.dec_counter('Unknown_Msg')
     assert m.new_data == {}
     assert Infos.new_stat_data == {'proxy': True}
-    assert 1 == m.db.stat['proxy']['Unknown_Msg']
+    assert m.db.stat['proxy']['Unknown_Msg'] == 1
     m.close()
 
 def test_msg_modbus_req(config_tsun_inv1, msg_modbus_cmd):
@@ -2410,14 +2410,14 @@ async def test_msg_build_modbus_req(config_tsun_inv1, msg_modbus_cmd):
     m = MemoryStream(b'', (0,), True)
     m.id_str = b"R170000000000001" 
     m.send_modbus_cmd(Modbus.WRITE_SINGLE_REG, 0x2008, 0, logging.DEBUG)
-    assert 0 == m.send_msg_ofs
+    assert m.send_msg_ofs == 0
     assert m.ifc.fwd_fifo.get() == b''
     assert m.ifc.tx_fifo.get() == b''
     assert m.sent_pdu == b''
 
     m.state = State.up
     m.send_modbus_cmd(Modbus.WRITE_SINGLE_REG, 0x2008, 0, logging.DEBUG)
-    assert 0 == m.send_msg_ofs
+    assert m.send_msg_ofs == 0
     assert m.ifc.fwd_fifo.get() == b''
     assert m.ifc.tx_fifo.get() == b''
     assert m.sent_pdu == msg_modbus_cmd

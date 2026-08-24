@@ -31,7 +31,7 @@ class FakeServer(Server):
 
 @pytest.fixture(scope="module")
 def app():
-    yield my_app
+    return my_app
 
 @pytest.fixture(scope="module")
 def client(app):

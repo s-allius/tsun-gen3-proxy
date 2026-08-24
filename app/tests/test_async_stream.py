@@ -38,11 +38,11 @@ def test_timeout_cb():
         return 13
     
     ifc =  AsyncStreamClient(reader, writer, None, None)
-    assert 360 == ifc._AsyncStream__timeout()
+    assert ifc._AsyncStream__timeout() == 360
     ifc.prot_set_timeout_cb(timeout)
-    assert 13 == ifc._AsyncStream__timeout()
+    assert ifc._AsyncStream__timeout() == 13
     ifc.prot_set_timeout_cb(None)
-    assert 360 == ifc._AsyncStream__timeout()
+    assert ifc._AsyncStream__timeout() == 360
 
     # call healthy outside the contexter manager (__exit__() was called)
     assert ifc.healthy()
@@ -150,7 +150,7 @@ async def test_read():
     await ifc.client_loop('')
     print('End loop')
     assert ifc.proc_max >= 3
-    assert 13 == ifc.rx_len()
+    assert ifc.rx_len() == 13
     assert cnt == 1
     del ifc
 
@@ -188,12 +188,12 @@ async def test_write():
     ifc.prot_set_timeout_cb(timeout)
     ifc.rx_set_cb(app_read)
     ifc.tx_add(b'test-data-resp')
-    assert 14 == ifc.tx_len()
+    assert ifc.tx_len() == 14
     await ifc.client_loop('')
     print('End loop')
     assert ifc.proc_max >= 3
-    assert 13 == ifc.rx_len()
-    assert 0 == ifc.tx_len()
+    assert ifc.rx_len() == 13
+    assert ifc.tx_len() == 0
     assert cnt == 1
     del ifc
 
