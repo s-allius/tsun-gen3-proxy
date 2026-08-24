@@ -40,7 +40,7 @@ def config_conn():
 @pytest.fixture(scope="module", autouse=True)
 def module_init():
     Singleton._instances.clear()
-    yield
+
 
 class FakeReader():
     def __init__(self):
@@ -60,7 +60,7 @@ class FakeWriter():
             return ('47.1.2.3', 10000)
         elif sel == 'sockname':
             return 'sock:1234'
-        assert False
+        pytest.fail('unsupportet value for sel argument in get_extra_info() call')
     def is_closing(self):
         return False
     def close(self):

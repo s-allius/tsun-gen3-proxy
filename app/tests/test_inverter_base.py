@@ -39,7 +39,7 @@ def config_conn():
 @pytest.fixture(scope="module", autouse=True)
 def module_init():
     Singleton._instances.clear()
-    yield
+
 
 class FakeReader():
     def __init__(self):
@@ -60,7 +60,7 @@ class FakeWriter():
             return self.peer
         elif sel == 'sockname':
             return 'sock:1234'
-        assert False
+        pytest.fail('unsupportet value for sel argument in get_extra_info() call')
     def is_closing(self):
         return False
     def close(self):
@@ -128,7 +128,7 @@ async def test_inverter_iter(my_loop):
     assert cnt == 1
     
     for inv in InverterBase:
-        assert False
+        pytest.fail('There are still instances of the InverterBase class')
 
 @pytest.mark.asyncio(loop_scope="module")
 async def test_method_calls(patch_healthy):
