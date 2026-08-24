@@ -55,6 +55,11 @@ configuration:
           When Client Mode is active, the proxy can forward the retrieved data to the 
           TSUN/Solarman Cloud. The proxy then emulates a device for the cloud. Enable 
           this option if you want to use the forwarding feature.  batteries:
+      sensor_list:
+        name: Sensor List
+        description: >-
+          Enter the 4-digit sensor list number here (e.g., “02B0,” “1097,” or “1511”).
+          Leave the field blank or enter “0000” so that the proxy can perform automatic detection.
       pv1.manufacturer:
         name: PV-1 Manufacturer          
       pv1.type:
@@ -63,6 +68,22 @@ configuration:
         name: PV-2 Manufacturer          
       pv2.type:
         name: PV-2 Type
+      pv3.manufacturer:
+        name: PV-3 Manufacturer          
+      pv3.type:
+        name: PV-3 Type
+      pv4.manufacturer:
+        name: PV-4 Manufacturer          
+      pv4.type:
+        name: PV-4 Type
+      pv5.manufacturer:
+        name: PV-5 Manufacturer          
+      pv5.type:
+        name: PV-5 Type
+      pv6.manufacturer:
+        name: PV-6 Manufacturer          
+      pv6.type:
+        name: PV-6 Type
   batteries:
     name: Batteries
     fields:
@@ -117,6 +138,11 @@ configuration:
           When Client Mode is active, the proxy can forward the retrieved data to the 
           TSUN/Solarman Cloud. The proxy then emulates a device for the cloud. Enable 
           this option if you want to use the forwarding feature.
+      sensor_list:
+        name: Sensor List
+        description: >-
+          Enter the 4-digit sensor list number here (e.g., "0908" or "3026").
+          Leave the field blank or enter "0000" so that the proxy can perform automatic detection.
       pv1.manufacturer:
         name: PV-1 Manufacturer          
       pv1.type:

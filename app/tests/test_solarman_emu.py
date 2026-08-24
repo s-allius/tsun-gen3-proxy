@@ -116,7 +116,7 @@ def inverter_ind_msg():  # 0x4210
 
 @pytest.fixture
 def inverter_rsp_msg():  # 0x1210
-    msg  = b'\xa5\x0a\x00\x10\x12\x02\02' +get_sn()  +b'\x01\x01'
+    msg  = b'\xa5\x0a\x00\x10\x12\x02\x02' +get_sn()  +b'\x01\x01'
     msg += b'\x00\x00\x00\x00'
     msg += b'\x3c\x00\x00\x00'
     msg += correct_checksum(msg)
@@ -203,7 +203,7 @@ async def test_snd_inv_data(my_loop, config_tsun_inv1, inverter_ind_msg, inverte
     assert cld.msg_recvd[0]['control']==0x1210
     assert cld.msg_recvd[0]['seq']=='02:02'
     assert cld.msg_recvd[0]['data_len']==0x0a
-    assert '02b0' == cld.db.get_db_value(Register.SENSOR_LIST, None)
+    assert '02B0' == cld.db.get_db_value(Register.SENSOR_LIST, None)
     assert cld.db.stat['proxy']['Unknown_Msg'] == 0
 
     cld.close()
@@ -230,7 +230,7 @@ async def test_rcv_invalid(my_loop, config_tsun_inv1, inverter_ind_msg, inverter
     assert cld.msg_recvd[0]['control']==0x4210
     assert cld.msg_recvd[0]['seq']=='00:01'
     assert cld.msg_recvd[0]['data_len']==0x199
-    assert '02b0' == cld.db.get_db_value(Register.SENSOR_LIST, None)
+    assert '02B0' == cld.db.get_db_value(Register.SENSOR_LIST, None)
     assert cld.db.stat['proxy']['Unknown_Msg'] == 1
 
 

@@ -199,7 +199,7 @@ def test_cnv4():
        "pv1.type": "type1",
        "pv2.manufacturer": "man2",
        "pv2.type": "type2",
-       "sensor_list": 688
+       "sensor_list": "02b0"
      },
      {
        "serial": "Y170000000000001",
@@ -254,7 +254,7 @@ def test_cnv4():
                                            'pv2': {
                                                'manufacturer': 'man2',
                                                 'type': 'type2'},
-                                           'sensor_list': 688,
+                                           'sensor_list': "02b0",
                                            'suggested_area': 'Garage'},
                       'Y170000000000001': {'client_mode': {
                                                 'host': 'InverterIP',

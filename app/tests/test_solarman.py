@@ -592,7 +592,7 @@ def inverter_ind_msg_81():  # 0x4210 fcode 0x81
 
 @pytest.fixture
 def inverter_rsp_msg():  # 0x1210
-    msg  = b'\xa5\x0a\x00\x10\x12\x02\02' +get_sn()  +b'\x01\x01'
+    msg  = b'\xa5\x0a\x00\x10\x12\x02\x02' +get_sn()  +b'\x01\x01'
     msg += total()  
     msg += hb()
     msg += correct_checksum(msg)
@@ -601,7 +601,7 @@ def inverter_rsp_msg():  # 0x1210
 
 @pytest.fixture
 def inverter_rsp_msg_81():  # 0x1210 fcode 0x81
-    msg  = b'\xa5\x0a\x00\x10\x12\x03\03' +get_sn()  +b'\x81\x01'
+    msg  = b'\xa5\x0a\x00\x10\x12\x03\x03' +get_sn()  +b'\x81\x01'
     msg += total()  
     msg += hb()
     msg += correct_checksum(msg)
@@ -1332,7 +1332,7 @@ async def test_read_two_messages(my_loop, config_tsun_allow_all, device_ind_msg,
     _ = config_tsun_allow_all
     m = MemoryStream(device_ind_msg, (0,))
     m.append_msg(inverter_ind_msg)
-    assert m.sensor_list == 0
+    assert m.sensor_list.no == 0
     m._init_new_client_conn()
     m.read()         # read complete msg, and dispatch msg
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
@@ -1348,7 +1348,7 @@ async def test_read_two_messages(my_loop, config_tsun_allow_all, device_ind_msg,
     assert m.msg_recvd[1]['seq']=='02:02'
     assert m.msg_recvd[1]['data_len']==0x199
     assert m.db.get_db_value(Register.SENSOR_LIST, None) == '02b0'
-    assert m.sensor_list == 0x02b0
+    assert m.sensor_list.no == 0x02b0
     assert m.ifc.fwd_fifo.get()==device_ind_msg+inverter_ind_msg
     assert m.ifc.tx_fifo.get()==device_rsp_msg+inverter_rsp_msg
 
@@ -1388,7 +1388,7 @@ async def test_read_two_messages3(my_loop, config_tsun_allow_all, device_ind_msg
     _ = config_tsun_allow_all
     m = MemoryStream(inverter_ind_msg, (0,))
     m.append_msg(device_ind_msg2)
-    assert m.sensor_list == 0
+    assert m.sensor_list.no == 0
     m._init_new_client_conn()
     m.read()         # read complete msg, and dispatch msg
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
@@ -1404,7 +1404,7 @@ async def test_read_two_messages3(my_loop, config_tsun_allow_all, device_ind_msg
     assert m.msg_recvd[1]['seq']=='03:03'
     assert m.msg_recvd[1]['data_len']==0xd4
     assert m.db.get_db_value(Register.SENSOR_LIST, None) == '02b0'
-    assert m.sensor_list == 0x02b0
+    assert m.sensor_list.no == 0x02b0
     assert m.ifc.fwd_fifo.get()==inverter_ind_msg+device_ind_msg2
     assert m.ifc.tx_fifo.get()==inverter_rsp_msg+device_rsp_msg2
 
@@ -1417,7 +1417,7 @@ async def test_read_two_messages4(my_loop, config_tsun_dcu1, dcu_dev_ind_msg, dc
     _ = config_tsun_dcu1
     m = MemoryStream(dcu_dev_ind_msg, (0,))
     m.append_msg(dcu_data_ind_msg)
-    assert m.sensor_list == 0
+    assert m.sensor_list.no == 0
     m._init_new_client_conn()
     m.read()         # read complete msg, and dispatch msg
     assert m.db.stat['proxy']['Invalid_Msg_Format'] == 0
@@ -1433,7 +1433,7 @@ async def test_read_two_messages4(my_loop, config_tsun_dcu1, dcu_dev_ind_msg, dc
     assert m.msg_recvd[1]['seq']=='02:93'
     assert m.msg_recvd[1]['data_len']==111
     assert m.db.get_db_value(Register.SENSOR_LIST, None) == '3026'
-    assert m.sensor_list == 0x3026
+    assert m.sensor_list.no == 0x3026
     assert m.ifc.fwd_fifo.get()==dcu_dev_ind_msg+dcu_data_ind_msg
     assert m.ifc.tx_fifo.get()==dcu_dev_rsp_msg+dcu_data_rsp_msg
 
@@ -1678,7 +1678,7 @@ async def test_sync_end_rsp(my_loop, config_tsun_inv1, sync_end_rsp_msg):
 async def test_build_modell_600(my_loop, config_tsun_allow_all, inverter_ind_msg):
     _ = config_tsun_allow_all
     m = MemoryStream(inverter_ind_msg, (0,))
-    assert m.sensor_list == 0
+    assert m.sensor_list.no == 0
     assert m.db.get_db_value(Register.MAX_DESIGNED_POWER, 0) == 0
     assert m.db.get_db_value(Register.RATED_POWER, None) is None
     assert m.db.get_db_value(Register.INVERTER_TEMP, None) is None
@@ -1688,7 +1688,7 @@ async def test_build_modell_600(my_loop, config_tsun_allow_all, inverter_ind_msg
     assert m.db.get_db_value(Register.NO_INPUTS, 0) == 4
     assert m.db.get_db_value(Register.EQUIPMENT_MODEL, 0) == 'TSOL-MS2000(600)'
     assert m.db.get_db_value(Register.SENSOR_LIST, None) == '02b0'
-    assert m.sensor_list == 0  # must not been set by an inverter data ind
+    assert m.sensor_list.no == 0  # must not been set by an inverter data ind
 
     m.ifc.tx_clear() # clear send buffer for next test    
     m._init_new_client_conn()
@@ -2664,8 +2664,8 @@ async def test_start_client_mode_detection(my_loop, config_tsun_detect, msg_modb
     assert m.mb_timer.tim == None
     assert asyncio.get_running_loop() == m.mb_timer.loop
     m.send_start_cmd(get_sn_int(), str_test_ip, False, m.mb_first_timeout)
-    assert m.sensor_list_detection.detection_running == True
-    assert m.sensor_list == 0x2b0
+    assert m.sensor_list_detection.is_running() == True
+    assert m.sensor_list.no == 0x2b0
     assert m.mb_type == MbType.rtu
     assert m.sent_pdu==bytearray(b'\xa5\x17\x00\x10E\x01\x00!Ce{\x02\xb0\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x030\x00\x000J\xde\xf1\x15')
     assert m.db.get_db_value(Register.IP_ADDRESS) == str_test_ip
@@ -2674,7 +2674,7 @@ async def test_start_client_mode_detection(my_loop, config_tsun_detect, msg_modb
     assert m.state == State.up
     assert m.no_forwarding == True
 
-    assert "'Testing sensor-list: 0x2b0 by reading modbus registers at 0x3000" in str(mock_logger.info.mock_calls)
+    assert "'Testing sensor-list: 02B0 by reading modbus registers at 0x3000" in str(mock_logger.info.mock_calls)
     mock_logger.reset_mock()
     m.append_msg(msg_modbus_rsp_mb_Err5)
     m.read()         # read complete msg, and dispatch msg
@@ -2689,19 +2689,19 @@ async def test_start_client_mode_detection(my_loop, config_tsun_detect, msg_modb
     assert m.ifc.tx_fifo.get()==b''
     assert next(m.mb_timer.exp_count) == 1
 
-    assert "'Testing sensor-list: 0x1097 by reading modbus registers at 0x1000" in str(mock_logger.info.mock_calls)
+    assert "'Testing sensor-list: 1097 by reading modbus registers at 0x1000" in str(mock_logger.info.mock_calls)
     mock_logger.reset_mock()
     m.append_msg(msg_modbus_rsp_mb_1097_ok)
     m.read()         # read complete msg, and dispatch msg
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
     assert m.msg_count == 2
     assert m.mb.err == 0
-    assert m.sensor_list_detection.detection_running == False
-    assert m.sensor_list == 0x1097
+    assert m.sensor_list_detection.is_running() == False
+    assert m.sensor_list.no == 0x1097
     assert m.mb_type == MbType.rtu
 
     mock_logger.error.assert_not_called()
-    assert "Use sensor-list: 0x1097 for 'Y170000000000002'" in str(mock_logger.info.mock_calls)
+    assert "Use sensor-list: 1097 for 'Y170000000000002'" in str(mock_logger.info.mock_calls)
 
     m.close()
 
@@ -2724,8 +2724,8 @@ async def test_start_client_mode_detection2(my_loop, config_tsun_detect, msg_mod
     assert m.mb_timer.tim == None
     assert asyncio.get_running_loop() == m.mb_timer.loop
     m.send_start_cmd(get_sn_int(), str_test_ip, False, m.mb_first_timeout)
-    assert m.sensor_list_detection.detection_running == True
-    assert m.sensor_list == 0x2b0
+    assert m.sensor_list_detection.is_running() == True
+    assert m.sensor_list.no == 0x2b0
     assert m.mb_type == MbType.rtu
     assert m.sent_pdu==bytearray(b'\xa5\x17\x00\x10E\x01\x00!Ce{\x02\xb0\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x030\x00\x000J\xde\xf1\x15')
     assert m.db.get_db_value(Register.IP_ADDRESS) == str_test_ip
@@ -2734,7 +2734,7 @@ async def test_start_client_mode_detection2(my_loop, config_tsun_detect, msg_mod
     assert m.state == State.up
     assert m.no_forwarding == True
 
-    assert "'Testing sensor-list: 0x2b0 by reading modbus registers at 0x3000" in str(mock_logger.info.mock_calls)
+    assert "'Testing sensor-list: 02B0 by reading modbus registers at 0x3000" in str(mock_logger.info.mock_calls)
     assert m.mb_type == MbType.rtu
     mock_logger.reset_mock()
     assert next(m.mb_timer.exp_count) == 0
@@ -2745,7 +2745,7 @@ async def test_start_client_mode_detection2(my_loop, config_tsun_detect, msg_mod
     assert next(m.mb_timer.exp_count) == 2
     m.mb.req_pend = True
 
-    assert "'Testing sensor-list: 0x1097 by reading modbus registers at 0x1000" in str(mock_logger.info.mock_calls)
+    assert "'Testing sensor-list: 1097 by reading modbus registers at 0x1000" in str(mock_logger.info.mock_calls)
     assert m.mb_type == MbType.rtu
     mock_logger.reset_mock()
 
@@ -2755,7 +2755,7 @@ async def test_start_client_mode_detection2(my_loop, config_tsun_detect, msg_mod
     assert next(m.mb_timer.exp_count) == 4
     m.mb.req_pend = True
 
-    assert "'Testing sensor-list: 0x3026 by reading modbus registers at 0x00" in str(mock_logger.info.mock_calls)
+    assert "'Testing sensor-list: 3026 by reading modbus registers at 0x00" in str(mock_logger.info.mock_calls)
     assert m.mb_type == MbType.rtu
     mock_logger.reset_mock()
 
@@ -2765,7 +2765,7 @@ async def test_start_client_mode_detection2(my_loop, config_tsun_detect, msg_mod
     assert next(m.mb_timer.exp_count) == 6
     m.mb.req_pend = True
 
-    assert "'Testing sensor-list: 0x1511 by reading modbus registers at 0xbb8" in str(mock_logger.info.mock_calls)
+    assert "'Testing sensor-list: 1511 by reading modbus registers at 0xbb8" in str(mock_logger.info.mock_calls)
     assert m.mb_type == MbType.native
     mock_logger.reset_mock()
     m.append_msg(inv_command_rsp_msg_native_prot)
@@ -2773,12 +2773,12 @@ async def test_start_client_mode_detection2(my_loop, config_tsun_detect, msg_mod
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
     assert m.msg_count == 1
     assert m.mb.err == 0
-    assert m.sensor_list_detection.detection_running == False
-    assert m.sensor_list == 0x1511
+    assert m.sensor_list_detection.is_running() == False
+    assert m.sensor_list.no == 0x1511
     assert m.mb_type == MbType.native
 
     mock_logger.error.assert_not_called()
-    assert "Use sensor-list: 0x1511 for 'Y170000000000002'" in str(mock_logger.info.mock_calls)
+    assert "Use sensor-list: 1511 for 'Y170000000000002'" in str(mock_logger.info.mock_calls)
 
     m.close()
 
@@ -2800,8 +2800,8 @@ async def test_start_client_mode_detect_retrans(my_loop, config_tsun_detect, msg
     assert m.mb_timer.tim == None
     assert asyncio.get_running_loop() == m.mb_timer.loop
     m.send_start_cmd(get_sn_int(), str_test_ip, False, m.mb_first_timeout)
-    assert m.sensor_list_detection.detection_running == True
-    assert m.sensor_list == 0x2b0
+    assert m.sensor_list_detection.is_running() == True
+    assert m.sensor_list.no == 0x2b0
     assert m.mb_type == MbType.rtu
     assert m.sent_pdu==bytearray(b'\xa5\x17\x00\x10E\x01\x00!Ce{\x02\xb0\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x030\x00\x000J\xde\xf1\x15')
     assert m.db.get_db_value(Register.IP_ADDRESS) == str_test_ip
@@ -2810,7 +2810,7 @@ async def test_start_client_mode_detect_retrans(my_loop, config_tsun_detect, msg
     assert m.state == State.up
     assert m.no_forwarding == True
 
-    assert "'Testing sensor-list: 0x2b0 by reading modbus registers at 0x3000" in str(mock_logger.info.mock_calls)
+    assert "'Testing sensor-list: 02B0 by reading modbus registers at 0x3000" in str(mock_logger.info.mock_calls)
     mock_logger.reset_mock()
     m.append_msg(msg_modbus_rsp_mb_Err5)
     m.read()         # read complete msg, and dispatch msg
@@ -2824,7 +2824,7 @@ async def test_start_client_mode_detect_retrans(my_loop, config_tsun_detect, msg
     assert m.mb.err == 1
     assert next(m.mb_timer.exp_count) == 1
 
-    assert "'Testing sensor-list: 0x2b0 by reading modbus registers at 0x3000" not in str(mock_logger.info.mock_calls)
+    assert "'Testing sensor-list: 02B0 by reading modbus registers at 0x3000" not in str(mock_logger.info.mock_calls)
     mock_logger.reset_mock()
     m.append_msg(msg_modbus_rsp_mb_Err5)
     m.read()         # read complete msg, and dispatch msg
@@ -2837,19 +2837,19 @@ async def test_start_client_mode_detect_retrans(my_loop, config_tsun_detect, msg
     assert m.sent_pdu==bytearray(b'\xa5\x17\x00\x10E\x05\x03!Ce{\x02\x97\x10\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x03\x10\x00\x00\x10@\xc6\x8b\x15')
     assert next(m.mb_timer.exp_count) == 3
 
-    assert "'Testing sensor-list: 0x1097 by reading modbus registers at 0x1000" in str(mock_logger.info.mock_calls)
+    assert "'Testing sensor-list: 1097 by reading modbus registers at 0x1000" in str(mock_logger.info.mock_calls)
     mock_logger.reset_mock()
     m.append_msg(msg_modbus_rsp_mb_1097_ok)
     m.read()         # read complete msg, and dispatch msg
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
     assert m.msg_count == 3
     assert m.mb.err == 0
-    assert m.sensor_list_detection.detection_running == False
-    assert m.sensor_list == 0x1097
+    assert m.sensor_list_detection.is_running() == False
+    assert m.sensor_list.no == 0x1097
     assert m.mb_type == MbType.rtu
 
     mock_logger.error.assert_not_called()
-    assert "Use sensor-list: 0x1097 for 'Y170000000000002'" in str(mock_logger.info.mock_calls)
+    assert "Use sensor-list: 1097 for 'Y170000000000002'" in str(mock_logger.info.mock_calls)
 
     m.close()
 
@@ -2872,8 +2872,8 @@ async def test_start_client_mode_detect_timeout(my_loop, config_tsun_detect, msg
     assert m.mb_timer.tim == None
     assert asyncio.get_running_loop() == m.mb_timer.loop
     m.send_start_cmd(get_sn_int(), str_test_ip, False, m.mb_first_timeout)
-    assert m.sensor_list_detection.detection_running == True
-    assert m.sensor_list == 0x2b0
+    assert m.sensor_list_detection.is_running() == True
+    assert m.sensor_list.no == 0x2b0
     assert m.mb_type == MbType.rtu
     assert m.sent_pdu==bytearray(b'\xa5\x17\x00\x10E\x01\x00!Ce{\x02\xb0\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x030\x00\x000J\xde\xf1\x15')
     assert m.db.get_db_value(Register.IP_ADDRESS) == str_test_ip
@@ -2882,7 +2882,7 @@ async def test_start_client_mode_detect_timeout(my_loop, config_tsun_detect, msg
     assert m.state == State.up
     assert m.no_forwarding == True
 
-    assert "'Testing sensor-list: 0x2b0 by reading modbus registers at 0x3000" in str(mock_logger.info.mock_calls)
+    assert "'Testing sensor-list: 02B0 by reading modbus registers at 0x3000" in str(mock_logger.info.mock_calls)
     mock_logger.reset_mock()
     assert next(m.mb_timer.exp_count) == 0
     
@@ -2894,18 +2894,18 @@ async def test_start_client_mode_detect_timeout(my_loop, config_tsun_detect, msg
     assert m.sent_pdu==bytearray(b'\xa5\x17\x00\x10E\x03\x00!Ce{\x02\x97\x10\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x03\x10\x00\x00\x10@\xc6\x86\x15')
     assert next(m.mb_timer.exp_count) == 3
 
-    assert "'Testing sensor-list: 0x1097 by reading modbus registers at 0x1000" in str(mock_logger.info.mock_calls)
+    assert "'Testing sensor-list: 1097 by reading modbus registers at 0x1000" in str(mock_logger.info.mock_calls)
     mock_logger.reset_mock()
     m.append_msg(msg_modbus_rsp_mb_1097_ok)
     m.read()         # read complete msg, and dispatch msg
     assert not m.header_valid  # must be invalid, since msg was handled and buffer flushed
     assert m.msg_count == 1
     assert m.mb.err == 0
-    assert m.sensor_list_detection.detection_running == False
-    assert m.sensor_list == 0x1097
+    assert m.sensor_list_detection.is_running() == False
+    assert m.sensor_list.no == 0x1097
 
     mock_logger.error.assert_not_called()
-    assert "Use sensor-list: 0x1097 for 'Y170000000000002'" in str(mock_logger.info.mock_calls)
+    assert "Use sensor-list: 1097 for 'Y170000000000002'" in str(mock_logger.info.mock_calls)
 
     m.close()
 

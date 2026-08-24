@@ -106,7 +106,7 @@ class SolarmanEmu(SolarmanBase):
         sensor_list = int(self.db.get_db_value(Register.SENSOR_LIST, "0"),
                           16)
 
-        logging.info(f"EMU send_data_cb, sensor_list: {sensor_list:#04x}")
+        logging.info(f"EMU send_data_cb, sensor_list: {sensor_list:04X}")
 
         build_msg = self.db.build(0x42, ftype, sensor_list)
 

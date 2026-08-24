@@ -11,68 +11,91 @@ from messages import hex_dump_memory, Message, State, MbType
 from cnf.config import Config
 from modbus import Modbus
 from gen3plus.infos_g3p import InfosG3P
-from infos import Register, Fmt
+from infos import Register
 
 logger = logging.getLogger('msg')
 
 
 class Sequence():
     def __init__(self, server_side: bool):
-        self.rcv_idx = 0
-        self.snd_idx = 0
+        self._rcv_idx = 0
+        self._snd_idx = 0
         self.server_side = server_side
 
     def set_recv(self, val: int):
         if self.server_side:
-            self.rcv_idx = val >> 8
-            self.snd_idx = val & 0xff
+            self._rcv_idx = val >> 8
+            self._snd_idx = val & 0xff
         else:
-            self.rcv_idx = val & 0xff
-            self.snd_idx = val >> 8
+            self._rcv_idx = val & 0xff
+            self._snd_idx = val >> 8
 
     def get_send(self):
-        self.snd_idx += 1
-        self.snd_idx &= 0xff
+        self._snd_idx += 1
+        self._snd_idx &= 0xff
         if self.server_side:
-            return (self.rcv_idx << 8) | self.snd_idx
+            return (self._rcv_idx << 8) | self._snd_idx
         else:
-            return (self.snd_idx << 8) | self.rcv_idx
+            return (self._snd_idx << 8) | self._rcv_idx
 
     def __str__(self):
-        return f'{self.rcv_idx:02x}:{self.snd_idx:02x}'
+        return f'{self._rcv_idx:02x}:{self._snd_idx:02x}'
+
+
+class SensorList():
+    def __init__(self, sensorlist: int = 0):
+        self._no: int = sensorlist
+
+    @property
+    def no(self) -> int:
+        return self._no
+
+    @no.setter
+    def no(self, sensorlist: any):
+        if type(sensorlist) is not int:
+            self._no = int(sensorlist, 16)
+        else:
+            self._no = sensorlist
+
+    def __str__(self):
+        return f'{self._no:04X}'
+
+    def __int__(self):
+        return self._no
 
 
 class SensorListDetection():
+    _scan_reg = [
+        {'list': 0x02b0, 'addr': 0x3000, 'len': 48,
+         'type': MbType.rtu, 'func': Modbus.READ_REGS},
+        {'list': 0x1097, 'addr': 0x1000, 'len': 16,
+         'type': MbType.rtu, 'func': Modbus.READ_REGS},
+        {'list': 0x3026, 'addr': 0x0000, 'len': 45,
+         'type': MbType.rtu, 'func': Modbus.READ_REGS},
+        {'list': 0x1511, 'addr': 3000, 'len': 32,
+         'type': MbType.native, 'func': Modbus.NATIVE_READ_VALUES},]
+
     def __init__(self):
-        self.idx = -1
-        self.detection_running = False
-        self.scan_reg = [
-            {'list': 0x02b0, 'addr': 0x3000, 'len': 48,
-             'type': MbType.rtu, 'func': Modbus.READ_REGS},
-            {'list': 0x1097, 'addr': 0x1000, 'len': 16,
-             'type': MbType.rtu, 'func': Modbus.READ_REGS},
-            {'list': 0x3026, 'addr': 0x0000, 'len': 45,
-             'type': MbType.rtu, 'func': Modbus.READ_REGS},
-            {'list': 0x1511, 'addr': 3000, 'len': 32,
-             'type': MbType.native, 'func': Modbus.NATIVE_READ_VALUES},]
+        self._idx = -1
+        self._detection_running = False
 
     def next(self) -> tuple[int, MbType, list[dict[str, int]]]:
-        self.detection_running = True
-        self.idx = (self.idx + 1) % len(self.scan_reg)
-        reg = self.scan_reg[self.idx]
-        logging.info(f"Testing sensor-list: {reg['list']:#04x}"
+        self._detection_running = True
+        self._idx = (self._idx + 1) % len(self._scan_reg)
+        reg = self._scan_reg[self._idx]
+        logging.info(f"Testing sensor-list: {reg['list']:04X}"
                      f" by reading modbus registers at {reg['addr']:#04x} ")
-        logger.info(f"Testing sensor-list: {reg['list']:#04x}"
+        logger.info(f"Testing sensor-list: {reg['list']:04X}"
                     f" by reading modbus registers at {reg['addr']:#04x} ")
 
         return reg['list'], reg['type'], [
             {'addr': reg['addr'], 'len': reg['len'], 'func': reg['func']}]
 
     def found(self) -> None:
-        self.detection_running = False
+        self._detection_running = False
 
     def is_running(self) -> bool:
-        return self.detection_running
+        return self._detection_running
 
 
 class SolarmanBase(Message):
@@ -357,7 +380,7 @@ class SolarmanV5(SolarmanBase):
         if 'at_acl' in g3p_cnf:  # pragma: no cover
             self.at_acl = g3p_cnf['at_acl']
 
-        self.sensor_list = 0
+        self.sensor_list = SensorList()
         self.sensor_list_detection = SensorListDetection()
         self.mb_regs = [
             {'addr': 0x3000, 'len': 48, 'func': Modbus.READ_REGS}]
@@ -387,9 +410,9 @@ class SolarmanV5(SolarmanBase):
         self.establish_inv_emu = forward
         self.snr = snr
         self._set_serial_no(snr)
-        if self.sensor_list == 0:
+        if self.sensor_list.no == 0:
             self.mb_slow_regs = []
-            self.sensor_list, self.mb_type, self.mb_regs = \
+            self.sensor_list.no, self.mb_type, self.mb_regs = \
                 self.sensor_list_detection.next()
 
         self.mb_timeout = start_timeout
@@ -403,7 +426,7 @@ class SolarmanV5(SolarmanBase):
         self.db.set_db_def_value(Register.HEARTBEAT_INTERVAL,
                                  120)
         self.db.set_db_def_value(Register.SENSOR_LIST,
-                                 Fmt.hex4((self.sensor_list, )))
+                                 str(self.sensor_list))
         self.new_data['controller'] = True
         self.new_data['inverter'] = True
 
@@ -449,10 +472,10 @@ class SolarmanV5(SolarmanBase):
             self.db.set_db_def_value(Register.EQUIPMENT_MODEL,
                                      'TSOL-MXxx00')
 
-        if 0 == self.sensor_list:
-            self.sensor_list = inv['sensor_list']
+        if 0 == self.sensor_list.no:
+            self.sensor_list.no = inv['sensor_list']
 
-        match self.sensor_list:
+        match self.sensor_list.no:
             case 0x3026:
                 self.mb_regs = [
                     {'addr': 0x0000, 'len': 45, 'func': Modbus.READ_REGS}
@@ -507,10 +530,10 @@ class SolarmanV5(SolarmanBase):
                 return
 
         self.db.set_db_def_value(Register.SENSOR_LIST,
-                                 f"{self.sensor_list:04x}")
-        logging.info(f"Use sensor-list: {self.sensor_list:#04x}"
+                                 f"{self.sensor_list}")
+        logging.info(f"Use sensor-list: {self.sensor_list}"
                      f" for '{serial_no}'")
-        logger.info(f"Use sensor-list: {self.sensor_list:#04x}"
+        logger.info(f"Use sensor-list: {self.sensor_list}"
                     f" for '{serial_no}'")
 
     def _set_serial_no(self, snr: int):
@@ -582,7 +605,7 @@ class SolarmanV5(SolarmanBase):
             return
         self._build_header(0x4510)
         self.ifc.tx_add(struct.pack('<BHLLL', self.MB_RTU_CMD,
-                                    self.sensor_list, 0, 0, 0))
+                                    int(self.sensor_list), 0, 0, 0))
         self.ifc.tx_add(pdu)
         self._finish_send_msg()
         self.ifc.tx_log(log_lvl, f'Send Modbus {state}:{self.addr}:')
@@ -595,7 +618,7 @@ class SolarmanV5(SolarmanBase):
         else:
             if self.sensor_list_detection.is_running():
                 (
-                    self.sensor_list,
+                    self.sensor_list.no,
                     self.mb_type,
                     self.mb_regs,
                 ) = self.sensor_list_detection.next()
@@ -643,9 +666,9 @@ class SolarmanV5(SolarmanBase):
             self.ifc.tx_clear()
 
     def send_dcu_cmd(self, pdu: bytearray):
-        if self.sensor_list != 0x3026:
+        if self.sensor_list.no != 0x3026:
             logger.debug(f'[{self.node_id}] DCU CMD not allowed,'
-                         f' for sensor: {self.sensor_list:#04x}')
+                         f' for sensor: {self.sensor_list.no}')
             return
 
         if self.state != State.up:
@@ -656,7 +679,7 @@ class SolarmanV5(SolarmanBase):
         self.inverter.forward_dcu_cmd_resp = False
         self._build_header(0x4510)
         self.ifc.tx_add(struct.pack('<BHLLL', self.DCU_CMD,
-                                    self.sensor_list, 0, 0, 0))
+                                    self.sensor_list.no, 0, 0, 0))
         self.ifc.tx_add(pdu)
         self._finish_send_msg()
         self.ifc.tx_log(logging.INFO, f'Send DCU CMD :{self.addr}:')
@@ -765,8 +788,7 @@ class SolarmanV5(SolarmanBase):
         else:
             ts = None
         self.__process_data(ftype, ts)
-        self.sensor_list = int(self.db.get_db_value(Register.SENSOR_LIST, 0),
-                               16)
+        self.sensor_list.no = self.db.get_db_value(Register.SENSOR_LIST, 0)
         self.__forward_msg()
         self.__send_ack_rsp(0x1110, ftype)
 
@@ -781,9 +803,9 @@ class SolarmanV5(SolarmanBase):
             self.time_ofs = result[4]
         unkn = result[5]
         cnt = result[6]
-        if sensor != self.sensor_list:
+        if sensor != self.sensor_list.no:
             logger.warning(f'Unexpected Sensor-List:{sensor:04x}'
-                           f' (!={self.sensor_list:04x})')
+                           f' (!={self.sensor_list.no})')
         logger.info(f'ftype:{ftype:02x} timer:{tim:08x}s'
                     f' ??: {unkn:04x} cnt:{cnt}')
         if self.time_ofs:
@@ -916,7 +938,7 @@ class SolarmanV5(SolarmanBase):
                     inv_update = True
                 self._set_mqtt_timestamp(key, ts)
                 self.new_data[key] = True
-        for key, update in self.db.calc(self.sensor_list, self.node_id):
+        for key, update in self.db.calc(self.sensor_list.no, self.node_id):
             if update:
                 self._set_mqtt_timestamp(key, ts)
                 self.new_data[key] = True
