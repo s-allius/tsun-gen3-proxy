@@ -201,9 +201,9 @@ async def test_mqtt_no_config(config_no_conn, monkeypatch):
         assert not on_connect.is_set()
         try:
             await m.publish('homeassistant/status', 'online')
-            assert m.published == 1
         except Exception:
             assert False          
+        assert m.published == 1
     except TimeoutError:
         assert False
     finally:
@@ -228,15 +228,17 @@ async def test_mqtt_except_no_config(config_no_conn, monkeypatch, caplog):
         m = Mqtt(None)
         assert m.task
         await asyncio.sleep(0)
+        err = False
         try:
             await m.publish('homeassistant/status', 'online')
-            assert False
+            err = True
         except MqttError:
             pass
         except Exception:
             assert False          
         finally:
             await m.close()
+            assert err == False
     assert 'Connection lost; Reconnecting in 5 seconds' in caplog.text
 
 @pytest.mark.asyncio(loop_scope="module")
@@ -263,15 +265,17 @@ async def test_mqtt_except_def_config(config_def_conn, monkeypatch, caplog):
         assert m.task
         await asyncio.sleep(0)
         assert not on_connect.is_set()
+        err = False
         try:
             await m.publish('homeassistant/status', 'online')
-            assert False
+            err = True
         except MqttError:
             pass
         except Exception:
             assert False          
         finally:
             await m.close()
+            assert err == False
     assert 'MQTT is unconfigured; Check your config.toml!' in caplog.text
 
 @pytest.mark.asyncio(loop_scope="module")
@@ -279,11 +283,13 @@ async def test_mqtt_dispatch(config_mqtt_conn, aiomqtt_mock, spy_modbus_cmd):
     _ = config_mqtt_conn
     _ = aiomqtt_mock
     spy = spy_modbus_cmd
+    m = Mqtt(None)
+    assert m.ha_restarts == 0
+    err = False
     try:
-        m = Mqtt(None)
-        assert m.ha_restarts == 0
         await m.receive('homeassistant/status', b'online')  # send the message
-        assert m.ha_restarts == 1
+        if m.ha_restarts != 1:
+            err = True
 
         await m.receive(topic= 'tsun/inv_1/rated_load', payload= b'2')
         spy.assert_called_once_with(Modbus.WRITE_SINGLE_REG, 0x2008, 2, logging.INFO)
@@ -325,6 +331,7 @@ async def test_mqtt_dispatch(config_mqtt_conn, aiomqtt_mock, spy_modbus_cmd):
         assert False          
     finally:
         await m.close()
+        assert err == False
 
 @pytest.mark.asyncio(loop_scope="module")
 async def test_mqtt_dispatch_cb(config_mqtt_conn, aiomqtt_mock):
@@ -334,18 +341,18 @@ async def test_mqtt_dispatch_cb(config_mqtt_conn, aiomqtt_mock):
     on_connect =  asyncio.Event()
     async def cb():
         on_connect.set()
+    m = Mqtt(cb)
+    assert m.ha_restarts == 0
     try:
-        m = Mqtt(cb)
-        assert m.ha_restarts == 0
         await m.receive('homeassistant/status', b'online')  # send the message
-        assert on_connect.is_set()
-        assert m.ha_restarts == 1
 
     except MqttError:
         assert False
     except Exception:
         assert False          
     finally:
+        assert on_connect.is_set()
+        assert m.ha_restarts == 1
         await m.close()
 
 @pytest.mark.asyncio(loop_scope="module")
@@ -383,12 +390,12 @@ async def test_mqtt_dispatch_err(config_mqtt_conn, aiomqtt_mock, spy_modbus_cmd,
             msg = aiomqtt.Message(topic= 'tsun/inv_1/out_coeff', payload= b'2', qos= 0, retain = False, mid= 0, properties= None)
             for _ in m.each_inverter(msg, "addr"):
                 pass  # do nothing here
-        assert 'Cmd not supported by: inv_1/' in caplog.text
     except MqttError:
         assert False
     except Exception:
         assert False          
     finally:
+        assert 'Cmd not supported by: inv_1/' in caplog.text
         await m.close()
 
 @pytest.mark.asyncio(loop_scope="module")
