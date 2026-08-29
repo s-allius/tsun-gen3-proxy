@@ -971,10 +971,6 @@ class SolarmanV5(SolarmanBase):
                               " __build_model_name")
                 self.__build_model_name()
 
-            # Handle inverter emulation setup
-            if self.establish_inv_emu and not self.ifc.remote.stream:
-                self.establish_emu()
-
             # Manage sensor detection state machine
             if self.sensor_list_detection.is_running():
                 if self.mb.err == 0:
@@ -999,6 +995,17 @@ class SolarmanV5(SolarmanBase):
                     # not working, improving the chances of successful
                     # detection in subsequent attempts.
                     self.mb_timout_cb(0)
+
+            # Handle inverter emulation setup
+            if not self.sensor_list_detection.is_running():
+                if self.establish_inv_emu and not self.ifc.remote.stream:
+                    if self.db.emu_supported(self.sensor_list.no):
+                        self.establish_emu()
+                    else:
+                        logger.warning(
+                            "Client Mode forwarding configured, but not "
+                            f"supported for sensor_list: {self.sensor_list}"
+                        )
 
     def msg_hbeat_ind(self):
         data = self.ifc.rx_peek()[self.header_len:]

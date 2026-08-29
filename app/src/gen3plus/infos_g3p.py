@@ -66,6 +66,7 @@ class RegisterMap:
     }
     map_02b0 = {
         'len': 0x1a4,
+        'emu_support': True,
         0x4201000c: {'reg': Register.SENSOR_LIST,          'fmt': '<H', 'func': Fmt.hex4},   # noqa: E501
         0x4201001c: {'reg': Register.POWER_ON_TIME,        'fmt': '<H', 'ratio':    1, 'dep': ProxyMode.SERVER},  # noqa: E501, or packet number
         0x42010020: {'reg': Register.SERIAL_NUMBER,        'fmt': '!16s'},               # noqa: E501
@@ -146,8 +147,8 @@ class RegisterMap:
         # 0x4281001c: {'reg': Register.POWER_ON_TIME,        'fmt': '<H', 'ratio':    1},  # noqa: E501
     }
     map_1097 = {
-        # fixme, msg is not fully defined yet, only the first 3 regs are known
         'len': 0x30,
+        'emu_support': False,
         0x4201000c: {'reg': Register.SENSOR_LIST,          'fmt': '<H', 'func': Fmt.hex4},   # noqa: E501
         0x4201001c: {'reg': Register.POWER_ON_TIME,        'fmt': '<H', 'ratio':    1, 'dep': ProxyMode.SERVER},  # noqa: E501
         0x42010020: {'reg': Register.SERIAL_NUMBER,        'fmt': '!16s'},               # noqa: E501
@@ -205,8 +206,8 @@ class RegisterMap:
 
     }
     map_1511 = {
-        # fixme, msg is not fully defined yet, only the first 3 regs are known
         'len': 0x30,
+        'emu_support': False,
         0x4201000c: {'reg': Register.SENSOR_LIST,          'fmt': '<H', 'func': Fmt.hex4},   # noqa: E501
         0x4201001c: {'reg': Register.POWER_ON_TIME,        'fmt': '<H', 'ratio':    1, 'dep': ProxyMode.SERVER},  # noqa: E501
         0x42010020: {'reg': Register.SERIAL_NUMBER,        'fmt': '!16s'},               # noqa: E501
@@ -266,6 +267,7 @@ class RegisterMap:
     }
     map_3026 = {
         'len': 0x7a,
+        'emu_support': True,
         0x4201000c: {'reg': Register.SENSOR_LIST,          'fmt': '<H', 'func': Fmt.hex4},   # noqa: E501
         0x4201001c: {'reg': Register.POWER_ON_TIME,        'fmt': '<H', 'ratio':    1, 'dep': ProxyMode.SERVER},  # noqa: E501 # or packet number
         0x42010020: {'reg': Register.SERIAL_NUMBER,        'fmt': '!16s'},               # noqa: E501
@@ -353,6 +355,10 @@ class InfosG3P(Infos):
                 return mode != ProxyMode.SERVER
         return False
 
+    def emu_supported(self, sensor: int) -> bool:
+        reg_map = RegisterSel.get(sensor)
+        return reg_map['emu_support']
+
     def ha_confs(self, ha_prfx: str, node_id: str, snr: str,
                  sug_area: str = '') \
             -> Generator[tuple[dict, str], None, None]:
@@ -374,7 +380,7 @@ class InfosG3P(Infos):
             virt = {}
 
         for idx, row in chain(RegisterMap.map.items(), items, virt):
-            if 'calc' == idx or 'len' == idx:
+            if 'calc' == idx or 'len' == idx or 'emu_support' == idx:
                 continue
             info_id = row['reg']
             if self.__hide_topic(row):
@@ -393,7 +399,7 @@ class InfosG3P(Infos):
         buf: buffer of the sequence to parse'''
         reg_map = RegisterSel.get(sensor)
         for idx, row in reg_map.items():
-            if 'calc' == idx or 'len' == idx:
+            if 'calc' == idx or 'len' == idx or 'emu_support' == idx:
                 continue
             addr = idx & 0xffff
             ftype = (idx >> 16) & 0xff
@@ -438,7 +444,7 @@ class InfosG3P(Infos):
         buf = bytearray(reg_map['len'])
         try:
             for idx, row in reg_map.items():
-                if 'calc' == idx or 'len' == idx:
+                if 'calc' == idx or 'len' == idx or 'emu_support' == idx:
                     continue
                 addr = idx & 0xffff
                 ftype = (idx >> 16) & 0xff
