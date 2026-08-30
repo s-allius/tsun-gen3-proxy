@@ -356,7 +356,7 @@ class InfosG3P(Infos):
                 return mode != ProxyMode.SERVER
         return False
 
-    def __is_not_a_reg_def(self, idx: int) -> bool:
+    def __is_not_a_reg_def(self, idx: str) -> bool:
         '''Check if index points to a Meta value'''
         return 'calc' == idx or 'len' == idx or 'emu_support' == idx
 
