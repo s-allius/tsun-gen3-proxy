@@ -1,12 +1,11 @@
 import pytest
 import asyncio
 
-from async_stream import AsyncIfcImpl, StreamPtr
-from gen3plus.solarman_v5 import SolarmanV5, SolarmanBase
 from gen3plus.solarman_emu import SolarmanEmu
-from infos import Infos, Register
+from infos import Register
+from mock import patch
 
-from test_solarman import FakeIfc, FakeInverter, MemoryStream, get_sn_int, get_sn, correct_checksum, config_tsun_inv1, msg_modbus_rsp
+from test_solarman import FakeIfc, FakeInverter, MemoryStream, get_sn_int, get_sn, correct_checksum, config_tsun_inv1, config_tsun_titan, msg_modbus_rsp
 from test_infos_g3p import str_test_ip, bytes_test_ip
 
 
@@ -58,6 +57,14 @@ class CldStream(SolarmanEmu):
         )
         super()._SolarmanBase__flush_recv_msg()
         self.msg_count += 1
+
+@pytest.fixture
+def root_logger_mock():
+    """Fixture for Logger"""
+    with patch('gen3plus.solarman_v5.root_logger') as mock_logger:
+        
+        # Die Mocks und den Handler als Dictionary oder Tuple zurückgeben
+        yield mock_logger
 
 @pytest.fixture
 def device_ind_msg(bytes_test_ip): # 0x4110
@@ -136,8 +143,11 @@ async def test_emu_init_close(my_loop, config_tsun_inv1):
 
 
 @pytest.mark.asyncio(loop_scope="module")
-async def test_emu_start(my_loop, config_tsun_inv1, msg_modbus_rsp, str_test_ip, device_ind_msg):
+async def test_emu_start(my_loop, config_tsun_inv1, msg_modbus_rsp, str_test_ip, device_ind_msg, root_logger_mock):
     _ = config_tsun_inv1
+    mock_logger = root_logger_mock
+    mock_logger.reset_mock()
+
     assert asyncio.get_running_loop()
     inv = InvStream(msg_modbus_rsp)
 
@@ -152,6 +162,29 @@ async def test_emu_start(my_loop, config_tsun_inv1, msg_modbus_rsp, str_test_ip,
     cld.ifc.update_header_cb(inv.ifc.fwd_fifo.peek())
     assert inv.ifc.fwd_fifo.peek() == device_ind_msg
     cld.close()
+    assert "Client Mode forwarding configured, but not supported for sensor_list" not in str(mock_logger.warning.mock_calls)
+
+@pytest.mark.asyncio(loop_scope="module")
+async def test_emu_not_supported(my_loop, config_tsun_titan, msg_modbus_rsp, str_test_ip, root_logger_mock):
+    _ = config_tsun_titan
+    mock_logger = root_logger_mock
+    mock_logger.reset_mock()
+
+    assert asyncio.get_running_loop()
+    inv = InvStream(msg_modbus_rsp)
+
+    assert asyncio.get_running_loop() == inv.mb_timer.loop
+    inv.send_start_cmd(get_sn_int(), str_test_ip, True, inv.mb_first_timeout)
+    inv.read()         # read complete msg, and dispatch msg
+    assert not inv.header_valid  # must be invalid, since msg was handled and buffer flushed
+    assert inv.msg_count == 1
+    assert inv.control == 0x1510
+
+    cld = CldStream(inv)
+    cld.ifc.update_header_cb(inv.ifc.fwd_fifo.peek())
+    assert inv.ifc.fwd_fifo.peek() == b'' # no emu msg forwarded
+    cld.close()
+    assert "Client Mode forwarding configured, but not supported for sensor_list: 1097'" in str(mock_logger.warning.mock_calls)
 
 @pytest.mark.asyncio(loop_scope="module")
 async def test_snd_hb(my_loop, config_tsun_inv1, heartbeat_ind):
