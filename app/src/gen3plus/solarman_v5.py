@@ -948,7 +948,7 @@ class SolarmanV5(SolarmanBase):
 
     def __update_detection_state(self):
         '''Update the sensor list detection state machines
-        
+
         This private method must be called after __modbus_command_rsp(),
         because it needs the results from the last MODBUS validation.'''
         if self.mb.err == 0:
