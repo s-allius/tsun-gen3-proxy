@@ -3,8 +3,9 @@ import asyncio
 
 from gen3plus.solarman_emu import SolarmanEmu
 from infos import Register
+from mock import patch
 
-from test_solarman import FakeIfc, FakeInverter, MemoryStream, get_sn_int, get_sn, correct_checksum, config_tsun_inv1, config_tsun_titan, msg_modbus_rsp, logger_mock
+from test_solarman import FakeIfc, FakeInverter, MemoryStream, get_sn_int, get_sn, correct_checksum, config_tsun_inv1, config_tsun_titan, msg_modbus_rsp
 from test_infos_g3p import str_test_ip, bytes_test_ip
 
 
@@ -56,6 +57,14 @@ class CldStream(SolarmanEmu):
         )
         super()._SolarmanBase__flush_recv_msg()
         self.msg_count += 1
+
+@pytest.fixture
+def root_logger_mock():
+    """Fixture for Logger"""
+    with patch('gen3plus.solarman_v5.root_logger') as mock_logger:
+        
+        # Die Mocks und den Handler als Dictionary oder Tuple zurückgeben
+        yield mock_logger
 
 @pytest.fixture
 def device_ind_msg(bytes_test_ip): # 0x4110
@@ -134,9 +143,9 @@ async def test_emu_init_close(my_loop, config_tsun_inv1):
 
 
 @pytest.mark.asyncio(loop_scope="module")
-async def test_emu_start(my_loop, config_tsun_inv1, msg_modbus_rsp, str_test_ip, device_ind_msg, logger_mock):
+async def test_emu_start(my_loop, config_tsun_inv1, msg_modbus_rsp, str_test_ip, device_ind_msg, root_logger_mock):
     _ = config_tsun_inv1
-    mock_logger = logger_mock
+    mock_logger = root_logger_mock
     mock_logger.reset_mock()
 
     assert asyncio.get_running_loop()
@@ -156,9 +165,9 @@ async def test_emu_start(my_loop, config_tsun_inv1, msg_modbus_rsp, str_test_ip,
     assert "Client Mode forwarding configured, but not supported for sensor_list" not in str(mock_logger.warning.mock_calls)
 
 @pytest.mark.asyncio(loop_scope="module")
-async def test_emu_not_supported(my_loop, config_tsun_titan, msg_modbus_rsp, str_test_ip, logger_mock):
+async def test_emu_not_supported(my_loop, config_tsun_titan, msg_modbus_rsp, str_test_ip, root_logger_mock):
     _ = config_tsun_titan
-    mock_logger = logger_mock
+    mock_logger = root_logger_mock
     mock_logger.reset_mock()
 
     assert asyncio.get_running_loop()

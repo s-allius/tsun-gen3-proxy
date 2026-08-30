@@ -14,6 +14,7 @@ from gen3plus.infos_g3p import InfosG3P
 from infos import Register
 
 logger = logging.getLogger('msg')
+root_logger = logging.getLogger()
 
 
 class Sequence():
@@ -1007,7 +1008,7 @@ class SolarmanV5(SolarmanBase):
             if self.db.emu_supported(self.sensor_list.no):
                 self.establish_emu()
             else:
-                logger.warning(
+                root_logger.warning(
                     "Client Mode forwarding configured, but not "
                     f"supported for sensor_list: {self.sensor_list}"
                 )
