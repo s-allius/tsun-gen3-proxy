@@ -66,6 +66,7 @@ class RegisterMap:
     }
     map_02b0 = {
         'len': 0x1a4,
+        'emu_support': True,
         0x4201000c: {'reg': Register.SENSOR_LIST,          'fmt': '<H', 'func': Fmt.hex4},   # noqa: E501
         0x4201001c: {'reg': Register.POWER_ON_TIME,        'fmt': '<H', 'ratio':    1, 'dep': ProxyMode.SERVER},  # noqa: E501, or packet number
         0x42010020: {'reg': Register.SERIAL_NUMBER,        'fmt': '!16s'},               # noqa: E501
@@ -146,8 +147,8 @@ class RegisterMap:
         # 0x4281001c: {'reg': Register.POWER_ON_TIME,        'fmt': '<H', 'ratio':    1},  # noqa: E501
     }
     map_1097 = {
-        # fixme, msg is not fully defined yet, only the first 3 regs are known
         'len': 0x30,
+        'emu_support': False,
         0x4201000c: {'reg': Register.SENSOR_LIST,          'fmt': '<H', 'func': Fmt.hex4},   # noqa: E501
         0x4201001c: {'reg': Register.POWER_ON_TIME,        'fmt': '<H', 'ratio':    1, 'dep': ProxyMode.SERVER},  # noqa: E501
         0x42010020: {'reg': Register.SERIAL_NUMBER,        'fmt': '!16s'},               # noqa: E501
@@ -205,8 +206,8 @@ class RegisterMap:
 
     }
     map_1511 = {
-        # fixme, msg is not fully defined yet, only the first 3 regs are known
         'len': 0x30,
+        'emu_support': False,
         0x4201000c: {'reg': Register.SENSOR_LIST,          'fmt': '<H', 'func': Fmt.hex4},   # noqa: E501
         0x4201001c: {'reg': Register.POWER_ON_TIME,        'fmt': '<H', 'ratio':    1, 'dep': ProxyMode.SERVER},  # noqa: E501
         0x42010020: {'reg': Register.SERIAL_NUMBER,        'fmt': '!16s'},               # noqa: E501
@@ -266,6 +267,7 @@ class RegisterMap:
     }
     map_3026 = {
         'len': 0x7a,
+        'emu_support': True,
         0x4201000c: {'reg': Register.SENSOR_LIST,          'fmt': '<H', 'func': Fmt.hex4},   # noqa: E501
         0x4201001c: {'reg': Register.POWER_ON_TIME,        'fmt': '<H', 'ratio':    1, 'dep': ProxyMode.SERVER},  # noqa: E501 # or packet number
         0x42010020: {'reg': Register.SERIAL_NUMBER,        'fmt': '!16s'},               # noqa: E501
@@ -345,6 +347,7 @@ class InfosG3P(Infos):
         self.set_db_def_value(Register.CHIP_TYPE, 'IGEN TECH')
 
     def __hide_topic(self, row: dict) -> bool:
+        '''Check if register should be hidden in HA'''
         if 'dep' in row:
             mode = row['dep']
             if self.client_mode:
@@ -352,6 +355,26 @@ class InfosG3P(Infos):
             else:
                 return mode != ProxyMode.SERVER
         return False
+
+    def __is_not_a_reg_def(self, idx: str) -> bool:
+        '''Check if index points to a Meta value'''
+        return 'calc' == idx or 'len' == idx or 'emu_support' == idx
+
+    def __update_val(self, node_id, source: str, info_id, result):
+        '''Update value in DB and make a well formed log trace'''
+        keys, level, unit, must_incr = self._key_obj(info_id)
+        if keys:
+            name, update = self.update_db(keys, must_incr, result)
+            yield keys[0], update
+            if update:
+                self.tracer.log(level, f'[{node_id}] {source}: {name}'
+                                       f' : {result}{unit}')
+
+    def emu_supported(self, sensor: int) -> bool:
+        '''Check function returns a bool if the sensor_lists
+        supports Client Forwarding'''
+        reg_map = RegisterSel.get(sensor)
+        return reg_map['emu_support']
 
     def ha_confs(self, ha_prfx: str, node_id: str, snr: str,
                  sug_area: str = '') \
@@ -374,7 +397,7 @@ class InfosG3P(Infos):
             virt = {}
 
         for idx, row in chain(RegisterMap.map.items(), items, virt):
-            if 'calc' == idx or 'len' == idx:
+            if self.__is_not_a_reg_def(idx):
                 continue
             info_id = row['reg']
             if self.__hide_topic(row):
@@ -393,7 +416,7 @@ class InfosG3P(Infos):
         buf: buffer of the sequence to parse'''
         reg_map = RegisterSel.get(sensor)
         for idx, row in reg_map.items():
-            if 'calc' == idx or 'len' == idx:
+            if self.__is_not_a_reg_def(idx):
                 continue
             addr = idx & 0xffff
             ftype = (idx >> 16) & 0xff
@@ -424,21 +447,12 @@ class InfosG3P(Infos):
                 result = row['func'](self, row['params'])
                 yield from self.__update_val(node_id, "CALC", info_id, result)
 
-    def __update_val(self, node_id, source: str, info_id, result):
-        keys, level, unit, must_incr = self._key_obj(info_id)
-        if keys:
-            name, update = self.update_db(keys, must_incr, result)
-            yield keys[0], update
-            if update:
-                self.tracer.log(level, f'[{node_id}] {source}: {name}'
-                                       f' : {result}{unit}')
-
     def build(self, msg_type: int, rcv_ftype: int, sensor: int = 0):
         reg_map = RegisterSel.get(sensor)
         buf = bytearray(reg_map['len'])
         try:
             for idx, row in reg_map.items():
-                if 'calc' == idx or 'len' == idx:
+                if self.__is_not_a_reg_def(idx):
                     continue
                 addr = idx & 0xffff
                 ftype = (idx >> 16) & 0xff

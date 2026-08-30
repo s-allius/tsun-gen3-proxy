@@ -14,6 +14,7 @@ from gen3plus.infos_g3p import InfosG3P
 from infos import Register
 
 logger = logging.getLogger('msg')
+root_logger = logging.getLogger()
 
 
 class Sequence():
@@ -945,6 +946,34 @@ class SolarmanV5(SolarmanBase):
 
         return inv_update
 
+    def __update_detection_state(self):
+        '''Update the sensor list detection state machines
+
+        This private method must be called after __modbus_command_rsp(),
+        because it needs the results from the last MODBUS validation.'''
+        if self.mb.err == 0:
+            # Handle successful sensor detection
+            self.sensor_list_detection.found()
+            # clear unique_id to allow re-evaluation of
+            # the serial number
+            self.unique_id = None
+            self._set_serial_no(self.snr)
+            # Restart the Modbus timeout to trigger the next polling
+            # cycle immediately. This is necessary to quickly verify
+            # the new sensor list configuration after a successful
+            # detection. The value '1' insures that also the slow
+            # registers are polled immediately after a successful
+            # detection.
+            self.mb_timout_cb(1)
+        elif self.mb.retry_cnt >= self.mb.max_retries:
+            # On MQTT errors, and if all retries are done, set
+            # sensor_list and mb_regs to the next values for the next
+            # detection test. This allows the system to attempt a
+            # different sensor configuration if the current one is
+            # not working, improving the chances of successful
+            # detection in subsequent attempts.
+            self.mb_timout_cb(0)
+
     def __modbus_command_rsp(self, data):
         """Processes the MODBUS RTU response and updates the system state.
 
@@ -962,43 +991,31 @@ class SolarmanV5(SolarmanBase):
         is_valid = data[1] == 1
         modbus_msg_len = self.data_len - 14
 
-        # Process valid MODBUS messages
-        if is_valid and modbus_msg_len >= 2:
-            inv_update = self.__parse_modbus_rsp(data, modbus_msg_len)
+        # Ignore invalid MODBUS messages
+        if not is_valid or modbus_msg_len < 2:
+            return
 
-            if inv_update:
-                logging.debug("SolarmannV5:__modbus_command_rsp calls"
-                              " __build_model_name")
-                self.__build_model_name()
+        # process MODBUS messages
+        inv_update = self.__parse_modbus_rsp(data, modbus_msg_len)
+        if inv_update:
+            logging.debug("SolarmannV5:__modbus_command_rsp calls"
+                          " __build_model_name")
+            self.__build_model_name()
 
-            # Handle inverter emulation setup
-            if self.establish_inv_emu and not self.ifc.remote.stream:
+        # Manage sensor detection state machine
+        if self.sensor_list_detection.is_running():
+            self.__update_detection_state()
+
+        # Handle inverter emulation setup
+        if not self.sensor_list_detection.is_running() and \
+           self.establish_inv_emu and not self.ifc.remote.stream:
+            if self.db.emu_supported(self.sensor_list.no):
                 self.establish_emu()
-
-            # Manage sensor detection state machine
-            if self.sensor_list_detection.is_running():
-                if self.mb.err == 0:
-                    # Handle successful sensor detection
-                    self.sensor_list_detection.found()
-                    # clear unique_id to allow re-evaluation of
-                    # the serial number
-                    self.unique_id = None
-                    self._set_serial_no(self.snr)
-                    # Restart the Modbus timeout to trigger the next polling
-                    # cycle immediately. This is necessary to quickly verify
-                    # the new sensor list configuration after a successful
-                    # detection. The value '1' insures that also the slow
-                    # registers are polled immediately after a successful
-                    # detection.
-                    self.mb_timout_cb(1)
-                elif self.mb.retry_cnt >= self.mb.max_retries:
-                    # On MQTT errors, and if all retries are done, set
-                    # sensor_list and mb_regs to the next values for the next
-                    # detection test. This allows the system to attempt a
-                    # different sensor configuration if the current one is
-                    # not working, improving the chances of successful
-                    # detection in subsequent attempts.
-                    self.mb_timout_cb(0)
+            else:
+                root_logger.warning(
+                    "Client Mode forwarding configured, but not "
+                    f"supported for sensor_list: {self.sensor_list}"
+                )
 
     def msg_hbeat_ind(self):
         data = self.ifc.rx_peek()[self.header_len:]
