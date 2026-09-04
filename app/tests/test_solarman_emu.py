@@ -87,8 +87,17 @@ def device_ind_msg(bytes_test_ip): # 0x4110
     return msg
 
 @pytest.fixture
+def device_rsp_msg():  # 0x1110
+    msg  = b'\xa5\x0a\x00\x10\x11\x01\x01' +get_sn()  +b'\x02\x01'
+    msg += b'\x00\x00\x00\x00'
+    msg += b'\x3c\x00\x00\x00'
+    msg += correct_checksum(msg)
+    msg += b'\x15'
+    return msg
+
+@pytest.fixture
 def inverter_ind_msg():  # 0x4210
-    msg  = b'\xa5\x99\x01\x10\x42\x00\x01' +get_sn()  +b'\x01\xb0\x02\xbc\xc8'
+    msg  = b'\xa5\x99\x01\x10\x42\x01\x02' +get_sn()  +b'\x01\xb0\x02\xbc\xc8'
     msg += b'\x24\x32\x3c\x00\x00\x00\xa0\x47\xe4\x33\x01\x00\x03\x08\x00\x00'
     msg += b'\x59\x31\x37\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x31'
     msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
@@ -187,7 +196,7 @@ async def test_emu_not_supported(my_loop, config_tsun_titan, msg_modbus_rsp, str
     assert "Client Mode forwarding configured, but not supported for sensor_list: 1097'" in str(mock_logger.warning.mock_calls)
 
 @pytest.mark.asyncio(loop_scope="module")
-async def test_snd_hb(my_loop, config_tsun_inv1, heartbeat_ind):
+async def test_snd_hb(my_loop, str_test_ip, config_tsun_inv1, heartbeat_ind):
     _ = config_tsun_inv1
     inv = InvStream()
     cld = CldStream(inv)
@@ -198,7 +207,7 @@ async def test_snd_hb(my_loop, config_tsun_inv1, heartbeat_ind):
     cld.close()
 
 @pytest.mark.asyncio(loop_scope="module")
-async def test_snd_inv_data(my_loop, config_tsun_inv1, inverter_ind_msg, inverter_rsp_msg):
+async def test_snd_inv_data(my_loop, str_test_ip, config_tsun_inv1, inverter_ind_msg, inverter_rsp_msg):
     _ = config_tsun_inv1
     inv = InvStream()
     inv.db.set_db_def_value(Register.INVERTER_STATUS, 1)
@@ -214,13 +223,14 @@ async def test_snd_inv_data(my_loop, config_tsun_inv1, inverter_ind_msg, inverte
 
     cld = CldStream(inv)
     cld.time_ofs = 0x33e447a0
+    cld.seq.set_recv(0x0101)
     cld.last_sync = cld._emu_timestamp() - 60
     cld.pkt_cnt = 0x802
     assert cld.data_up_inv == 17  # check test value
-    cld.data_up_inv = 0.1         # speedup test first data msg
+    cld.data_up_inv = 0.01         # speedup test first data msg
     cld._init_new_client_conn()
     cld.data_up_inv = 0.5         # timeout for second data msg
-    await asyncio.sleep(0.2)
+    await asyncio.sleep(0.02)
     assert cld.ifc.tx_fifo.get() == inverter_ind_msg
 
     cld.append_msg(inverter_rsp_msg)
@@ -240,7 +250,7 @@ async def test_snd_inv_data(my_loop, config_tsun_inv1, inverter_ind_msg, inverte
     cld.close()
 
 @pytest.mark.asyncio(loop_scope="module")
-async def test_rcv_invalid(my_loop, config_tsun_inv1, inverter_ind_msg, inverter_rsp_msg):
+async def test_rcv_invalid(my_loop, str_test_ip, config_tsun_inv1, inverter_ind_msg, inverter_rsp_msg):
     _ = config_tsun_inv1
     inv = InvStream()
     assert asyncio.get_running_loop() == inv.mb_timer.loop
@@ -259,7 +269,7 @@ async def test_rcv_invalid(my_loop, config_tsun_inv1, inverter_ind_msg, inverter
     assert cld.snr == 2070233889
     assert cld.unique_id == '2070233889'
     assert cld.msg_recvd[0]['control']==0x4210
-    assert cld.msg_recvd[0]['seq']=='00:01'
+    assert cld.msg_recvd[0]['seq']=='01:02'
     assert cld.msg_recvd[0]['data_len']==0x199
     assert cld.db.get_db_value(Register.SENSOR_LIST, None) == '02B0'
     assert cld.db.stat['proxy']['Unknown_Msg'] == 1
