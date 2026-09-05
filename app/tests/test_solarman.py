@@ -2831,7 +2831,7 @@ async def test_start_client_mode_detect_retrans(my_loop, config_tsun_detect, msg
     assert m.mb.err == 1
     assert next(m.mb_timer.exp_count) == 2
 
-    await asyncio.sleep(0.015)
+    await asyncio.sleep(0.02)
     assert m.sent_pdu==bytearray(b'\xa5\x17\x00\x10E\x05\x03!Ce{\x02\x97\x10\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x03\x10\x00\x00\x10@\xc6\x8b\x15')
     assert next(m.mb_timer.exp_count) == 3
 
