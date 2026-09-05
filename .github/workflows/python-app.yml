@@ -57,7 +57,7 @@ jobs:
         python -m pytest -rfs app --cov=app/src --cov-config=.cover_ghaction_rc --cov-report=xml
         coverage report
     - name: Cache Sonar Scanner CLI
-      uses: actions/cache@v4
+      uses: actions/cache@v6
       with:
         path: /opt/hostedtoolcache/sonar-scanner-cli
         key: ${{ runner.os }}-sonar-scanner-cli-8.1.0
