@@ -56,24 +56,20 @@ jobs:
       run: |
         python -m pytest -rfs app --cov=app/src --cov-config=.cover_ghaction_rc --cov-report=xml
         coverage report
-    - name: Cache Sonar Scanner CLI
-      uses: actions/cache@v6
-      with:
-        path: /opt/hostedtoolcache/sonar-scanner-cli
-        key: ${{ runner.os }}-sonar-scanner-cli-8.1.0
-        restore-keys: |
-          ${{ runner.os }}-sonar-scanner-cli-
-    - name: Analyze with SonarCloud
+    - name: Analyze with SonarCloud (Native CLI)
       if: ${{ env.SONAR_TOKEN != '' }}
-      uses: SonarSource/sonarqube-scan-action@v8
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      with:
-        projectBaseDir: .
-        args: >
-          -Dsonar.projectKey=s-allius_tsun-gen3-proxy
-          -Dsonar.python.coverage.reportPaths=coverage.xml
-          -Dsonar.python.flake8.reportPaths=output_flake.txt
+      run: |
+        # 1. Installiere den leichtgewichtigen Python-basierten Scanner
+        pip install sonar-scanner
+        
+        # 2. Führe den Scan direkt nativ aus
+        sonar-scanner \
+          -Dsonar.projectBaseDir=. \
+          -Dsonar.projectKey=s-allius_tsun-gen3-proxy \
+          -Dsonar.python.coverage.reportPaths=coverage.xml \
+          -Dsonar.python.flake8.reportPaths=output_flake.txt \
           -Dsonar.exclusions=**/tests/**,**/.pytest_cache/**,**/htmlcov/**
   
