@@ -101,5 +101,6 @@ class Proxy():
         logging.info('Close MQTT Task')
         try:
             await cls.mqtt.close()
+            cls.mqtt = None
         except Exception as e:
             logging.debug(f'Proxy.class_close: exception: {e} ...')
