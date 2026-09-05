@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Update ghcr.io/hassio-addons/base Docker tag to v21.0.4
 - Disable Client Mode Forwarding for non supporting Sensor Lists [#676](https://github.com/s-allius/tsun-gen3-proxy/issues/676)
 - Update dependency quart to v0.23.1
 - Update dependency coverage to v7.16.0
