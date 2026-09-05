@@ -62,10 +62,6 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       run: |
-        # 1. Installiere den leichtgewichtigen Python-basierten Scanner
-        pip install pysonar
-        
-        # 2. Führe den Scan direkt nativ aus
         pysonar \
           -Dsonar.projectBaseDir=. \
           -Dsonar.projectKey=s-allius_tsun-gen3-proxy \
