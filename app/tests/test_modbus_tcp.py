@@ -319,9 +319,9 @@ async def test_modbus_cnf3(config_conn, patch_no_mqtt, patch_open):
             if test == 1:
                 m.shutdown_started = False
                 m.ifc._reader.on_recv.set()
-                await asyncio.sleep(0.1)
+                await asyncio.sleep(0.01)
                 assert m.state == State.closed
-                await asyncio.sleep(0.1)
+                await asyncio.sleep(0.01)
             else:
                 m.shutdown_started = True
                 m.ifc._reader.on_recv.set()
@@ -350,10 +350,9 @@ async def test_mqtt_err(config_conn, patch_mqtt_err, patch_open):
             if test == 1:
                 m.shutdown_started = False
                 m.ifc._reader.on_recv.set()
-                await asyncio.sleep(0.1)
+                await asyncio.sleep(0.01)
                 assert m.state == State.closed
-                await asyncio.sleep(0.1)
-                await asyncio.sleep(0.1)
+                await asyncio.sleep(0.01)
             else:
                 m.shutdown_started = True
                 m.ifc._reader.on_recv.set()
@@ -381,9 +380,9 @@ async def test_mqtt_except(config_conn, patch_mqtt_except, patch_open):
             if test == 1:
                 m.shutdown_started = False
                 m.ifc._reader.on_recv.set()
-                await asyncio.sleep(0.1)
+                await asyncio.sleep(0.01)
                 assert m.state == State.closed
-                await asyncio.sleep(0.1)
+                await asyncio.sleep(0.01)
             else:
                 m.shutdown_started = True
                 m.ifc._reader.on_recv.set()

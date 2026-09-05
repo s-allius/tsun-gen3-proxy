@@ -88,7 +88,7 @@ async def test_close_cb():
     writer =  FakeWriter()
     cnt = 0
     def timeout():
-        return 0.1
+        return 0.01
     def closed():
         nonlocal cnt
         # The callback will be called after the AsyncStreamServer
@@ -241,7 +241,7 @@ async def test_create_remote_cb():
     writer =  FakeWriter()
     cnt = 0
     def timeout():
-        return 0.1
+        return 0.01
     async def create_remote():
         nonlocal cnt
         # The callback will be called after the AsyncStreamServer

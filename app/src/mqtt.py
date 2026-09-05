@@ -60,8 +60,9 @@ class Mqtt(metaclass=Singleton):
 
     async def close(self) -> None:
         logger_mqtt.debug('MQTT: close')
-        self.task.cancel()
+
         try:
+            self.task.cancel()
             await self.task
 
         except (asyncio.CancelledError, Exception) as e:

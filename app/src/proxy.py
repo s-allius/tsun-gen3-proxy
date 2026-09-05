@@ -72,7 +72,7 @@ class Proxy():
         await cls._register_proxy_stat_home_assistant()
 
         # send values of the proxy status counters
-        await asyncio.sleep(0.15)            # wait a bit, before sending data
+        await asyncio.sleep(0.02)            # wait a bit, before sending data
         Infos.new_stat_data['proxy'] = True   # force sending data to sync ha
         await cls._async_publ_mqtt_proxy_stat('proxy')
 
@@ -99,5 +99,8 @@ class Proxy():
     async def class_close(cls, loop) -> None:   # pragma: no cover
         logging.debug('Proxy.class_close')
         logging.info('Close MQTT Task')
-        await cls.mqtt.close()
-        cls.mqtt = None
+        try:
+            await cls.mqtt.close()
+            cls.mqtt = None
+        except Exception as e:
+            logging.debug(f'Proxy.class_close: exception: {e} ...')
