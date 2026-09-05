@@ -63,7 +63,8 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         projectBaseDir: .
-        args:
+        enable-cache: true
+        args: >
           -Dsonar.projectKey=s-allius_tsun-gen3-proxy
           -Dsonar.python.coverage.reportPaths=coverage.xml
           -Dsonar.python.flake8.reportPaths=output_flake.txt
