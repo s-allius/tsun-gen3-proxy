@@ -13,8 +13,6 @@ async def my_loop():
     yield event_loop                     
 
     try:
-        # We use asyncio.run, to run the async close-Methode in a clean
-        # fresh and isolated Event-Loop.
-        asyncio.run(handle_shutdown())
+        await handle_shutdown()
     except Exception as e:
         print(f"Error while closing the MQTT Singleton: {e}")
