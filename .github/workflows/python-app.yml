@@ -57,13 +57,12 @@ jobs:
         python -m pytest -rfs app --cov=app/src --cov-config=.cover_ghaction_rc --cov-report=xml
         coverage report
     - name: Analyze with SonarCloud
-      if: ${{ env.SONAR_TOKEN != 0 }}
+      if: ${{ env.SONAR_TOKEN != '' }}
       uses: SonarSource/sonarqube-scan-action@v8
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         projectBaseDir: .
-        enable-cache: true
         args: >
           -Dsonar.projectKey=s-allius_tsun-gen3-proxy
           -Dsonar.python.coverage.reportPaths=coverage.xml
