@@ -58,7 +58,7 @@ jobs:
         coverage report
     - name: Analyze with SonarCloud
       if: ${{ env.SONAR_TOKEN != '' }}
-      uses: SonarSource/sonarqube-scan-action@v5
+      uses: SonarSource/sonarqube-scan-action@v8
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -68,4 +68,5 @@ jobs:
           -Dsonar.projectKey=s-allius_tsun-gen3-proxy
           -Dsonar.python.coverage.reportPaths=coverage.xml
           -Dsonar.python.flake8.reportPaths=output_flake.txt
+          -Dsonar.exclusions=**/tests/**,**/.pytest_cache/**,**/htmlcov/**
   
