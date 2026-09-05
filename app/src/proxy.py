@@ -99,5 +99,7 @@ class Proxy():
     async def class_close(cls, loop) -> None:   # pragma: no cover
         logging.debug('Proxy.class_close')
         logging.info('Close MQTT Task')
-        await cls.mqtt.close()
-        cls.mqtt = None
+        try:
+            await cls.mqtt.close()
+        except Exception as e:
+            logging.debug(f'Proxy.class_close: exception: {e} ...')
