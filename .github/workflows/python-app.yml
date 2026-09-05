@@ -67,5 +67,4 @@ jobs:
           -Dsonar.projectKey=s-allius_tsun-gen3-proxy
           -Dsonar.python.coverage.reportPaths=coverage.xml
           -Dsonar.python.flake8.reportPaths=output_flake.txt
-          # -Dsonar.docker.hadolint.reportPaths=
   
