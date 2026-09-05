@@ -75,5 +75,4 @@ jobs:
           -Dsonar.projectKey=s-allius_tsun-gen3-proxy \
           -Dsonar.python.coverage.reportPaths=coverage.xml \
           -Dsonar.python.flake8.reportPaths=output_flake.txt \
-          -Dsonar.exclusions=**/tests/**,**/.pytest_cache/**,**/htmlcov/**
-  
+          -Dsonar.exclusions=**/tests/**,**/.pytest_cache/**,**/htmlcov/**,**/static/images/**,**/static/font-awesome/**,**/static/font/**,**/*.png,**/*.ico,**/*.ttf,**/*.woff,**/*.woff2,**/*.eot
