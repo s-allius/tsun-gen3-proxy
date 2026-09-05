@@ -13,14 +13,3 @@ async def my_loop():
     yield event_loop                     
 
     await handle_shutdown()
-    # Collect all tasks and cancel those that are not 'done'.  
-    tasks = asyncio.all_tasks(event_loop)
-    tasks = [t for t in tasks if not t.done()]
-    for task in tasks:
-        task.cancel()
-
-    # Wait for all tasks to complete, ignoring any CancelledErrors                                  
-    try:
-        await asyncio.wait(tasks)
-    except asyncio.exceptions.CancelledError:
-        pass
