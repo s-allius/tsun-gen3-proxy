@@ -1828,18 +1828,18 @@ async def test_msg_iterator(my_loop, config_tsun_inv1):
 @pytest.mark.asyncio(loop_scope="module")
 async def test_proxy_counter(my_loop, config_tsun_inv1):
     m = SolarmanV5(None, ('test.local', 1234), ifc=AsyncIfcImpl(), server_side=True, client_mode=False)
-    assert m.new_data == {}
+    assert m.new_data == {'status': True}
     m.db.stat['proxy']['Unknown_Msg'] = 0
     Infos.new_stat_data['proxy'] =  False
 
     m.inc_counter('Unknown_Msg')
-    assert m.new_data == {}
+    assert m.new_data == {'status': True}
     assert Infos.new_stat_data == {'proxy': True}
     assert m.db.stat['proxy']['Unknown_Msg'] == 1
 
     Infos.new_stat_data['proxy'] =  False
     m.dec_counter('Unknown_Msg')
-    assert m.new_data == {}
+    assert m.new_data == {'status': True}
     assert Infos.new_stat_data == {'proxy': True}
     assert m.db.stat['proxy']['Unknown_Msg'] == 0
     m.close()
