@@ -98,15 +98,31 @@ class SolarmanEmu(SolarmanBase):
         self.ifc.tx_log(log_lvl, 'Send heartbeat:')
         self.ifc.tx_flush()
 
-    def send_data_cb(self, exp_cnt):
+    def send_sync(self):
+        '''send a sync message to the TSUN cloud'''
+        self.last_sync = self._emu_timestamp()
+        ftype = 2
+        logging.info("EMU send_sync")
+
+        build_msg = self.db.build(0x41, ftype)
+
+        self._build_header(0x4110)
+        self.ifc.tx_add(struct.pack('<BL', ftype,
+                                    self._emu_timestamp()
+                                    ))
+        self.ifc.tx_add(build_msg[0x10:])
+        self._finish_send_msg()
+        log_lvl = self.log_lvl.get(0x4110, logging.WARNING)
+        self.ifc.tx_log(log_lvl, 'Send re-sync:')
+        self.ifc.tx_flush()
+
+    def send_data(self):
         '''send a inverter data message to the TSUN cloud'''
-        self.hb_timer.start(self.hb_timeout)
-        self.data_timer.start(self.data_up_inv)
         ftype = 1
         sensor_list = int(self.db.get_db_value(Register.SENSOR_LIST, "0"),
                           16)
 
-        logging.info(f"EMU send_data_cb, sensor_list: {sensor_list:04X}")
+        logging.info(f"EMU send_data, sensor_list: {sensor_list:04X}")
 
         build_msg = self.db.build(0x42, ftype, sensor_list)
 
@@ -125,6 +141,17 @@ class SolarmanEmu(SolarmanBase):
         self.ifc.tx_log(log_lvl, 'Send inv-data:')
         self.ifc.tx_flush()
 
+    def send_data_cb(self, exp_cnt):
+        '''send message(s) after data up timeout to the TSUN cloud'''
+        self.hb_timer.start(self.hb_timeout)
+        self.data_timer.start(self.data_up_inv)
+
+        # resync if last sync was more than 3 hours (180 minutes) ago
+        if self.seconds_since_last_sync() >= 180 * 60:
+            self.send_sync()
+
+        self.send_data()
+
     '''
     Message handler methods
     '''
@@ -134,7 +161,7 @@ class SolarmanEmu(SolarmanBase):
         _, _, ts, hb = super().msg_response()
         logger.debug(f"EMU ts:{ts} hb:{hb}")
         self.hb_timeout = hb
-        self.time_ofs = ts - self._emu_timestamp()
+        self.time_ofs = (ts - self._emu_timestamp()) & 0xffffffff
         self.hb_timer.start(self.hb_timeout)
 
     def msg_unknown(self):
