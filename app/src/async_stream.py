@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import time
+import errno
 from asyncio import StreamReader, StreamWriter
 from typing import Self
 from itertools import count
@@ -163,7 +164,7 @@ class AsyncStream(AsyncIfcImpl):
             return self.timeout_cb()
         return 360
 
-    async def loop(self) -> Self:
+    async def loop(self, client_side: bool) -> Self:
         """Async loop handler for precessing all received messages"""
         self.proc_start = time.time()
         while True:
@@ -186,6 +187,31 @@ class AsyncStream(AsyncIfcImpl):
                 return self
 
             except OSError as error:
+                if error.errno == errno.ECONNRESET:
+                    logger.info(f'[{self.node_id}:{self.conn_no}] '
+                                'Reconnect after '
+                                f'{error} for l{self.l_addr} | '
+                                f'r{self.r_addr}')
+
+                    host, port = self.r_addr[0], self.r_addr[1]
+                    await self.disc()
+                    await asyncio.sleep(2)
+                    try:
+                        self._reader, self._writer = await \
+                            asyncio.open_connection(host, port)
+                        self.r_addr = self._writer.get_extra_info('peername')
+                        self.l_addr = self._writer.get_extra_info('sockname')
+                        logger.info(f'[{self.node_id}:{self.conn_no}] '
+                                    f'Reconnected: l{self.l_addr} | '
+                                    f'r{self.r_addr}')
+                        continue
+                    except Exception as e:
+                        logger.error(
+                            f'[{self.node_id}:{self.conn_no}] '
+                            f'Failed to reconnect for l{self.l_addr} | '
+                            f'r{self.r_addr}: {e}')
+                    return self
+
                 logger.error(f'[{self.node_id}:{self.conn_no}] '
                              f'{error} for l{self.l_addr} | '
                              f'r{self.r_addr}')
@@ -329,7 +355,7 @@ class AsyncStreamServer(AsyncStream):
         Infos.inc_counter('Inverter_Cnt')
         Infos.inc_counter('ServerMode_Cnt')
         await self.publish_outstanding_mqtt()
-        await self.loop()
+        await self.loop(client_side=False)
         Infos.dec_counter('ServerMode_Cnt')
         Infos.dec_counter('Inverter_Cnt')
         await self.publish_outstanding_mqtt()
@@ -393,7 +419,7 @@ class AsyncStreamClient(AsyncStream):
         else:
             Infos.inc_counter('ProxyMode_Cnt')
         await self.publish_outstanding_mqtt()
-        await self.loop()
+        await self.loop(client_side=True)
         if self.emu_mode:
             Infos.dec_counter('EmuMode_Cnt')
         else:
