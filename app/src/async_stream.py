@@ -188,7 +188,7 @@ class AsyncStream(AsyncIfcImpl):
                 return self
 
             except OSError as error:
-                if error.errno == errno.ECONNRESET:
+                if client_side and error.errno == errno.ECONNRESET:
                     logger.info(f'[{self.node_id}:{self.conn_no}] '
                                 'Reconnect after '
                                 f'{error} for l{self.l_addr} | '
@@ -198,16 +198,10 @@ class AsyncStream(AsyncIfcImpl):
                     await self.disc()
                     await asyncio.sleep(self.reconnect_delay)
                     try:
-                        self._reader, self._writer = await \
-                            asyncio.open_connection(host, port)
-                        self.r_addr = self._writer.get_extra_info('peername')
-                        self.l_addr = self._writer.get_extra_info('sockname')
-                        logger.info(f'[{self.node_id}:{self.conn_no}] '
-                                    f'Reconnected: l{self.l_addr} | '
-                                    f'r{self.r_addr}')
+                        await self.reconnect(host, port)
                         continue
                     except Exception as e:
-                        logger.error(
+                        logger.exception(
                             f'[{self.node_id}:{self.conn_no}] '
                             f'Failed to reconnect for l{self.l_addr} | '
                             f'r{self.r_addr}: {e}')
@@ -237,6 +231,16 @@ class AsyncStream(AsyncIfcImpl):
             if proc > self.proc_max:
                 self.proc_max = proc
             self.proc_start = None
+
+    async def reconnect(self, host: str, port: int) -> None:
+        """Reconnect handler for reconnecting to the TSUN cloud"""
+        self._reader, self._writer = await \
+            asyncio.open_connection(host, port)
+        self.r_addr = self._writer.get_extra_info('peername')
+        self.l_addr = self._writer.get_extra_info('sockname')
+        logger.info(f'[{self.node_id}:{self.conn_no}] '
+                    f'Reconnected: l{self.l_addr} | '
+                    f'r{self.r_addr}')
 
     async def disc(self) -> None:
         """Async disc handler for graceful disconnect"""

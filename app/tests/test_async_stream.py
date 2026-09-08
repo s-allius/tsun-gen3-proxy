@@ -372,6 +372,7 @@ async def test_conn_reset(logger_mock):
     assert "Dead connection timeout (0.01s) for sock:1234" in str(mock_logger.warning.mock_calls)
     mock_logger.warning.assert_called_once()
     mock_logger.error.assert_not_called()
+    mock_logger.exception.assert_not_called()
     cnt = 0
     for inv in InverterBase:
         print(f'InverterBase refs:{gc.get_referrers(inv)}')
@@ -406,8 +407,9 @@ async def test_conn_reset_except(logger_mock):
         del ifc
 
     mock_logger.warning.assert_not_called()
-    mock_logger.error.assert_called_once()
-    assert "Failed to reconnect for lsock:1234 | rremote.intern: FQDN resolution failed" in str(mock_logger.error.mock_calls)
+    mock_logger.error.assert_not_called()
+    mock_logger.exception.assert_called_once()
+    assert "Failed to reconnect for lsock:1234 | rremote.intern: FQDN resolution failed" in str(mock_logger.exception.mock_calls)
     cnt = 0
     for inv in InverterBase:
         print(f'InverterBase refs:{gc.get_referrers(inv)}')
