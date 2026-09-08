@@ -194,17 +194,10 @@ class AsyncStream(AsyncIfcImpl):
                                 f'{error} for l{self.l_addr} | '
                                 f'r{self.r_addr}')
 
-                    host, port = self.r_addr[0], self.r_addr[1]
                     await self.disc()
                     await asyncio.sleep(self.reconnect_delay)
-                    try:
-                        await self.reconnect(host, port)
+                    if await self.reconnect():
                         continue
-                    except Exception as e:
-                        logger.exception(
-                            f'[{self.node_id}:{self.conn_no}] '
-                            f'Failed to reconnect for l{self.l_addr} | '
-                            f'r{self.r_addr}: {e}')
                     return self
 
                 logger.error(f'[{self.node_id}:{self.conn_no}] '
@@ -232,15 +225,24 @@ class AsyncStream(AsyncIfcImpl):
                 self.proc_max = proc
             self.proc_start = None
 
-    async def reconnect(self, host: str, port: int) -> None:
+    async def reconnect(self) -> bool:
         """Reconnect handler for reconnecting to the TSUN cloud"""
-        self._reader, self._writer = await \
-            asyncio.open_connection(host, port)
-        self.r_addr = self._writer.get_extra_info('peername')
-        self.l_addr = self._writer.get_extra_info('sockname')
-        logger.info(f'[{self.node_id}:{self.conn_no}] '
-                    f'Reconnected: l{self.l_addr} | '
-                    f'r{self.r_addr}')
+        host, port = self.r_addr[0], self.r_addr[1]
+        try:
+            self._reader, self._writer = await \
+                asyncio.open_connection(host, port)
+            self.r_addr = self._writer.get_extra_info('peername')
+            self.l_addr = self._writer.get_extra_info('sockname')
+            logger.info(f'[{self.node_id}:{self.conn_no}] '
+                        f'Reconnected: l{self.l_addr} | '
+                        f'r{self.r_addr}')
+            return True
+        except Exception as e:
+            logger.exception(
+                f'[{self.node_id}:{self.conn_no}] '
+                f'Failed to reconnect for l{self.l_addr} | '
+                f'r{self.r_addr}: {e}')
+            return False
 
     async def disc(self) -> None:
         """Async disc handler for graceful disconnect"""
