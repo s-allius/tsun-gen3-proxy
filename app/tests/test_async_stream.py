@@ -74,6 +74,13 @@ def test_health():
         cnt += 1
     assert cnt == 0
 
+@pytest.fixture
+def logger_mock():
+    """Fixture for Logger"""
+    with patch('async_stream.logger') as mock_logger:
+        
+        # Die Mocks und den Handler als Dictionary oder Tuple zurückgeben
+        yield mock_logger
 
 @pytest.fixture
 def spy_inc_cnt():
@@ -322,6 +329,85 @@ async def test_os_error():
     assert cnt == 1
     del ifc
 
+    cnt = 0
+    for inv in InverterBase:
+        print(f'InverterBase refs:{gc.get_referrers(inv)}')
+        cnt += 1
+    assert cnt == 0
+
+@pytest.mark.asyncio(loop_scope="module")
+async def test_conn_reset(logger_mock):
+    assert asyncio.get_running_loop()
+    mock_logger = logger_mock
+
+    reader = FakeReader()
+    reader.test  = FakeReader.RD_TEST_CONN_RESET
+
+    reader.on_recv.set()
+    writer =  FakeWriter()
+    open_cnt = 0
+    close_cnt = 0
+
+    def timeout():
+        return 0.01
+    def closed():
+        nonlocal close_cnt
+        close_cnt += 1
+    async def new_open_connection(*args, **kwargs):
+        nonlocal open_cnt
+        open_cnt += 1
+        return FakeReader(), FakeWriter()
+
+    with patch('asyncio.open_connection', new_open_connection):
+        ifc =  AsyncStreamClient(reader, writer, None, closed)
+        ifc.reconnect_delay = 0.01
+        ifc.prot_set_timeout_cb(timeout)
+        await ifc.client_loop('')
+        print('End loop')
+        assert close_cnt == 1
+        assert open_cnt == 1
+        del ifc
+
+    assert "Reconnected: lsock:1234 | rremote.intern" in str(mock_logger.info.mock_calls)
+    assert "Dead connection timeout (0.01s) for sock:1234" in str(mock_logger.warning.mock_calls)
+    mock_logger.warning.assert_called_once()
+    mock_logger.error.assert_not_called()
+    cnt = 0
+    for inv in InverterBase:
+        print(f'InverterBase refs:{gc.get_referrers(inv)}')
+        cnt += 1
+    assert cnt == 0
+
+@pytest.mark.asyncio(loop_scope="module")
+async def test_conn_reset_except(logger_mock):
+    assert asyncio.get_running_loop()
+    mock_logger = logger_mock
+
+    reader = FakeReader()
+    reader.test  = FakeReader.RD_TEST_CONN_RESET
+
+    reader.on_recv.set()
+    writer =  FakeWriter()
+    cnt = 0
+
+    def timeout():
+        return 1
+    def closed():
+        nonlocal cnt
+        cnt += 1
+    cnt = 0
+    with patch('asyncio.open_connection', side_effect=Exception("FQDN resolution failed")):
+        ifc =  AsyncStreamClient(reader, writer, None, closed)
+        ifc.reconnect_delay = 0.01
+        ifc.prot_set_timeout_cb(timeout)
+        await ifc.client_loop('')
+        print('End loop')
+        assert cnt == 1
+        del ifc
+
+    mock_logger.warning.assert_not_called()
+    mock_logger.error.assert_called_once()
+    assert "Failed to reconnect for lsock:1234 | rremote.intern: FQDN resolution failed" in str(mock_logger.error.mock_calls)
     cnt = 0
     for inv in InverterBase:
         print(f'InverterBase refs:{gc.get_referrers(inv)}')

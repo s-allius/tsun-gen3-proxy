@@ -155,6 +155,7 @@ class AsyncStream(AsyncIfcImpl):
         self.proc_start = None  # start processing start timestamp
         self.proc_max = 0
         self.async_publ_mqtt = None  # will be set AsyncStreamServer only
+        self.reconnect_delay = 2  # delay in sec before reconnecting
 
     def __write_cb(self):
         self._writer.write(self.tx_fifo.get())
@@ -195,7 +196,7 @@ class AsyncStream(AsyncIfcImpl):
 
                     host, port = self.r_addr[0], self.r_addr[1]
                     await self.disc()
-                    await asyncio.sleep(2)
+                    await asyncio.sleep(self.reconnect_delay)
                     try:
                         self._reader, self._writer = await \
                             asyncio.open_connection(host, port)

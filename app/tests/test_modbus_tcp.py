@@ -1,6 +1,7 @@
 # test_with_pytest.py
 import pytest
 import asyncio
+import errno
 from aiomqtt import MqttCodeError
 
 from mock import patch
@@ -81,6 +82,7 @@ class FakeReader():
     RD_TEST_SW_EXCEPT = 4
     RD_TEST_OS_ERROR = 5
     RD_TEST_BUFFER = 6
+    RD_TEST_CONN_RESET = 7
 
     def __init__(self):
         self.on_recv =  asyncio.Event()
@@ -108,6 +110,9 @@ class FakeReader():
         elif self.test == self.RD_TEST_OS_ERROR:
             self.test = self.RD_TEST_0_BYTES
             raise ConnectionRefusedError
+        elif self.test == self.RD_TEST_CONN_RESET:
+            self.test = self.RD_TEST_0_BYTES
+            raise ConnectionResetError(errno.ECONNRESET, "Connection reset by peer")
 
     def feed_eof(self):
         return
