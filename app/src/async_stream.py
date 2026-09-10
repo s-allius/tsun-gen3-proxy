@@ -133,12 +133,6 @@ class StreamPtr():
 class AsyncStream(AsyncIfcImpl):
     MAX_PROC_TIME = 2
     '''maximum processing time for a received msg in sec'''
-    MAX_START_TIME = 400
-    '''maximum time without a received msg in sec'''
-    MAX_INV_IDLE_TIME = 120
-    '''maximum time without a received msg from the inverter in sec'''
-    MAX_DEF_IDLE_TIME = 360
-    '''maximum default time without a received msg in sec'''
 
     def __init__(self, reader: StreamReader, writer: StreamWriter,
                  rstream: "StreamPtr") -> None:
@@ -161,31 +155,35 @@ class AsyncStream(AsyncIfcImpl):
         self._writer.write(self.tx_fifo.get())
 
     def __timeout(self) -> int:
+        """returns the connection state dependent timeout value in sec"""
         if self.timeout_cb:
             return self.timeout_cb()
         return 360
+
+    async def __await_and_process_pkt(self, dead_conn_to: int) -> None:
+        """awaits for a packet and processes it"""
+        await asyncio.wait_for(self.__async_read(),
+                               dead_conn_to)
+        await self.__async_write()
+        await self.__async_forward()
+        if self.async_publ_mqtt:
+            await self.async_publ_mqtt()
 
     async def loop(self, client_side: bool) -> Self:
         """Async loop handler for precessing all received messages"""
         self.proc_start = time.time()
         while True:
+            await asyncio.sleep(0)  # be cooperative to other task
             try:
                 self.__calc_proc_time()
                 dead_conn_to = self.__timeout()
-                await asyncio.wait_for(self.__async_read(),
-                                       dead_conn_to)
-
-                await self.__async_write()
-                await self.__async_forward()
-                if self.async_publ_mqtt:
-                    await self.async_publ_mqtt()
+                await self.__await_and_process_pkt(dead_conn_to)
 
             except asyncio.TimeoutError:
                 logger.warning(f'[{self.node_id}:{self.conn_no}] Dead '
                                f'connection timeout ({dead_conn_to}s) '
                                f'for {self.l_addr}')
-                await self.disc()
-                return self
+                break  # exit loop and disconnect
 
             except OSError as error:
                 if client_side and error.errno == errno.ECONNRESET:
@@ -194,8 +192,6 @@ class AsyncStream(AsyncIfcImpl):
                                 f'{error} for l{self.l_addr} | '
                                 f'r{self.r_addr}')
 
-                    await self.disc()
-                    await asyncio.sleep(self.reconnect_delay)
                     if await self.reconnect():
                         continue
                     return self
@@ -203,20 +199,20 @@ class AsyncStream(AsyncIfcImpl):
                 logger.error(f'[{self.node_id}:{self.conn_no}] '
                              f'{error} for l{self.l_addr} | '
                              f'r{self.r_addr}')
-                await self.disc()
-                return self
+                break  # exit loop and disconnect
 
             except RuntimeError as error:
                 logger.info(f'[{self.node_id}:{self.conn_no}] '
                             f'{error} for {self.l_addr}')
-                await self.disc()
-                return self
+                break  # exit loop and disconnect
 
             except Exception:
                 Infos.inc_counter('SW_Exception')
                 logger.exception(
                     f"Exception for {self.r_addr}")
-            await asyncio.sleep(0)  # be cooperative to other task
+
+        await self.disc()
+        return self
 
     def __calc_proc_time(self):
         if self.proc_start:
@@ -228,6 +224,8 @@ class AsyncStream(AsyncIfcImpl):
     async def reconnect(self) -> bool:
         """Reconnect handler for reconnecting to the TSUN cloud"""
         host, port = self.r_addr[0], self.r_addr[1]
+        await self.disc()
+        await asyncio.sleep(self.reconnect_delay)
         try:
             self._reader, self._writer = await \
                 asyncio.open_connection(host, port)
