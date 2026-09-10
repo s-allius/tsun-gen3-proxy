@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- allow Y4Z serial numbers [#690](https://github.com/s-allius/tsun-gen3-proxy/issues/690)
 - Client Mode: Reconnect to the device after connection reset -[#688](https://github.com/s-allius/tsun-gen3-proxy/issues/688)
 - TSUN MP3000 support [#652](https://github.com/s-allius/tsun-gen3-proxy/issues/652)
 - Add env variable to set log level of trace.log [#640](https://github.com/s-allius/tsun-gen3-proxy/issues/640)
