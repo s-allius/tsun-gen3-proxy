@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Client Mode: Reconnect to the device after connection reset -[#688](https://github.com/s-allius/tsun-gen3-proxy/issues/688)
 - TSUN MP3000 support [#652](https://github.com/s-allius/tsun-gen3-proxy/issues/652)
 - Add env variable to set log level of trace.log [#640](https://github.com/s-allius/tsun-gen3-proxy/issues/640)
 
@@ -37,6 +38,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - fix SonarQube warnings and code smells
+- MS3000: Measurement values in HA are not being registered
+ [#665](https://github.com/s-allius/tsun-gen3-proxy/issues/665)
 - Proxy crashes on receiving 0xff fill bytes in fixed size string arrays [#656](https://github.com/s-allius/tsun-gen3-proxy/issues/656)
 - Fix Regular CRC errors for MODBUS responses [#645](https://github.com/s-allius/tsun-gen3-proxy/issues/645)
 
