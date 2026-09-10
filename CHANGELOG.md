@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Initiate a resync every 3 hours to the TSUN cloud [#685](https://github.com/s-allius/tsun-gen3-proxy/issues/685)
+- allow Y4Z serial numbers [#690](https://github.com/s-allius/tsun-gen3-proxy/issues/690)
 - Client Mode: Reconnect to the device after connection reset -[#688](https://github.com/s-allius/tsun-gen3-proxy/issues/688)
 - Client Mode: Reconnect to the device after connection timeouts -[#692](https://github.com/s-allius/tsun-gen3-proxy/issues/692)
 - allow Y4Z serial numbers [#690](https://github.com/s-allius/tsun-gen3-proxy/issues/690)
