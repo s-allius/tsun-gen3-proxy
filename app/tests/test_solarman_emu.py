@@ -96,9 +96,42 @@ def device_rsp_msg():  # 0x1110
     return msg
 
 @pytest.fixture
+def inverter_ind_msg_2():  # 0x4210
+    msg  = b'\xa5\x99\x01\x10\x42\x00\x02' +get_sn()  +b'\x01\xb0\x02\xbc\xc8'
+    msg += b'\x24\x32\x00\x00\x00\x00\xa0\x47\xe4\x33\x01\x00\x03\x08\x00\x00'
+    msg += b'\x59\x31\x37\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x31'
+    msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+    msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+    msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+    msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+    msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+    msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+    msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+    msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+    msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+    msg += b'\x00\x01\x00\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+    msg += b'\x40\x10\x08\xc8\x00\x49\x13\x8d\x00\x00\x00\x00\x00\x00\x00\x00'
+    msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+    msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+    msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+    msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00'
+    msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x04\x00'
+    msg += b'\x04\x00\x00\x01\xff\xff\x00\x01\x00\x06\x00\x68\x00\x68\x05\x00'
+    msg += b'\x09\xcd\x07\xb6\x13\x9c\x13\x24\x00\x01\x07\xae\x04\x0f\x00\x41'
+    msg += b'\x00\x0f\x0a\x64\x0a\x64\x00\x06\x00\x06\x09\xf6\x12\x8c\x12\x8c'
+    msg += b'\x00\x10\x00\x10\x14\x52\x14\x52\x00\x10\x00\x10\x01\x51\x00\x05'
+    msg += b'\x00\x00\x00\x01\x13\x9c\x0f\xa0\x00\x4e\x00\x66\x03\xe8\x04\x00'
+    msg += b'\x09\xce\x07\xa8\x13\x9c\x13\x26\x00\x00\x00\x00\x00\x00\x00\x00'
+    msg += b'\x00\x00\x00\x00\x04\x00\x04\x00\x00\x00\x00\x00\xff\xff\x00\x00'
+    msg += b'\x00\x00\x00\x00'
+    msg += correct_checksum(msg)
+    msg += b'\x15'
+    return msg
+
+@pytest.fixture
 def inverter_ind_msg():  # 0x4210
-    msg  = b'\xa5\x99\x01\x10\x42\x01\x02' +get_sn()  +b'\x01\xb0\x02\xbc\xc8'
-    msg += b'\x24\x32\x3c\x00\x00\x00\xa0\x47\xe4\x33\x01\x00\x03\x08\x00\x00'
+    msg  = b'\xa5\x99\x01\x10\x42\x02\x03' +get_sn()  +b'\x01\xb0\x02\xbc\xc8'
+    msg += b'\x24\x32\x3c\x00\x00\x00\xa0\x47\xe4\x33\x01\x00\x04\x08\x00\x00'
     msg += b'\x59\x31\x37\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x31'
     msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
     msg += b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
@@ -223,9 +256,9 @@ async def test_snd_inv_data(my_loop, str_test_ip, config_tsun_inv1, inverter_ind
 
     cld = CldStream(inv)
     cld.time_ofs = 0x33e447a0
-    cld.seq.set_recv(0x0101)
+    cld.seq.set_recv(0x0202)
     cld.last_sync = cld._emu_timestamp() - 60
-    cld.pkt_cnt = 0x802
+    cld.pkt_cnt = 0x803
     assert cld.data_up_inv == 17  # check test value
     cld.data_up_inv = 0.01         # speedup test first data msg
     cld._init_new_client_conn()
@@ -269,10 +302,60 @@ async def test_rcv_invalid(my_loop, str_test_ip, config_tsun_inv1, inverter_ind_
     assert cld.snr == 2070233889
     assert cld.unique_id == '2070233889'
     assert cld.msg_recvd[0]['control']==0x4210
-    assert cld.msg_recvd[0]['seq']=='01:02'
+    assert cld.msg_recvd[0]['seq']=='02:03'
     assert cld.msg_recvd[0]['data_len']==0x199
     assert cld.db.get_db_value(Register.SENSOR_LIST, None) == '02B0'
     assert cld.db.stat['proxy']['Unknown_Msg'] == 1
 
+
+    cld.close()
+
+@pytest.mark.asyncio(loop_scope="module")
+async def test_snd_resync(my_loop, str_test_ip, config_tsun_inv1, device_ind_msg, device_rsp_msg, inverter_ind_msg_2, inverter_ind_msg, inverter_rsp_msg):
+    _ = config_tsun_inv1
+    inv = InvStream()
+    inv.db.set_db_def_value(Register.INVERTER_STATUS, 1)
+    inv.db.set_db_def_value(Register.DETECT_STATUS_1, 2)
+    inv.db.set_db_def_value(Register.VERSION, 'V4.0.10')
+    inv.db.set_db_def_value(Register.GRID_VOLTAGE, 224.8)
+    inv.db.set_db_def_value(Register.GRID_CURRENT, 0.73)
+    inv.db.set_db_def_value(Register.GRID_FREQUENCY, 50.05)
+    inv.db.set_db_def_value(Register.PROD_COMPL_TYPE, 6)
+    assert asyncio.get_running_loop() == inv.mb_timer.loop
+    inv.send_start_cmd(get_sn_int(), str_test_ip, False, inv.mb_first_timeout)
+    inv.db.set_db_def_value(Register.DATA_UP_INTERVAL, 300)  # set test value
+
+    cld = CldStream(inv)
+    cld.time_ofs = 0x33e447a0
+    cld.last_sync = cld._emu_timestamp() - 180*60  # force resync
+    cld.pkt_cnt = 0x802
+    assert cld.data_up_inv == 300  # check test value
+    cld.data_up_inv = 0.01         # speedup test first data msg
+    cld._init_new_client_conn()
+    cld.data_up_inv = 0.02         # timeout for second data msg
+    await asyncio.sleep(0.02)
+    assert cld.ifc.tx_fifo.get() == device_ind_msg + inverter_ind_msg_2
+
+    cld.append_msg(device_rsp_msg+inverter_rsp_msg)
+    cld.read()         # read complete msg, and dispatch msg
+    assert not cld.header_valid  # must be invalid, since msg was handled and buffer flushed
+    assert cld.msg_count == 2
+    assert cld.header_len==11
+    assert cld.snr == 2070233889
+    assert cld.unique_id == '2070233889'
+    assert cld.msg_recvd[0]['control']==0x1110
+    assert cld.msg_recvd[0]['seq']=='01:01'
+    assert cld.msg_recvd[0]['data_len']==0x0a
+    assert cld.msg_recvd[1]['control']==0x1210
+    assert cld.msg_recvd[1]['seq']=='02:02'
+    assert cld.msg_recvd[1]['data_len']==0x0a
+    assert cld.db.get_db_value(Register.SENSOR_LIST, None) == '02B0'
+    assert cld.db.stat['proxy']['Unknown_Msg'] == 0
+
+    cld.time_ofs = 0x33e447a0
+    cld.last_sync = cld._emu_timestamp() - 60
+
+    await asyncio.sleep(0.01)
+    assert cld.ifc.tx_fifo.get() == inverter_ind_msg
 
     cld.close()
