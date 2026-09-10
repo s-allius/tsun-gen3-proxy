@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Client Mode: Reconnect to the device after connection reset -[#688](https://github.com/s-allius/tsun-gen3-proxy/issues/688)
 - Update ghcr.io/hassio-addons/base Docker tag to v21.0.4
 - Optimize github action for build and test run
 - Speed up unit tests
