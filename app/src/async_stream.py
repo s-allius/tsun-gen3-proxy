@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import time
+import errno
 from asyncio import StreamReader, StreamWriter
 from typing import Self
 from itertools import count
@@ -132,12 +133,6 @@ class StreamPtr():
 class AsyncStream(AsyncIfcImpl):
     MAX_PROC_TIME = 2
     '''maximum processing time for a received msg in sec'''
-    MAX_START_TIME = 400
-    '''maximum time without a received msg in sec'''
-    MAX_INV_IDLE_TIME = 120
-    '''maximum time without a received msg from the inverter in sec'''
-    MAX_DEF_IDLE_TIME = 360
-    '''maximum default time without a received msg in sec'''
 
     def __init__(self, reader: StreamReader, writer: StreamWriter,
                  rstream: "StreamPtr") -> None:
@@ -154,55 +149,93 @@ class AsyncStream(AsyncIfcImpl):
         self.proc_start = None  # start processing start timestamp
         self.proc_max = 0
         self.async_publ_mqtt = None  # will be set AsyncStreamServer only
+        self.reconnect_delay = 2  # delay in sec before reconnecting
 
     def __write_cb(self):
         self._writer.write(self.tx_fifo.get())
 
     def __timeout(self) -> int:
+        """returns the connection state dependent timeout value in sec"""
         if self.timeout_cb:
             return self.timeout_cb()
         return 360
 
-    async def loop(self) -> Self:
+    async def __await_and_process_pkt(self, dead_conn_to: int) -> None:
+        """awaits for a packet and processes it"""
+        await asyncio.wait_for(self.__async_read(),
+                               dead_conn_to)
+        await self.__async_write()
+        await self.__async_forward()
+        if self.async_publ_mqtt:
+            await self.async_publ_mqtt()
+
+    async def loop(self, client_side: bool) -> Self:
         """Async loop handler for precessing all received messages"""
         self.proc_start = time.time()
+
         while True:
-            try:
-                self.__calc_proc_time()
-                dead_conn_to = self.__timeout()
-                await asyncio.wait_for(self.__async_read(),
-                                       dead_conn_to)
-
-                await self.__async_write()
-                await self.__async_forward()
-                if self.async_publ_mqtt:
-                    await self.async_publ_mqtt()
-
-            except asyncio.TimeoutError:
-                logger.warning(f'[{self.node_id}:{self.conn_no}] Dead '
-                               f'connection timeout ({dead_conn_to}s) '
-                               f'for {self.l_addr}')
-                await self.disc()
-                return self
-
-            except OSError as error:
-                logger.error(f'[{self.node_id}:{self.conn_no}] '
-                             f'{error} for l{self.l_addr} | '
-                             f'r{self.r_addr}')
-                await self.disc()
-                return self
-
-            except RuntimeError as error:
-                logger.info(f'[{self.node_id}:{self.conn_no}] '
-                            f'{error} for {self.l_addr}')
-                await self.disc()
-                return self
-
-            except Exception:
-                Infos.inc_counter('SW_Exception')
-                logger.exception(
-                    f"Exception for {self.r_addr}")
             await asyncio.sleep(0)  # be cooperative to other task
+
+            should_continue = await self.__process_single_iteration(
+                client_side)
+            if not should_continue:
+                break
+
+        return self
+
+    async def __process_single_iteration(self, client_side: bool) -> bool:
+        """Helper method to process a single iteration of the loop.
+
+        Returns True if the loop should continue, otherwise False.
+        """
+        try:
+            self.__calc_proc_time()
+            dead_conn_to = self.__timeout()
+            await self.__await_and_process_pkt(dead_conn_to)
+            return True
+
+        except asyncio.TimeoutError:
+            logger.warning(
+                f'[{self.node_id}:{self.conn_no}] Dead connection timeout '
+                f'({dead_conn_to}s) for {self.l_addr}'
+            )
+            await self.disc()
+            return False
+
+        except OSError as error:
+            return await self._handle_os_error(error, client_side)
+
+        except RuntimeError as error:
+            logger.info(f'[{self.node_id}:{self.conn_no}] '
+                        f'{error} for {self.l_addr}')
+            await self.disc()
+            return False
+
+        except Exception:
+            Infos.inc_counter('SW_Exception')
+            logger.exception(f"Exception for {self.r_addr}")
+            return True
+
+    async def _handle_os_error(
+            self, error: OSError, client_side: bool) -> bool:
+        """Handle OSError exceptions, including reconnection logic
+        for client-side connections."""
+        if client_side and error.errno == errno.ECONNRESET:
+            logger.info(
+                f'[{self.node_id}:{self.conn_no}] Reconnect after {error} '
+                f'for l{self.l_addr} | r{self.r_addr}'
+            )
+
+            if await self.reconnect():
+                return True
+            return False
+
+        logger.error(
+            f'[{self.node_id}:{self.conn_no}] {error} '
+            f'for l{self.l_addr} | r{self.r_addr}'
+        )
+        await self.disc()
+        return False
 
     def __calc_proc_time(self):
         if self.proc_start:
@@ -210,6 +243,27 @@ class AsyncStream(AsyncIfcImpl):
             if proc > self.proc_max:
                 self.proc_max = proc
             self.proc_start = None
+
+    async def reconnect(self) -> bool:
+        """Reconnect handler for reconnecting to the TSUN cloud"""
+        host, port = self.r_addr[0], self.r_addr[1]
+        await self.disc()
+        await asyncio.sleep(self.reconnect_delay)
+        try:
+            self._reader, self._writer = await \
+                asyncio.open_connection(host, port)
+            self.r_addr = self._writer.get_extra_info('peername')
+            self.l_addr = self._writer.get_extra_info('sockname')
+            logger.info(f'[{self.node_id}:{self.conn_no}] '
+                        f'Reconnected: l{self.l_addr} | '
+                        f'r{self.r_addr}')
+            return True
+        except Exception as e:
+            logger.exception(
+                f'[{self.node_id}:{self.conn_no}] '
+                f'Failed to reconnect for l{self.l_addr} | '
+                f'r{self.r_addr}: {e}')
+            return False
 
     async def disc(self) -> None:
         """Async disc handler for graceful disconnect"""
@@ -329,7 +383,7 @@ class AsyncStreamServer(AsyncStream):
         Infos.inc_counter('Inverter_Cnt')
         Infos.inc_counter('ServerMode_Cnt')
         await self.publish_outstanding_mqtt()
-        await self.loop()
+        await self.loop(client_side=False)
         Infos.dec_counter('ServerMode_Cnt')
         Infos.dec_counter('Inverter_Cnt')
         await self.publish_outstanding_mqtt()
@@ -393,7 +447,7 @@ class AsyncStreamClient(AsyncStream):
         else:
             Infos.inc_counter('ProxyMode_Cnt')
         await self.publish_outstanding_mqtt()
-        await self.loop()
+        await self.loop(client_side=True)
         if self.emu_mode:
             Infos.dec_counter('EmuMode_Cnt')
         else:
