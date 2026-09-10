@@ -172,47 +172,70 @@ class AsyncStream(AsyncIfcImpl):
     async def loop(self, client_side: bool) -> Self:
         """Async loop handler for precessing all received messages"""
         self.proc_start = time.time()
+
         while True:
             await asyncio.sleep(0)  # be cooperative to other task
-            try:
-                self.__calc_proc_time()
-                dead_conn_to = self.__timeout()
-                await self.__await_and_process_pkt(dead_conn_to)
 
-            except asyncio.TimeoutError:
-                logger.warning(f'[{self.node_id}:{self.conn_no}] Dead '
-                               f'connection timeout ({dead_conn_to}s) '
-                               f'for {self.l_addr}')
-                break  # exit loop and disconnect
+            should_continue = await self.__process_single_iteration(
+                client_side)
+            if not should_continue:
+                break
 
-            except OSError as error:
-                if client_side and error.errno == errno.ECONNRESET:
-                    logger.info(f'[{self.node_id}:{self.conn_no}] '
-                                'Reconnect after '
-                                f'{error} for l{self.l_addr} | '
-                                f'r{self.r_addr}')
-
-                    if await self.reconnect():
-                        continue
-                    return self
-
-                logger.error(f'[{self.node_id}:{self.conn_no}] '
-                             f'{error} for l{self.l_addr} | '
-                             f'r{self.r_addr}')
-                break  # exit loop and disconnect
-
-            except RuntimeError as error:
-                logger.info(f'[{self.node_id}:{self.conn_no}] '
-                            f'{error} for {self.l_addr}')
-                break  # exit loop and disconnect
-
-            except Exception:
-                Infos.inc_counter('SW_Exception')
-                logger.exception(
-                    f"Exception for {self.r_addr}")
-
-        await self.disc()
         return self
+
+    async def __process_single_iteration(self, client_side: bool) -> bool:
+        """Helper method to process a single iteration of the loop.
+
+        Returns True if the loop should continue, otherwise False.
+        """
+        try:
+            self.__calc_proc_time()
+            dead_conn_to = self.__timeout()
+            await self.__await_and_process_pkt(dead_conn_to)
+            return True
+
+        except asyncio.TimeoutError:
+            logger.warning(
+                f'[{self.node_id}:{self.conn_no}] Dead connection timeout '
+                f'({dead_conn_to}s) for {self.l_addr}'
+            )
+            await self.disc()
+            return False
+
+        except OSError as error:
+            return await self._handle_os_error(error, client_side)
+
+        except RuntimeError as error:
+            logger.info(f'[{self.node_id}:{self.conn_no}] '
+                        f'{error} for {self.l_addr}')
+            await self.disc()
+            return False
+
+        except Exception:
+            Infos.inc_counter('SW_Exception')
+            logger.exception(f"Exception for {self.r_addr}")
+            return True
+
+    async def _handle_os_error(
+            self, error: OSError, client_side: bool) -> bool:
+        """Handle OSError exceptions, including reconnection logic
+        for client-side connections."""
+        if client_side and error.errno == errno.ECONNRESET:
+            logger.info(
+                f'[{self.node_id}:{self.conn_no}] Reconnect after {error} '
+                f'for l{self.l_addr} | r{self.r_addr}'
+            )
+
+            if await self.reconnect():
+                return True
+            return False
+
+        logger.error(
+            f'[{self.node_id}:{self.conn_no}] {error} '
+            f'for l{self.l_addr} | r{self.r_addr}'
+        )
+        await self.disc()
+        return False
 
     def __calc_proc_time(self):
         if self.proc_start:
