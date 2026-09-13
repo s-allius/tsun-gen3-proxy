@@ -103,7 +103,7 @@ class FakeReader():
             self.test = self.RD_TEST_0_BYTES
             return self.buf
         elif self.test == self.RD_TEST_TIMEOUT:
-            raise TimeoutError
+            raise TimeoutError(errno.ETIMEDOUT, "Connection timeout")
         elif self.test == self.RD_TEST_SW_EXCEPT:
             self.test = self.RD_TEST_0_BYTES
             self.unknown_var += 1    
