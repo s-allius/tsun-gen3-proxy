@@ -219,15 +219,12 @@ class AsyncStream(AsyncIfcImpl):
             dead_conn_to: int) -> bool:
         """Handle asyncio.TimeoutError exceptions, including reconnection logic
         for client-side connections."""
-        if client_side and error.errno == errno.ETIMEDOUT:
+        if client_side and error.errno is not None:
             logger.info(
                 f'[{self.node_id}:{self.conn_no}] Reconnect after {error} '
                 f'for l{self.l_addr} | r{self.r_addr}'
             )
-
-            if await self.reconnect():
-                return True
-            return False
+            return await self.reconnect()
 
         logger.warning(
             f'[{self.node_id}:{self.conn_no}] Dead connection timeout '
@@ -245,10 +242,7 @@ class AsyncStream(AsyncIfcImpl):
                 f'[{self.node_id}:{self.conn_no}] Reconnect after {error} '
                 f'for l{self.l_addr} | r{self.r_addr}'
             )
-
-            if await self.reconnect():
-                return True
-            return False
+            return await self.reconnect()
 
         logger.error(
             f'[{self.node_id}:{self.conn_no}] {error} '
