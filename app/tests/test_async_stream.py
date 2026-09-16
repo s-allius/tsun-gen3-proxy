@@ -275,7 +275,8 @@ async def test_create_remote_cb():
     assert cnt == 0
 
 @pytest.mark.asyncio(loop_scope="module")
-async def test_sw_exception():
+async def test_sw_exception(spy_inc_cnt):
+    spy = spy_inc_cnt
     assert asyncio.get_running_loop()
     reader = FakeReader()
     reader.test  = FakeReader.RD_TEST_SW_EXCEPT
@@ -300,6 +301,10 @@ async def test_sw_exception():
     assert cnt == 1
     del ifc
 
+    spy.assert_has_calls([call('Cloud_Conn_Cnt'), call('ProxyMode_Cnt')])
+    assert Infos.get_counter('ProxyMode_Cnt') == 0
+    assert Infos.get_counter('Cloud_Conn_Cnt') == 0
+
     cnt = 0
     for inv in InverterBase:
         print(f'InverterBase refs:{gc.get_referrers(inv)}')
@@ -307,7 +312,8 @@ async def test_sw_exception():
     assert cnt == 0
 
 @pytest.mark.asyncio(loop_scope="module")
-async def test_os_error():
+async def test_os_error(spy_inc_cnt):
+    spy = spy_inc_cnt
     assert asyncio.get_running_loop()
     reader = FakeReader()
     reader.test  = FakeReader.RD_TEST_OS_ERROR
@@ -329,6 +335,10 @@ async def test_os_error():
     assert cnt == 1
     del ifc
 
+    spy.assert_has_calls([call('Cloud_Conn_Cnt'), call('ProxyMode_Cnt')])
+    assert Infos.get_counter('ProxyMode_Cnt') == 0
+    assert Infos.get_counter('Cloud_Conn_Cnt') == 0
+
     cnt = 0
     for inv in InverterBase:
         print(f'InverterBase refs:{gc.get_referrers(inv)}')
@@ -336,9 +346,10 @@ async def test_os_error():
     assert cnt == 0
 
 @pytest.mark.asyncio(loop_scope="module")
-async def test_conn_timeout(logger_mock):
+async def test_conn_timeout(logger_mock, spy_inc_cnt):
     assert asyncio.get_running_loop()
     mock_logger = logger_mock
+    spy = spy_inc_cnt
 
     reader = FakeReader()
     reader.test  = FakeReader.RD_TEST_TIMEOUT
@@ -368,6 +379,10 @@ async def test_conn_timeout(logger_mock):
         assert open_cnt == 1
         del ifc
 
+    spy.assert_has_calls([call('Cloud_Conn_Cnt'), call('ProxyMode_Cnt')])
+    assert Infos.get_counter('ProxyMode_Cnt') == 0
+    assert Infos.get_counter('Cloud_Conn_Cnt') == 0
+
     assert "Reconnected: lsock:1234 | rremote.intern" in str(mock_logger.info.mock_calls)
     assert "Dead connection timeout (0.01s) for sock:1234" in str(mock_logger.warning.mock_calls)
     mock_logger.warning.assert_called_once()
@@ -380,9 +395,10 @@ async def test_conn_timeout(logger_mock):
     assert cnt == 0
 
 @pytest.mark.asyncio(loop_scope="module")
-async def test_conn_double_timeout(logger_mock):
+async def test_conn_double_timeout(logger_mock, spy_inc_cnt):
     assert asyncio.get_running_loop()
     mock_logger = logger_mock
+    spy = spy_inc_cnt
 
     reader = FakeReader()
     reader.test  = FakeReader.RD_TEST_TIMEOUT
@@ -406,6 +422,10 @@ async def test_conn_double_timeout(logger_mock):
         assert cnt == 1
         del ifc
 
+    spy.assert_has_calls([call('Cloud_Conn_Cnt'), call('ProxyMode_Cnt')])
+    assert Infos.get_counter('ProxyMode_Cnt') == 0
+    assert Infos.get_counter('Cloud_Conn_Cnt') == 0
+
     mock_logger.warning.assert_called_once()
     mock_logger.error.assert_not_called()
     mock_logger.exception.assert_not_called()
@@ -417,9 +437,10 @@ async def test_conn_double_timeout(logger_mock):
     assert cnt == 0
 
 @pytest.mark.asyncio(loop_scope="module")
-async def test_conn_reset(logger_mock):
+async def test_conn_reset(logger_mock, spy_inc_cnt):
     assert asyncio.get_running_loop()
     mock_logger = logger_mock
+    spy = spy_inc_cnt
 
     reader = FakeReader()
     reader.test  = FakeReader.RD_TEST_CONN_RESET
@@ -449,6 +470,10 @@ async def test_conn_reset(logger_mock):
         assert open_cnt == 1
         del ifc
 
+    spy.assert_has_calls([call('Cloud_Conn_Cnt'), call('ProxyMode_Cnt')])
+    assert Infos.get_counter('ProxyMode_Cnt') == 0
+    assert Infos.get_counter('Cloud_Conn_Cnt') == 0
+
     assert "Reconnected: lsock:1234 | rremote.intern" in str(mock_logger.info.mock_calls)
     assert "Dead connection timeout (0.01s) for sock:1234" in str(mock_logger.warning.mock_calls)
     mock_logger.warning.assert_called_once()
@@ -461,9 +486,10 @@ async def test_conn_reset(logger_mock):
     assert cnt == 0
 
 @pytest.mark.asyncio(loop_scope="module")
-async def test_conn_reset_timeout(logger_mock):
+async def test_conn_reset_timeout(logger_mock, spy_inc_cnt):
     assert asyncio.get_running_loop()
     mock_logger = logger_mock
+    spy = spy_inc_cnt
 
     reader = FakeReader()
     reader.test  = FakeReader.RD_TEST_CONN_RESET
@@ -487,6 +513,10 @@ async def test_conn_reset_timeout(logger_mock):
         assert cnt == 1
         del ifc
 
+    spy.assert_has_calls([call('Cloud_Conn_Cnt'), call('ProxyMode_Cnt')])
+    assert Infos.get_counter('ProxyMode_Cnt') == 0
+    assert Infos.get_counter('Cloud_Conn_Cnt') == 0
+
     mock_logger.warning.assert_called_once()
     mock_logger.error.assert_not_called()
     mock_logger.exception.assert_not_called()
@@ -498,9 +528,10 @@ async def test_conn_reset_timeout(logger_mock):
     assert cnt == 0
 
 @pytest.mark.asyncio(loop_scope="module")
-async def test_conn_reset_except(logger_mock):
+async def test_conn_reset_except(logger_mock, spy_inc_cnt):
     assert asyncio.get_running_loop()
     mock_logger = logger_mock
+    spy = spy_inc_cnt
 
     reader = FakeReader()
     reader.test  = FakeReader.RD_TEST_CONN_RESET
@@ -523,6 +554,10 @@ async def test_conn_reset_except(logger_mock):
         print('End loop')
         assert cnt == 1
         del ifc
+
+    spy.assert_has_calls([call('Cloud_Conn_Cnt'), call('ProxyMode_Cnt')])
+    assert Infos.get_counter('ProxyMode_Cnt') == 0
+    assert Infos.get_counter('Cloud_Conn_Cnt') == 0
 
     mock_logger.warning.assert_not_called()
     mock_logger.error.assert_not_called()
