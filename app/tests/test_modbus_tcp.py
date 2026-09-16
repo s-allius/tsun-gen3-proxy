@@ -291,7 +291,7 @@ async def test_modbus_cnf2(config_conn, patch_no_mqtt, patch_open):
 
     assert Infos.stat['proxy']['Inverter_Cnt'] == 0
     ModbusTcp(asyncio.get_event_loop())
-    await asyncio.sleep(0.01)
+    await asyncio.sleep(0.001)
     test = 0
     for m in Message:
         if (m.node_id == 'inv_2'):
@@ -302,7 +302,7 @@ async def test_modbus_cnf2(config_conn, patch_no_mqtt, patch_open):
             del m
         
     assert test == 1
-    await asyncio.sleep(0.01)
+    await asyncio.sleep(0.001)
     assert Infos.stat['proxy']['Inverter_Cnt'] == 0
 
 @pytest.mark.asyncio(loop_scope="module")
@@ -315,7 +315,7 @@ async def test_modbus_cnf3(config_conn, patch_no_mqtt, patch_open):
 
     assert Infos.stat['proxy']['Inverter_Cnt'] == 0
     ModbusTcp(asyncio.get_event_loop(), tim_restart= 0)
-    await asyncio.sleep(0.01)
+    await asyncio.sleep(0.001)
     test = 0
     for m in Message:
         if (m.node_id == 'inv_2'):
@@ -324,16 +324,16 @@ async def test_modbus_cnf3(config_conn, patch_no_mqtt, patch_open):
             if test == 1:
                 m.shutdown_started = False
                 m.ifc._reader.on_recv.set()
-                await asyncio.sleep(0.01)
+                await asyncio.sleep(0.001)
                 assert m.state == State.closed
-                await asyncio.sleep(0.01)
+                await asyncio.sleep(0.001)
             else:
                 m.shutdown_started = True
                 m.ifc._reader.on_recv.set()
                 del m
 
     assert  test == 2
-    await asyncio.sleep(0.01)
+    await asyncio.sleep(0.001)
     assert Infos.stat['proxy']['Inverter_Cnt'] == 0
 
 @pytest.mark.asyncio(loop_scope="module")
@@ -346,7 +346,7 @@ async def test_mqtt_err(config_conn, patch_mqtt_err, patch_open):
 
     assert Infos.stat['proxy']['Inverter_Cnt'] == 0
     ModbusTcp(asyncio.get_event_loop(), tim_restart= 0)
-    await asyncio.sleep(0.01)
+    await asyncio.sleep(0.001)
     test = 0
     for m in Message:
         if (m.node_id == 'inv_2'):
@@ -355,15 +355,15 @@ async def test_mqtt_err(config_conn, patch_mqtt_err, patch_open):
             if test == 1:
                 m.shutdown_started = False
                 m.ifc._reader.on_recv.set()
-                await asyncio.sleep(0.01)
+                await asyncio.sleep(0.001)
                 assert m.state == State.closed
-                await asyncio.sleep(0.01)
+                await asyncio.sleep(0.001)
             else:
                 m.shutdown_started = True
                 m.ifc._reader.on_recv.set()
                 del m
 
-    await asyncio.sleep(0.01)
+    await asyncio.sleep(0.001)
     assert Infos.stat['proxy']['Inverter_Cnt'] == 0
 
 @pytest.mark.asyncio(loop_scope="module")
@@ -376,7 +376,7 @@ async def test_mqtt_except(config_conn, patch_mqtt_except, patch_open):
 
     assert Infos.stat['proxy']['Inverter_Cnt'] == 0
     ModbusTcp(asyncio.get_event_loop(), tim_restart= 0)
-    await asyncio.sleep(0.01)
+    await asyncio.sleep(0.001)
     test = 0
     for m in Message:
         if (m.node_id == 'inv_2'):
@@ -385,13 +385,13 @@ async def test_mqtt_except(config_conn, patch_mqtt_except, patch_open):
             if test == 1:
                 m.shutdown_started = False
                 m.ifc._reader.on_recv.set()
-                await asyncio.sleep(0.01)
+                await asyncio.sleep(0.001)
                 assert m.state == State.closed
-                await asyncio.sleep(0.01)
+                await asyncio.sleep(0.001)
             else:
                 m.shutdown_started = True
                 m.ifc._reader.on_recv.set()
                 del m
 
-    await asyncio.sleep(0.01)
+    await asyncio.sleep(0.001)
     assert Infos.stat['proxy']['Inverter_Cnt'] == 0
