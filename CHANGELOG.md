@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Update dependency ubuntu to v26
 - Update dependency coverage to v7.16.1
 - Update ghcr.io/hassio-addons/base Docker tag to v21.0.4
 - Optimize github action for build and test run
