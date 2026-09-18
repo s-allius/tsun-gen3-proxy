@@ -13,7 +13,7 @@
 # 1 Build Base Image #
 ######################
 
-ARG BUILD_FROM="ghcr.io/hassio-addons/base:21.0.4"
+ARG BUILD_FROM="ghcr.io/hassio-addons/base:21.0.5"
 # hadolint ignore=DL3006
 FROM $BUILD_FROM AS base
 
