@@ -792,10 +792,10 @@ async def test_result_fetch_abort(client):
     # First clear log
     LogHandler().clear()
 
-    # 1. We define a side_effect function that replaces the 10s with 0.1s
+    # 1. We define a side_effect function that replaces the 10s with 0.01s
     def side_effect_short_timeout(delay):
         # Use the original function here, which is not mocked
-        return original_timeout(0.1)
+        return original_timeout(0.01)
     
     async def slow_script():
         await asyncio.sleep(1.0)
