@@ -277,12 +277,14 @@ class AsyncStream(AsyncIfcImpl):
                 f'[{self.node_id}:{self.conn_no}] '
                 f'Failed to reconnect for l{self.l_addr} | '
                 f'r{self.r_addr}: {e}')
+            await self.disc()
             return False
         except Exception as e:
             logger.exception(
                 f'[{self.node_id}:{self.conn_no}] '
                 f'Failed to reconnect for l{self.l_addr} | '
                 f'r{self.r_addr}: {e}')
+            await self.disc()
             return False
 
     async def disc(self) -> None:
