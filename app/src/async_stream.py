@@ -194,13 +194,9 @@ class AsyncStream(AsyncIfcImpl):
             await self.__await_and_process_pkt(dead_conn_to)
             return True
 
-        except asyncio.TimeoutError:
-            logger.warning(
-                f'[{self.node_id}:{self.conn_no}] Dead connection timeout '
-                f'({dead_conn_to}s) for {self.l_addr}'
-            )
-            await self.disc()
-            return False
+        except asyncio.TimeoutError as error:
+            return await self._handle_timeout_error(
+                error, client_side, dead_conn_to)
 
         except OSError as error:
             return await self._handle_os_error(error, client_side)
@@ -216,6 +212,27 @@ class AsyncStream(AsyncIfcImpl):
             logger.exception(f"Exception for {self.r_addr}")
             return True
 
+    async def _handle_timeout_error(
+            self,
+            error: asyncio.TimeoutError,
+            client_side: bool,
+            dead_conn_to: int) -> bool:
+        """Handle asyncio.TimeoutError exceptions, including reconnection logic
+        for client-side connections."""
+        if client_side and error.errno is not None:
+            logger.info(
+                f'[{self.node_id}:{self.conn_no}] Reconnect after {error} '
+                f'for l{self.l_addr} | r{self.r_addr}'
+            )
+            return await self.reconnect()
+
+        logger.warning(
+            f'[{self.node_id}:{self.conn_no}] Dead connection timeout '
+            f'({dead_conn_to}s) for {self.l_addr}'
+        )
+        await self.disc()
+        return False
+
     async def _handle_os_error(
             self, error: OSError, client_side: bool) -> bool:
         """Handle OSError exceptions, including reconnection logic
@@ -225,10 +242,7 @@ class AsyncStream(AsyncIfcImpl):
                 f'[{self.node_id}:{self.conn_no}] Reconnect after {error} '
                 f'for l{self.l_addr} | r{self.r_addr}'
             )
-
-            if await self.reconnect():
-                return True
-            return False
+            return await self.reconnect()
 
         logger.error(
             f'[{self.node_id}:{self.conn_no}] {error} '
@@ -258,11 +272,19 @@ class AsyncStream(AsyncIfcImpl):
                         f'Reconnected: l{self.l_addr} | '
                         f'r{self.r_addr}')
             return True
+        except (asyncio.TimeoutError, OSError) as e:
+            logger.warning(
+                f'[{self.node_id}:{self.conn_no}] '
+                f'Failed to reconnect for l{self.l_addr} | '
+                f'r{self.r_addr}: {e}')
+            await self.disc()
+            return False
         except Exception as e:
             logger.exception(
                 f'[{self.node_id}:{self.conn_no}] '
                 f'Failed to reconnect for l{self.l_addr} | '
                 f'r{self.r_addr}: {e}')
+            await self.disc()
             return False
 
     async def disc(self) -> None:

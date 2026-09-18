@@ -118,17 +118,24 @@ def test_native_client(test_hostname, test_port):
     import threading
 
     c = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
-    c.loop_start()
     try:
         # Just make sure the client connects successfully
         on_connect = threading.Event()
         c.on_connect = Mock(side_effect=lambda *_: on_connect.set())
-        c.connect_async(test_hostname, test_port)
-        if not on_connect.wait(3):
+        # Synchronous connect forces immediate socket creation and TCP handshake
+        # in the main thread, bypassing the internal 1-second loop delays.
+        c.connect(test_hostname, test_port, keepalive=5)
+        
+        # Manually pump the event loop once to process the incoming 
+        # MQTT CONNACK packet and trigger the callback.
+        c.loop(timeout=0.2) 
+
+        if not on_connect.wait(1.5):
             NO_MOSQUITTO_TEST = True  # skip all mosquitto tests
             pytest.skip('skipping, since Mosquitto is not reliable at the moment')
     finally:
-        c.loop_stop()
+        if c.is_connected():   
+            c.disconnect()
 
 @pytest.mark.asyncio(loop_scope="module")
 async def test_mqtt_connection(config_mqtt_conn):

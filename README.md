@@ -49,11 +49,20 @@ If you use a Pi-hole, you can also store the host entry in the Pi-hole.
 
 ## Features
 
-- Supports TSUN GEN3 PLUS inverters: TSOL-MX450, MX-800 and MX1000
-- Supports TSUN GEN3 PLUS inverters: TSOL-MX3000 (from version 0.16)
-- Supports TSUN GEN3 PLUS inverters: TSOL-MS2000, MS1800 and MS1600
-- Supports TSUN GEN3 PLUS batteries: TSOL-DC1000
-- Supports TSUN GEN3 inverters: TSOL-MS3000, MS800, MS700, MS600, MS400, MS350 and MS300
+- Support for TSUN MX Series:
+  - Microinverter 1-in-1: TSOL-MX500, MX450 and MX400
+  - Microinverter 2-in-1: TSOL-MX1000, MX900 and MX800
+  - Microinverter 4-in-1: TSOL-MX2250
+  - Microinverter 6-in-1: TSOL-MX3300, MX3000, MX2700, MX2500 and MX2400
+- Support for TSUN MS Series:
+  - Microinverter 1-in-1: TSOL-MS400, MS350 and MS300
+  - Microinverter 2-in-1: TSOL-MS800, MS700 and MS600
+  - Microinverter 4-in-1: TSOL-MS3000, MS2000, MS1800 and MS1600
+- Support for TSUN MP Series:
+  - Microinverter 4-in-1: TSOL-MP2250
+  - Microinverter 6-in-1: TSOL-MP3000 (from version 0.17)
+- Support for TSUN Batteries:
+  - DCU: TSOL-DC1000
 - `MQTT` support
 - `Home-Assistant` auto-discovery support
 - `MODBUS` support via MQTT topics
