@@ -454,6 +454,10 @@ class SolarmanV5(SolarmanBase):
 
     def establish_emu(self):
         _len = 223
+        logging.info(
+            f"Establish SolarmanEmu for SNR:{self.snr} "
+        )
+        self.establish_inv_emu = False
         build_msg = self.db.build(0x41, 2)
         struct.pack_into(
             '<BHHHLBL', build_msg, 0, 0xA5, _len-11, 0x4110,
