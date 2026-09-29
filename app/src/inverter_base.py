@@ -60,7 +60,6 @@ class InverterBase(InverterIfc, Proxy):
             if inv.addr[0] == self.addr[0]:
                 logging.info(f'[{stream.node_id}] close zombie: {inv.addr}')
                 inv.close()
-                continue
         return self
 
     def __exit__(self, exc_type, exc, tb) -> None:
