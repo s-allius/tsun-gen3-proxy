@@ -39,11 +39,12 @@ def _get_row(inv: InverterBase):
         icon2, descr2 = _get_cloud_icon(client_mode)
 
     row = []
-    row.append(f'<i class="fa {icon1}" title="{_(descr1)}"></i> {ip1}:{port1}')
-    row.append(f'<i class="fa {icon1}" title="{_(descr1)}"></i> {ip1}')
-    row.append(inv_serial)
-    row.append(f'<i class="fa {icon2}" title="{_(descr2)}"></i> {ip2}:{port2}')
-    row.append(f'<i class="fa {icon2}" title="{_(descr2)}"></i> {ip2}')
+    row.extend((
+        f'<i class="fa {icon1}" title="{_(descr1)}"></i> {ip1}:{port1}',
+        f'<i class="fa {icon1}" title="{_(descr1)}"></i> {ip1}',
+        inv_serial,
+        f'<i class="fa {icon2}" title="{_(descr2)}"></i> {ip2}:{port2}',
+        f'<i class="fa {icon2}" title="{_(descr2)}"></i> {ip2}'))
     return row
 
 

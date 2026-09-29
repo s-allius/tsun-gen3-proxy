@@ -15,9 +15,10 @@ def _get_row(inv: InverterBase):
     sug_area = inv.local.stream.sug_area
 
     row = []
-    row.append(inv_serial)
-    row.append(entity_prfx+node_id)
-    row.append(sug_area)
+    row.extend((
+        inv_serial,
+        entity_prfx+node_id,
+        sug_area))
     return row
 
 
