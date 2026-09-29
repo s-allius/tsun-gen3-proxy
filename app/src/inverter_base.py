@@ -50,17 +50,22 @@ class InverterBase(InverterIfc, Proxy):
         )
 
     def __enter__(self):
+        stream = self.local.stream
+        logging.info(
+            f'[{stream.node_id}] new inverter connection: {self.addr}'
+        )
+        for inv in InverterBase:
+            if inv == self:
+                continue
+            if inv.addr[0] == self.addr[0]:
+                logging.info(f'[{stream.node_id}] close zombie: {inv.addr}')
+                inv.close()
+                continue
         return self
 
     def __exit__(self, exc_type, exc, tb) -> None:
         logging.debug(f'InverterBase.__exit__() {self.addr}')
-        self.__del_remote()
-
-        self.local.stream.close()
-        self.local.stream = None
-        self.local.ifc.close()
-        self.local.ifc = None
-
+        self.close()
         # now explicitly call garbage collector to release unreachable objects
         unreachable_obj = gc.collect()
         logging.debug(
@@ -85,6 +90,16 @@ class InverterBase(InverterIfc, Proxy):
             self.local.stream.shutdown_started = shutdown_started
         if self.local.ifc:
             await self.local.ifc.disc()
+
+    def close(self):
+        logging.debug(f'InverterBase.close() {self.addr}')
+        self.__del_remote()
+        if self.local.stream:
+            self.local.stream.close()
+            self.local.stream = None
+        if self.local.ifc:
+            self.local.ifc.close()
+            self.local.ifc = None
 
     def healthy(self) -> bool:
         logging.debug('InverterBase healthy()')

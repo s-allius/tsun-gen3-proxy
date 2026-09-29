@@ -48,15 +48,21 @@ class FakeReader():
         await self.on_recv.wait()
         return b''
     def feed_eof(self):
+        self.on_recv.set()
         return
 
 
 class FakeWriter():
     peer = ('47.1.2.3', 10000)
+    def __init__(self, peer=None):
+        self.priv_peer = peer
+        self.state = 1
     def write(self, buf: bytes):
         return
     def get_extra_info(self, sel: str):
         if sel == 'peername':
+            if self.priv_peer:
+                return self.priv_peer
             return self.peer
         elif sel == 'sockname':
             return 'sock:1234'
@@ -64,6 +70,7 @@ class FakeWriter():
     def is_closing(self):
         return False
     def close(self):
+        self.state = 0
         return
     async def wait_closed(self):
         return
@@ -421,3 +428,40 @@ async def test_remote_disc(my_loop, config_conn, patch_open_connection):
         print(f'InverterBase refs:{gc.get_referrers(inv)}')
         cnt += 1
     assert cnt == 0
+
+@pytest.mark.asyncio(loop_scope="module")
+async def test_inverter_zombie(my_loop):
+    _ = my_loop
+    InverterBase._registry.clear()
+    cnt1 = 0
+    cnt2 = 0
+    reader1 = FakeReader()
+    writer1 =  FakeWriter(peer=("192.168.0.1", 47000))
+    reader2 = FakeReader()
+    writer2 =  FakeWriter(peer=("192.168.0.1", 47001))
+
+    async def handler(reader, writer):
+        with InverterBase(reader, writer, 'tsun', Talent) as inv:
+            await inv.local.ifc.server_loop()
+
+    task1 = asyncio.create_task(handler(reader1, writer1))
+
+    await asyncio.sleep(0)
+    for inv in InverterBase:
+        cnt1 += 1
+
+    task2 = asyncio.create_task(handler(reader2, writer2))
+    await asyncio.sleep(0)
+    for inv in InverterBase:
+        cnt2 += 1
+
+    assert cnt1 == 1
+    assert cnt2 == 2
+    assert writer1.state == 0  # closed
+    assert writer2.state == 1  # up
+    reader2.feed_eof()
+    await task1
+    await task2    
+    for inv in InverterBase:
+        print(f'{inv.addr}: There are still instances of the InverterBase class')
+    # pytest.fail('There are still instances of the InverterBase class')
