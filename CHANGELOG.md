@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- fix more sonar qube warnings
 - Update ghcr.io/hassio-addons/base Docker tag to v21.0.6
 - Update dependency coverage to v7.16.2
 - Update dependency flake8 to v7.4.1
