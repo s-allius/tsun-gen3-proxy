@@ -435,17 +435,19 @@ async def test_inverter_zombie(my_loop):
     InverterBase._registry.clear()
     cnt1 = 0
     cnt2 = 0
+    cnt3 = 0
     reader1 = FakeReader()
     writer1 =  FakeWriter(peer=("192.168.0.1", 47000))
     reader2 = FakeReader()
     writer2 =  FakeWriter(peer=("192.168.0.1", 47001))
+    reader3 = FakeReader()
+    writer3 =  FakeWriter(peer=("192.168.0.2", 47001))
 
     async def handler(reader, writer):
         with InverterBase(reader, writer, 'tsun', Talent) as inv:
             await inv.local.ifc.server_loop()
 
     task1 = asyncio.create_task(handler(reader1, writer1))
-
     await asyncio.sleep(0)
     for inv in InverterBase:
         cnt1 += 1
@@ -455,13 +457,22 @@ async def test_inverter_zombie(my_loop):
     for inv in InverterBase:
         cnt2 += 1
 
+    task3 = asyncio.create_task(handler(reader3, writer3))
+    await asyncio.sleep(0)
+    for inv in InverterBase:
+        cnt3 += 1
+
     assert cnt1 == 1
+    assert cnt2 == 2
     assert cnt2 == 2
     assert writer1.state == 0  # closed
     assert writer2.state == 1  # up
+    assert writer3.state == 1  # up
     reader2.feed_eof()
+    reader3.feed_eof()
     await task1
     await task2    
+    await task3    
     for inv in InverterBase:
         print(f'{inv.addr}: There are still instances of the InverterBase class')
     # pytest.fail('There are still instances of the InverterBase class')
