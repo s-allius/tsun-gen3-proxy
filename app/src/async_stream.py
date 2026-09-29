@@ -227,7 +227,8 @@ class AsyncStream(AsyncIfcImpl):
             return await self.reconnect()
 
         logger.warning(
-            f'[{self.node_id}:{self.conn_no}] Dead connection timeout '
+            f'[{self.node_id}:{self.conn_no}] {error}; '
+            'Dead connection timeout '
             f'({dead_conn_to}s) for {self.l_addr}'
         )
         await self.disc()
