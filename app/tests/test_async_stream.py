@@ -3,6 +3,7 @@ import pytest
 import asyncio
 import gc
 import time
+import errno
 
 from infos import Infos
 from inverter_base import InverterBase
@@ -108,17 +109,17 @@ async def test_close_cb():
     cnt = 0
     ifc =  AsyncStreamClient(reader, writer, None, closed)
     ifc.prot_set_timeout_cb(timeout)
-    await ifc.client_loop('')
+    await ifc.client_loop('', reconnect=False)
     assert cnt == 1
     ifc.prot_set_timeout_cb(timeout)
-    await ifc.client_loop('')
+    await ifc.client_loop('', reconnect=False)
     assert cnt == 1         # check that the closed method would not be called 
     del ifc
 
     cnt = 0
     ifc =  AsyncStreamClient(reader, writer, None, None)
     ifc.prot_set_timeout_cb(timeout)
-    await ifc.client_loop('')
+    await ifc.client_loop('', reconnect=False)
     assert cnt == 0
     del ifc
 
@@ -367,6 +368,8 @@ async def test_conn_timeout(logger_mock, spy_inc_cnt):
     async def new_open_connection(*args, **kwargs):
         nonlocal open_cnt
         open_cnt += 1
+        if open_cnt > 1:
+            raise ConnectionResetError(errno.ECONNRESET, "Connection reset by peer")
         return FakeReader(), FakeWriter()
 
     with patch('asyncio.open_connection', new_open_connection):
@@ -376,15 +379,16 @@ async def test_conn_timeout(logger_mock, spy_inc_cnt):
         await ifc.client_loop('')
         print('End loop')
         assert close_cnt == 1
-        assert open_cnt == 1
+        assert open_cnt == 2
         del ifc
 
     spy.assert_has_calls([call('Cloud_Conn_Cnt'), call('ProxyMode_Cnt')])
     assert Infos.get_counter('ProxyMode_Cnt') == 0
     assert Infos.get_counter('Cloud_Conn_Cnt') == 0
 
+    assert "Reconnect after [Errno 60] Connection timeout for lsock:1234 | rremote.intern" in str(mock_logger.info.mock_calls)
     assert "Reconnected: lsock:1234 | rremote.intern" in str(mock_logger.info.mock_calls)
-    assert "Dead connection timeout (0.01s) for sock:1234" in str(mock_logger.warning.mock_calls)
+    assert "Failed to reconnect for lsock:1234 | rremote.intern" in str(mock_logger.warning.mock_calls)
     mock_logger.warning.assert_called_once()
     mock_logger.error.assert_not_called()
     mock_logger.exception.assert_not_called()
@@ -590,6 +594,8 @@ async def test_conn_reset(logger_mock):
     async def new_open_connection(*args, **kwargs):
         nonlocal open_cnt
         open_cnt += 1
+        if open_cnt >1:
+            raise ConnectionResetError(errno.ECONNRESET, "Connection reset by peer")
         return FakeReader(), FakeWriter()
 
     with patch('asyncio.open_connection', new_open_connection):
@@ -599,11 +605,12 @@ async def test_conn_reset(logger_mock):
         await ifc.client_loop('')
         print('End loop')
         assert close_cnt == 1
-        assert open_cnt == 1
+        assert open_cnt == 2
         del ifc
 
+    assert "Reconnect after [Errno 54] Connection reset by peer for lsock:1234 | rremote.intern" in str(mock_logger.info.mock_calls)
     assert "Reconnected: lsock:1234 | rremote.intern" in str(mock_logger.info.mock_calls)
-    assert "Dead connection timeout (0.01s) for sock:1234" in str(mock_logger.warning.mock_calls)
+    assert "Failed to reconnect for lsock:1234" in str(mock_logger.warning.mock_calls)
     mock_logger.warning.assert_called_once()
     mock_logger.error.assert_not_called()
     mock_logger.exception.assert_not_called()

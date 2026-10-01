@@ -219,7 +219,7 @@ class AsyncStream(AsyncIfcImpl):
             dead_conn_to: int) -> bool:
         """Handle asyncio.TimeoutError exceptions, including reconnection logic
         for client-side connections."""
-        if client_side and error.errno is not None:
+        if client_side:
             logger.info(
                 f'[{self.node_id}:{self.conn_no}] Reconnect after {error} '
                 f'for l{self.l_addr} | r{self.r_addr}'
@@ -462,7 +462,7 @@ class AsyncStreamClient(AsyncStream):
         self.close_cb = None
         super().close()
 
-    async def client_loop(self, _: str) -> None:
+    async def client_loop(self, _: str, reconnect=True) -> None:
         '''Loop for receiving messages from the TSUN cloud (client-side)'''
         Infos.inc_counter('Cloud_Conn_Cnt')
         if self.emu_mode:
@@ -470,7 +470,7 @@ class AsyncStreamClient(AsyncStream):
         else:
             Infos.inc_counter('ProxyMode_Cnt')
         await self.publish_outstanding_mqtt()
-        await self.loop(client_side=True)
+        await self.loop(client_side=reconnect)
         if self.emu_mode:
             Infos.dec_counter('EmuMode_Cnt')
         else:
