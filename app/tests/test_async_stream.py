@@ -386,7 +386,7 @@ async def test_conn_timeout(logger_mock, spy_inc_cnt):
     assert Infos.get_counter('ProxyMode_Cnt') == 0
     assert Infos.get_counter('Cloud_Conn_Cnt') == 0
 
-    assert "Reconnect after [Errno 60] Connection timeout for lsock:1234 | rremote.intern" in str(mock_logger.info.mock_calls)
+    assert f"Reconnect after [Errno {errno.ETIMEDOUT}] Connection timeout for lsock:1234 | rremote.intern" in str(mock_logger.info.mock_calls)
     assert "Reconnected: lsock:1234 | rremote.intern" in str(mock_logger.info.mock_calls)
     assert "Failed to reconnect for lsock:1234 | rremote.intern" in str(mock_logger.warning.mock_calls)
     mock_logger.warning.assert_called_once()
@@ -595,7 +595,7 @@ async def test_conn_reset(logger_mock):
         nonlocal open_cnt
         open_cnt += 1
         if open_cnt >1:
-            raise ConnectionResetError(54, "Connection reset by peer")
+            raise ConnectionResetError(errno.ECONNRESET, "Connection reset by peer")
         return FakeReader(), FakeWriter()
 
     with patch('asyncio.open_connection', new_open_connection):
@@ -608,7 +608,7 @@ async def test_conn_reset(logger_mock):
         assert open_cnt == 2
         del ifc
 
-    assert "Reconnect after [Errno 54] Connection reset by peer for lsock:1234 | rremote.intern" in str(mock_logger.info.mock_calls)
+    assert f"Reconnect after [Errno {errno.ECONNRESET}] Connection reset by peer for lsock:1234 | rremote.intern" in str(mock_logger.info.mock_calls)
     assert "Reconnected: lsock:1234 | rremote.intern" in str(mock_logger.info.mock_calls)
     assert "Failed to reconnect for lsock:1234" in str(mock_logger.warning.mock_calls)
     mock_logger.warning.assert_called_once()
