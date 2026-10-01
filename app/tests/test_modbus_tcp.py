@@ -103,7 +103,7 @@ class FakeReader():
             self.test = self.RD_TEST_0_BYTES
             return self.buf
         elif self.test == self.RD_TEST_TIMEOUT:
-            raise TimeoutError(errno.ETIMEDOUT, "Connection timeout")
+            raise TimeoutError(60, "Connection timeout")
         elif self.test == self.RD_TEST_SW_EXCEPT:
             self.test = self.RD_TEST_0_BYTES
             self.unknown_var += 1    
@@ -112,7 +112,7 @@ class FakeReader():
             raise ConnectionRefusedError
         elif self.test == self.RD_TEST_CONN_RESET:
             self.test = self.RD_TEST_0_BYTES
-            raise ConnectionResetError(errno.ECONNRESET, "Connection reset by peer")
+            raise ConnectionResetError(54, "Connection reset by peer")
 
     def feed_eof(self):
         return

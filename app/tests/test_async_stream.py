@@ -595,7 +595,7 @@ async def test_conn_reset(logger_mock):
         nonlocal open_cnt
         open_cnt += 1
         if open_cnt >1:
-            raise ConnectionResetError(errno.ECONNRESET, "Connection reset by peer")
+            raise ConnectionResetError(54, "Connection reset by peer")
         return FakeReader(), FakeWriter()
 
     with patch('asyncio.open_connection', new_open_connection):
