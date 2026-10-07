@@ -169,7 +169,7 @@ class AsyncStream(AsyncIfcImpl):
         if self.async_publ_mqtt:
             await self.async_publ_mqtt()
 
-    async def loop(self, client_side: bool) -> Self:
+    async def loop(self, reconnect: bool) -> Self:
         """Async loop handler for precessing all received messages"""
         self.proc_start = time.time()
 
@@ -177,13 +177,13 @@ class AsyncStream(AsyncIfcImpl):
             await asyncio.sleep(0)  # be cooperative to other task
 
             should_continue = await self.__process_single_iteration(
-                client_side)
+                reconnect)
             if not should_continue:
                 break
 
         return self
 
-    async def __process_single_iteration(self, client_side: bool) -> bool:
+    async def __process_single_iteration(self, reconnect: bool) -> bool:
         """Helper method to process a single iteration of the loop.
 
         Returns True if the loop should continue, otherwise False.
@@ -196,10 +196,10 @@ class AsyncStream(AsyncIfcImpl):
 
         except asyncio.TimeoutError as error:
             return await self._handle_timeout_error(
-                error, client_side, dead_conn_to)
+                error, reconnect, dead_conn_to)
 
         except OSError as error:
-            return await self._handle_os_error(error, client_side)
+            return await self._handle_os_error(error, reconnect)
 
         except RuntimeError as error:
             logger.info(f'[{self.node_id}:{self.conn_no}] '
@@ -215,11 +215,11 @@ class AsyncStream(AsyncIfcImpl):
     async def _handle_timeout_error(
             self,
             error: asyncio.TimeoutError,
-            client_side: bool,
+            reconnect: bool,
             dead_conn_to: int) -> bool:
         """Handle asyncio.TimeoutError exceptions, including reconnection logic
         for client-side connections."""
-        if client_side and error.errno is not None:
+        if reconnect:
             logger.info(
                 f'[{self.node_id}:{self.conn_no}] Reconnect after {error} '
                 f'for l{self.l_addr} | r{self.r_addr}'
@@ -235,10 +235,10 @@ class AsyncStream(AsyncIfcImpl):
         return False
 
     async def _handle_os_error(
-            self, error: OSError, client_side: bool) -> bool:
+            self, error: OSError, reconnect: bool) -> bool:
         """Handle OSError exceptions, including reconnection logic
         for client-side connections."""
-        if client_side and error.errno == errno.ECONNRESET:
+        if reconnect and error.errno == errno.ECONNRESET:
             logger.info(
                 f'[{self.node_id}:{self.conn_no}] Reconnect after {error} '
                 f'for l{self.l_addr} | r{self.r_addr}'
@@ -378,8 +378,10 @@ class AsyncStream(AsyncIfcImpl):
 
     async def publish_outstanding_mqtt(self):
         '''Publish all outstanding MQTT topics'''
-        try:
+
+        if self.async_publ_mqtt:
             await self.async_publ_mqtt()
+        try:
             await Proxy._async_publ_mqtt_proxy_stat('proxy')
         except Exception:
             pass
@@ -406,7 +408,7 @@ class AsyncStreamServer(AsyncStream):
         Infos.inc_counter('Inverter_Cnt')
         Infos.inc_counter('ServerMode_Cnt')
         await self.publish_outstanding_mqtt()
-        await self.loop(client_side=False)
+        await self.loop(reconnect=False)
         Infos.dec_counter('ServerMode_Cnt')
         Infos.dec_counter('Inverter_Cnt')
         await self.publish_outstanding_mqtt()
@@ -462,7 +464,7 @@ class AsyncStreamClient(AsyncStream):
         self.close_cb = None
         super().close()
 
-    async def client_loop(self, _: str) -> None:
+    async def client_loop(self, _: str, reconnect=True) -> None:
         '''Loop for receiving messages from the TSUN cloud (client-side)'''
         Infos.inc_counter('Cloud_Conn_Cnt')
         if self.emu_mode:
@@ -470,7 +472,7 @@ class AsyncStreamClient(AsyncStream):
         else:
             Infos.inc_counter('ProxyMode_Cnt')
         await self.publish_outstanding_mqtt()
-        await self.loop(client_side=True)
+        await self.loop(reconnect=reconnect)
         if self.emu_mode:
             Infos.dec_counter('EmuMode_Cnt')
         else:
