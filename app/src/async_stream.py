@@ -378,8 +378,10 @@ class AsyncStream(AsyncIfcImpl):
 
     async def publish_outstanding_mqtt(self):
         '''Publish all outstanding MQTT topics'''
-        try:
+
+        if self.async_publ_mqtt:
             await self.async_publ_mqtt()
+        try:
             await Proxy._async_publ_mqtt_proxy_stat('proxy')
         except Exception:
             pass
