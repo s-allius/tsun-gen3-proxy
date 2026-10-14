@@ -3081,8 +3081,8 @@ async def test_proxy_at_cmd(my_loop, config_tsun_inv1, patch_open_connection, at
         inverter.forward(l,r)
         assert r.ifc.tx_fifo.get()==at_command_rsp_msg
 
-        assert Proxy.mqtt.key == ''
-        assert Proxy.mqtt.data == ""
+        assert Proxy.mqtt.key == 'tsun/test_1/proxy'
+        assert Proxy.mqtt.data == '{"Inverter_Cnt": 0, "Cloud_Conn_Cnt": 1, "Unknown_SNR": 0, "Unknown_Msg": 0, "Invalid_Data_Type": 0, "Internal_Error": 0, "Unknown_Ctrl": 0, "OTA_Start_Msg": 0, "SW_Exception": 0, "Invalid_Msg_Format": 0, "AT_Command": 0, "AT_Command_Blocked": 0, "DCU_Command": 0, "Modbus_Command": 0, "ProxyMode_Cnt": 1}'
 
 @pytest.mark.asyncio(loop_scope="module")
 async def test_proxy_at_blocked(my_loop, config_tsun_inv1, patch_open_connection, at_command_ind_msg_block, at_command_rsp_msg):
@@ -3239,8 +3239,8 @@ async def test_proxy_dcu_cmd(my_loop, config_tsun_dcu1, patch_open_connection, d
         inverter.forward(l,r)
         assert r.ifc.tx_fifo.get()==dcu_command_rsp_msg
 
-        assert Proxy.mqtt.key == ''
-        assert Proxy.mqtt.data == ""
+        assert Proxy.mqtt.key == 'tsun/test_1/proxy'
+        assert Proxy.mqtt.data == '{"Inverter_Cnt": 0, "Cloud_Conn_Cnt": 1, "Unknown_SNR": 0, "Unknown_Msg": 0, "Invalid_Data_Type": 0, "Internal_Error": 0, "Unknown_Ctrl": 0, "OTA_Start_Msg": 0, "SW_Exception": 0, "Invalid_Msg_Format": 0, "AT_Command": 0, "AT_Command_Blocked": 0, "DCU_Command": 0, "Modbus_Command": 0, "ProxyMode_Cnt": 1}'
 
 @pytest.mark.asyncio(loop_scope="module")
 async def test_msg_modbus_inv_1097(my_loop, config_tsun_inv1, inv_1097_modbus_rsp):
