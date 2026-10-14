@@ -13,12 +13,12 @@
 # 1 Build Base Image #
 ######################
 
-ARG BUILD_FROM="ghcr.io/hassio-addons/base:21.0.6"
+ARG BUILD_FROM="ghcr.io/hassio-addons/base:21.0.8"
 # hadolint ignore=DL3006
 FROM $BUILD_FROM AS base
 
 # Installiere Python und pip
-RUN apk add --no-cache python3=3.14.7-r1 py3-pip=26.1.2-r0
+RUN apk add --no-cache python3=3.14.8-r0 py3-pip=26.1.2-r0
 
 
 
