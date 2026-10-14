@@ -20,6 +20,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Update dependency aiohttp to v3.14.5
+- Update dependency pysonar to v1.9.0.5762
+- Update dependency python-dotenv to v1.2.4
 - fix more sonar qube warnings
 - Update ghcr.io/hassio-addons/base Docker tag to v21.0.6
 - Update dependency coverage to v7.16.2
