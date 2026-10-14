@@ -576,8 +576,6 @@ class Modbus():
                         info_db.tracer.log(level,
                                            f'[{self.node_id}] MODBUS: {name}'
                                            f' : {result}{unit}')
-                        logging.log(level, f'[{self.node_id}] MODBUS: {name} :'
-                                           f' {result}{unit}')
 
     '''
     MODBUS response timer
